@@ -312,5 +312,95 @@ function applicationName(){
   return $applicationName;  
 }
 
+//get the campaign goal details on the basis of trigger type and campaign goal name....
+function get_campaign_goal_details($trigger_type,$campaign_goal_name){
+  $campginGoalDetails = array();
+  global $wpdb,$table_prefix;
+  $table_name = 'wooconnection_campaign_goals';
+  $wp_table_name = $table_prefix . "$table_name";
+  if(!empty($trigger_type) && !empty($campaign_goal_name)){
+    $campginGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_goal_name = '".$campaign_goal_name."' and  wc_trigger_type=".$trigger_type);
+  }
+  return $campginGoalDetails;
+}
+
+//validate email whether is in valid format or not.
+function validate_email($email='',$log_message,$wooconnectionLogger){
+  if(isset($useremail) && !empty($useremail)){
+      if (!filter_var($useremail, FILTER_VALIDATE_EMAIL)) {
+        //Save logs and stop the process if email not is a valid email address also concate a error message...
+        $log_message = $log_message.' is failed because '.$email.' is not a valid email address';
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($log_message, true));
+        return false;  
+      }else{
+        return true;
+      }  
+  }else{
+      return false;
+  }
+}
+
+//get or add the contact to infusionsoft/keap application..
+function checkAddContactApp($access_token,$appUseremail){
+    //check if appUseremail is exist then get the current user id from infusionsoft/keap application on the basis of appUseremail 
+    $appContactId = "";
+    if(isset($appUseremail) && !empty($appUseremail)){
+        //create json array to push ocde in infusionsoft...
+        $jsonData ='{"duplicate_option": "Email","email_addresses":[{"email": "'.$appUseremail.'","field": "EMAIL1"}]}';
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+
+        }else{
+          $sucessData = json_decode($response);
+          if(!empty($sucessData->id)){
+            $appContactId = $sucessData->id;
+          }
+        }
+    }
+    return $appContactId;
+}
+
+
+//add contact to trigger....
+function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_call_name,$contact_id){
+    $sucessData = array();
+    if(!empty($access_token) && !empty($trigger_integration_name) && !empty($trigger_call_name) && !empty($contact_id)){
+      $url = 'https://api.infusionsoft.com/crm/rest/v1/campaigns/goals/'.$trigger_integration_name.'/'.$trigger_call_name;
+      //create json array to push ocde in infusionsoft...
+      $jsonData ='{"contact_id":'.$contact_id.'}';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+      );
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      if($err){
+      }else{
+        $sucessData = json_decode($response);
+        return $sucessData;
+      }
+      curl_close($ch);
+    }
+    return $sucessData;  
+}
+
 
 ?>
