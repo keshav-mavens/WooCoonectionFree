@@ -149,9 +149,16 @@
                     });
                 }
             });
+
+            //Check if "response" done....
+            var checkResponse = getQueryParameter('response');
+            if(checkResponse != "" && checkResponse == "1"){
+                swal("Saved!", 'Application authentication done successfully.', "success");
+            }
+
+
         });
 }(jQuery));
-
 
 //common function is used to validate the forms by form id....
 function validateForms(form){
@@ -334,5 +341,20 @@ function updateTriggerdetails(){
                 $('.save_trigger_details').removeClass("disable_anchor");
             }, 4000);
         });
+    }
+}
+
+//get the response from query string....
+function getQueryParameter(qspar){
+    var currentUrl = window.location.href;
+    var url = new URL(currentUrl);
+    var email = url.searchParams.get(qspar);
+    return email;
+}
+
+//hide model by model id....
+function hideCustomModel(modelId){
+    if(modelId != ""){
+        $("#"+modelId).hide();
     }
 }
