@@ -43,22 +43,22 @@ function checkPluginActivatedNot(){
   //Get plugin details..
   $plugin_settings = get_option('wc_plugin_details');
   if(isset($plugin_settings) && !empty($plugin_settings)){
-    if(empty($plugin_settings['plugin_activation_status']) && $plugin_settings['plugin_activation_status'] != PLUGIN_ACTIVATED){
+    if(!empty($plugin_settings['plugin_activation_status']) && $plugin_settings['plugin_activation_status'] != PLUGIN_ACTIVATED){
        $leftMenusDisable = 'leftMenusDisable';
     }
   }else{
-    //$leftMenusDisable = 'leftMenusDisable';
+    $leftMenusDisable = 'leftMenusDisable';
   }
   return $leftMenusDisable; 
 }
 
 //Function is used to return the html when connection is not created with infusionsoft/keap application......
-function connectionApplicationStatus(){
-  //$applicationConnectionStatus = get_application_settings();
+function applicationAuthenticationStatus(){
+  $applicationAuthenticationStatus = getAuthenticationDetails();
   $notConnectedHtml = '';
-  // if(empty($applicationConnectionStatus['applicationname']) && empty($applicationConnectionStatus['applicationapikey'])){
-  //   $notConnectedHtml ='<center><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/connection_fail.jpg" style="width: 100%;"/><br><br><p class="heading-text">To access this feature, First you need to create connection with infusionsoft/keap application by input the valid application name and api key in infusionsoft settings section of Getting started.</p>';  
-  // }
+  if(empty($applicationAuthenticationStatus)){
+    $notConnectedHtml ='<center><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/connection_fail.jpg" style="width: 100%;"/><br><br><p class="heading-text">To access this feature, First you need to authorize infusionsoft/keap application by click on authorize button in infusionsoft settings section of Getting started.</p>';  
+  }
   return $notConnectedHtml;
 }
 
@@ -136,20 +136,27 @@ function getAuthenticationDetails(){
       }
   } 
   $url = ADMIN_REMOTE_URL.'authenticationManage.php';
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_POST, 1);
-  curl_setopt($ch, CURLOPT_POSTFIELDS,
-            "postemail=".$email."&postkey=".$key."&posturl=".$website);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  $response = curl_exec($ch);
-  $err = curl_error($ch);
-  if($err){
+  if(!empty($email) && !empty($key)){
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_POST, 1);
+      curl_setopt($ch, CURLOPT_POSTFIELDS,
+                "postemail=".$email."&postkey=".$key."&posturl=".$website);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      if($err){
+      }else{
+       $sucessData = json_decode($response);
+       if(!empty($sucessData->authenticationDetails)){
+         $authenticationData = $sucessData->authenticationDetails;
+       }
+      }
+      return $authenticationData;
+      curl_close($ch);  
   }else{
-   $sucessData = json_decode($response);
-   $authenticationData = $sucessData->authenticationDetails;
+      return $authenticationData;
   }
-  return $authenticationData;
-  curl_close($ch);
+  
 }
 
 //Main function is used to generate the export products html.....

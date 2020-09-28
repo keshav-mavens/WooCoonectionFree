@@ -10,7 +10,7 @@
 }
 </style>
 <!-- Campaign Goals SETUP-->
-<?php $checkConnectionStatus = connectionApplicationStatus(); ?>
+<?php $checkAuthenticationStatus = applicationAuthenticationStatus(); ?>
 <div class="info-header">
   <p>Configure Campaign Goals</p>
 </div>
@@ -18,7 +18,7 @@
 <span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span> 
   <div class="row">
     <div class="col-md-12 ">
-       <?php //if(empty($checkConnectionStatus)){?>
+       <?php if(empty($checkAuthenticationStatus)){?>
        <p class="text-right"><a class="btn btn-primary btn-theme" data-toggle="collapse" href="#collapseCampaignGoals" role="button" aria-expanded="false" aria-controls="collapseCampaignGoals">How is Works <i class="fa fa-caret-down" id="icon_collapseCampaignGoals" aria-hidden="true"></i></a></p>
         <div class="collapse" id="collapseCampaignGoals">
           <div class="card card-body col-md-12 m-b-40">
@@ -43,9 +43,9 @@
                 </tbody>
               </table>
           </div>
-        <?php //}else{
-                //echo $checkConnectionStatus;
-        //} ?>
+        <?php }else{
+              echo $checkAuthenticationStatus;
+        } ?>
       </div>
     </div>
 </div>

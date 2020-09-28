@@ -1,4 +1,4 @@
-<?php $checkConnectionStatus = connectionApplicationStatus(); ?>
+<?php $checkAuthenticationStatus = applicationAuthenticationStatus(); ?>
 <div class="info-header">
     <p>Import/Export Products</p>
 </div>
@@ -6,6 +6,7 @@
 	<span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span>  
 	<div class="row">
 	    <div class="col-md-12 ">
+	    	<?php if(empty($checkAuthenticationStatus)){?>
 		  	<p class="heading-text">
 		      	<p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.<br/>
 		        <br/>
@@ -30,6 +31,9 @@
 					</div>
 		        </div>
 	        </div>
+	        <?php }else{
+	              echo $checkAuthenticationStatus;
+	        } ?>
 	    </div>
 	</div>
 </div>
