@@ -15,7 +15,7 @@
 		}
 	}
 	$applicationLabel = applicationLabel($type);
-	$connectedApplicationName = '--';
+	$connectedApplicationName = 'Please authorize the application first.';
 	$applicationName = applicationName();
 	if(isset($applicationName) && !empty($applicationName)){
 		$connectedApplicationName = $applicationName;	
@@ -45,7 +45,7 @@
 		<div class="form-group row">
 			<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Application Name</label>
 			<div class="col-lg-10 col-md-9 col-sm-12 col-12">
-				<label class="col-form-label"><?php echo $connectedApplicationName; ?></label>
+				<label class="col-form-label" style="background: #f5f5f5;padding: 10px 15px;border-radius: 5px;"><?php echo $connectedApplicationName; ?></label>
 			</div>
 		</div>
 		

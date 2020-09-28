@@ -286,8 +286,8 @@ function popupEditDetails(triggerid){
                 jQuery("#edittriggerid").val(triggerid);
                 jQuery("#edittriggerid").val(triggerid);
                 if(responsedata.triggerGoalName != ""){
-                    jQuery("#trigger_goal_name").html('');
-                    jQuery("#trigger_goal_name").html(responsedata.triggerGoalName);
+                    jQuery(".trigger_goal_name").html('');
+                    jQuery(".trigger_goal_name").html(responsedata.triggerGoalName);
                 }
                 if(responsedata.triggerIntegrationName != ""){
                     jQuery("#integrationname").val(responsedata.triggerIntegrationName);

@@ -55,19 +55,12 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">Edit Trigger Details</h4>
+        <h4 class="modal-title trigger_goal_name"></h4>
         <button type="button" class="close" onclick="hideCustomModel('editTriggerDetails')">&times;</button>
       </div>
       <div class="modal-body">
         <form action="" method="post" id="trigger_details_form" onsubmit="return false">
           <input type="hidden" name="edittriggerid" id="edittriggerid" value="">
-          <div class="form-group row">
-            <label class="col-lg-3 col-md-3 col-sm-12 col-12 col-form-label">Trigger Goal Name</label>
-            <div class="col-lg-9 col-md-9 col-sm-12 col-12">
-              <p id="trigger_goal_name"></p>
-            </div>
-          </div>
-          
           <div class="form-group row">
             <label class="col-lg-3 col-md-3 col-sm-12 col-12 col-form-label">Trigger Integration Name</label>
             <div class="col-lg-9 col-md-9 col-sm-12 col-12">
