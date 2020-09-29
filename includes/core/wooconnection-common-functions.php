@@ -3,40 +3,6 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-//Connector : Function is used to create connection with infusionsoft/keap application..
-function infusionsoft_keap_application_connect($application_name,$application_key,$connection_called_position = '') {
-	// Create instance of our wooconnection logger class to use off the whole things.
-	$wooconnectionLogger = new WC_Logger();
-	if(!empty($application_name) && !empty($application_key)) {
-	    $infusion_keap_application = new wooconnection_iSDK;
-      try
-	  	{
-          	$infusion_keap_application->cfgCon($application_name, $application_key);
-          	$checkerApplicationResponse = $infusion_keap_application->dsGetSetting('Contact', 'optiontypes');
-          	$checkErrorPosition = strrpos($checkerApplicationResponse, "ERROR");
-          	if ($checkErrorPosition === false)  {
-          		$connectionResponse = $infusion_keap_application;
-          		return $connectionResponse;
-          	}
-          	else{
-          		
-          		if(isset($connection_called_position) && !empty($connection_called_position)){
-          			$errorMessage = $connection_called_position ." is failed due to ". $checkerApplicationResponse;	
-          		}else{
-          			$errorMessage = $checkerApplicationResponse;
-          		}
-          		$wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          	}
-     	}
-     	catch (Exception $e) {
-         	$wooconnectionLogger->add('infusionsoft', print_r($e, true));
-      }	
-	}else{
-      $errorMessage = $connection_called_position." is failed because application name or application key is empty";
-      $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-  }
-}
-
 //Function is used to check whether the plugin is activated or not if not activated then return "leftMenusDisable" class....
 function checkPluginActivatedNot(){
   $leftMenusDisable = "";
@@ -341,10 +307,12 @@ function validate_email($email='',$log_message,$wooconnectionLogger){
 }
 
 //get or add the contact to infusionsoft/keap application..
-function checkAddContactApp($access_token,$appUseremail){
+function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
     //check if appUseremail is exist then get the current user id from infusionsoft/keap application on the basis of appUseremail 
     $appContactId = "";
     if(isset($appUseremail) && !empty($appUseremail)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
         //create json array to push ocde in infusionsoft...
         $jsonData ='{"duplicate_option": "Email","email_addresses":[{"email": "'.$appUseremail.'","field": "EMAIL1"}]}';
         $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts';
@@ -361,27 +329,42 @@ function checkAddContactApp($access_token,$appUseremail){
         $response = curl_exec($ch);
         $err = curl_error($ch);
         if($err){
-
+          $errorMessage = 'Trying to add contact('.$appUseremail.') for ';
+          $errorMessage .= $callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
         }else{
-          $sucessData = json_decode($response);
-          if(!empty($sucessData->id)){
-            $appContactId = $sucessData->id;
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = 'Trying to add contact('.$appUseremail.') for ' .$callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+            return false;
           }
+          if(!empty($sucessData['id'])){
+            $appContactId = $sucessData['id'];
+          }
+          return $appContactId;
         }
+        curl_close($ch);
     }
     return $appContactId;
 }
 
 
 //add contact to trigger....
-function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_call_name,$contact_id){
+function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_call_name,$contact_id,$callback_purpose){
     $sucessData = array();
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
     if(!empty($access_token) && !empty($trigger_integration_name) && !empty($trigger_call_name) && !empty($contact_id)){
       $url = 'https://api.infusionsoft.com/crm/rest/v1/campaigns/goals/'.$trigger_integration_name.'/'.$trigger_call_name;
       //create json array to push ocde in infusionsoft...
       $jsonData ='{"contact_id":'.$contact_id.'}';
       $ch = curl_init($url);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      //$access_token = 'sdsd2121323f13s2df123sd1f32s1d';
       $header = array(
           'Accept: application/json',
           'Content-Type: application/json',
@@ -393,14 +376,34 @@ function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_cal
       $response = curl_exec($ch);
       $err = curl_error($ch);
       if($err){
+          $errorMessage = $callback_purpose ." is failed where contact id is ".$contact_id." due to ". $err;
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
       }else{
-        $sucessData = json_decode($response);
+        $sucessData = json_decode($response,true);
+        if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+          $errorMessage = $callback_purpose ." is failed where contact id is ".$contact_id;
+          if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+            $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
+          }
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          return false;
+        }
         return $sucessData;
       }
       curl_close($ch);
     }
     return $sucessData;  
 }
+
+//Add logs if access token not exist or authentication is done...
+function addLogsAuthentication($connection_called_position = ''){
+    $wooconnectionLogger = new WC_Logger();
+    if(isset($connection_called_position) && !empty($connection_called_position)){
+      $errorMessage = $connection_called_position ." is failed because authentication with infusionsoft/keap application is not done"; 
+    }
+    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+}
+
 
 
 ?>

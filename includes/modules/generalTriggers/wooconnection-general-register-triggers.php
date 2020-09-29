@@ -16,12 +16,14 @@ function wooconnection_register_user($new_user_id){
     $callback_purpose = 'Wooconnection Registration : Process of wooconnection registration trigger';
     $applicationAuthenticationDetails = getAuthenticationDetails();
     
-    //Stop the below process if not connection establish with infusionsoft/keap application..
+    //Stop the below process if not authentication done with infusionsoft/keap application..
     if(empty($applicationAuthenticationDetails) || empty($applicationAuthenticationDetails[0]->user_access_token))
     {
+        $addLogs = addLogsAuthentication($callback_purpose);
         return false;
     }
     
+    //get the access token....
     $access_token = '';
     if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
         $access_token = $applicationAuthenticationDetails[0]->user_access_token;
@@ -87,24 +89,28 @@ function wooconnection_standard_user_registration_trigger($userid,$generalRegist
         validate_email($regsiterUserEmail,$callback_purpose,$wooconnectionLogger);
         
         //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
-        $registerContactId = checkAddContactApp($access_token,$regsiterUserEmail);
+        $registerContactId = checkAddContactApp($access_token,$regsiterUserEmail,$callback_purpose);
 
         //check if contact id is exist then hit the trigger....
         if(isset($registerContactId) && !empty($registerContactId)) {
             if(!empty($generalRegistrationNewUserIntegrationName) && !empty($generalRegistrationNewUserCallName))
             {
                 
-                $generalRegistrationTriggerResponse = achieveTriggerGoal($access_token,$generalRegistrationNewUserIntegrationName,$generalRegistrationNewUserCallName,$registerContactId);
-                if(empty($generalRegistrationTriggerResponse[0]->success)){
-                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                    if(isset($generalRegistrationTriggerResponse[0]->message) && !empty($generalRegistrationTriggerResponse[0]->message)){
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Registration : Process of wooconnection registration trigger is failed where contact id is '.$registerContactId.' because '.$generalRegistrationTriggerResponse[0]->message.'');    
-                    }else{
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Registration : Process of wooconnection registration trigger is failed where contact id is '.$registerContactId.'');
+                $generalRegistrationTriggerResponse = achieveTriggerGoal($access_token,$generalRegistrationNewUserIntegrationName,$generalRegistrationNewUserCallName,$registerContactId,$callback_purpose);
+                if(!empty($generalRegistrationTriggerResponse)){
+                    if(empty($generalRegistrationTriggerResponse[0]['success'])){
+                        //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                        if(isset($generalRegistrationTriggerResponse[0]['message']) && !empty($generalRegistrationTriggerResponse[0]['message'])){
+                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Registration : Process of wooconnection registration trigger is failed where contact id is '.$registerContactId.' because '.$generalRegistrationTriggerResponse[0]['message'].'');    
+                        }else{
+                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Registration : Process of wooconnection registration trigger is failed where contact id is '.$registerContactId.'');
+                        }
+                        
                     }
-                    
                 }
             }
+        }else{
+            return false;
         }
     }
     return true;
