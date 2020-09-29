@@ -251,6 +251,7 @@ function activateWcPlugin(){
             var responsedata = JSON.parse(data);
             $(".pluginActivation").hide();
             if(responsedata.status == "1") {
+                $("li").removeClass( "leftMenusDisable" );
                 if(responsedata.successmessage != "" && responsedata.successmessage !== null){
                     $(".activation-details-success").html('');
                     $(".activation-details-success").html(responsedata.successmessage);
@@ -272,7 +273,7 @@ function activateWcPlugin(){
             {
                 $('.activation-details-success, .activation-details-error').fadeOut("slow");
                 $('.plugin_activation_btn').removeClass("disable_anchor");
-            }, 4000);
+            }, 3000);
         });
     }
 }
