@@ -611,6 +611,14 @@ span#customize_referral_partner_url {
     pointer-events:none;
     opacity:0.4;
 }
+.exportProducts{
+  background-color: #4CAF50; 
+  border: none; 
+  color: white; 
+  padding: 6px 30px;
+  font-size: 16px; 
+  margin-top : 5px;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;

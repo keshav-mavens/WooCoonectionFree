@@ -359,3 +359,56 @@ function hideCustomModel(modelId){
         $("#"+modelId).hide();
     }
 }
+
+//On click of export products button send ajax to export products and on sucess update the html....
+function wcProductsExport(){
+    var checkProducts = $(".export_products_listing_class input:checkbox:checked").map(function(){
+      if($(this).val() != 'allproductsexport'){ return $(this).val(); }
+    }).get();
+    if(checkProducts.length > 0)
+    {
+        if($(".export-products-error").is(":visible") || $(".export-products-success").is(":visible")){
+            $(".export-products-error").hide();
+            $(".export-products-success").hide();
+            $(".exportProducts").show();
+        }else{
+            $(".exportProducts").show();    
+        }
+        $('.export_products_btn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".exportProducts").hide();
+            if(responsedata.status == "1") {
+                $('.export_products_btn').removeClass("disable_anchor");
+                if(responsedata.latestExportProductsHtml != ""){
+                     $('.export_products_listing_class').html();
+                     $('.export_products_listing_class').html(responsedata.latestExportProductsHtml);
+                }
+                //apply datatable on export products listing
+                // if(jQuery("#export_products_listing").length){
+                //     applyDatables("export_products_listing");
+                // }
+
+                //add select 2 for woocommerce products field
+                // if($(".wc_iskp_products_dropdown").length){
+                //     applySelectTwo('wc_iskp_products_dropdown');
+                // }
+            }else{
+                $(".export-products-error").show();
+                $(".export-products-error").html('Something Went Wrong.');
+                setTimeout(function()
+                {
+                    $('.export-products-error').fadeOut("slow");
+                    $('.export_products_btn').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+    }else{
+        $(".export-products-error").html();
+        $(".export-products-error").html('You need to select atleast one product to export.');
+        $(".export-products-error").show();
+        setTimeout(function() {
+            $('.export-products-error').fadeOut("slow");
+        }, 3000);
+    }
+}
