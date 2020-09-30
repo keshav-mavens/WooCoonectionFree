@@ -386,7 +386,6 @@ function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_cal
             $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
           }
           $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          return false;
         }
         return $sucessData;
       }
@@ -402,5 +401,172 @@ function addLogsAuthentication($connection_called_position = ''){
       $errorMessage = $connection_called_position ." is failed because authentication with infusionsoft/keap application is not done"; 
     }
     $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+}
+
+//check compnay is exist or not if not then add new company..
+function checkAddCompany($companyName,$access_token){
+    //check if companyName is exist then get the current company id from infusionsoft/keap application on the basis of companyName 
+    $companyId = "";
+    if(isset($companyName) && !empty($companyName)){
+        $url = "https://api.infusionsoft.com/crm/rest/v1/companies";
+        $postparam = array( 
+          'company_name'   => $companyName 
+        );
+        $params = http_build_query($postparam);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url."?".$params); //using the setopt function to send request to the url
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+        $response = curl_exec($ch); //executing request
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(!empty($sucessData['companies'][0])){
+              if(!empty($sucessData['companies'][0]['id'])){
+                  $companyId = $sucessData['companies'][0]['id'];
+              } 
+          }
+          if(!empty($companyId)){
+              return $companyId;
+          }else{
+            $companyId = addNewCompany($companyName,$access_token);
+            return $companyId;
+          } 
+        }
+        curl_close($ch);
+    }
+    return $companyId;
+}
+
+
+
+//check compnay is exist or not if not then add new company..
+function addNewCompany($newCompanyName,$access_token){
+    //check if companyName is exist then get the current company id from infusionsoft/keap application on the basis of companyName 
+    $newCompanyId = "";
+    if(isset($newCompanyName) && !empty($newCompanyName)){
+        $url = "https://api.infusionsoft.com/crm/rest/v1/companies";
+        $jsonArray = '{"company_name": "'.$newCompanyName.'"}';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(!empty($sucessData)){
+              if(!empty($sucessData['id'])){
+                $newCompanyId = $sucessData['id'];
+                return $newCompanyId;
+              } 
+          }
+        }
+        curl_close($ch);
+    }
+    return $companyId;
+}
+
+
+
+//update contact to is/keap account..
+function updateContact($contactId,$woocommerce_order_data,$access_token){
+    $contactLatestInformation = array();
+    if(!empty($contactId) && !empty($woocommerce_order_data) && !empty($access_token)){
+        if(isset($woocommerce_order_data['billing']['country']) && !empty($woocommerce_order_data['billing']['country'])){
+            $countryCode = get_country_code($woocommerce_order_data['billing']['country']);
+            $contactLatestInformation['country_code'] = $countryCode;
+        }
+        $contactLatestInformation['field'] = "BILLING";
+        if(isset($woocommerce_order_data['billing']['address_1']) && !empty($woocommerce_order_data['billing']['address_1'])){
+            $contactLatestInformation['line1'] = trim($woocommerce_order_data['billing']['address_1']);
+        }
+        if(isset($woocommerce_order_data['billing']['address_2']) && !empty($woocommerce_order_data['billing']['address_2']))
+        {
+            $contactLatestInformation['line2'] = $woocommerce_order_data['billing']['address_2'];
+        }
+        if(isset($woocommerce_order_data['billing']['postcode']) && !empty($woocommerce_order_data['billing']['postcode'])){
+            $contactLatestInformation['postal_code'] = $woocommerce_order_data['billing']['postcode'];
+        }
+        if(isset($woocommerce_order_data['billing']['city']) && !empty($woocommerce_order_data['billing']['city'])){
+            $contactLatestInformation['locality'] = $woocommerce_order_data['billing']['city'];
+        }
+        if(isset($woocommerce_order_data['billing']['state']) && !empty($woocommerce_order_data['billing']['state'])){
+            $states = WC()->countries->get_states($woocommerce_order_data['billing']['country']);
+            $state = !empty($states[$woocommerce_order_data['billing']['state']]) ? $states[$woocommerce_order_data['billing']['state']] : '';
+            $contactLatestInformation['region'] = $state;
+        }
+        $companyId = '';
+        if(isset($woocommerce_order_data['billing']['company']) && !empty($woocommerce_order_data['billing']['company'])){
+            $company = stripslashes($woocommerce_order_data['billing']['company']);
+            $companyId = checkAddCompany($company,$access_token);
+        }
+        $firstName = '';
+        if(isset($woocommerce_order_data['billing']['first_name']) && !empty($woocommerce_order_data['billing']['first_name'])){
+            $firstName = trim($woocommerce_order_data['billing']['first_name']);
+        }
+        $phone1 = '';
+        if(isset($woocommerce_order_data['billing']['phone']) && !empty($woocommerce_order_data['billing']['phone'])){
+            $phone1 = $woocommerce_order_data['billing']['phone'];
+        }
+        $jsonAddressedArray = json_encode($contactLatestInformation);
+        $jsonArray = '{"addresses": ['.$jsonAddressedArray.'],"company": {"id": '.$companyId.'},"phone_numbers": 
+          [{"field": "PHONE1","number": "'.$phone1.'"}],"given_name": "'.$firstName.'"}';
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts/'.$contactId;
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = 'Trying to update contact('.$contactId.')';
+          $errorMessage .= $errorMessage ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = 'Trying to update contact('.$contactId.')';
+            $errorMessage = $errorMessage ." is failed";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+        }
+        curl_close($ch);
+    }
+    return true;
+}
+
+//get country code...
+function get_country_code($code){
+  global $wpdb,$table_prefix;
+  $table_name = 'wp_wooconnection_countries';
+  $countryDetails = $wpdb->get_results("SELECT * FROM ".$table_name." WHERE code = '".$code."'");
+  $countryCode = "";
+  if(!empty($countryDetails[0]->countrycode)){
+    $countryCode =$countryDetails[0]->countrycode;
+  }
+  return $countryCode;
 }
 ?>

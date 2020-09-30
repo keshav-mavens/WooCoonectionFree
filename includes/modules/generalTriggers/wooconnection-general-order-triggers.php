@@ -67,6 +67,10 @@ function wooconnection_trigger_status_complete_hook($orderid){
 
     //check if contact id is exist then hit the trigger....
     if(isset($orderContactId) && !empty($orderContactId)) {
+        //get order data and update the contact information,,
+        $order_data = $order->get_data();
+        updateContact($orderContactId,$order_data,$access_token);
+
         if(!empty($generalSuccessfullOrderIntegrationName) && !empty($generalSuccessfullOrderCallName))
         {
             $generallSuccessfullOrderTriggerResponse = achieveTriggerGoal($access_token,$generalSuccessfullOrderIntegrationName,$generalSuccessfullOrderCallName,$orderContactId,$callback_purpose);

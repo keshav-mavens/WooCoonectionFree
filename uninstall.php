@@ -12,4 +12,6 @@ if (!defined( 'WP_UNINSTALL_PLUGIN' ) || !WP_UNINSTALL_PLUGIN || dirname( WP_UNI
 }
 //Custom Query :  drop a custom  database table "wp_wooconnection_campaign_goals"
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}wooconnection_campaign_goals" );
+//Custom Query :  drop a custom  database table "wp_wooconnection_countries"
+$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}wooconnection_countries" );
 ?>
