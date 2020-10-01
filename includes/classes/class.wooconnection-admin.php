@@ -86,6 +86,7 @@ class WooConnection_Admin {
     public function wooconnection_include_files() {
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-common-functions.php');
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
+    	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
     }
 }
 // Create global so you can use this variable beyond initial creation.

@@ -220,7 +220,8 @@ function wc_export_wc_products()
 		        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
 		    }
 	    }
-		
+		//Concate a error message to store the logs...
+    	$callback_purpose = 'Export Woocommerce Product : Process of export woocommerce product to infusionsoft/keap application';
 		//check select products exist in post data to export.....
 		if(isset($_POST['wc_products']) && !empty($_POST['wc_products'])){
 			foreach ($_POST['wc_products'] as $key => $value) {
@@ -270,10 +271,10 @@ function wc_export_wc_products()
 	      				if(empty($alreadyExistProductId)){
 							$productDetailsArray['product_name'] = $wcproductName;
 							$jsonData = json_encode($productDetailsArray);
-							$updateProductId = createNewProduct($access_token,$jsonData);
-	      					if(!empty($updateProductId)){
+							$createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_FRONT_END);
+	      					if(!empty($createdProductId)){
 	      						//update relationship between woocommerce product and infusionsoft/keap product...
-	      						update_post_meta($value, 'is_kp_product_id', $updateProductId);
+	      						update_post_meta($value, 'is_kp_product_id', $createdProductId);
 							}					
 	      				}
 	      				//if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
@@ -296,4 +297,35 @@ function wc_export_wc_products()
 	}
 	die();
 }
+
+
+//Wordpress hook : This action is triggered when user try to export products.....
+add_action( 'wp_ajax_wc_update_products_mapping', 'wc_update_products_mapping');
+//Function Definiation : wc_update_products_mapping
+function wc_update_products_mapping()
+{
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		//check select products exist in post data to import.....
+		if(isset($_POST['wc_products_match']) && !empty($_POST['wc_products_match'])){
+	      	foreach ($_POST['wc_products_match'] as $key => $value) {
+	      		if(!empty($value)){
+	      			//check any associated product is selected along with imported product request....
+	      			if(isset($_POST['wc_product_mapped_with_'.$value]) && !empty($_POST['wc_product_mapped_with_'.$value])){
+	      				$needUpdateExistingProduct = $_POST['wc_product_mapped_with_'.$value];
+	      			}
+	      			//update relationship between woocommerce product and infusionsoft/keap product...
+	      			update_post_meta($value, 'is_kp_product_id', $needUpdateExistingProduct);
+	      		}
+	      	}
+	    	//then call the "createImportProductsHtml" function to get the latest html...
+			$latestMatchProductsHtml = createMatchProductsHtml();
+	      	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestMatchProductsHtml'=>$latestMatchProductsHtml));
+	    }
+	}
+	die();
+}
+
+
+
 ?>

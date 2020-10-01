@@ -40,6 +40,11 @@
 	//Application type label..
 	define("APPLICATION_TYPE_KEAP_LABEL", 'Keap');
 
+	//define log type....
+	define("LOG_TYPE_FRONT_END", 'infusionsoft-frontend');
+	define("LOG_TYPE_BACK_END", 'infusionsoft-backend');
+
+
 
 ?>
 
