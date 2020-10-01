@@ -340,7 +340,6 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
               $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
             }
             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-            return false;
           }
           if(!empty($sucessData['id'])){
             $appContactId = $sucessData['id'];
@@ -364,7 +363,6 @@ function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_cal
       $jsonData ='{"contact_id":'.$contact_id.'}';
       $ch = curl_init($url);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      //$access_token = 'sdsd2121323f13s2df123sd1f32s1d';
       $header = array(
           'Accept: application/json',
           'Content-Type: application/json',
@@ -386,7 +384,6 @@ function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_cal
             $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
           }
           $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          return false;
         }
         return $sucessData;
       }
