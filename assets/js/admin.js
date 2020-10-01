@@ -33,6 +33,13 @@
                             $(".tab_related_content").html('');
                             $(".tab_related_content").html(data);
                             jQuery(".tab_related_content").removeClass('overlay');
+                            if(jQuery("#export_products_listing").length){
+                                applyDatables("export_products_listing");
+                            }
+                            //add select 2 for woocommerce products field
+                            if($(".wc_iskp_products_dropdown").length){
+                                applySelectTwo('wc_iskp_products_dropdown');
+                            }
                         });
                     }
                 }
@@ -139,6 +146,10 @@
                                     //apply datatable on export products listing
                                     if(jQuery("#export_products_listing").length){
                                         applyDatables("export_products_listing");
+                                    }
+                                    //add select 2 for woocommerce products field
+                                    if($(".wc_iskp_products_dropdown").length){
+                                        applySelectTwo('wc_iskp_products_dropdown');
                                     }
                                 }else if (target_tab_id == '#table_match_products') {
                                     $(target_tab_id+"_listing").html('');
@@ -357,5 +368,118 @@ function getQueryParameter(qspar){
 function hideCustomModel(modelId){
     if(modelId != ""){
         $("#"+modelId).hide();
+    }
+}
+
+//comon function is used to apply a datatables by table id.....
+function applyDatables(tabel_id){
+    if(tabel_id != ""){
+        //Export Tab: apply datatables on products listing..
+        if (tabel_id == 'export_products_listing') {
+            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
+            {
+                $('#'+tabel_id).DataTable({
+                    "pagingType": "simple_numbers",
+                    "pageLength": 10,
+                    "searching": false,
+                    "bLengthChange" : false,
+                    "bInfo":false,
+                    "scrollX": false,
+                    "ordering": false,
+                    drawCallback: function(dt) {
+                      applySelectTwo('wc_iskp_products_dropdown');
+                    }
+                });
+            }
+        }
+        //Match Tab: apply datatables on products listing..
+        else if (tabel_id == 'match_products_listing') {
+            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
+            {
+                $('#'+tabel_id).DataTable({
+                    "pagingType": "simple_numbers",
+                    "pageLength": 10,
+                    "searching": false,
+                    "bLengthChange" : false,
+                    "bInfo":false,
+                    "scrollX": false,
+                    "ordering": false,
+                    drawCallback: function(dt) {
+                      applySelectTwo('match_products_listing');
+                    }
+                });
+            }
+        }
+    }
+}
+
+//common function to apply a select2
+function applySelectTwo(element){
+    if(element != ""){
+        //Export Tab: apply select 2 on infusionsoft products tab..
+        if(element == 'wc_iskp_products_dropdown'){
+            $("."+element).select2({
+            });    
+        }
+        //Match Products Tab: apply select 2 on infusionsoft products tab..
+        if(element == 'wc_match_products_dropdown'){
+            $("."+element).select2({
+            });    
+        } 
+        
+    }
+}
+
+//On click of export products button send ajax to export products and on sucess update the html....
+function wcProductsExport(){
+    var checkProducts = $(".export_products_listing_class input:checkbox:checked").map(function(){
+      if($(this).val() != 'allproductsexport'){ return $(this).val(); }
+    }).get();
+    if(checkProducts.length > 0)
+    {
+        if($(".export-products-error").is(":visible") || $(".export-products-success").is(":visible")){
+            $(".export-products-error").hide();
+            $(".export-products-success").hide();
+            $(".exportProducts").show();
+        }else{
+            $(".exportProducts").show();    
+        }
+        $('.export_products_btn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".exportProducts").hide();
+            if(responsedata.status == "1") {
+                $('.export_products_btn').removeClass("disable_anchor");
+                if(responsedata.latestExportProductsHtml != ""){
+                     $('.export_products_listing_class').html();
+                     $('.export_products_listing_class').html(responsedata.latestExportProductsHtml);
+                }
+                //apply datatable on export products listing
+                if(jQuery("#export_products_listing").length){
+                    applyDatables("export_products_listing");
+                }
+
+                //add select 2 for woocommerce products field
+                // if($(".wc_iskp_products_dropdown").length){
+                //     applySelectTwo('wc_iskp_products_dropdown');
+                // }
+                swal("Saved!", 'Products exported successfully.', "success");
+            }else{
+                $(".export-products-error").show();
+                $(".export-products-error").html('Something Went Wrong.');
+                setTimeout(function()
+                {
+                    $('.export-products-error').fadeOut("slow");
+                    $('.export_products_btn').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+    }else{
+        $(".export-products-error").html();
+        $(".export-products-error").html('You need to select atleast one product to export.');
+        $(".export-products-error").show();
+        setTimeout(function() {
+            $('.export-products-error').fadeOut("slow");
+        }, 3000);
     }
 }
