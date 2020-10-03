@@ -154,6 +154,14 @@
                                 }else if (target_tab_id == '#table_match_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
+                                    //apply datatable on export products listing
+                                    if(jQuery("#match_products_listing").length){
+                                        applyDatables("match_products_listing");
+                                    }
+                                    //add select 2 for woocommerce products field
+                                    if($(".application_match_products_dropdown").length){
+                                        applySelectTwo('application_match_products_dropdown');
+                                    }
                                 }    
                             }
                         }
@@ -167,7 +175,25 @@
                 swal("Saved!", 'Application authentication done successfully.', "success");
             }
 
-
+            //Match Products Tab : check all products checkbox rule....
+            $document.on("click",".all_products_checkbox_match",function(event) {
+                if ($(this).is(":checked"))
+                {
+                    $('.each_product_checkbox_match').prop("checked", true);
+                }
+                else
+                {
+                    $('.each_product_checkbox_match').prop("checked", false);
+                }
+            });
+            
+            //Match Products Tab : on change of select box of woocommerce products mark checkbox checked or unchecked on the basis of select value.....
+            $document.on("click",".each_product_checkbox_match",function(event) {
+                if ($('.all_products_checkbox_match').is(":checked"))
+                {
+                    $('.all_products_checkbox_match').prop("checked", false);
+                }
+            });
         });
 }(jQuery));
 
@@ -405,7 +431,7 @@ function applyDatables(tabel_id){
                     "scrollX": false,
                     "ordering": false,
                     drawCallback: function(dt) {
-                      applySelectTwo('match_products_listing');
+                      applySelectTwo('application_match_products_dropdown');
                     }
                 });
             }
@@ -422,7 +448,7 @@ function applySelectTwo(element){
             });    
         }
         //Match Products Tab: apply select 2 on infusionsoft products tab..
-        if(element == 'wc_match_products_dropdown'){
+        if(element == 'application_match_products_dropdown'){
             $("."+element).select2({
             });    
         } 
@@ -460,9 +486,9 @@ function wcProductsExport(){
                 }
 
                 //add select 2 for woocommerce products field
-                // if($(".wc_iskp_products_dropdown").length){
-                //     applySelectTwo('wc_iskp_products_dropdown');
-                // }
+                if($(".wc_iskp_products_dropdown").length){
+                    applySelectTwo('wc_iskp_products_dropdown');
+                }
                 swal("Saved!", 'Products exported successfully.', "success");
             }else{
                 $(".export-products-error").show();
@@ -480,6 +506,63 @@ function wcProductsExport(){
         $(".export-products-error").show();
         setTimeout(function() {
             $('.export-products-error').fadeOut("slow");
+        }, 3000);
+    }
+}
+
+//On click of update products mapping button send ajax to update mapping of products and on sucess update the html....
+function wcProductsMapping(){
+    var checkProducts = $(".match_products_listing_class input:checkbox:checked").map(function(){
+      if($(this).val() != 'allproductsmatch'){ return $(this).val(); }
+    }).get();
+    if(checkProducts.length > 0)
+    {
+        if($(".match-products-error").is(":visible") || $(".match-products-success").is(":visible")){
+            $(".match-products-error").hide();
+            $(".match-products-success").hide();
+            $(".matchProducts").show();
+        }else{
+            $(".matchProducts").show();    
+        }
+        $('.match_products_btn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_update_products_mapping",$('#wc_match_products_form').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".matchProducts").hide();
+            if(responsedata.status == "1") {
+                $('.match_products_btn').removeClass("disable_anchor");
+                if(responsedata.latestExportProductsHtml != ""){
+                     $('.match_products_listing_class').html();
+                     $('.match_products_listing_class').html(responsedata.latestExportProductsHtml);
+                }
+                
+                //apply datatable on export products listing
+                if(jQuery("#match_products_listing").length){
+                    applyDatables("match_products_listing");
+                }
+
+                //add select 2 for woocommerce products field
+                if($(".application_match_products_dropdown").length){
+                    applySelectTwo('application_match_products_dropdown');
+                }
+                $('.all_products_checkbox_match').prop("checked", false);
+                $('.each_product_checkbox_match').prop("checked", false);
+                swal("Saved!", 'Products mapping updated successfully.', "success");
+            }else{
+                $(".match-products-error").show();
+                $(".match-products-error").html('Something Went Wrong.');
+                setTimeout(function()
+                {
+                    $('.match-products-error').fadeOut("slow");
+                    $('.match_products_btn').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+    }else{
+        $(".match-products-error").html();
+        $(".match-products-error").html('You need to select atleast one product to update mapping.');
+        $(".match-products-error").show();
+        setTimeout(function() {
+            $('.match-products-error').fadeOut("slow");
         }, 3000);
     }
 }

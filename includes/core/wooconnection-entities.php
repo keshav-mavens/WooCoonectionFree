@@ -39,6 +39,9 @@
 	define("APPLICATION_TYPE_INFUSIONSOFT_LABEL", 'Infusionsoft');
 	//Application type label..
 	define("APPLICATION_TYPE_KEAP_LABEL", 'Keap');
+	//define log type....
+	define("LOG_TYPE_FRONT_END", 'FrontendLogs');
+	define("LOG_TYPE_BACK_END", 'BackendLogs');
 
 
 ?>
