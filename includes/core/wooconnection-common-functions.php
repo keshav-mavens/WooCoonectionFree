@@ -386,6 +386,7 @@ function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_cal
             $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
           }
           $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          return false;
         }
         return $sucessData;
       }
@@ -569,4 +570,217 @@ function get_country_code($code){
   }
   return $countryCode;
 }
+
+
+function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
+    $newOrderId = "";
+    if(!empty($contactId) && !empty($orderid) && !empty($access_token)){
+        $orderTitle = "New Order Generated where order number is #" . $orderid . " and generated from " . site_url();
+        $url = "https://api.infusionsoft.com/crm/rest/v1/orders";
+        $current_time = date("Y-m-d")."T".date("H:i:s")."Z"; 
+        $jsonArray = '{
+                        "contact_id": '.$contactId.',
+                        "order_items": '.$jsonOrderItems.',
+                        "order_date": "'.$current_time.'",
+                        "order_title": "'.$orderTitle.'",
+                        "order_type": "Offline"}';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(!empty($sucessData)){
+              if(!empty($sucessData['id'])){
+                $newOrderId = $sucessData['id'];
+                return $newOrderId;
+              } 
+          }
+        }
+        curl_close($ch);  
+    }
+    return $newOrderId;
+    
+}
+
+//add product to is/keap account..
+function checkAddProductIsKp($access_token,$item){
+    $currentProductID = '';
+    $productId = $item->get_id();
+    $checkAlreadyExist = get_post_meta($productId, 'is_kp_product_id', true);
+    $wooconnectionLogger = new WC_Logger();
+    if(isset($checkAlreadyExist) && !empty($checkAlreadyExist)){
+       $currentProductID = $checkAlreadyExist; 
+        echo $currentProductID;
+    }else{
+      $wcproductSku = $item->get_sku();//get product sku....
+      $wcproductPrice = $item->get_regular_price();
+      $wcproductName = $item->get_name();//get product name....
+      $wcproductDesc = $item->get_description();//get product description....
+      if(isset($wcproductDesc) && !empty($wcproductDesc)){
+          $wcproductDesc = $wcproductDesc;
+      }else{
+          $wcproductDesc = "";
+      }
+      $wcproductShortDesc = $item->get_short_description();//get product short description....
+      if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
+          $wcproductShortDesc = $wcproductShortDesc;
+      }else{
+          $wcproductShortDesc = "";
+      }
+      $wcproductSlug =  $item->get_slug();//get product slug....
+      //create final array with values.....
+      $productDetailsArray = array();
+      $productDetailsArray['active'] = true;
+      $productDetailsArray['product_desc'] = $wcproductDesc;
+      $productDetailsArray['product_price'] = $wcproductPrice;
+      $productDetailsArray['product_short_desc'] = $wcproductShortDesc;
+      $productDetailsArray['product_name'] = $wcproductName;
+      $callback_purpose = 'Add Woocommerce Product : Process of add woocommerce product to infusionsoft/keap application at the time of order creation';
+      //Check if product sku is not exist then create the sku on the basis of product slug.........
+      if(isset($wcproductSku) && !empty($wcproductSku)){
+          $existingProductIds =  checkProductAlreadyExistWithSku($wcproductSku,$access_token);
+          if(!empty($existingProductIds)){
+            $lastElement = end($existingProductIds);
+            if(!empty($lastElement)){
+              $currentProductID = $lastElement;
+            }
+          }
+          if(empty($currentProductID)){
+              //if "-" is exist in product sku then replace with "_".....
+              if (strpos($wcproductSlug, '-') !== false)
+              {
+                  $wcproductSku=str_replace("-", "_", $wcproductSlug);
+              }
+              else
+              {
+                  $wcproductSku=$wcproductSlug;
+              }
+              $productDetailsArray['sku'] = $wcproductSku;
+              $jsonData = json_encode($productDetailsArray);
+
+              $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_FRONT_END,$wooconnectionLogger);
+              if(!empty($createdProductId)){
+                //update relationship between woocommerce product and infusionsoft/keap product...
+                update_post_meta($productId, 'is_kp_product_id', $createdProductId);
+                //update the woocommerce product sku......
+                update_post_meta($productId,'_sku',$wcproductSku);
+                $currentProductID = $createdProductId;
+              }
+          }
+      }else{
+          //if "-" is exist in product sku then replace with "_".....
+          if (strpos($wcproductSlug, '-') !== false)
+          {
+              $wcproductSku=str_replace("-", "_", $wcproductSlug);
+          }
+          else
+          {
+              $wcproductSku=$wcproductSlug;
+          }
+          $productDetailsArray['sku'] = $wcproductSku;
+          $jsonData = json_encode($productDetailsArray);
+          $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_FRONT_END,$wooconnectionLogger);
+          if(!empty($createdProductId)){
+            //update relationship between woocommerce product and infusionsoft/keap product...
+            update_post_meta($productId, 'is_kp_product_id', $createdProductId);
+            //update the woocommerce product sku......
+            update_post_meta($productId,'_sku',$wcproductSku);
+            $currentProductID = $createdProductId;
+          }         
+                
+      }
+    }
+    return $currentProductID;
+
+}
+
+function checkProductAlreadyExistWithSku($productsku,$token){
+  $url = "https://api.infusionsoft.com/crm/rest/v1/products";
+    $postparam = array( 
+      'active'   => true 
+    );
+    $params = http_build_query($postparam);
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url."?".$params); //using the setopt function to send request to the url
+    $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+    $response = curl_exec($ch); //executing request
+    $err = curl_error($ch);
+    $matchIdsArray = array();
+    if($err){
+      //echo $err;
+    }else{
+      $sucessData = json_decode($response,true);
+      if(!empty($sucessData)){
+      if($sucessData['count'] > 0){
+        if(!empty($sucessData['products'])){
+          foreach ($sucessData['products'] as $key => $value) {
+              if(!empty($value['sku'])){
+                if($value['sku'] == $productsku){
+                  $matchIdsArray[] = $value['id'];
+                }
+              }
+            }
+          }
+      } 
+      }
+      return $matchIdsArray;
+    }
+    curl_close($ch);
+    return $matchIdsArray;
+}
+
+function createNewProduct($access_token,$productDetailsArray,$callback_purpose,$logtype,$wooconnectionLogger){
+  $productId = '';
+  if(!empty($access_token) && !empty($productDetailsArray)){
+      $url = 'https://api.infusionsoft.com/crm/rest/v1/products';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $productDetailsArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = $logtype.' : '.$callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $logtype.' : '.$callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          if(!empty($sucessData['id'])){
+            $productId = $sucessData['id'];
+          }
+          return $productId;
+        }
+        curl_close($ch);
+  }
+  return $productId;
+}
+
 ?>

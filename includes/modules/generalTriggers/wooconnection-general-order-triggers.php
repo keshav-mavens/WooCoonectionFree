@@ -86,6 +86,21 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 }
             }
         }
+        //$apiOrderId = createBlankOrder($orderid,$orderContactId,$access_token);
+        if ( sizeof( $products_items = $order->get_items() ) > 0 ) {
+            foreach($products_items as $item_id => $item)
+            {
+                $product = wc_get_product($item['product_id']);
+                $productDesc = $product->get_description();//product description..
+                $productPrice = round($product->get_price(),2);//get product price
+                $productQuan = $item['quantity']; // Get the item quantity
+                $productIdCheck = checkAddProductIsKp($access_token,$product);
+                $productTitle = $product->get_title();//get product title..
+                $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
+            }
+            $jsonOrderItems = json_encode($itemsArray);
+            $orderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token);
+        }
     }else{
         return false;
     }
