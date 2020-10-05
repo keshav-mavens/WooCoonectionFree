@@ -11,7 +11,6 @@
             $('.accordian-list > li.expanded > a').on('click', function(e) {
                 e.preventDefault();
                 if($(this).next('ul.sub-menu').is(':visible')) {
-                  $(this).removeClass('active');
                   $(this).next('ul.sub-menu').slideUp();
                 } else {
                   $('.accordian-list > li.expanded > a').removeClass('active');

@@ -151,7 +151,7 @@ function createExportProductsHtml(){
       $table_export_products_html = '<p class="heading-text" style="text-align:center">No products exist in woocommerce for export to '.$applicationLabel.' application.</p>';
   }else{
       //Compare woocommerce publish products with application products
-      $exportProductsData = compareWooProductsWithAppProducts($wooCommerceProducts,$applicationProductsArray,$applicationLabel);
+      $exportProductsData = compareWooProductsWithAppProducts($woocommerceProducts,$applicationProductsArray,$applicationLabel);
       if(isset($exportProductsData) && !empty($exportProductsData)){
           //Get the export products table html and append to table
           if(!empty($exportProductsData['exportTableHtml'])){
@@ -232,7 +232,7 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                   $wcproductName = "--";
                 }
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
-                if(!empty($applicationProductsArray)){
+                if(!empty($applicationProductsArray['products'])){
                     //Check product relation is exist....
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
@@ -523,10 +523,10 @@ function createMatchProductsHtml(){
                 '.$matchProductsData['matchTableHtml'].'
               </table>
               <div class="form-group col-md-12 text-center m-t-60">
-                <div class="matchProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Update Products Mapping....</div>
+                <div class="matchProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Update Mapping....</div>
                 <div class="alert-error-message match-products-error" style="display: none;"></div>
                 <div class="alert-sucess-message match-products-success" style="display: none;">Products mapping update successfully.</div>
-                <input type="button" value="Update Products Mapping" class="btn btn-primary btn-radius btn-theme match_products_btn" onclick="wcProductsMapping()">
+                <input type="button" value="Update Mapping" class="btn btn-primary btn-radius btn-theme match_products_btn" onclick="wcProductsMapping()">
               </div>
             </form>';
           }
@@ -612,7 +612,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                   $wcproductName = "--";
                 }
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
-                if(!empty($applicationProductsArray)){
+                if(!empty($applicationProductsArray['products'])){
                     //Check product relation is exist....
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....

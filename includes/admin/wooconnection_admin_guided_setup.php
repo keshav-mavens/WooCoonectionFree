@@ -3,7 +3,7 @@
 </style>
 <!--GUIDED SETUP-->
 <?php
-  //createMatchProductsHtml();
+  //createExportProductsHtml();
   //code is used to check import/export status...
   // $checkImportExportStatus = checkImportExportStatus();
   // $importExportClass = "";
