@@ -37,6 +37,10 @@ function wooconnection_trigger_status_complete_hook($orderid){
     // Get the order details
     $order = new WC_Order( $orderid );
     $order_email = $order->get_billing_email();
+    $order_tax_details = (float) $order->get_total_tax();
+    // echo "<pre>";
+    // print_r($order_tax_details);
+    // die();
     
     // Validate email is in valid format or not 
     validate_email($order_email,$callback_purpose,$wooconnectionLogger);
@@ -90,16 +94,43 @@ function wooconnection_trigger_status_complete_hook($orderid){
         if ( sizeof( $products_items = $order->get_items() ) > 0 ) {
             foreach($products_items as $item_id => $item)
             {
+                // echo "<pre>";
+                // print_r($item);
                 $product = wc_get_product($item['product_id']);
                 $productDesc = $product->get_description();//product description..
                 $productPrice = round($product->get_price(),2);//get product price
                 $productQuan = $item['quantity']; // Get the item quantity
                 $productIdCheck = checkAddProductIsKp($access_token,$product);
                 $productTitle = $product->get_title();//get product title..
+                //$productTax = $item['taxes'];//product description..
+                // $taxes = $item->get_taxes();
+                // // Loop through taxes array to get the right label
+                // foreach( $taxes['subtotal'] as $rate_id => $tax ){
+                //     $taxexArray[$productIdCheck] = $tax;
+                // }
+                // $productIdsArray[] = $productIdCheck;
+                // $productQuanArray[$productIdCheck] = $productQuan;
                 $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
             }
             $jsonOrderItems = json_encode($itemsArray);
-            $orderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token);
+            $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token);
+            if(!empty($iskporderId)){
+                update_post_meta($orderid, 'is_kp_order_relation', $iskporderId);
+            }
+            if(!empty($order_tax_details) && !empty($orderId)){
+                // $callback_purpose = 'Order Item Tax : Process of add order item tax for order #'.$orderId;
+                // foreach ($productIdsArray as $key => $value) {
+                //    if(isset($taxexArray[$value]) && !empty($taxexArray[$value])){
+                //         $finalPrice = ($taxexArray[$value]) / $productQuanArray[$value];
+                //         $orderTaxJson = '{"description": "Order Tax","price": '.round($finalPrice,2).',"product_id": '.$value.',"quantity": '.$productQuanArray[$value].'}';
+                //         addOrderItem($orderId,$orderTaxJson,$access_token,$callback_purpose,LOG_TYPE_FRONT_END,$wooconnectionLogger);
+                //    }
+                //     //echo $taxexArray[$value].'<br>';
+                // }
+                // $orderTaxJson = '{"description": "Order Tax","price": '.round($order_tax_details,2).',"product_id": 0,"quantity": 1}';
+                // addOrderItem($orderId,$orderTaxJson,$access_token,$callback_purpose,LOG_TYPE_FRONT_END,$wooconnectionLogger);
+            }
+            //die();
         }
     }else{
         return false;

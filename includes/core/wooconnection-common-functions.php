@@ -783,4 +783,48 @@ function createNewProduct($access_token,$productDetailsArray,$callback_purpose,$
   return $productId;
 }
 
+// function addOrderItem($orderId,$order_tax_details,$access_token,$callback_purpose,$logtype,$wooconnectionLogger){
+//   $productId = '';
+//   if(!empty($access_token) && !empty($orderId) && !empty($order_tax_details)){
+//       $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderId.'/items';
+//         $ch = curl_init($url);
+//         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//         $header = array(
+//           'Accept: application/json',
+//           'Content-Type: application/json',
+//           'Authorization: Bearer '. $access_token
+//         );
+//         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+//         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+//         curl_setopt($ch, CURLOPT_POSTFIELDS, $order_tax_details);
+//         $response = curl_exec($ch);
+//         $err = curl_error($ch);
+//         if($err){
+//           $errorMessage = $logtype.' : '.$callback_purpose ." is failed due to ". $err; 
+//           $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+//         }else{
+//           $sucessData = json_decode($response,true);
+//           if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+//             $errorMessage = $logtype.' : '.$callback_purpose ." is failed ";
+//             if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+//               $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+//             }
+//             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+//             return false;
+//           }
+//           echo "<pre>";
+//           print_r($sucessData);
+//           //die();
+//           // if(!empty($sucessData['id'])){
+//           //   $productId = $sucessData['id'];
+//           // }
+//           //return $productId;
+//         }
+//         //curl_close($ch);
+//   }
+//   //return $productId;
+// }
+
+
+
 ?>
