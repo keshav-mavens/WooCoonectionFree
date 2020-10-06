@@ -1,7 +1,7 @@
 <?php
 //If file accessed directly then exit;
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+  exit;
 }
 //Function is used to check whether the plugin is activated or not if not activated then return "leftMenusDisable" class....
 function checkPluginActivatedNot(){
@@ -127,23 +127,32 @@ function getAuthenticationDetails(){
 
 //Main function is used to generate the export products html.....
 function createExportProductsHtml(){
-  global $wpdb;
-  $wooCommerceProducts = listExistingDatabaseWooProducts();//call the common function to get the list of woocommerce publish products...
-  $table_export_products_html = "";//Define export table html variable.....
-  $applicationType = DEFAULT_APPLICATION_TYPE;//Default application tyoe is "Infusionsoft".
+  //Define export table html variable.....
+  $table_export_products_html = "";
+  //call the common function to get the list of woocommerce publish products...
+  $woocommerceProducts = listExistingDatabaseWooProducts();
+  //Get the application type and set the lable on the basis of it....
+  $configurationType = applicationType();
+  $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;//Default....
+  if(isset($configurationType) && !empty($configurationType)){
+    if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+      $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+    }else if ($configurationType == APPLICATION_TYPE_KEAP) {
+      $type = APPLICATION_TYPE_KEAP_LABEL;
+    }
+  }
+  //Set the application label on the basis of type...
+  $applicationLabel = applicationLabel($type);
+  //Get the list of active products from authenticate application....
+  $applicationProductsArray =  getApplicationProducts();
   
   //set html if no products exist in woocommerce for export....
-  if(empty($wooCommerceProducts)){
-      $table_export_products_html = '<p class="heading-text" style="text-align:center">No products exist in woocommerce for export to '.$applicationType.' account .</p>';
+  if(empty($woocommerceProducts)){
+      $table_export_products_html = '<p class="heading-text" style="text-align:center">No products exist in woocommerce for export to '.$applicationLabel.' application.</p>';
   }else{
-      //Compare woocommerce publish products infusionsoft/keap products....
-      $exportProductsData = compareWooProductsWithInfusionKpProdcuts($wooCommerceProducts,$isKeapProductsArray,$applicationType);
-      //Check export products data....
+      //Compare woocommerce publish products with application products
+      $exportProductsData = compareWooProductsWithAppProducts($woocommerceProducts,$applicationProductsArray,$applicationLabel);
       if(isset($exportProductsData) && !empty($exportProductsData)){
-          //Show the number of products if they are already exported....
-          if(isset($exportProductsData['exportExistingProductsCount']) && !empty($exportProductsData['exportExistingProductsCount'])){
-              $table_export_products_html .= '<p class="heading-text">We have found '.$exportProductsData['exportExistingProductsCount'].' will not be available for export. Because they are already exported.</p>';
-          }
           //Get the export products table html and append to table
           if(!empty($exportProductsData['exportTableHtml'])){
             $table_export_products_html .= '<form action="" method="post" id="wc_export_products_form" onsubmit="return false">  
@@ -160,81 +169,154 @@ function createExportProductsHtml(){
           }
       }
   }
-  return $table_export_products_html;//return the html...
+  //return the html...
+  return $table_export_products_html;
 }
 
 //list of existing woocommerce products from database and then return...
 function listExistingDatabaseWooProducts(){
-    global $wpdb;
+    $productsListing = array();
     $existProductsDetails = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+    if(!empty($existProductsDetails)){
+      $productsListing = $existProductsDetails;
+    }
     return $existProductsDetails;
 }
 
 //compare products of infusionsoft/keap with existing woocommerce products....
-function compareWooProductsWithInfusionKpProdcuts($wooCommerceProducts,$isKeapProductsArray,$applicationType)
+function compareWooProductsWithAppProducts($wooCommerceProducts,$applicationProductsArray,$applicationType)
 {
-    $productsData = array();//Define array...
+    //Define array...
+    $productsData = array();
+    //First check if wooproducts exist...
     if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
-        //first check products exist in connected infusionsoft/keap application or not if exist then call the "create_export_table_products_listing_with_iskp_products" function to generate the html..... 
-        if(!empty($isKeapProductsArray)){
-          $productsData = create_export_table_products_listing_with_iskp_products($wooCommerceProducts,$isKeapProductsArray,$applicationType);
-        }
-        //if not exist then call the "create_export_table_products_listing" function to generate the html.....
-        else{
-          $productsData = create_export_table_products_listing($wooCommerceProducts,$applicationType);
-        }
+      $productsData = exportProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType);
     }
-    return $productsData;//Return array... 
+    //Return array... 
+    return $productsData;
 }
 
-//create products listing if no any product exist in infusionsoft/keap application......
-function create_export_table_products_listing($wooCommerceProducts,$applicationType){
-    $exportTableHtml  = '';//Define html variable...
+//create products listing if infusionsoft/keap products are exist...
+function exportProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
+    $exportTableHtml  = '';//Define variable..
     $exportProductsData = array();//Define array...
+    //First check if wooproducts exist...
     if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
+        //Create first table....
         $exportTableHtml .= '<thead>';
-        $exportTableHtml .= '<tr>
-                              <th style="text-align: center;"><input type="checkbox" id="export_products_all" name="export_products_all" class="all_products_checkbox_export" value="allproductsexport"></th>
-                              <th>WooCommerce Product Name</th>
-                              <th>WooCommerce Product SKU</th>
-                              <th>WooCommerce Product Price</th>
-                            </tr>';
+        $exportTableHtml .= '<tr><th style="text-align: center;"><input type="checkbox" id="export_products_all" name="export_products_all" class="all_products_checkbox_export" value="allproductsexport"></th><th>WooCommerce Product Name</th><th>WooCommerce Product SKU</th><th>WooCommerce Product Price</th><th>'.$applicationType.' Product</th></tr>';
         $exportTableHtml .= '</thead>';
         $exportTableHtml .= '<tbody>';
-        $exportExistingProductsCount = 0;
+        $productSelectHtml = '';
         foreach ($wooCommerceProducts as $key => $value) {
             if(!empty($value->ID)){
-                $wc_product_id = $value->ID;             
-                $wcproduct = wc_get_product($value->ID);
-                $wcproductPrice = $wcproduct->get_price();
-                $currencySign = get_woocommerce_currency_symbol();
-                $wcproductPrice = $currencySign.number_format($wcproductPrice,2);
-                $wcproductSku = $wcproduct->get_sku();
-                $wcproductName = $wcproduct->get_name();
-                if(!empty($wcproductSku)){
-                  $wcproductSku = $wcproductSku;
+                $wc_product_id = $value->ID;//Define product id...             
+                $wcproduct = wc_get_product($value->ID);//Get product details..
+                $wcproductPrice = $wcproduct->get_regular_price();//Get product price....
+                $currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
+                //check product price and set....
+                if(!empty($wcproductPrice)){
+                    $wcproductPrice = $wcproductPrice;
                 }else{
-                  $wcproductSku = "--";
+                    $wcproductPrice = 0;
                 }
+                //Create final price to display...
+                $wcproductPrice = $currencySign.number_format($wcproductPrice,2);
+                $wcproductSku = $wcproduct->get_sku();//get product sku....
+                $wcproductName = $wcproduct->get_name();//get product name....
+                $productsDropDown = '';
+                //check and set the product name....
                 if(!empty($wcproductName)){
                   $wcproductName = $wcproductName;
                 }else{
                   $wcproductName = "--";
                 }
-                $exportTableHtml .= '<tr>
-                                        <td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td>
-                                        <td>'.$wcproductName.'</td>
-                                        <td>'.$wcproductSku.'</td>
-                                        <td>'.$wcproductPrice.'</td>
-                                    </tr>';
+                //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
+                if(!empty($applicationProductsArray['products'])){
+                    //Check product relation is exist....
+                    $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
+                    //If product relation exist then create select deopdown and set associative product selected....
+                    if(isset($productExistId) && !empty($productExistId)){
+                      $productsDropDown = createApplicationProductsSelect($applicationProductsArray,$productExistId);
+                    }elseif (!empty($wcproductSku)) {//Then check product sku,If product sku exist then check product in application with same sku is exist ot not....
+                      $checkSkuMatchWithIskpProducts = checkProductMapping($wcproductSku,$applicationProductsArray); 
+                      //if product/multiple products with same sku is exist then get the last matched product id.... 
+                      if(isset($checkSkuMatchWithIskpProducts) && !empty($checkSkuMatchWithIskpProducts)){
+                          $matchId =  end($checkSkuMatchWithIskpProducts);
+                          //On the basis of match product id set the product selected and create html.....
+                          if(!empty($matchId)){
+                              $productsDropDown = createApplicationProductsSelect($applicationProductsArray,$matchId);
+                          }
+                      }else{//If product with same sku is not exist, then create select without any product selected...
+                        $productsDropDown = createApplicationProductsSelect($applicationProductsArray);
+                      }
+                    }else{//If relation is not exist with product then create select without any product selected...
+                      $productsDropDown = createApplicationProductsSelect($applicationProductsArray);
+                    }
+                    //Create final select html.....
+                    $productSelectHtml = '<select class="wc_iskp_products_dropdown" name="wc_product_export_with_'.$wc_product_id.'" data-id="'.$wc_product_id.'"><option value="0">Select '.$applicationType.' product</option>'.$productsDropDown.'</select>';
+                }else{
+                  //Set the html of select if no products exist in application....
+                  $productSelectHtml = 'No '.$applicationType.' Products Exist!';
+                }
+                //Check and set the product sku to display.....
+                if(!empty($wcproductSku)){
+                    $wcproductSku = $wcproductSku;
+                }else{
+                    $wcproductSku = '--';
+                }
+                //Create final html.......
+                $exportTableHtml .= '<tr><td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td>'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
 
             }
+
         }
-        $exportProductsData['exportTableHtml'] = $exportTableHtml;//set the export table html...
-        $exportProductsData['exportExistingProductsCount'] = $exportExistingProductsCount;//return existing exported products count....
+        $exportProductsData['exportTableHtml'] = $exportTableHtml;//Assign html....
     }
-    return $exportProductsData;
+    return $exportProductsData;//Return data....
 }
+
+//Check product with same sku is exist or not , if exist then return match products id.....
+function checkProductMapping($sku,$productsArray){
+    $matchProductsIds = array();//Define array...
+    if(!empty($productsArray['products'])){//check is products array is not empty....
+        //Execute loop on application prdoucts array,......
+        foreach ($productsArray['products'] as $key => $value) {
+          if(!empty($value['id'])){//check product id....
+              //compare sku, if match the return the ids..
+              if(isset($value['sku']) && !empty($value['sku'])){
+                  if($value['sku'] == $sku){
+                    $matchProductsId[] = $value['id'];
+                  }    
+              }
+          }
+        }   
+    }
+    return $matchProductsIds;//Return array....
+}
+
+//create the infusionsoft products dropdown for mapping..........
+function createApplicationProductsSelect($applicationProducts,$relativeProduct=''){
+    $application_products_options_html = '';//Define variable...
+    if(isset($applicationProducts['products']) && !empty($applicationProducts['products'])){//check application products...
+        foreach($applicationProducts['products'] as $applicationProductDetails) {
+          $appProductId = $applicationProductDetails['id'];//get or set the product id....
+          $appProductName = $applicationProductDetails['product_name'];//get or set the product name....
+          $appProductSelected = "";
+          if(!empty($relativeProduct)){//if relation exist...
+              if($relativeProduct == $appProductId){//then compare the relation between products....
+                  $appProductSelected = "selected";//set product selected....
+              }else{
+                  $appProductSelected = "";
+              }
+          }
+          //create the final html.....
+          $application_products_options_html.= '<option value="'.$appProductId.'" '.$appProductSelected.' data-id="'.$appProductId.'">'.$appProductName.'</option>';
+        }
+    }
+    return $application_products_options_html;//return html...
+}
+
 
 //Function is used to check whether the plugin is activated or not if not activated then return "leftMenusDisable" class....
 function getPluginDetails(){
@@ -278,6 +360,313 @@ function applicationName(){
   return $applicationName;  
 }
 
+function getApplicationProducts(){
+    //first need to check connection is created or not infusionsoft/keap application then next process need to done..
+    $applicationAuthenticationDetails = getAuthenticationDetails();
+    //get the access token....
+    $access_token = '';
+    if(!empty($applicationAuthenticationDetails)){
+      if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+          $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+      }
+    }
+    $productsListing = array();
+    $url = "https://api.infusionsoft.com/crm/rest/v1/products";
+    $postparam = array( 
+      'active'   => true 
+    );
+    $params = http_build_query($postparam);
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url."?".$params); //using the setopt function to send request to the url
+    $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $access_token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+    $response = curl_exec($ch); //executing request
+    $err = curl_error($ch);
+    $matchIdsArray = array();
+    if($err){
+      // echo $err;
+    }else{
+      $sucessData = json_decode($response,true);
+      return $sucessData;
+    }
+    curl_close($ch);
+    return $productsListing;
+}
+
+function updateExistingProduct($alreadyExistProductId,$access_token,$productDetailsArray,$logtype,$wooconnectionLogger){
+  $productId = '';
+  if(!empty($alreadyExistProductId) && !empty($access_token) && !empty($productDetailsArray)){
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/products/'.$alreadyExistProductId;
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $productDetailsArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+            $errorMessage = $logtype.' : '.'Update product('.$alreadyExistProductId.') in application is failed due to '. $err; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $logtype.' : '.'Update product('.$alreadyExistProductId.') in application is failed '; 
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          if(!empty($sucessData['id'])){
+            $productId = $sucessData['id'];
+          }
+          return $productId;
+        }
+        curl_close($ch);
+  }
+  return $productId;
+}
+
+
+function createNewProduct($access_token,$productDetailsArray,$callback_purpose,$logtype,$wooconnectionLogger){
+  $productId = '';
+  if(!empty($access_token) && !empty($productDetailsArray)){
+      $url = 'https://api.infusionsoft.com/crm/rest/v1/products';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $productDetailsArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = $logtype.' : '.$callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $logtype.' : '.$callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          if(!empty($sucessData['id'])){
+            $productId = $sucessData['id'];
+          }
+          return $productId;
+        }
+        curl_close($ch);
+  }
+  return $productId;
+}
+
+//Main function is used to generate the match products html.....
+function createMatchProductsHtml(){
+  global $wpdb;
+  //Define match table html variable.....
+  $table_match_products_html = "";
+  //Define array to manage the sorting.....
+  $wcproductsArray = array();
+  //call the common function to get the list of woocommerce products they are in relation with application products.......
+  $wooCommerceProducts = listExistingExportedProducts();
+  //Sort the products ids , to manage the listing display.....
+  if(!empty($wooCommerceProducts)){
+      foreach ($wooCommerceProducts as $key => $row)
+      {
+          $wcproductsArray[$key] = $row;
+      }
+      array_multisort($wcproductsArray, SORT_DESC, $wooCommerceProducts);
+  }
+  
+  //Get the application type and set the lable on the basis of it.... 
+  $configurationType = applicationType();
+  $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;//Default....
+  if(isset($configurationType) && !empty($configurationType)){
+    if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+      $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+    }else if ($configurationType == APPLICATION_TYPE_KEAP) {
+      $type = APPLICATION_TYPE_KEAP_LABEL;
+    }
+  }
+  //Set the application label on the basis of type...
+  $applicationLabel = applicationLabel($type);
+  //Get the list of active products from authenticate application....
+  $applicationProductsArray = getApplicationProducts();
+  
+  //set html if no products exist in woocommerce they are in relation with applcation products....
+  if(empty($wcproductsArray)){
+    $table_match_products_html = '<p class="heading-text" style="text-align:center">No products mapping exist.</p>';
+  }else{
+      //Compare woocommerce publish products application products....
+      $matchProductsData = compareMatchProductsWithAppProducts($wcproductsArray,$applicationProductsArray,$applicationLabel);
+      //Check export products data....
+      if(isset($matchProductsData) && !empty($matchProductsData)){
+          //Get the match products table html and append to table
+          if(!empty($matchProductsData['matchTableHtml'])){
+            $table_match_products_html .= '<form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
+              <table class="table table-striped match_products_listing_class" id="match_products_listing">
+                '.$matchProductsData['matchTableHtml'].'
+              </table>
+              <div class="form-group col-md-12 text-center m-t-60">
+                <div class="matchProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Update Mapping....</div>
+                <div class="alert-error-message match-products-error" style="display: none;"></div>
+                <div class="alert-sucess-message match-products-success" style="display: none;">Products mapping update successfully.</div>
+                <input type="button" value="Update Mapping" class="btn btn-primary btn-radius btn-theme match_products_btn" onclick="wcProductsMapping()">
+              </div>
+            </form>';
+          }
+      }
+  }
+  //return the html...
+  return $table_match_products_html;
+}
+
+//list of woocommerce products they are is relation with application products...
+function listExistingExportedProducts(){
+  global $wpdb;
+  //get the those products they are in relation with application products.....
+  $metaDetails = $wpdb->get_results("SELECT * FROM `".$wpdb->postmeta."` WHERE meta_key='is_kp_product_id'");
+  $exportProductIds = array();//Define array.....
+  if (isset($metaDetails) && !empty($metaDetails)){
+      foreach ($metaDetails as $key => $value) {
+        if(!empty($value->meta_value) && !empty($value->post_id)){//check meta value and post id....
+            $productId = $value->post_id;//product id.....
+            $productStatus = get_post_status( $productId );
+            if($productStatus == 'publish'){//check product status.....
+              $exportProductIds[] = $productId;
+            }
+        }
+      }
+  }
+  //Return array.....
+  return $exportProductIds;
+}
+
+
+//compare products of infusionsoft/keap with existing woocommerce products....
+function compareMatchProductsWithAppProducts($wooCommerceProducts,$applicationProductsArray,$applicationLabel)
+{
+    //Define array...
+    $productsData = array();
+    //First check if wooproducts exist...
+    if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
+        $productsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel);
+    }
+    //Return array... 
+    return $productsData;
+}
+
+function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
+    $matchTableHtml  = '';//Define variable..
+    $matchProductsData = array();//Define array...
+    //First check if wooproducts exist...
+    if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
+        //Create first table....
+        $matchTableHtml .= '<thead>';
+        $matchTableHtml .= '<tr>
+                        <th style="text-align: center;"><input type="checkbox" id="match_products_all" name="match_products_all" class="all_products_checkbox_match" value="allproductsexport"></th>
+                        <th>WooCommerce Product Name</th>
+                        <th>WooCommerce Product SKU</th>
+                        <th>WooCommerce Product Price</th>
+                        <th>'.$applicationType.' Product</th>
+                      </tr>';
+        $matchTableHtml .= '</thead>';
+        $matchTableHtml .= '<tbody>';
+        $productExistId = '';
+        foreach ($wooCommerceProducts as $key => $value) {
+            if(!empty($value)){
+                $wc_product_id = $value;//Define product id...                  
+                $wcproduct = wc_get_product($wc_product_id);//Get product details..
+                $wcproductPrice = $wcproduct->get_regular_price();//Get product price....
+                $currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
+                //check product price and set....
+                if(!empty($wcproductPrice)){
+                    $wcproductPrice = $wcproductPrice;
+                }else{
+                    $wcproductPrice = 0;
+                }
+                //Create final price to display...
+                $wcproductPrice = $currencySign.number_format($wcproductPrice,2);
+                $wcproductSku = $wcproduct->get_sku();//get product sku....
+                $wcproductName = $wcproduct->get_name();//get product name....
+                $productsDropDown = '';
+                //check and set the product name....
+                if(!empty($wcproductName)){
+                  $wcproductName = $wcproductName;
+                }else{
+                  $wcproductName = "--";
+                }
+                //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
+                if(!empty($applicationProductsArray['products'])){
+                    //Check product relation is exist....
+                    $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
+                    //If product relation exist then create select deopdown and set associative product selected....
+                    if(isset($productExistId) && !empty($productExistId)){
+                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$productExistId);
+                    }else{
+                      $productsDropDown = createMatchProductsSelect($applicationProductsArray);
+                    }
+                    //Create final select html.....
+                    $productSelectHtml = '<select class="application_match_products_dropdown" name="wc_product_match_with_'.$wc_product_id.'" data-id="'.$wc_product_id.'"><option value="0">Select '.$applicationType.' product</option>'.$productsDropDown.'</select>';
+                }else{
+                  //Set the html of select if no products exist in application....
+                  $productSelectHtml = 'No '.$applicationType.' Products Exist!';
+                }
+                //Check and set the product sku to display.....
+                if(!empty($wcproductSku)){
+                  $wcproductSku = $wcproductSku;
+                }else{
+                  $wcproductSku = "--";
+                }
+                //Create final html.......
+                $matchTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_match" name="wc_products_match[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td>'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+
+            }
+
+        }
+        $matchProductsData['matchTableHtml'] = $matchTableHtml;//Assign html....
+    }
+    return $matchProductsData;//Return data....
+}
+
+
+//create the infusionsoft products dropdown for mapping..........
+function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_compare=''){
+    $iskp_products_options_html = '';//Define variable...
+    if(isset($existingiskpProductResult['products']) && !empty($existingiskpProductResult['products'])){//check application products...
+        foreach($existingiskpProductResult['products'] as $iskpProductDetails) {
+          $iskpProductId = $iskpProductDetails['id'];//get or set the product id....
+          $iskpProductName = $iskpProductDetails['product_name'];//get or set the product name....
+          $iskpProductSelected = "";
+          if(!empty($wc_product_id_compare)){//if relation exist...
+              if($wc_product_id_compare == $iskpProductId){//then compare the relation between products....
+                  $iskpProductSelected = "selected";//set product selected....
+              }else{
+                  $iskpProductSelected = "";
+              }
+          }
+           //create the final html.....
+          $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';
+        }
+    }
+    return $iskp_products_options_html;//return html...
+}
+
 //get the campaign goal details on the basis of trigger type and campaign goal name....
 function get_campaign_goal_details($trigger_type,$campaign_goal_name){
   $campginGoalDetails = array();
@@ -289,6 +678,7 @@ function get_campaign_goal_details($trigger_type,$campaign_goal_name){
   }
   return $campginGoalDetails;
 }
+
 
 //validate email whether is in valid format or not.
 function validate_email($email='',$log_message,$wooconnectionLogger){
@@ -401,4 +791,5 @@ function addLogsAuthentication($connection_called_position = ''){
     }
     $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
 }
+
 ?>
