@@ -5,10 +5,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 //Woocommerce hook : This action is triggered when register process is hit from front end, It may be hit from registration page or at the time of checkout if "allow user registration during checkout"  option is enable in woocommerce settings.
-add_action('user_register','wooconnection_register_user', 10, 1);
+add_action('user_register','wooconnection_trigger_register_user', 10, 1);
 
-//Function Definiation : wooconnection_register_user
-function wooconnection_register_user($new_user_id){
+//Function Definiation : wooconnection_trigger_register_user
+function wooconnection_trigger_register_user($new_user_id){
     // Create instance of our wooconnection logger class to use off the whole things.
     $wooconnectionLogger = new WC_Logger();
     
@@ -53,11 +53,11 @@ function wooconnection_register_user($new_user_id){
     }
 
     //Call the main trigger function..
-    wooconnection_standard_user_registration_trigger($userid,$generalRegistrationNewUserIntegrationName,$generalRegistrationNewUserCallName,$wooconnectionLogger,$access_token,$callback_purpose);
+    wooconnection_general_user_registration_trigger($userid,$generalRegistrationNewUserIntegrationName,$generalRegistrationNewUserCallName,$wooconnectionLogger,$access_token,$callback_purpose);
 }
 
 //Trigger Wooconnection Goal : This function is used to trigger goal "Woocommerce User Registration"......
-function wooconnection_standard_user_registration_trigger($userid,$generalRegistrationNewUserIntegrationName,$generalRegistrationNewUserCallName,$wooconnectionLogger,$access_token,$callback_purpose){
+function wooconnection_general_user_registration_trigger($userid,$generalRegistrationNewUserIntegrationName,$generalRegistrationNewUserCallName,$wooconnectionLogger,$access_token,$callback_purpose){
     
     //check parameter user id is exist or not if not exist then get the current user if on the basis of logged in user id..
     $register_user_id = "";

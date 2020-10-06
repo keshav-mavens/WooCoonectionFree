@@ -1,6 +1,6 @@
 <?php $checkAuthenticationStatus = applicationAuthenticationStatus(); ?>
 <div class="info-header">
-    <p>Import/Export Products</p>
+    <p><?php echo IMPORT_EXPORT_LABEL_FREE; ?> Products</p>
 </div>
 <div class="righttextInner">
 	<span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span>  

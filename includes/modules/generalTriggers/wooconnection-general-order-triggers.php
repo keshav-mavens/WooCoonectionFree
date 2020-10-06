@@ -6,13 +6,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 
 //Woocommerce hook : This action is triggered when a status mark as completed.
-add_action('woocommerce_order_status_completed', 'wooconnection_mark_complete_order', 10, 3);
+add_action('woocommerce_order_status_completed', 'wooconnection_trigger_status_complete_hook', 10, 3);
 
 //Woocommerce hook : This action is triggered when a payment is done.
-add_action('woocommerce_payment_complete', 'wooconnection_mark_complete_order');
+add_action('woocommerce_payment_complete', 'wooconnection_trigger_status_complete_hook');
 
-//Function Definiation : wooconnection_mark_complete_order
-function wooconnection_mark_complete_order($orderid){
+//Function Definiation : wooconnection_trigger_status_complete_hook
+function wooconnection_trigger_status_complete_hook($orderid){
     // Create instance of our wooconnection logger class to use off the whole things.
     $wooconnectionLogger = new WC_Logger();
     
