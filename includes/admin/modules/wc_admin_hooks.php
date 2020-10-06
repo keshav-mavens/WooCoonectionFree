@@ -79,4 +79,17 @@ function insertProductToApplication( $post_id, $post ){
     }
 
 }
+
+//on move product to trash delete the relation.....
+add_action('wp_trash_post', 'custom_trash_function');
+function custom_trash_function($post_id){
+    if(!empty($post_id)){
+        //Check product relation is exist....
+        $productRelationId = get_post_meta($post_id, 'is_kp_product_id', true);  
+        if(!empty($productRelationId)){
+          delete_post_meta( $post_id, 'is_kp_product_id', $productRelationId );
+        }
+    }
+  return true;  
+}
 ?>

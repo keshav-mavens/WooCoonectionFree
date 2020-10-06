@@ -32,7 +32,7 @@ $applicationLabel = applicationLabel($type);
 	        <li class="expanded  <?php echo $leftMenuClass; ?>">
 				<a href="javascript:void(0);" id="import_products">
 					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/export.png" alt=""></span>
-					<span class="menu-text">Import/Export</span>
+					<span class="menu-text"><?php echo IMPORT_EXPORT_LABEL_FREE; ?></span>
 		        	<div class="clr"></div>
 		        </a>
 	        </li>
