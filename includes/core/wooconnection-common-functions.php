@@ -384,6 +384,7 @@ function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_cal
             $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
           }
           $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          return false;
         }
         return $sucessData;
       }
