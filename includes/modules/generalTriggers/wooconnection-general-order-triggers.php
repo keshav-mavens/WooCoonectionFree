@@ -100,28 +100,12 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 $productQuan = $item['quantity']; // Get the item quantity
                 $productIdCheck = checkAddProductIsKp($access_token,$product);
                 $productTitle = $product->get_title();//get product title..
-                $taxes = $item->get_taxes();
-                foreach( $taxes['subtotal'] as $rate_id => $tax ){
-                    $taxexArray[$productIdCheck] = $tax;
-                }
-                $productIdsArray[] = $productIdCheck;
-                $productQuanArray[$productIdCheck] = $productQuan;
                 $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
             }
             $jsonOrderItems = json_encode($itemsArray);
             $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token);
             if(!empty($iskporderId)){
                 update_post_meta($orderid, 'is_kp_order_relation', $iskporderId);
-            }
-            if(!empty($order_tax_details) && !empty($orderId)){
-                $callback_purpose = 'Order Item Tax : Process of add order item tax for order #'.$orderId;
-                foreach ($productIdsArray as $key => $value) {
-                   if(isset($taxexArray[$value]) && !empty($taxexArray[$value])){
-                        $finalPrice = ($taxexArray[$value]) / $productQuanArray[$value];
-                        $orderTaxJson = '{"description": "Order Tax","price": '.round($finalPrice,2).',"product_id": '.$value.',"quantity": '.$productQuanArray[$value].'}';
-                        addOrderItem($orderId,$orderTaxJson,$access_token,$callback_purpose,LOG_TYPE_FRONT_END,$wooconnectionLogger);
-                   }
-                }
             }
         }
     }else{
@@ -204,10 +188,31 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
                 }
             }    
         }
+        
+        //check relation of current order with infusionsoft/keap application order.....
+        $orderRelationId = get_post_meta($order_id, 'is_kp_order_relation', true);
+        if(!empty($orderRelationId)){
+            $callback_purpose_order_notes = 'On Wooconnection Failed order : Process of add order notes when #'.$order_id.' status changed to failed.';
+            //first get the order items listing......
+            $returnData = getApplicationOrderDetails($access_token,$orderRelationId,$callback_purpose_order_notes);
+            //then check order items array is not empty.....
+            if(isset($returnData) && !empty($returnData)){
+                //exceute loop on product items array to add the notes for current order....
+                foreach ($returnData as $key => $value) {
+                    $noteText = 'Infusionsoft/keap application relative Order item is "'.$value['type'].'" and name of item is "'.$value['name'].'" and price of item is "'.$value['price'].'"';
+                    $order->add_order_note( $noteText );
+                }
+            }
+            //after add notes of order items for order ...then needs to delete the order from infusionsoft/keap application....
+            $callback_purpose_delete_order = 'On Wooconnection Failed order : Process of delete order from infusionsoft/keap application when #'.$order_id.' status changed to failed.';
+            $returnDataId = deleteApplicationOrder($access_token,$orderRelationId,$callback_purpose_delete_order);
+            //once the order is deleted then needs to add note for current order with relative product is deleted...
+            $noteTextOrder = 'The infusionsoft/keap application relative order #'.$orderRelationId.' of this order is deleted';
+            $order->add_order_note( $noteTextOrder );
+        }
     }else{
         return false;
     }
     return true;
-
 }
 ?>

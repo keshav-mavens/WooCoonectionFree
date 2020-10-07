@@ -42,8 +42,7 @@
 	//define log type....
 	define("LOG_TYPE_FRONT_END", 'FrontendLogs');
 	define("LOG_TYPE_BACK_END", 'BackendLogs');
-
-
+	define("IMPORT_EXPORT_LABEL_FREE",'Export');
 ?>
 
 
