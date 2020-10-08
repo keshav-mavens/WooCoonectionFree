@@ -791,5 +791,4 @@ function addLogsAuthentication($connection_called_position = ''){
     }
     $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
 }
-
 ?>
