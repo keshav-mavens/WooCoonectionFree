@@ -10,6 +10,9 @@ if (!defined( 'WP_UNINSTALL_PLUGIN' ) || !WP_UNINSTALL_PLUGIN || dirname( WP_UNI
 	status_header( 404 );
 	exit;
 }
+global $wpdb;
 //Custom Query :  drop a custom  database table "wp_wooconnection_campaign_goals"
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}wooconnection_campaign_goals" );
+$optionName = 'wc_plugin_details';
+delete_option($optionName);
 ?>
