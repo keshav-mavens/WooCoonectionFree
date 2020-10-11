@@ -200,10 +200,12 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
                 //exceute loop on product items array to add the notes for current order....
                 $currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
                 foreach ($returnData as $key => $value) {
-                    $noteText = 'Infusionsoft/keap application relative Order item is "'.$value['type'].'" and name of item is "'.$value['name'].'" and price of item is "'.$currencySign.$value['price'].'"';
-                    $order->add_order_note( $noteText );
+                    $itemTitle = 'Item Deleted '.$value['name'].' of order #'.$orderRelationId;
+                    $noteText = 'Order item is '.$value['type'].' and name of item is '.$value['name'].' and price of item is '.$currencySign.$value['price'].'';
+                    addContactNotes($access_token,$orderContactId,$noteText,$itemTitle);
                 }
             }
+            
             //after add notes of order items for order ...then needs to delete the order from infusionsoft/keap application....
             $callback_purpose_delete_order = 'On Wooconnection Failed order : Process of delete order from infusionsoft/keap application when #'.$order_id.' status changed to failed.';
             $returnDataId = deleteApplicationOrder($access_token,$orderRelationId,$callback_purpose_delete_order);
@@ -215,5 +217,39 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
         return false;
     }
     return true;
+}
+function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
+    if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
+        //create json array to push ocde in infusionsoft...
+        $jsonData ='{"body": "'.$noteText.'","title":"'.$itemTitle.'" ,"contact_id":'.$orderContactId.'}';
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/notes';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = $logtype.' : '.$callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $logtype.' : '.$callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          return true;
+        }
+        curl_close($ch);
+    }
 }
 ?>
