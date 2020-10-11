@@ -198,8 +198,9 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
             //then check order items array is not empty.....
             if(isset($returnData) && !empty($returnData)){
                 //exceute loop on product items array to add the notes for current order....
+                $currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
                 foreach ($returnData as $key => $value) {
-                    $noteText = 'Infusionsoft/keap application relative Order item is "'.$value['type'].'" and name of item is "'.$value['name'].'" and price of item is "'.$value['price'].'"';
+                    $noteText = 'Infusionsoft/keap application relative Order item is "'.$value['type'].'" and name of item is "'.$value['name'].'" and price of item is "'.$currencySign.$value['price'].'"';
                     $order->add_order_note( $noteText );
                 }
             }
