@@ -4,7 +4,6 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-
 //Woocommerce hook : This action is triggered when a status mark as completed.
 add_action('woocommerce_order_status_completed', 'wooconnection_trigger_status_complete_hook', 10, 3);
 
@@ -216,8 +215,10 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
     }else{
         return false;
     }
-    return true;
+    return false;
 }
+
+//add notes for contact....
 function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
     if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
         //create json array to push ocde in infusionsoft...
