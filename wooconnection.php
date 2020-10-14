@@ -84,8 +84,7 @@ class WooConnection {
                 VALUES
                 ('New User Registration','wooconnection','registered',1,1),
                 ('Order Successful','wooconnection','successfulorder',1,1),
-                ('Order Failed','wooconnection','failedorder',1,1),
-                ('Card Declined','wooconnection','declinedcard',1,1)");
+                ('Order Failed','wooconnection','failedorder',1,1)");
         }
     }
 

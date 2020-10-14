@@ -37,9 +37,6 @@ function wooconnection_trigger_status_complete_hook($orderid){
     $order = new WC_Order( $orderid );
     $order_email = $order->get_billing_email();
     $order_tax_details = (float) $order->get_total_tax();
-    // echo "<pre>";
-    // print_r($order_tax_details);
-    // die();
     
     // Validate email is in valid format or not 
     validate_email($order_email,$callback_purpose,$wooconnectionLogger);
@@ -54,7 +51,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
     $generalSuccessfullOrderIntegrationName = '';
     $generalSuccessfullOrderCallName = '';
 
-    //Check campaign goal details...
+    // Check call name of wooconnection goal is exist or not if exist then hit the achieveGoal where integration name is purchaseProductIntegrationName and call name sku of product...
     if(isset($generalSuccessfullOrderTrigger) && !empty($generalSuccessfullOrderTrigger)){
         
         //Get and set the wooconnection goal integration name
@@ -72,8 +69,9 @@ function wooconnection_trigger_status_complete_hook($orderid){
     if(isset($orderContactId) && !empty($orderContactId)) {
         //get order data and update the contact information,,
         $order_data = $order->get_data();
+        //Update contact data after getting the contact id.....
         updateContact($orderContactId,$order_data,$access_token);
-
+        // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
         if(!empty($generalSuccessfullOrderIntegrationName) && !empty($generalSuccessfullOrderCallName))
         {
             $generallSuccessfullOrderTriggerResponse = achieveTriggerGoal($access_token,$generalSuccessfullOrderIntegrationName,$generalSuccessfullOrderCallName,$orderContactId,$callback_purpose);
@@ -89,20 +87,25 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 }
             }
         }
-        //$apiOrderId = createBlankOrder($orderid,$orderContactId,$access_token);
+        
+        //Get the order items from order then execute loop to create the order items array....
         if ( sizeof( $products_items = $order->get_items() ) > 0 ) {
             foreach($products_items as $item_id => $item)
             {
-                $product = wc_get_product($item['product_id']);
+                $product = wc_get_product($item['product_id']);//get the prouct details...
                 $productDesc = $product->get_description();//product description..
-                $productPrice = round($product->get_price(),2);//get product price
-                $productQuan = $item['quantity']; // Get the item quantity
-                $productIdCheck = checkAddProductIsKp($access_token,$product);
+                $productPrice = round($product->get_price(),2);//get product price....
+                $productQuan = $item['quantity']; // Get the item quantity....
+                $productIdCheck = checkAddProductIsKp($access_token,$product);//get the related  product id on the basis of relation with infusionsoft/keap application product...
                 $productTitle = $product->get_title();//get product title..
+                //push product details into array/......
                 $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
             }
+            //create order items json....
             $jsonOrderItems = json_encode($itemsArray);
+            //create order in infusionsoft/keap application.....
             $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token);
+            //update order relation between woocommerce order and infusionsoft/keap application order.....
             if(!empty($iskporderId)){
                 update_post_meta($orderid, 'is_kp_order_relation', $iskporderId);
             }
@@ -169,9 +172,9 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
         }    
     }
 
-    //check contact id..
+    //check if contact id is exist then hit the trigger....
     if(isset($orderContactId) && !empty($orderContactId)) {
-        // Check call name of wooconnection goal is exist or not if exist then hit the achieveGoal where integration name is purchaseProductIntegrationName and call name sku of product...
+        // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
         if(!empty($generalFailOrderIntegrationName) && !empty($generalFailOrderCallName))
         {
             $generalFailTriggerResponse = achieveTriggerGoal($access_token,$generalFailOrderIntegrationName,$generalFailOrderCallName,$orderContactId,$callback_purpose);
@@ -196,15 +199,17 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
             $returnData = getApplicationOrderDetails($access_token,$orderRelationId,$callback_purpose_order_notes);
             //then check order items array is not empty.....
             if(isset($returnData) && !empty($returnData)){
+                $itemTitle = 'Items Deleted of order #'.$orderRelationId;//item title..
                 //exceute loop on product items array to add the notes for current order....
                 $currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
+                $itemsstring = array();//array to save the list of order items....
                 foreach ($returnData as $key => $value) {
-                    $itemTitle = 'Item Deleted '.$value['name'].' of order #'.$orderRelationId;
                     $noteText = 'Order item is '.$value['type'].' and name of item is '.$value['name'].' and price of item is '.$currencySign.$value['price'].'';
-                    addContactNotes($access_token,$orderContactId,$noteText,$itemTitle);
+                    $itemsstring[] = $noteText;//push item string to array....
                 }
+                //once the order status change to failed then need to add notes for contact in infusionsoft/keap application.... 
+                addContactNotes($access_token,$orderContactId,$itemsstring,$itemTitle);
             }
-            
             //after add notes of order items for order ...then needs to delete the order from infusionsoft/keap application....
             $callback_purpose_delete_order = 'On Wooconnection Failed order : Process of delete order from infusionsoft/keap application when #'.$order_id.' status changed to failed.';
             $returnDataId = deleteApplicationOrder($access_token,$orderRelationId,$callback_purpose_delete_order);
@@ -216,41 +221,5 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
         return false;
     }
     return false;
-}
-
-//add notes for contact....
-function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
-    if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
-        //create json array to push ocde in infusionsoft...
-        $jsonData ='{"body": "'.$noteText.'","title":"'.$itemTitle.'" ,"contact_id":'.$orderContactId.'}';
-        $url = 'https://api.infusionsoft.com/crm/rest/v1/notes';
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-          'Accept: application/json',
-          'Content-Type: application/json',
-          'Authorization: Bearer '. $access_token
-        );
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
-        $response = curl_exec($ch);
-        $err = curl_error($ch);
-        if($err){
-          $errorMessage = $logtype.' : '.$callback_purpose ." is failed due to ". $err; 
-          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-        }else{
-          $sucessData = json_decode($response,true);
-          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
-            $errorMessage = $logtype.' : '.$callback_purpose ." is failed ";
-            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
-              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
-            }
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          }
-          return true;
-        }
-        curl_close($ch);
-    }
 }
 ?>
