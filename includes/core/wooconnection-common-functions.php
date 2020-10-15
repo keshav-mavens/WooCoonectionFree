@@ -87,6 +87,7 @@ function getGeneralTriggers(){
   return $wcGeneralTriggers;
 }
 
+//function is used to get the authentication details....
 function getAuthenticationDetails(){
   $authenticationData = array();
   $pluginDetails = getPluginDetails();
@@ -334,6 +335,7 @@ function getPluginDetails(){
   return $pluginDetails; 
 }
 
+//Get the application type.....
 function applicationType(){
   $data = getAuthenticationDetails();
   $applicationType = '';
@@ -343,6 +345,7 @@ function applicationType(){
   return $applicationType;  
 }
 
+//Get the application label.....
 function applicationLabel($type=''){
   $label =  APPLICATION_TYPE_INFUSIONSOFT_LABEL;
   if($type != ""){
@@ -351,6 +354,7 @@ function applicationLabel($type=''){
   return $label;
 }
 
+//Get the application name......
 function applicationName(){
   $data = getAuthenticationDetails();
   $applicationName = '';
@@ -360,6 +364,7 @@ function applicationName(){
   return $applicationName;  
 }
 
+//Get the list of application products....
 function getApplicationProducts(){
     //first need to check connection is created or not infusionsoft/keap application then next process need to done..
     $applicationAuthenticationDetails = getAuthenticationDetails();
@@ -398,6 +403,7 @@ function getApplicationProducts(){
     return $productsListing;
 }
 
+//Function is used to update the infusionsoft/keap application existing products at the time of export...
 function updateExistingProduct($alreadyExistProductId,$access_token,$productDetailsArray,$logtype,$wooconnectionLogger){
   $productId = '';
   if(!empty($alreadyExistProductId) && !empty($access_token) && !empty($productDetailsArray)){
@@ -532,6 +538,7 @@ function compareMatchProductsWithAppProducts($wooCommerceProducts,$applicationPr
     return $productsData;
 }
 
+//Create the match products table listing....
 function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
     $matchTableHtml  = '';//Define variable..
     $matchProductsData = array();//Define array...
