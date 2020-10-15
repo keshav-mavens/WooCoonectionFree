@@ -1,13 +1,13 @@
 === WooConnection ===
 Contributors: Fullstackmarketing.co
 Tags: spam
-Donate link: https://www.fullstackmarketing.co/shop/woo-commerce-payment-gateway-infusionsoft/
+Donate link: https://www.fullstackmarketing.co/
 
 == Description ==
 
 **WooConnection Plugin**
 
-WooConnection plugin provide the easiest way to connect woocommerce cite to Infusionsoft and Keap
+WooConnection plugin provide the easiest way to connect woocommerce site to Infusionsoft and Keap
 application. WooConnection plugin provides the feature to export products from woocommerce to infusionsoft/keap application. Also configure the campaign goals. Sync woocommerce orders in infusionsoft/keap application.
 
 
@@ -22,7 +22,7 @@ application. WooConnection plugin provides the feature to export products from w
 * Export all woocommerce products.
   Description : Export feature provides the feature to export products from woocommerce to infusionsoft/keap application.
 
-* Camapign Goals 
+* Campaign Goals 
   Description : With the help of this feature you will be edit the goal details like call name and integration name of goal. As you set campaign goal details in wooconnection plugin for each campaign same you need to create the campaign goals in infusionsoft/keap application campaign builder. With the help of this feature user can enter in campaign goals. Like new user register then push into the campaign goal, same with order sucessful etc. 
 
 * Logs of infusionsoft/keap api.
