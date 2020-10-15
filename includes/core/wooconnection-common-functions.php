@@ -939,7 +939,8 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
                         "order_items": '.$jsonOrderItems.',
                         "order_date": "'.$current_time.'",
                         "order_title": "'.$orderTitle.'",
-                        "order_type": "Offline"}';
+                        "order_type": "Offline"
+                      }';
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array(
