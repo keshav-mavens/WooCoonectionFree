@@ -93,6 +93,7 @@ function wooconnection_general_user_registration_trigger($userid,$generalRegistr
 
         //check if contact id is exist then hit the trigger....
         if(isset($registerContactId) && !empty($registerContactId)) {
+            // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
             if(!empty($generalRegistrationNewUserIntegrationName) && !empty($generalRegistrationNewUserCallName))
             {
                 

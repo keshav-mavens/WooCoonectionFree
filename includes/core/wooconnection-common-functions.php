@@ -87,6 +87,7 @@ function getGeneralTriggers(){
   return $wcGeneralTriggers;
 }
 
+//function is used to get the authentication details....
 function getAuthenticationDetails(){
   $authenticationData = array();
   $pluginDetails = getPluginDetails();
@@ -334,15 +335,17 @@ function getPluginDetails(){
   return $pluginDetails; 
 }
 
+//Get the application type.....
 function applicationType(){
   $data = getAuthenticationDetails();
   $applicationType = '';
   if(isset($data) && !empty($data)){
-    $applicationtypeSelected =  $data[0]->user_application_edition;
+    $applicationType =  $data[0]->user_application_edition;
   }
   return $applicationType;  
 }
 
+//Get the application label.....
 function applicationLabel($type=''){
   $label =  APPLICATION_TYPE_INFUSIONSOFT_LABEL;
   if($type != ""){
@@ -351,6 +354,7 @@ function applicationLabel($type=''){
   return $label;
 }
 
+//Get the application name......
 function applicationName(){
   $data = getAuthenticationDetails();
   $applicationName = '';
@@ -360,6 +364,7 @@ function applicationName(){
   return $applicationName;  
 }
 
+//Get the list of application products....
 function getApplicationProducts(){
     //first need to check connection is created or not infusionsoft/keap application then next process need to done..
     $applicationAuthenticationDetails = getAuthenticationDetails();
@@ -398,6 +403,7 @@ function getApplicationProducts(){
     return $productsListing;
 }
 
+//Function is used to update the infusionsoft/keap application existing products at the time of export...
 function updateExistingProduct($alreadyExistProductId,$access_token,$productDetailsArray,$logtype,$wooconnectionLogger){
   $productId = '';
   if(!empty($alreadyExistProductId) && !empty($access_token) && !empty($productDetailsArray)){
@@ -421,45 +427,6 @@ function updateExistingProduct($alreadyExistProductId,$access_token,$productDeta
           $sucessData = json_decode($response,true);
           if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
             $errorMessage = $logtype.' : '.'Update product('.$alreadyExistProductId.') in application is failed '; 
-            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
-              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
-            }
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          }
-          if(!empty($sucessData['id'])){
-            $productId = $sucessData['id'];
-          }
-          return $productId;
-        }
-        curl_close($ch);
-  }
-  return $productId;
-}
-
-
-function createNewProduct($access_token,$productDetailsArray,$callback_purpose,$logtype,$wooconnectionLogger){
-  $productId = '';
-  if(!empty($access_token) && !empty($productDetailsArray)){
-      $url = 'https://api.infusionsoft.com/crm/rest/v1/products';
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-          'Accept: application/json',
-          'Content-Type: application/json',
-          'Authorization: Bearer '. $access_token
-        );
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $productDetailsArray);
-        $response = curl_exec($ch);
-        $err = curl_error($ch);
-        if($err){
-          $errorMessage = $logtype.' : '.$callback_purpose ." is failed due to ". $err; 
-          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-        }else{
-          $sucessData = json_decode($response,true);
-          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
-            $errorMessage = $logtype.' : '.$callback_purpose ." is failed ";
             if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
               $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
             }
@@ -571,6 +538,7 @@ function compareMatchProductsWithAppProducts($wooCommerceProducts,$applicationPr
     return $productsData;
 }
 
+//Create the match products table listing....
 function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
     $matchTableHtml  = '';//Define variable..
     $matchProductsData = array();//Define array...
@@ -704,7 +672,7 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
         // Create instance of our wooconnection logger class to use off the whole things.
         $wooconnectionLogger = new WC_Logger();
         //create json array to push ocde in infusionsoft...
-        $jsonData ='{"duplicate_option": "Email","email_addresses":[{"email": "'.$appUseremail.'","field": "EMAIL1"}],"opt_in_reason": "Customer opted-in through purchasing."}';
+        $jsonData ='{"duplicate_option": "Email","email_addresses":[{"email": "'.$appUseremail.'","field": "EMAIL1"}],"opt_in_reason": "Customer opted-in through '.SITE_URL.'"}';
         $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts';
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -791,4 +759,496 @@ function addLogsAuthentication($connection_called_position = ''){
     }
     $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
 }
+
+//check compnay is exist or not if not then add new company..
+function checkAddCompany($companyName,$access_token){
+    //check if companyName is exist then get the current company id from infusionsoft/keap application on the basis of companyName 
+    $companyId = "";
+    if(isset($companyName) && !empty($companyName)){
+        $url = "https://api.infusionsoft.com/crm/rest/v1/companies";
+        $postparam = array( 
+          'company_name'   => $companyName 
+        );
+        $params = http_build_query($postparam);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url."?".$params); //using the setopt function to send request to the url
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+        $response = curl_exec($ch); //executing request
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(!empty($sucessData['companies'][0])){
+              if(!empty($sucessData['companies'][0]['id'])){
+                  $companyId = $sucessData['companies'][0]['id'];
+              } 
+          }
+          if(!empty($companyId)){
+              return $companyId;
+          }else{
+            $companyId = addNewCompany($companyName,$access_token);
+            return $companyId;
+          } 
+        }
+        curl_close($ch);
+    }
+    return $companyId;
+}
+
+
+
+//check compnay is exist or not if not then add new company..
+function addNewCompany($newCompanyName,$access_token){
+    //check if companyName is exist then get the current company id from infusionsoft/keap application on the basis of companyName 
+    $newCompanyId = "";
+    if(isset($newCompanyName) && !empty($newCompanyName)){
+        $url = "https://api.infusionsoft.com/crm/rest/v1/companies";
+        $jsonArray = '{"company_name": "'.$newCompanyName.'"}';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(!empty($sucessData)){
+              if(!empty($sucessData['id'])){
+                $newCompanyId = $sucessData['id'];
+                return $newCompanyId;
+              } 
+          }
+        }
+        curl_close($ch);
+    }
+    return $companyId;
+}
+
+
+
+//update contact to infusionsoft/keap account..
+function updateContact($contactId,$woocommerce_order_data,$access_token){
+    $contactLatestInformation = array();
+    if(!empty($contactId) && !empty($woocommerce_order_data) && !empty($access_token)){
+        if(isset($woocommerce_order_data['billing']['country']) && !empty($woocommerce_order_data['billing']['country'])){
+            $countryCode = get_country_code($woocommerce_order_data['billing']['country']);
+            $contactLatestInformation['country_code'] = $countryCode;
+        }
+        $contactLatestInformation['field'] = "BILLING";
+        if(isset($woocommerce_order_data['billing']['address_1']) && !empty($woocommerce_order_data['billing']['address_1'])){
+            $contactLatestInformation['line1'] = trim($woocommerce_order_data['billing']['address_1']);
+        }
+        if(isset($woocommerce_order_data['billing']['address_2']) && !empty($woocommerce_order_data['billing']['address_2']))
+        {
+            $contactLatestInformation['line2'] = $woocommerce_order_data['billing']['address_2'];
+        }
+        if(isset($woocommerce_order_data['billing']['postcode']) && !empty($woocommerce_order_data['billing']['postcode'])){
+            $contactLatestInformation['postal_code'] = $woocommerce_order_data['billing']['postcode'];
+        }
+        if(isset($woocommerce_order_data['billing']['city']) && !empty($woocommerce_order_data['billing']['city'])){
+            $contactLatestInformation['locality'] = $woocommerce_order_data['billing']['city'];
+        }
+        if(isset($woocommerce_order_data['billing']['state']) && !empty($woocommerce_order_data['billing']['state'])){
+            $states = WC()->countries->get_states($woocommerce_order_data['billing']['country']);
+            $state = !empty($states[$woocommerce_order_data['billing']['state']]) ? $states[$woocommerce_order_data['billing']['state']] : '';
+            $contactLatestInformation['region'] = $state;
+        }
+        $companyId = '';
+        if(isset($woocommerce_order_data['billing']['company']) && !empty($woocommerce_order_data['billing']['company'])){
+            $company = stripslashes($woocommerce_order_data['billing']['company']);
+            $companyId = checkAddCompany($company,$access_token);
+        }
+        $firstName = '';
+        if(isset($woocommerce_order_data['billing']['first_name']) && !empty($woocommerce_order_data['billing']['first_name'])){
+            $firstName = trim($woocommerce_order_data['billing']['first_name']);
+        }
+        $phone1 = '';
+        if(isset($woocommerce_order_data['billing']['phone']) && !empty($woocommerce_order_data['billing']['phone'])){
+            $phone1 = $woocommerce_order_data['billing']['phone'];
+        }
+        $jsonAddressedArray = json_encode($contactLatestInformation);
+        $jsonArray = '{"addresses": ['.$jsonAddressedArray.'],"company": {"id": '.$companyId.'},"phone_numbers": 
+          [{"field": "PHONE1","number": "'.$phone1.'"}],"given_name": "'.$firstName.'"}';
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts/'.$contactId;
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = 'Trying to update contact('.$contactId.')';
+          $errorMessage .= $errorMessage ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = 'Trying to update contact('.$contactId.')';
+            $errorMessage = $errorMessage ." is failed";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+        }
+        curl_close($ch);
+    }
+    return true;
+}
+
+//get country code on the basis of code...
+function get_country_code($code){
+  global $wpdb,$table_prefix;
+  $table_name = 'wp_wooconnection_countries';
+  $countryDetails = $wpdb->get_results("SELECT * FROM ".$table_name." WHERE code = '".$code."'");
+  $countryCode = "";
+  if(!empty($countryDetails[0]->countrycode)){
+    $countryCode =$countryDetails[0]->countrycode;
+  }
+  return $countryCode;
+}
+
+//Create order in infusionsoft/keap application at the time checkout......
+function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
+    $newOrderId = "";
+    if(!empty($contactId) && !empty($orderid) && !empty($access_token)){
+        $orderTitle = "New Order Generated where order number is #" . $orderid . " and generated from " . site_url();
+        $url = "https://api.infusionsoft.com/crm/rest/v1/orders";
+        $current_time = date("Y-m-d")."T".date("H:i:s")."Z"; 
+        $jsonArray = '{
+                        "contact_id": '.$contactId.',
+                        "order_items": '.$jsonOrderItems.',
+                        "order_date": "'.$current_time.'",
+                        "order_title": "'.$orderTitle.'",
+                        "order_type": "Offline"
+                      }';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(!empty($sucessData)){
+              if(!empty($sucessData['id'])){
+                $newOrderId = $sucessData['id'];
+                return $newOrderId;
+              } 
+          }
+        }
+        curl_close($ch);  
+    }
+    return $newOrderId;
+    
+}
+
+//add product to infusionsoft/keap account..
+function checkAddProductIsKp($access_token,$item){
+    $currentProductID = '';
+    $productId = $item->get_id();
+    $checkAlreadyExist = get_post_meta($productId, 'is_kp_product_id', true);
+    $wooconnectionLogger = new WC_Logger();
+    if(isset($checkAlreadyExist) && !empty($checkAlreadyExist)){
+       $currentProductID = $checkAlreadyExist; 
+    }else{
+      $wcproductSku = $item->get_sku();//get product sku....
+      $wcproductPrice = $item->get_regular_price();
+      $wcproductName = $item->get_name();//get product name....
+      $wcproductDesc = $item->get_description();//get product description....
+      if(isset($wcproductDesc) && !empty($wcproductDesc)){
+          $wcproductDesc = $wcproductDesc;
+      }else{
+          $wcproductDesc = "";
+      }
+      $wcproductShortDesc = $item->get_short_description();//get product short description....
+      if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
+          $wcproductShortDesc = $wcproductShortDesc;
+      }else{
+          $wcproductShortDesc = "";
+      }
+      $wcproductSlug =  $item->get_slug();//get product slug....
+      //create final array with values.....
+      $productDetailsArray = array();
+      $productDetailsArray['active'] = true;
+      $productDetailsArray['product_desc'] = $wcproductDesc;
+      $productDetailsArray['product_price'] = $wcproductPrice;
+      $productDetailsArray['product_short_desc'] = $wcproductShortDesc;
+      $productDetailsArray['product_name'] = $wcproductName;
+      $callback_purpose = 'Add Woocommerce Product : Process of add woocommerce product to infusionsoft/keap application at the time of order creation';
+      //Check if product sku is not exist then create the sku on the basis of product slug.........
+      if(isset($wcproductSku) && !empty($wcproductSku)){
+          $existingProductIds =  checkProductAlreadyExistWithSku($wcproductSku,$access_token);
+          if(!empty($existingProductIds)){
+            $lastElement = end($existingProductIds);
+            if(!empty($lastElement)){
+              $currentProductID = $lastElement;
+            }
+          }
+          if(empty($currentProductID)){
+              //if "-" is exist in product sku then replace with "_".....
+              if (strpos($wcproductSlug, '-') !== false)
+              {
+                  $wcproductSku=str_replace("-", "_", $wcproductSlug);
+              }
+              else
+              {
+                  $wcproductSku=$wcproductSlug;
+              }
+              $productDetailsArray['sku'] = $wcproductSku;
+              $jsonData = json_encode($productDetailsArray);
+
+              $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_FRONT_END,$wooconnectionLogger);
+              if(!empty($createdProductId)){
+                //update relationship between woocommerce product and infusionsoft/keap product...
+                update_post_meta($productId, 'is_kp_product_id', $createdProductId);
+                //update the woocommerce product sku......
+                update_post_meta($productId,'_sku',$wcproductSku);
+                $currentProductID = $createdProductId;
+              }
+          }
+      }else{
+          //if "-" is exist in product sku then replace with "_".....
+          if (strpos($wcproductSlug, '-') !== false)
+          {
+              $wcproductSku=str_replace("-", "_", $wcproductSlug);
+          }
+          else
+          {
+              $wcproductSku=$wcproductSlug;
+          }
+          $productDetailsArray['sku'] = $wcproductSku;
+          $jsonData = json_encode($productDetailsArray);
+          $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_FRONT_END,$wooconnectionLogger);
+          if(!empty($createdProductId)){
+            //update relationship between woocommerce product and infusionsoft/keap product...
+            update_post_meta($productId, 'is_kp_product_id', $createdProductId);
+            //update the woocommerce product sku......
+            update_post_meta($productId,'_sku',$wcproductSku);
+            $currentProductID = $createdProductId;
+          }         
+                
+      }
+    }
+    return $currentProductID;
+}
+
+//Check product is exist in infusionsoft/keap application on the basis of product sku......
+function checkProductAlreadyExistWithSku($productsku,$token){
+  $url = "https://api.infusionsoft.com/crm/rest/v1/products";
+    $postparam = array( 
+      'active'   => true 
+    );
+    $params = http_build_query($postparam);
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url."?".$params); //using the setopt function to send request to the url
+    $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+    $response = curl_exec($ch); //executing request
+    $err = curl_error($ch);
+    $matchIdsArray = array();
+    if($err){
+    }else{
+      $sucessData = json_decode($response,true);
+      if(!empty($sucessData)){
+        if($sucessData['count'] > 0){
+          if(!empty($sucessData['products'])){
+            foreach ($sucessData['products'] as $key => $value) {
+                if(!empty($value['sku'])){
+                  if($value['sku'] == $productsku){
+                    $matchIdsArray[] = $value['id'];
+                  }
+                }
+              }
+            }
+        } 
+      }
+      return $matchIdsArray;
+    }
+    curl_close($ch);
+    return $matchIdsArray;
+}
+
+//Create new product at the time of checkout process.......
+function createNewProduct($access_token,$productDetailsArray,$callback_purpose,$logtype,$wooconnectionLogger){
+  $productId = '';
+  if(!empty($access_token) && !empty($productDetailsArray)){
+      $url = 'https://api.infusionsoft.com/crm/rest/v1/products';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $productDetailsArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = $logtype.' : '.$callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $logtype.' : '.$callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          if(!empty($sucessData['id'])){
+            $productId = $sucessData['id'];
+          }
+          return $productId;
+        }
+        curl_close($ch);
+  }
+  return $productId;
+}
+
+//Get the infusionsoft/keap application order deatils on the basis of order id....
+function getApplicationOrderDetails($access_token,$orderRelationId,$callback_purpose){
+  $data = array();
+  if(!empty($access_token) && !empty($orderRelationId)){
+      $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+        //curl_setopt($ch, CURLOPT_POSTFIELDS, $productDetailsArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = $callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          if(!empty($sucessData['order_items'])){
+            $data = $sucessData['order_items'];
+          }
+          return $data;
+        }
+        curl_close($ch);
+  }
+  return $data;
+}
+
+//add notes for contact in infusionsoft/keap application....
+function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
+    if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
+        //create json array to push ocde in infusionsoft...
+        $comma_separated = implode(",", $noteText);
+        $jsonData ='{"body": "'.$comma_separated.'","title":"'.$itemTitle.'" ,"contact_id":'.$orderContactId.'}';
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/notes';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = $logtype.' : '.$callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $logtype.' : '.$callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          return true;
+        }
+        curl_close($ch);
+    }
+}
+
+//delete infusionsoft/keap application order after the notes added for contact....
+function deleteApplicationOrder($access_token,$orderRelationId,$callback_purpose){
+  $data = true;
+  if(!empty($access_token) && !empty($orderRelationId)){
+      $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        //curl_setopt($ch, CURLOPT_POSTFIELDS, $productDetailsArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = $callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          return true;
+        }
+        curl_close($ch);
+  }
+  return $data;
+}
+
 ?>

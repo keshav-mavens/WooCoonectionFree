@@ -20,6 +20,19 @@
       $importExportHtml = '<i class="fa fa-check" aria-hidden="true"></i>';
     }
   }
+
+  //Code is used check plugin is activated or not.If not activated then stop the click event on progress bar..
+  $leftMenuClass = checkPluginActivatedNot();
+  //Define variables.....
+  $activeConnectId = "";
+  $importExportId = "";
+  $automationId = "";
+  //If plugin is activated then set the id attribute for progress bar steps, so onclick work sucessfully.
+  if($leftMenuClass == ""){
+    $activeConnectId = "progress_plugin_activation";
+    $importExportId = "progress_import_products";
+    $automationId = "progress_automation";
+  }
 ?>
 <div class="info-header">
   <p>Guided Setup</p>
@@ -27,13 +40,13 @@
 <div class="righttextInner"> 
   <div class="tabbable">
     <ul class="nav nav-tabs wizard">
-      <li class="<?php echo $activationClass; ?>" id="progress_plugin_activation">
+      <li class="<?php echo $activationClass; ?>" id="<?php echo $activeConnectId; ?>">
         <a href="javascript:void(0)" data-toggle="tab" aria-expanded="false"><span class="nmbr"><?php echo $activationHtml; ?></span>Activate and Connect</a>
       </li>
-      <li id="progress_import_products" class="<?php echo $importExportClass; ?>">
+      <li id="<?php echo $importExportId; ?>" class="<?php echo $importExportClass; ?>">
         <a href="javascript:void(0)" data-toggle="tab" aria-expanded="false"><span class="nmbr"><?php echo $importExportHtml; ?></span>Import and Match</a>
       </li>
-      <li  id="progress_automation">
+      <li  id="<?php echo $automationId; ?>">
         <a href="javascript:void(0)" data-toggle="tab" aria-expanded="false"><span class="nmbr">3</span>Automate</a>
       </li>
     </ul>
