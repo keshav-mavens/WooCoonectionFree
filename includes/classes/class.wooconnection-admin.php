@@ -85,24 +85,10 @@ class WooConnection_Admin {
                 wp_enqueue_style('sweetalert_min_css', WOOCONNECTION_PLUGIN_URL.'assets/css/sweetalert.min.css', array(), WOOCONNECTION_VERSION);//Wooconnection Styles : Enqueue the wooconnection styles..
 
 			}else{
-                //Below style is add on woocommerce menu icon when another page of wp-admin is open..
-                ?>
-                    <style type="text/css">
-                        .toplevel_page_wooconnection-admin .wp-menu-image img {
-                            padding: 3px 0 0 0 !important;
-                        }
-                    </style>
-                <?php
+                $this->includeCssJs();     
             }
     	}else{
-            //Below style is add on woocommerce menu icon when another plugin of wp-admin is open..
-    		?>
-    			<style type="text/css">
-    				.toplevel_page_wooconnection-admin .wp-menu-image img {
-					    padding: 3px 0 0 0 !important;
-					}
-    			</style>
-            <?php
+           $this->includeCssJs();
     	}
     }
     
@@ -112,6 +98,37 @@ class WooConnection_Admin {
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
     }
+
+    public function includeCssJs(){
+        ?>
+            <style type="text/css">
+                .toplevel_page_wooconnection-admin .wp-menu-image img {
+                    padding: 3px 0 0 0 !important;
+                }
+            </style>
+            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+            <script type="text/javascript">
+                var WOOCONNECTION_PLUGIN_URL = '<?php echo WOOCONNECTION_PLUGIN_URL ?>';
+                $( document ).ready(function() {
+                    //change the wooconnection plugin image on hover....
+                    $('.toplevel_page_wooconnection-admin').hover(function () {
+                        $(this).find('img').attr('src', function (i, src) {
+                            if(src == WOOCONNECTION_PLUGIN_URL+'assets/images/icon-grey-new.png'){
+                                return src.replace('icon-grey-new.png', 'icon-blue.png') 
+                            }
+                        });
+                    },  function () {
+                        $(this).find('img').attr('src', function (i, src) {
+                            if(src == WOOCONNECTION_PLUGIN_URL+'assets/images/icon-blue.png'){
+                                return src.replace('icon-blue.png', 'icon-grey-new.png')
+                            }
+                        });
+                    });    
+                });
+            </script>
+        <?php
+    }
+
 }
 // Create global so you can use this variable beyond initial creation.
 global $wooconnectionadmin;
