@@ -41,6 +41,15 @@
                             }
                         });
                     }
+                    //Check if "response" done....
+                    var checkResponse = getQueryParameter('response');
+                    if(checkResponse != ""){
+                        var uri = window.location.toString();
+                        if (uri.indexOf("&") > 0) {
+                            var clean_uri = uri.substring(0, uri.indexOf("&"));
+                            window.history.replaceState({}, document.title, clean_uri);
+                        }
+                    }
                 }
             });
 
@@ -68,6 +77,15 @@
                             validateForms('activation_setup_form');
                         }
                     });
+                    //Check if "response" done....
+                    var checkResponse = getQueryParameter('response');
+                    if(checkResponse != ""){
+                        var uri = window.location.toString();
+                        if (uri.indexOf("&") > 0) {
+                            var clean_uri = uri.substring(0, uri.indexOf("&"));
+                            window.history.replaceState({}, document.title, clean_uri);
+                        }
+                    }
                 }
             });
 
@@ -171,7 +189,7 @@
             //Check if "response" done....
             var checkResponse = getQueryParameter('response');
             if(checkResponse != "" && checkResponse == "1"){
-                swal("Saved!", 'Application authentication done successfully.', "success");
+                swal("Authorization!", 'Application authentication done successfully.', "success");
             }
 
             //Match Products Tab : check all products checkbox rule....

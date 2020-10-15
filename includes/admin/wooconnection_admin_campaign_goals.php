@@ -10,7 +10,10 @@
 }
 </style>
 <!-- Campaign Goals SETUP-->
-<?php $checkAuthenticationStatus = applicationAuthenticationStatus(); ?>
+<?php 
+//check the application authentication status if authorized then give access to configure campaign goals....
+$checkAuthenticationStatus = applicationAuthenticationStatus();
+?>
 <div class="info-header">
   <p>Configure Campaign Goals</p>
 </div>

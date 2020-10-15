@@ -1,7 +1,7 @@
 <!--Settings-->
 <?php
-	$pluginDetailsArray = getPluginDetails();
-	$configurationType = applicationType();
+	$pluginDetailsArray = getPluginDetails();//Get plugin activation related details....
+	$configurationType = applicationType();//Get the application type so that application type selected from dropdown.....
 	$selectedTypeIs = 'selected';
 	$selectedTypeKp = '';
 	$type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
@@ -14,8 +14,11 @@
 			$type = APPLICATION_TYPE_KEAP_LABEL;
 		}
 	}
+	//Get the application lable to display.....
 	$applicationLabel = applicationLabel($type);
+	//Set the text in place of application name..
 	$connectedApplicationName = 'Please authorize the application first.';
+	//Get the application name to display in front of application name......
 	$applicationName = applicationName();
 	if(isset($applicationName) && !empty($applicationName)){
 		$connectedApplicationName = $applicationName;	

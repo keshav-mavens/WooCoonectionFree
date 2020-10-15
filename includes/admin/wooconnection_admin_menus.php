@@ -1,5 +1,7 @@
 <?php 
+//Check plugin is activated or not, if not activated then add disable class to some specific menus....
 $leftMenuClass = checkPluginActivatedNot();
+//Get the application type so that application type selected from dropdown.....
 $configurationType = applicationType();
 $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
 if(isset($configurationType) && !empty($configurationType)){
@@ -9,6 +11,7 @@ if(isset($configurationType) && !empty($configurationType)){
 		$type = APPLICATION_TYPE_KEAP_LABEL;
 	}
 }
+//Get the application lable to display.....
 $applicationLabel = applicationLabel($type);
 ?>
 <div class="col-lg-3 col-md-4 col-sm-4 col-12 p-l-0 p-r-0">
@@ -51,5 +54,6 @@ $applicationLabel = applicationLabel($type);
 	</div>
 </div>
 <script type="text/javascript">
+	//Define variable for use in js code....
 	var WOOCONNECTION_PLUGIN_URL = '<?php echo WOOCONNECTION_PLUGIN_URL ?>';
 </script>
