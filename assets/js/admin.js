@@ -189,7 +189,7 @@
             //Check if "response" done....
             var checkResponse = getQueryParameter('response');
             if(checkResponse != "" && checkResponse == "1"){
-                swal("Saved!", 'Application authentication done successfully.', "success");
+                swal("Authorization!", 'Application authentication done successfully.', "success");
             }
 
             //Match Products Tab : check all products checkbox rule....
