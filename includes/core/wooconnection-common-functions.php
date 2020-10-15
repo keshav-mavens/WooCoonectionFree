@@ -340,7 +340,7 @@ function applicationType(){
   $data = getAuthenticationDetails();
   $applicationType = '';
   if(isset($data) && !empty($data)){
-    $applicationtypeSelected =  $data[0]->user_application_edition;
+    $applicationType =  $data[0]->user_application_edition;
   }
   return $applicationType;  
 }

@@ -41,6 +41,15 @@
                             }
                         });
                     }
+                    //Check if "response" done....
+                    var checkResponse = getQueryParameter('response');
+                    if(checkResponse != ""){
+                        var uri = window.location.toString();
+                        if (uri.indexOf("&") > 0) {
+                            var clean_uri = uri.substring(0, uri.indexOf("&"));
+                            window.history.replaceState({}, document.title, clean_uri);
+                        }
+                    }
                 }
             });
 
@@ -68,6 +77,15 @@
                             validateForms('activation_setup_form');
                         }
                     });
+                    //Check if "response" done....
+                    var checkResponse = getQueryParameter('response');
+                    if(checkResponse != ""){
+                        var uri = window.location.toString();
+                        if (uri.indexOf("&") > 0) {
+                            var clean_uri = uri.substring(0, uri.indexOf("&"));
+                            window.history.replaceState({}, document.title, clean_uri);
+                        }
+                    }
                 }
             });
 
@@ -565,3 +583,14 @@ function wcProductsMapping(){
         }, 3000);
     }
 }
+
+// //check if response parameter exist in query string....
+// function getQueryParameter(){
+//     var field = 'response';
+//     var url = window.location.href;
+//     if(url.indexOf('?' + field + '=') != -1)
+//         return true;
+//     else if(url.indexOf('&' + field + '=') != -1)
+//         return true;
+//     return false
+// }
