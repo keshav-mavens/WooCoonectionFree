@@ -583,14 +583,3 @@ function wcProductsMapping(){
         }, 3000);
     }
 }
-
-// //check if response parameter exist in query string....
-// function getQueryParameter(){
-//     var field = 'response';
-//     var url = window.location.href;
-//     if(url.indexOf('?' + field + '=') != -1)
-//         return true;
-//     else if(url.indexOf('&' + field + '=') != -1)
-//         return true;
-//     return false
-// }

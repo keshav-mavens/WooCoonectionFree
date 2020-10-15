@@ -70,7 +70,15 @@ class WooConnection_Admin {
 				wp_enqueue_style('wooconnection_dataTables_style', WOOCONNECTION_PLUGIN_URL.'assets/css/jquery.dataTables.min.css', array(), WOOCONNECTION_VERSION);
                 wp_enqueue_style('sweetalert_min_css', WOOCONNECTION_PLUGIN_URL.'assets/css/sweetalert.min.css', array(), WOOCONNECTION_VERSION);
 
-			}
+			}else{
+                ?>
+                    <style type="text/css">
+                        .toplevel_page_wooconnection-admin .wp-menu-image img {
+                            padding: 3px 0 0 0 !important;
+                        }
+                    </style>
+                <?php
+            }
     	}else{
     		?>
     			<style type="text/css">
@@ -78,7 +86,7 @@ class WooConnection_Admin {
 					    padding: 3px 0 0 0 !important;
 					}
     			</style>
-    		<?php
+            <?php
     	}
     }
     
