@@ -85,9 +85,11 @@ class WooConnection_Admin {
                 wp_enqueue_style('sweetalert_min_css', WOOCONNECTION_PLUGIN_URL.'assets/css/sweetalert.min.css', array(), WOOCONNECTION_VERSION);//Wooconnection Styles : Enqueue the wooconnection styles..
 
 			}else{
+                //include custom css and js for another pages of wp-admin.....
                 $this->includeCssJs();     
             }
     	}else{
+           //include custom css and js for another plugins pages of wp-admin.....
            $this->includeCssJs();
     	}
     }
@@ -99,6 +101,7 @@ class WooConnection_Admin {
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
     }
 
+    //Function Definition : includeCssJs
     public function includeCssJs(){
         ?>
             <style type="text/css">
