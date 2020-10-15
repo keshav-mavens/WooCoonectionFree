@@ -1,4 +1,7 @@
-<?php $checkAuthenticationStatus = applicationAuthenticationStatus(); ?>
+<?php 
+//check the application authentication status if authorized then give access to export products....
+$checkAuthenticationStatus = applicationAuthenticationStatus();
+?>
 <div class="info-header">
     <p><?php echo IMPORT_EXPORT_LABEL_FREE; ?> Products</p>
 </div>
