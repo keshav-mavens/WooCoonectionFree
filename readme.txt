@@ -29,15 +29,12 @@ application. WooConnection plugin provides the feature to export products from w
   Description : You can check the infusionsoft/keap api logs in siteurl/wp-content/uploads/wc-logs/infusionsoft-YYYY-MM-DD-randomkey.log
 
 == Installation ==
-
-**Install the plugin with downloaded plugin zip file**
-
+*Install the plugin with downloaded plugin zip file*
 1. In WordPress backend, go to menu Plugins -> Add New
 2. Click the link Upload Plugin
 3. Select the plugin zip file, then click Install Now
 
-**Uninstall the plugin**
-
+*Uninstall the plugin*
 1. In WordPress backend, go to menu Plugins -> Installed Plugins
 2. Deactivate the plugin
 3. After the plugin is deactivated, Delete the plugin
