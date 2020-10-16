@@ -2,10 +2,10 @@
   <div class="white-box">
     <div class="top_logo_row">
       <div class="row">
-        <div class="col-xl-2 col-lg-3 col-md-3 col-4">
+        <div class="col-xl-2 col-lg-3 col-md-3 col-12">
 		<a href="javascript:void(0)"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/main_logo.jpg" alt=""></a>
 		</div>
-		<div class="col-xl-8 col-lg-7 col-md-7 col-8">
+		<div class="col-xl-8 col-lg-7 col-md-7 col-12">
 		<p class="tag-line">The Easiest Way to Connect Your WooCommerce Site to Infusionsoft and Keap</p>
 		</div>
 		
