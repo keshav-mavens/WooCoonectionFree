@@ -47,7 +47,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
     //Append list of discount coupon codes in string....
     if(!empty($orderAssociatedCoupons)){
         $discountDesc = implode(",", $orderAssociatedCoupons);
-        $discountDesc = "Discount generated from coupons".$discountDesc;
+        $discountDesc = "Discount generated from coupons ".$discountDesc;
     }
     
     // Validate email is in valid format or not 
