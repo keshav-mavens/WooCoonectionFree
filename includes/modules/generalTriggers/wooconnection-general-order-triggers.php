@@ -35,8 +35,20 @@ function wooconnection_trigger_status_complete_hook($orderid){
 
     // Get the order details
     $order = new WC_Order( $orderid );
+    //get the order email.....
     $order_email = $order->get_billing_email();
-    $order_tax_details = (float) $order->get_total_tax();
+    //get the tax for order
+    $orderTaxDetails = (float) $order->get_total_tax();
+    //get the discount on order.....
+    $orderDiscountDetails  = (int) $order->get_total_discount();
+    //get the list of used coupons
+    $orderAssociatedCoupons = $order->get_used_coupons();
+    $discountDesc = "Order Discount";//Set order discount disc....
+    //Append list of discount coupon codes in string....
+    if(!empty($orderAssociatedCoupons)){
+        $discountDesc = implode(",", $orderAssociatedCoupons);
+        $discountDesc = "Discount generated from coupons".$discountDesc;
+    }
     
     // Validate email is in valid format or not 
     validate_email($order_email,$callback_purpose,$wooconnectionLogger);
@@ -107,7 +119,20 @@ function wooconnection_trigger_status_complete_hook($orderid){
             $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token);
             //update order relation between woocommerce order and infusionsoft/keap application order.....
             if(!empty($iskporderId)){
+                //Update relation .....
                 update_post_meta($orderid, 'is_kp_order_relation', $iskporderId);
+                //Check of tax exist with current order....
+                if(isset($orderTaxDetails) && !empty($orderTaxDetails)){
+                    //Call the common function to add order itema as a tax....
+                    addOrderItems($access_token,$iskporderId, 0, 2, $orderTaxDetails, 1, 'Order Tax','Order Tax');
+                }
+                //Check discount on order.....
+                if(isset($orderDiscountDetails) && !empty($orderDiscountDetails)){
+                    $discountDetected = $orderDiscountDetails;
+                    $discountDetected *= -1;
+                    //Call the common function to add order itema as a discount....
+                    addOrderItems($access_token,$iskporderId, 0, 7, $discountDetected, 1, $discountDesc, "Order Discount");
+                }
             }
         }
     }else{
