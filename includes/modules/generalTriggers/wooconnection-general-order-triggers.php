@@ -124,14 +124,14 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 //Check of tax exist with current order....
                 if(isset($orderTaxDetails) && !empty($orderTaxDetails)){
                     //Call the common function to add order itema as a tax....
-                    addOrderItems($access_token,$iskporderId, 0, 2, $orderTaxDetails, 1, 'Order Tax','Order Tax');
+                    addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_TAX, $orderTaxDetails, ORDER_ITEM_QUANTITY, 'Order Tax',ITEM_TAX_NOTES);
                 }
                 //Check discount on order.....
                 if(isset($orderDiscountDetails) && !empty($orderDiscountDetails)){
                     $discountDetected = $orderDiscountDetails;
                     $discountDetected *= -1;
                     //Call the common function to add order itema as a discount....
-                    addOrderItems($access_token,$iskporderId, 0, 7, $discountDetected, 1, $discountDesc, "Order Discount");
+                    addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
                 }
             }
         }
