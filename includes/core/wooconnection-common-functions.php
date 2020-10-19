@@ -1251,4 +1251,48 @@ function deleteApplicationOrder($access_token,$orderRelationId,$callback_purpose
   return $data;
 }
 
+//Function is used to add order item for order with xmlrpc request....
+function addOrderItems($access_token,$orderid,$productId,$type,$price,$quan,$desc,$notes){
+    //First needs to check access token and order is exist or not.....
+    if(!empty($access_token) && !empty($orderid)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        //Create xml to hit the curl request for add order item.....
+        $xmlData = "<methodCall><methodName>InvoiceService.addOrderItem</methodName><params><param><value><string></string></value></param><param><value><int>".$orderid."</int></value></param><param><value><int>".$productId."</int></value></param><param><value><int>".$type."</int></value></param><param><value><double>".$price."</double></value></param><param><value><int>".$quan."</int></value></param><param><value><string>".$desc."</string></value></param><param><value><string>".$notes."</string></value></param></params></methodCall>";
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($err){
+            $errorMessage = "Add order item to order #".$orderid." is failed due to ". $err; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $responsedata = xmlrpc_decode($response);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+              if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+                  $errorMessage = "Add order item to order #".$orderid." is failed due to ". $responsedata['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+              }
+          }else{
+            return true;
+          }
+        }
+        curl_close($ch);
+    }
+}
+
+
+
 ?>
