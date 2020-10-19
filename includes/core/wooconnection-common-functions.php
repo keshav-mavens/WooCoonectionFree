@@ -1251,4 +1251,39 @@ function deleteApplicationOrder($access_token,$orderRelationId,$callback_purpose
   return $data;
 }
 
+
+//Connector : Function is used to create connection with infusionsoft/keap application..
+function infusionsoft_keap_application_connect($application_name,$application_key) {
+  // Create instance of our wooconnection logger class to use off the whole things.
+  $wooconnectionLogger = new WC_Logger();
+  if(!empty($application_name) && !empty($application_key)) {
+      $infusion_keap_application = new wooconnection_iSDK;
+      try
+      {
+            $infusion_keap_application->cfgCon($application_name);
+            // $checkerApplicationResponse = $infusion_keap_application->dsGetSetting('Contact', 'optiontypes');
+            // $checkErrorPosition = strrpos($checkerApplicationResponse, "ERROR");
+            // if ($checkErrorPosition === false)  {
+            //   $connectionResponse = $infusion_keap_application;
+            //   return $connectionResponse;
+            // }
+            // else{
+              
+              // if(isset($connection_called_position) && !empty($connection_called_position)){
+              //   $errorMessage = $connection_called_position ." is failed due to ". $checkerApplicationResponse; 
+              // }else{
+                // $errorMessage = $checkerApplicationResponse;
+              return $infusion_keap_application;
+              // }
+              // $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+            // }
+      }
+      catch (Exception $e) {
+          return $e;
+          //echo $e;
+          //$wooconnectionLogger->add('infusionsoft', print_r($e, true));
+      } 
+  }
+}
+
 ?>

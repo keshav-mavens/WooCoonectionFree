@@ -109,6 +109,16 @@ function wooconnection_trigger_status_complete_hook($orderid){
             if(!empty($iskporderId)){
                 update_post_meta($orderid, 'is_kp_order_relation', $iskporderId);
             }
+
+            $applicationConnection = infusionsoft_keap_application_connect('pc898','5075832ba9cc6e6db598fc85a56eac01');
+            // echo "<pre>";
+            // print_r($applicationConnection);
+            // die();
+            $response = $applicationConnection->addOrderItem($iskporderId, 0, 2, round($order_tax_details,2), 1, 'Order Tax','Order Tax');
+            echo "<pre>";
+            print_r($response);
+            die();
+
         }
     }else{
         return false;
