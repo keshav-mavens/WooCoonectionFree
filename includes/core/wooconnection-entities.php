@@ -33,7 +33,7 @@
 	define("ACTIVATION_SECRET_KEY", "wooconnectionfree16");
 	//Plugin Activation Instance...
 	define("ACTIVATION_INSTANCE", 16.0);
-	//Site url
+	//Site url....
 	define("SITE_URL", get_site_url());
 	//Application type label..
 	define("APPLICATION_TYPE_INFUSIONSOFT_LABEL", 'Infusionsoft');
@@ -44,6 +44,18 @@
 	define("LOG_TYPE_BACK_END", 'BackendLogs');
 	//Set the label export page.....
 	define("IMPORT_EXPORT_LABEL_FREE",'Export');
+	//order item types.....
+	define("ITEM_TYPE_TAX", 2);
+	define("ITEM_TYPE_DISCOUNT", 7);
+	//Non product....
+	define("NON_PRODUCT_ID", 0);
+	//Order item quantity
+	define("ORDER_ITEM_QUANTITY", 1);
+	//Note for order item tax.....
+	define("ITEM_TAX_NOTES", "Order Tax");
+	//Note for order item discount......
+	define("ITEM_DISCOUNT_NOTES", "Order Discount")
+
 ?>
 
 
