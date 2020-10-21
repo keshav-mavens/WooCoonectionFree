@@ -7,10 +7,6 @@
  * Author URI: http://www.informationstreet.com
  * Plugin URI: https://www.fullstackmarketing.co
  */
-
-define( 'WOOCONNECTION_VERSION', '16' );//Version Entity
-define( 'WOOCONNECTION_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );//Directory Path Entity
-define( 'WOOCONNECTION_PLUGIN_URL', plugin_dir_url( __FILE__ ) );//Directory Url Entity
 class WooConnection {
 
   	public function __construct() {
@@ -31,6 +27,13 @@ class WooConnection {
 			add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
 			return;
 		}
+        if (class_exists('WooConnection')) {
+            add_action('admin_notices', array($this, 'wc_pro_deactivate_free_version_notice'));
+            return false;
+        }
+        define( 'WOOCONNECTION_VERSION', '16' );//Version Entity
+        define( 'WOOCONNECTION_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );//Directory Path Entity
+        define( 'WOOCONNECTION_PLUGIN_URL', plugin_dir_url( __FILE__ ) );//Directory Url Entity
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-entities.php' );
 		require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
