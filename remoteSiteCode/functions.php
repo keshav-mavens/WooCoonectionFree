@@ -771,6 +771,8 @@ function disable_repeat_purchase_by_email( $product_is_purchasable, $product_det
    	//Call the function "wc_customer_bought_product" is used to check whether a user (by email or id) has bought an item. If yes than return false and remove the add to cart button..... 
    	if (wc_customer_bought_product($userEmail, $userId, $current_product_id)) {
         $product_is_purchasable = false;
+    }else{
+    	$product_is_purchasable = true;
     }
     return $product_is_purchasable;
 }
@@ -884,11 +886,20 @@ function wooconnection_trigger_status_complete_hook($orderid){
 		  		$accessToken = $admin_auth_details['access_token'];		
 		  	}
 		}
-	  	$accessToken =  '5gQpK8Mg7AuNL1QLA0TTvOqIp0VK';
+	  	$accessToken =  'B3iXSvOettCtfcXCR7NEEwAChmaD';
 	  	//Order Data by order id.....
 	    $orderDetails = new WC_Order( $orderid );
-	    $orderDetails->update_status( 'completed' );
-	    //Get the order associated email....
+	    //Get the order items from order then execute loop to create the order items array....
+        $wcproductSku = '';
+        if ( sizeof($products_items = $orderDetails->get_items()) > 0 ) {
+            foreach($products_items as $item_id => $item)
+            {
+            	$product = wc_get_product($item['product_id']);//get the prouct details..
+            	$wcproductSku = $product->get_sku();//get product sku....
+            }
+        }
+        
+        //Get the order associated email....
 	    $orderEmail = $orderDetails->get_billing_email();
 		
 		//Check order email is valid or not(If not valid then stop the next process)...... 
@@ -901,28 +912,48 @@ function wooconnection_trigger_status_complete_hook($orderid){
 	    }
 	    
 	   	$contactId = addUpdateContact($orderEmail,$accessToken);//Call the function is used to check contact is exist or not if not exist then create new one, if exist then get the id of contact...
-	    
-	   	//Check contact id is exist or not....
-	    if(isset($contactId) && !empty($contactId)) {
-	    	$wcOrderData = $orderDetails->get_data();//Get the order related data like billing data....
-	        updateContactExtraInfo($contactId,$wcOrderData,$accessToken);//After adding contact update the another information of contact....
-		    //Hit the curl request to push a contact in campaign.....
-	    	$curlUrl = 'https://api.infusionsoft.com/crm/rest/v1/campaigns/goals/wooconnection/wcpurchase';
-		    $curlJsonData ='{"contact_id":'.$contactId.'}';
-		    $curlIntialize = curl_init($curlUrl);
-		    curl_setopt($curlIntialize, CURLOPT_RETURNTRANSFER, true);
-	      	$headerData = array('Accept: application/json','Content-Type: application/json','Authorization: Bearer '. $accessToken);
-	      	curl_setopt($curlIntialize, CURLOPT_HTTPHEADER, $headerData);
-	      	curl_setopt($curlIntialize, CURLOPT_CUSTOMREQUEST, "POST");
-	      	curl_setopt($curlIntialize, CURLOPT_POSTFIELDS, $curlJsonData);
-	      	$curlResponse = curl_exec($curlIntialize);
-	      	$curlErr = curl_error($curlIntialize);
-	      	if($curlErr){
-	      	}else{
-		        $returnData = json_decode($curlResponse,true);
-		    }
-	      	curl_close($curlIntialize);
-	    }
+	   	$wcOrderData = $orderDetails->get_data();//Get the order related data like billing data....
+
+	   	global $wpdb,$table_prefix;
+        if($wcproductSku == 'pro_wc'){
+   //      	$software_product_id = 'wooconnectionpaid';
+			// $secret_key = 'wooconnectionpaid16';
+			// //set the table name.....
+	  //       $table_name = 'woocommerce_software_licenses';
+	  //       $wp_table_name = $table_prefix . "$table_name";
+	  //        //check if data exist prievously by email....
+	  //        $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE activation_email='".$orderEmail."'");
+	         
+	  //        //if exist then add custom row to database table with dynamic product id.....
+	  //        if(!empty($campaignGoalDetails)){
+	  //           if(!empty($campaignGoalDetails[0]->license_key)){
+		 //             $todayDate = date("Y-m-d h:i:s");
+		 //             $license_details_array = array();
+		 //             $license_details_array['order_id'] = $orderid;
+		 //             $license_details_array['activation_email'] = $orderEmail;
+		 //             $license_details_array['license_key'] = $campaignGoalDetails[0]->license_key;
+		 //             $license_details_array['software_version'] = 16;
+		 //             $license_details_array['created'] = $todayDate;
+		 //             $license_details_array['software_product_id'] = $software_product_id;
+		 //             $license_details_array['activations_limit'] = 5;
+		 //             $result_check_license_details = $wpdb->insert($wp_table_name,$license_details_array);
+	  //           }
+	  //       }
+	  //       //if previously license details not exist with billing email, then call the function "createNewSoftware".....
+	  //       else{
+	  //           createNewSoftware($orderid,$orderEmail,$software_product_id,$secret_key);
+	  //       }
+	        $callname = 'wcpurchasepro';
+	        if(!empty($contactId)){
+	        	achieveTrigger($contactId,$wcOrderData,$accessToken,$callname);
+	        }
+	    }else{
+        	$orderDetails->update_status( 'completed' );
+        	$callname  = 'wcpurchase';
+        	if(!empty($contactId)){
+	        	achieveTrigger($contactId,$wcOrderData,$accessToken,$callname);
+	        }
+		}
 	}
 }
 
@@ -1095,4 +1126,55 @@ function addCompanyToApp($companyName,$accessToken){
         curl_close($curlCompanyAddInit);
     }
     return $company;
+}
+
+
+//This function is used to push the contact to api goal then send email with wooconnection plugin link.
+function achieveTrigger($contactId,$orderDetails,$accessToken,$callname){
+	//Check contact id is exist or not....
+	if(isset($contactId) && !empty($contactId)) {
+		//$wcOrderData = $orderDetails->get_data();//Get the order related data like billing data....
+	    updateContactExtraInfo($contactId,$orderDetails,$accessToken);//After adding contact update the another information of contact....
+	    //Hit the curl request to push a contact in campaign.....
+		$curlUrl = 'https://api.infusionsoft.com/crm/rest/v1/campaigns/goals/wooconnection/'.$callname;
+	    $curlJsonData ='{"contact_id":'.$contactId.'}';
+	    $curlIntialize = curl_init($curlUrl);
+	    curl_setopt($curlIntialize, CURLOPT_RETURNTRANSFER, true);
+	  	$headerData = array('Accept: application/json','Content-Type: application/json','Authorization: Bearer '. $accessToken);
+	  	curl_setopt($curlIntialize, CURLOPT_HTTPHEADER, $headerData);
+	  	curl_setopt($curlIntialize, CURLOPT_CUSTOMREQUEST, "POST");
+	  	curl_setopt($curlIntialize, CURLOPT_POSTFIELDS, $curlJsonData);
+	  	$curlResponse = curl_exec($curlIntialize);
+	  	$curlErr = curl_error($curlIntialize);
+	  	if($curlErr){
+	  	}else{
+	        $returnData = json_decode($curlResponse,true);
+	    }
+	  	curl_close($curlIntialize);
+	}
+}
+
+
+
+//Function Defination : This function is used to hit the api request "generate_key"......
+function createNewSoftware($orderid,$order_email,$software_product_id,$secret_key){
+    $queryParameters = array('request' => 'generate_key',
+                             'email' => $order_email,
+                             'product_id' => $software_product_id,
+                             'secret_key'=>$secret_key,
+                             'order_id' => $orderid,
+                             'version'=>16,
+                             'key_prefix'=>'wc',
+                             'activations'=>5
+                             );
+    $adminRemoteUrl = "https://tqmstaging.com/wooconnection/";
+    $targetUrl = add_query_arg('wc-api', 'software-api', $adminRemoteUrl).'&'.http_build_query($queryParameters);
+    $responseData = wp_remote_get($targetUrl);
+    if(isset($responseData) && !empty($responseData))
+    {
+        $activationResponse = json_decode($responseData['body'],true);
+        if(!empty($activationResponse['error'])){
+        }else{
+        }
+    }
 }
