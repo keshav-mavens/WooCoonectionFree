@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name: WooConnection
+ * Plugin Name: WooConnection Pro
  * Description: Automatically sync your WooCommerce orders with your Infusionsoft or Keap account.
  * Version: 16
  * Author: Fullstackmarketing.co
  * Author URI: http://www.informationstreet.com
  * Plugin URI: https://www.fullstackmarketing.co
  */
-class WooConnection {
+class WooConnectionPro {
 
   	public function __construct() {
 		//Call the hook plugin_loaded at the time of plugin initialization..
@@ -27,9 +27,10 @@ class WooConnection {
 			add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
 			return;
 		}
+        //check if wooconnection free version plugin is already activated then user needs to deactivate or delete the free verison of wooconnection to use the pro wooconnection version.....
         if (class_exists('WooConnection')) {
             add_action('admin_notices', array($this, 'wc_pro_deactivate_free_version_notice'));
-            return false;
+            return;
         }
         define( 'WOOCONNECTION_VERSION', '16' );//Version Entity
         define( 'WOOCONNECTION_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );//Directory Path Entity
@@ -46,6 +47,15 @@ class WooConnection {
 		printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
     }
 
+    //Function Definition : wc_pro_deactivate_free_version_notice function is used to show the notice when user try to activate the pro version of wooconnection...
+    public function wc_pro_deactivate_free_version_notice() {
+       ?>
+       <div class="notice notice-error is-dismissible">
+          <p><?php echo sprintf( __( 'You need to deactivate and delete the free version of WooConnection plugin on the %splugins page%s', 'deactivate-wooconnection-2' ), '<a href="' . wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=wooconnection/wooconnection.php&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_wooconnection/wooconnection.php' ) . '">', '</a>' ); ?></p>
+       </div>
+       <?php
+    }
+    
     //Function Definition : create_campaign_goals_database_table
     public function create_campaign_goals_database_table()
     {
@@ -130,5 +140,5 @@ class WooConnection {
 global $wooconnection;
 
 // Create instance of our wooconnection class to use off the whole things.
-$wooconnection = new WooConnection();
+$wooconnection = new WooConnectionPro();
 ?>
