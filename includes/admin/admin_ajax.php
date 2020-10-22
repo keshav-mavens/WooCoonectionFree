@@ -11,59 +11,6 @@ function wc_load_tab_main_content(){
 	exit();
 }
 
-//Wordpress hook : This action is triggered when user try to save application details.
-add_action( 'wp_ajax_wc_save_application_details', 'wc_save_application_details');
-//Function Definiation : wc_save_application_details
-function wc_save_application_details(){
-	if(isset($_POST) && !empty($_POST)){
-		$application_settings_array = array();
-		if(isset($_POST['applicationtype']) && !empty($_POST['applicationtype'])){
-			$application_settings_array['applicationtype'] = $_POST['applicationtype'];	
-		}
-		$applicationappname = '';
-		if(isset($_POST['applicationappname']) && !empty($_POST['applicationappname'])){
-			$application_settings_array['applicationappname'] = trim($_POST['applicationappname']);	
-			$applicationappname = trim($_POST['applicationappname']);
-		}
-		$applicationapikey = '';
-		if(isset($_POST['applicationapikey']) && !empty($_POST['applicationapikey'])){
-			$application_settings_array['applicationapikey'] = trim($_POST['applicationapikey']);
-			$applicationapikey = trim($_POST['applicationapikey']);
-		}
-		if(!empty($applicationappname) && !empty($applicationapikey))
-		{
-			$appresponse = connect_application(trim($_POST['applicationappname']),trim($_POST['applicationapikey']));
-			$checkResponse = strrpos($appresponse, "ERROR");
-			if ($checkResponse === false)  {
-				update_option('application_settings',$application_settings_array);
-				if($application_settings_array['applicationtype'] == APPLICATION_TYPE_INFUSIONSOFT){
-					$page_id = add_check_page_affiliate_direct();
-					if(!empty($page_id)){
-						update_option('affiliate_page_id',$page_id);
-					}
-				}
-				echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'applicationtype'=>$_POST['applicationtype']));
-			}else{
-				echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>$appresponse));
-			}
-		}
-		else{
-			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>''));
-		}
-	}else{
-		echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>''));
-	}
-	die();
-}
-
-//Function : This function is used to create connection with infusionsoft and keap application
-function connect_application($applicationname,$applicationkey){
-	$application_connection = new wooconnection_iSDK;
-	$application_connection->cfgCon($applicationname, $applicationkey);
-  	$checkerApplicationResponse = $application_connection->dsGetSetting('Contact', 'optiontypes');
-  	return $checkerApplicationResponse;
-}
-
 //Wordpress hook : This action is triggered when user try to activate the plugin.
 add_action( 'wp_ajax_activate_wooconnection_plugin', 'activate_wooconnection_plugin');
 //Function Definiation : activate_wooconnection_plugin
@@ -195,7 +142,9 @@ function wc_load_import_export_tab_main_content(){
 	//First check the target tab id the call the html function for latest html.....
 	if(isset($_POST['target_tab_id']) && !empty($_POST['target_tab_id'])){
 		$latestHtml = '';
-		if ($_POST['target_tab_id'] == '#table_export_products') {
+		if ($_POST['target_tab_id'] == '#table_import_products') {
+			$latestHtml = createImportProductsHtml();
+		}else if ($_POST['target_tab_id'] == '#table_export_products') {
 			$latestHtml = createExportProductsHtml();
 		}else if ($_POST['target_tab_id'] == '#table_match_products') {
 			$latestHtml = createMatchProductsHtml();
@@ -343,6 +292,151 @@ function wc_update_products_mapping()
       	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestMatchProductsHtml'=>$latestMatchProductsHtml));
 	}
 	die();
+}
+
+//Wordpress hook : This action is triggered when user try to import products.....
+add_action( 'wp_ajax_wc_import_iskp_products', 'wc_import_iskp_products');
+//Function Definiation : wc_import_infusions_keap_products
+function wc_import_iskp_products()
+{
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		//first need to check whether the application authentication is done or not..
+        $applicationAuthenticationDetails = getAuthenticationDetails();
+        //get the access token....
+        $access_token = '';
+        if(!empty($applicationAuthenticationDetails)){//check authentication details......
+            if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+                $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+            }
+        }
+		//check select products exist in post data to export.....
+        if(isset($_POST['wc_products_import']) && !empty($_POST['wc_products_import'])){
+            foreach ($_POST['wc_products_import'] as $key => $value) {
+ 				if(!empty($value)){//check value...
+          			//check any associated product is selected along with imported product request....
+	      			if(isset($_POST['wc_product_import_with_'.$value]) && !empty($_POST['wc_product_import_with_'.$value])){
+	      				$needUpdateExistingProduct = $_POST['wc_product_import_with_'.$value];
+	      			}else{
+	      				$needUpdateExistingProduct = '';
+	      			}
+	      			//get infusionsoft/keap application product details on the basis of infusionsoft/keap product id...
+	      			//define array to store the infusionsoft/keap product detail......
+	      			$product_extra_data_array = array();
+	      			$infusionKeapProduct = getApplicationProductDetail($value,$access_token);
+	      			if(isset($infusionKeapProduct) && !empty($infusionKeapProduct)){
+	      				$pContent = '';
+		      			if(!empty($infusionKeapProduct['product_desc'])){
+		      				$pContent = trim($infusionKeapProduct['product_desc']);	
+		      			}else if ($infusionKeapProduct[0]['product_short_desc']) {
+		      				$pContent = trim($infusionKeapProduct[0]['product_short_desc']);
+		      			}else if ($infusionKeapProduct['product_name']) {
+		      				$pContent = trim($infusionKeapProduct['product_name']);
+		      			}
+		      			$product_extra_data_array['_regular_price'] = $infusionKeapProduct['product_price'];
+		      			$product_extra_data_array['_price'] = $infusionKeapProduct['product_price'];
+		      			if(!empty($infusionKeapProduct['sku'])){
+		      				$product_extra_data_array['_sku'] = $infusionKeapProduct['sku'];
+		      			}
+
+		      			//if product is not associated along with imported product request then need create new product..
+		      			if(empty($needUpdateExistingProduct)){
+		      				if(!empty($infusionKeapProduct['product_name'])){
+			      				$productName = $infusionKeapProduct['product_name'];
+			      			}
+		      				$postData = array(
+							    'post_content' => $pContent,
+							    'post_status' => "publish",
+							    'post_title' => $productName,
+							    'post_type' => "product",
+							);
+							$new_post_id = wp_insert_post($postData);
+							//check if product imported done then need to check the image associated with product if yes then need to update....
+							if($new_post_id){
+								$product_extra_data_array['is_kp_product_id'] = $value;
+								if(empty($product_extra_data_array['_sku'])){
+									$product = get_post($new_post_id); 
+									$slug = $product->post_name;
+									//if "-" is exist in product sku then replace with "_".....
+								    if (strpos($slug, '-') !== false)
+								    {
+								        $wcproductSku=str_replace("-", "_", $slug);
+								    }
+								    else
+								    {
+								        $wcproductSku=$slug;
+								    }
+									$product_extra_data_array['_sku'] = $wcproductSku;
+								}	
+								//update post meta of newly created post...
+								updateProductMetaData($new_post_id,$product_extra_data_array);
+							}
+						}
+		      			//if product is associated along with imported product request then need to update the values of exitsing product.........
+		      			else{
+		      				$product_extra_data_array['is_kp_product_id'] = $value;
+	      					if(empty($product_extra_data_array['_sku'])){
+								$product = get_post($new_post_id); 
+								$slug = $product->post_name;
+								//if "-" is exist in product sku then replace with "_".....
+							    if (strpos($slug, '-') !== false)
+							    {
+							        $wcproductSku=str_replace("-", "_", $slug);
+							    }
+							    else
+							    {
+							        $wcproductSku=$slug;
+							    }
+								$product_extra_data_array['_sku'] = $wcproductSku;
+							}
+		      				//update post meta of existing post...
+		      				updateProductMetaData($needUpdateExistingProduct,$product_extra_data_array);
+		      			}
+
+		      		}
+	      		}
+ 			}
+ 			//then call the "createImportProductsHtml" function to get the latest html...
+            $latestImportProductsHtml = createImportProductsHtml();
+            echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestImportProductsHtml'=>$latestImportProductsHtml));
+ 		}
+ 	}
+	die();
+}
+
+//Get the list of application products....
+function getApplicationProductDetail($id,$access_token){
+   	$productsListing = array();
+    $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$id;
+    $ch = curl_init($url);
+    $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $access_token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    $matchIdsArray = array();
+    if($err){
+    }else{
+      $sucessData = json_decode($response,true);
+      return $sucessData;
+    }
+    curl_close($ch);
+}
+
+//This function is used to update the post meta with latest details..
+function updateProductMetaData($productId,$detailsArray){
+	if(!empty($productId) && !empty($detailsArray)){
+		foreach ($detailsArray as $key => $value) {
+			if(!empty($key)){
+				update_post_meta($productId, $key, $value);			
+			}
+		}
+		return RESPONSE_STATUS_TRUE;
+	}
 }
 
 ?>
