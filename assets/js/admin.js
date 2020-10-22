@@ -32,12 +32,12 @@
                             $(".tab_related_content").html('');
                             $(".tab_related_content").html(data);
                             jQuery(".tab_related_content").removeClass('overlay');
-                            if(jQuery("#export_products_listing").length){
-                                applyDatables("export_products_listing");
+                            if(jQuery("#import_products_listing").length){
+                                applyDatables("import_products_listing");
                             }
                             //add select 2 for woocommerce products field
-                            if($(".wc_iskp_products_dropdown").length){
-                                applySelectTwo('wc_iskp_products_dropdown');
+                            if($(".wc_import_products_dropdown").length){
+                                applySelectTwo('wc_import_products_dropdown');
                             }
                         });
                     }
@@ -157,7 +157,18 @@
                             jQuery(".ajax_loader").hide();
                             jQuery(".tab_related_content").removeClass('overlay');
                             if(responsedata.latestHtml != ""){
-                                if (target_tab_id == '#table_export_products') {
+                                if (target_tab_id == '#table_import_products') {
+                                    $(target_tab_id+"_listing").html('');
+                                    $(target_tab_id+"_listing").html(responsedata.latestHtml);
+                                    //apply datatable on export products listing
+                                    if(jQuery("#import_products_listing").length){
+                                        applyDatables("import_products_listing");
+                                    }
+                                    //add select 2 for woocommerce products field
+                                    if($(".wc_import_products_dropdown").length){
+                                        applySelectTwo('wc_import_products_dropdown');
+                                    }
+                                }else if (target_tab_id == '#table_export_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     //apply datatable on export products listing
@@ -417,8 +428,25 @@ function hideCustomModel(modelId){
 //comon function is used to apply a datatables by table id.....
 function applyDatables(tabel_id){
     if(tabel_id != ""){
+        if (tabel_id == 'import_products_listing') {
+            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
+            {
+                $('#'+tabel_id).DataTable({
+                    "pagingType": "simple_numbers",
+                    "pageLength": 10,
+                    "searching": false,
+                    "bLengthChange" : false,
+                    "bInfo":false,
+                    "scrollX": false,
+                    "ordering": false,
+                    drawCallback: function(dt) {
+                      applySelectTwo('wc_import_products_dropdown');
+                    }
+                });
+            }
+        }
         //Export Tab: apply datatables on products listing..
-        if (tabel_id == 'export_products_listing') {
+        else if (tabel_id == 'export_products_listing') {
             if(!$.fn.DataTable.isDataTable('#'+tabel_id))
             {
                 $('#'+tabel_id).DataTable({
@@ -459,6 +487,11 @@ function applyDatables(tabel_id){
 //common function to apply a select2
 function applySelectTwo(element){
     if(element != ""){
+        //Export Tab: apply select 2 on infusionsoft products tab..
+        if(element == 'wc_import_products_dropdown'){
+            $("."+element).select2({
+            });    
+        }
         //Export Tab: apply select 2 on infusionsoft products tab..
         if(element == 'wc_iskp_products_dropdown'){
             $("."+element).select2({
@@ -580,6 +613,61 @@ function wcProductsMapping(){
         $(".match-products-error").show();
         setTimeout(function() {
             $('.match-products-error').fadeOut("slow");
+        }, 3000);
+    }
+}
+
+
+//On click of import products button send ajax to import products and on sucess update the html....
+function infusionKeapProductsImport(){
+    var checkProducts = $(".import_products_listing_class input:checkbox:checked").map(function(){
+      if($(this).val() != 'allproductsimport'){ return $(this).val(); }
+    }).get();
+    if(checkProducts.length > 0)
+    {
+        if($(".import-products-error").is(":visible") || $(".import-products-success").is(":visible")){
+            $(".import-products-error").hide();
+            $(".import-products-success").hide();
+            $(".importProducts").show();
+        }else{
+            $(".importProducts").show();    
+        }
+        $('.import_products_btn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_import_iskp_products",$('#wc_import_products_form').serialize(), function(data) {
+            // var responsedata = JSON.parse(data);
+            // $(".importProducts").hide();
+            // if(responsedata.status == "1") {
+            //     $('.import_products_btn').removeClass("disable_anchor");
+            //     if(responsedata.latestExportProductsHtml != ""){
+            //          $('.import_products_listing_class').html();
+            //          $('.import_products_listing_class').html(responsedata.latestExportProductsHtml);
+            //     }
+            //     //apply datatable on export products listing
+            //     if(jQuery("#import_products_listing").length){
+            //         applyDatables("import_products_listing");
+            //     }
+
+            //     //add select 2 for woocommerce products field
+            //     if($(".wc_import_products_dropdown").length){
+            //         applySelectTwo('wc_import_products_dropdown');
+            //     }
+            //     swal("Saved!", 'Products imported successfully.', "success");
+            // }else{
+            //     $(".import-products-error").show();
+            //     $(".import-products-error").html('Something Went Wrong.');
+            //     setTimeout(function()
+            //     {
+            //         $('.import-products-error').fadeOut("slow");
+            //         $('.import_products_btn').removeClass("disable_anchor");
+            //     }, 3000);
+            // }
+        });
+    }else{
+        $(".import-products-error").html();
+        $(".import-products-error").html('You need to select atleast one product to import.');
+        $(".import-products-error").show();
+        setTimeout(function() {
+            $('.import-products-error').fadeOut("slow");
         }, 3000);
     }
 }

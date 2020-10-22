@@ -195,7 +195,9 @@ function wc_load_import_export_tab_main_content(){
 	//First check the target tab id the call the html function for latest html.....
 	if(isset($_POST['target_tab_id']) && !empty($_POST['target_tab_id'])){
 		$latestHtml = '';
-		if ($_POST['target_tab_id'] == '#table_export_products') {
+		if ($_POST['target_tab_id'] == '#table_import_products') {
+			$latestHtml = createImportProductsHtml();
+		}else if ($_POST['target_tab_id'] == '#table_export_products') {
 			$latestHtml = createExportProductsHtml();
 		}else if ($_POST['target_tab_id'] == '#table_match_products') {
 			$latestHtml = createMatchProductsHtml();
@@ -344,5 +346,105 @@ function wc_update_products_mapping()
 	}
 	die();
 }
+
+//Wordpress hook : This action is triggered when user try to import products.....
+add_action( 'wp_ajax_wc_import_iskp_products', 'wc_import_iskp_products');
+//Function Definiation : wc_import_infusions_keap_products
+function wc_import_iskp_products()
+{
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		// //check select products exist in post data to export.....
+  //       if(isset($_POST['wc_products_import']) && !empty($_POST['wc_products_import'])){
+  //           foreach ($_POST['wc_products_import'] as $key => $value) {
+  //               $productDetailsArray = array();//Define variable..
+  //               $mapppedProductId = '';//Define variable..
+  //               if(!empty($value)){//check value...
+  //                   //check any associated product is selected along with export product request....
+	 //      			if(isset($_POST['wc_product_import_with_'.$value]) && !empty($_POST['wc_product_import_with_'.$value])){
+	 //      				$mapppedProductId = $_POST['wc_product_import_with_'.$value];
+	 //      			}else{
+	 //      				$mapppedProductId = '';
+	 //      			}
+
+  //                   //get the woocommerce product details on the basis of product id.....
+  //                   $wcproductdetails = wc_get_product($value);//Get product details..
+  //                   $wcproductPrice = $wcproductdetails->get_regular_price();//Get product price....
+  //                   $wcproductSku = $wcproductdetails->get_sku();//get product sku....
+  //                   //Check if product sku is not exist then create the sku on the basis of product slug.........
+  //                   if(isset($wcproductSku) && !empty($wcproductSku)){
+  //                       $wcproductSku = $wcproductSku;
+  //                   }else{
+  //                       $wcproductSku =  $wcproductdetails->get_slug();//get product slug....
+  //                       //if "-" is exist in product sku then replace with "_".....
+		// 			    if (strpos($wcproductSku, '-') !== false)
+		// 			    {
+		// 			        $wcproductSku=str_replace("-", "_", $wcproductSku);
+		// 			    }
+		// 			    else
+		// 			    {
+		// 			        $wcproductSku=$wcproductSku;
+		// 			    }
+		// 		    }
+  //                   $wcproductName = $wcproductdetails->get_name();//get product name....
+  //                   $wcproductDesc = $wcproductdetails->get_description();//get product description....
+  //                   if(isset($wcproductDesc) && !empty($wcproductDesc)){
+  //                       $wcproductDesc = $wcproductDesc;
+  //                   }else{
+  //                       $wcproductDesc = "";
+  //                   }
+  //                   $wcproductShortDesc = $wcproductdetails->get_short_description();//get product short description....
+  //                   if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
+  //                       $wcproductShortDesc = $wcproductShortDesc;
+  //                   }else{
+  //                       $wcproductShortDesc = "";
+  //                   }
+  //                   //create final array with values.....
+  //                   $productDetailsArray['active'] = true;
+  //                   $productDetailsArray['product_desc'] = $wcproductDesc;
+  //                   $productDetailsArray['sku'] = $wcproductSku;
+  //                   $productDetailsArray['product_price'] = $wcproductPrice;
+  //                   $productDetailsArray['product_short_desc'] = $wcproductShortDesc;
+                    
+
+  //                   //check the products data exist....
+  //                   if(isset($productDetailsArray) && !empty($productDetailsArray)){
+  //                       //if product is not associated along with export product request then need create new product in connected infusionsoft/keap appication.....
+  //                       if(empty($mapppedProductId)){
+  //                       	$productDetailsArray['product_name'] = $wcproductName;//assign product name for new product creation....
+  //                       	$jsonData = json_encode($productDetailsArray);//covert array to json...
+  //                           $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_BACK_END,$wooconnectionLogger);//call the common function to insert the product.....
+  //                           if(!empty($createdProductId)){//if new product created is not then update relation and product sku...
+  //                               //update relationship between woocommerce product and infusionsoft/keap product...
+  //                               update_post_meta($value, 'is_kp_product_id', $createdProductId);
+  //                               //update the woocommerce product sku......
+  //                           	update_post_meta($value,'_sku',$wcproductSku);
+  //                           }                   
+  //                       }
+  //                       //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
+  //                       else{
+  //                       	$jsonData = json_encode($productDetailsArray);//covert array to json...
+  //                       	//call the common function to update the existing function in application.....
+  //                           $updateProductId = updateExistingProduct($mapppedProductId,$access_token,$jsonData,LOG_TYPE_BACK_END,$wooconnectionLogger);
+  //                           if(!empty($updateProductId)){//if new product created is not then update relation and product sku...
+  //                               //update relationship between woocommerce product and infusionsoft/keap product...
+  //                               update_post_meta($value, 'is_kp_product_id', $updateProductId);
+  //                               //update the woocommerce product sku......
+  //                               update_post_meta($value,'_sku',$wcproductSku);
+  //                           }
+                            
+  //                       }
+  //                   }
+                    
+  //               }
+  //           }
+  //           //then call the "createExportProductsHtml" function to get the latest html...
+  //           $latestExportProductsHtml = createExportProductsHtml();
+  //           echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestExportProductsHtml'=>$latestExportProductsHtml));
+  //       }
+	}
+	//die();
+}
+
 
 ?>
