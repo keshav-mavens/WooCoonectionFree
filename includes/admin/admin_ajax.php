@@ -429,9 +429,7 @@ function getApplicationProductDetail($id,$access_token){
 
 //This function is used to update the post meta with latest details..
 function updateProductMetaData($productId,$detailsArray){
-	//first check post/product id is exist.. 
 	if(!empty($productId) && !empty($detailsArray)){
-		//Execute the loop to update the post/product meta data....
 		foreach ($detailsArray as $key => $value) {
 			if(!empty($key)){
 				update_post_meta($productId, $key, $value);			
