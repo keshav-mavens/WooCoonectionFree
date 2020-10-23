@@ -625,6 +625,9 @@ span#customize_referral_partner_url {
   margin-top : 5px;
   margin-bottom: 10px;
 }
+.skucss{
+    word-break: break-all;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;

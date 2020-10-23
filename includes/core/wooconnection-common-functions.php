@@ -267,7 +267,7 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                     $wcproductSku = '--';
                 }
                 //Create final html.......
-                $exportTableHtml .= '<tr><td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td>'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+                $exportTableHtml .= '<tr><td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
 
             }
 
@@ -602,7 +602,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                   $wcproductSku = "--";
                 }
                 //Create final html.......
-                $matchTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_match" name="wc_products_match[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td>'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+                $matchTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_match" name="wc_products_match[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
 
             }
 
@@ -1324,7 +1324,7 @@ function createImportProductsHtml(){
         $table_products_html_import = '<p class="heading-text" style="text-align:center">No products exist in authenticate '.$applicationLabel.' account for import.</p>';
     }else{
         //Compare woocommerce publish products application products....
-        $importProductsData = compareImportProductsWithAppProducts($applicationProductsArray['products'],$existingProductResult,$applicationLabel);
+        $importProductsData = compareImportProductsWithAppProducts(array_reverse($applicationProductsArray['products']),$existingProductResult,$applicationLabel);
         //Check product data....
         if(isset($importProductsData) && !empty($importProductsData)){
             //Get the import products table html and append to table
@@ -1337,13 +1337,12 @@ function createImportProductsHtml(){
                                       <div class="importProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Process Import Products....</div>
                                       <div class="alert-error-message import-products-error" style="display: none;"></div>
                                       <div class="alert-sucess-message import-products-success" style="display: none;">Products import successfully.</div>
-                                      <input type="button" value="Import Products" class="btn btn-primary btn-radius btn-theme import_products_btn" onclick="infusionKeapProductsImport()">
+                                      <input type="button" value="Import Products" class="btn btn-primary btn-radius btn-theme import_products_btn" onclick="wcProductsImport()">
                                     </div>
                                   </form>';
             }
         }
     }
-    //return the html...
     return $table_products_html_import;
 }
 
@@ -1401,10 +1400,9 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                   $wcproductName = "--";
                 }
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
-                //$wooCommerceProducts = array();
                 if(!empty($wooCommerceProducts)){
                     //Check product relation is exist....
-                    $productExistId = get_post_id_by_meta_key_and_value('is_kp_product_id',$wc_product_id);
+                    $productExistId = getwc_productid_by_meta_key_and_value('is_kp_product_id',$wc_product_id);
                     //If product relation exist then create select deopdown and set associative product selected....
                     if(isset($productExistId) && !empty($productExistId)){
                       $productsDropDown = createImportProductsSelect($wooCommerceProducts,$productExistId);
@@ -1424,7 +1422,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                   $wcproductSku = "--";
                 }
                 //Create final html.......
-                $importTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td>'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+                $importTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
 
             }
 
@@ -1458,7 +1456,7 @@ function createImportProductsSelect($existingwcProductResult,$iskp_product_id_co
 }
 
 //Function is used to get the product id on the basis of meta key and meta value.....
-function get_post_id_by_meta_key_and_value($key, $value) {
+function getwc_productid_by_meta_key_and_value($key, $value) {
   global $wpdb;
   $meta = $wpdb->get_results("SELECT * FROM `".$wpdb->postmeta."` WHERE meta_key='".$wpdb->escape($key)."' AND meta_value='".$wpdb->escape($value)."'");
   if (is_array($meta) && !empty($meta) && isset($meta[0])) {

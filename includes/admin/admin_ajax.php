@@ -296,7 +296,7 @@ function wc_update_products_mapping()
 
 //Wordpress hook : This action is triggered when user try to import products.....
 add_action( 'wp_ajax_wc_import_iskp_products', 'wc_import_iskp_products');
-//Function Definiation : wc_import_infusions_keap_products
+//Function Definiation : wc_import_iskp_products
 function wc_import_iskp_products()
 {
 	//first check post data is not empty
@@ -337,6 +337,8 @@ function wc_import_iskp_products()
 		      			$product_extra_data_array['_price'] = $infusionKeapProduct['product_price'];
 		      			if(!empty($infusionKeapProduct['sku'])){
 		      				$product_extra_data_array['_sku'] = $infusionKeapProduct['sku'];
+		      			}else{
+		      				$product_extra_data_array['_sku'] = '';
 		      			}
 
 		      			//if product is not associated along with imported product request then need create new product..

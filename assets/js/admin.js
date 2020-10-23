@@ -619,7 +619,7 @@ function wcProductsMapping(){
 
 
 //On click of import products button send ajax to import products and on sucess update the html....
-function infusionKeapProductsImport(){
+function wcProductsImport(){
     var checkProducts = $(".import_products_listing_class input:checkbox:checked").map(function(){
       if($(this).val() != 'allproductsimport'){ return $(this).val(); }
     }).get();
@@ -638,9 +638,9 @@ function infusionKeapProductsImport(){
             $(".importProducts").hide();
             if(responsedata.status == "1") {
                 $('.import_products_btn').removeClass("disable_anchor");
-                if(responsedata.latestExportProductsHtml != ""){
+                if(responsedata.latestImportProductsHtml != ""){
                      $('.import_products_listing_class').html();
-                     $('.import_products_listing_class').html(responsedata.latestExportProductsHtml);
+                     $('.import_products_listing_class').html(responsedata.latestImportProductsHtml);
                 }
                 //apply datatable on export products listing
                 if(jQuery("#import_products_listing").length){
