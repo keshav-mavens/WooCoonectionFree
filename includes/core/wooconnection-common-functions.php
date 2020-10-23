@@ -1293,6 +1293,30 @@ function addOrderItems($access_token,$orderid,$productId,$type,$price,$quan,$des
     }
 }
 
-
+//get the list of product purchase triggers...
+function getCartTriggers(){
+  global $wpdb,$table_prefix;
+  $table_name = 'wooconnection_campaign_goals';
+  $wp_table_name = $table_prefix . "$table_name";
+  $trigger_type = WOOCONNECTION_TRIGGER_TYPE_CART;
+  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type);
+  $wcGeneralTriggers = '';
+  if(isset($campaignGoalDetails) && !empty($campaignGoalDetails)){
+    foreach ($campaignGoalDetails as $key => $value) {
+        $trigger_id = $value->id;
+        $trigger_goal_name = $value->wc_goal_name;
+        $trigger_integration_name = $value->wc_integration_name;
+        $trigger_call_name = $value->wc_call_name;
+        $wcGeneralTriggers.='<tr id="trigger_tr_'.$trigger_id.'">
+                                <td>'.$trigger_goal_name.'</td>
+                                <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
+                                <td id="trigger_call_name_'.$trigger_id.'">'.strtolower($trigger_call_name).'</td>
+                                <td><i class="fa fa-edit" aria-hidden="true" style="cursor:pointer;" onclick="popupEditDetails('.$trigger_id.');"></i>
+                                </td>
+                              </tr>';
+    }
+  }
+  return $wcGeneralTriggers;
+}
 
 ?>

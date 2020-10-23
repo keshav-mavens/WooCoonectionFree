@@ -61,13 +61,13 @@ function wooconnection_general_user_registration_trigger($userid,$generalRegistr
     
     //check parameter user id is exist or not if not exist then get the current user if on the basis of logged in user id..
     $register_user_id = "";
-    if(isset($userid) && !empty($userid)){
-        $register_user_id = $userid;
-    }else if (is_user_logged_in()) {
+    if(empty($userid)){
         $currentLoginUser = wp_get_current_user();
-        $register_user_id = $currentLoginUser->ID;
+        $register_user_id = $currentLoginUser->ID;    
+    }else{
+        $register_user_id = $userid;
     }
-
+    
     //Get user details on the basis of set current user id...
     $registerUserInformation = array();
     if(isset($register_user_id) && !empty($register_user_id)){
