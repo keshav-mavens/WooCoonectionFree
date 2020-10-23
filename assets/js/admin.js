@@ -508,18 +508,14 @@ function applySelectTwo(element){
 
 //On click of export products button send ajax to export products and on sucess update the html....
 function wcProductsExport(){
-    var checkProducts = $(".export_products_listing_class input:checkbox:checked").map(function(){
-      if($(this).val() != 'allproductsexport'){ return $(this).val(); }
-    }).get();
-    if(checkProducts.length > 0)
-    {
-        if($(".export-products-error").is(":visible") || $(".export-products-success").is(":visible")){
-            $(".export-products-error").hide();
-            $(".export-products-success").hide();
-            $(".exportProducts").show();
-        }else{
-            $(".exportProducts").show();    
-        }
+    var checkProducts = checkSelectedProducts('export_products_listing_class','allproductsexport');
+    var checkSelectedProductsCount = checkProducts.length;//console.log(checkProducts);
+    if(checkSelectedProductsCount == 0){
+        $(".export-products-error").html('You need to select atleast one product to export.');
+        $(".export-products-error").show();
+    }else{
+        $(".export-products-error").hide();
+        $(".exportProducts").show();
         $('.export_products_btn').addClass("disable_anchor");
         jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize(), function(data) {
             var responsedata = JSON.parse(data);
@@ -550,30 +546,23 @@ function wcProductsExport(){
                 }, 3000);
             }
         });
-    }else{
-        $(".export-products-error").html();
-        $(".export-products-error").html('You need to select atleast one product to export.');
-        $(".export-products-error").show();
-        setTimeout(function() {
-            $('.export-products-error').fadeOut("slow");
-        }, 3000);
     }
+    setTimeout(function()
+    {
+        $('.export-products-error').fadeOut("slow");
+    }, 3000);
 }
 
 //On click of update products mapping button send ajax to update mapping of products and on sucess update the html....
 function wcProductsMapping(){
-    var checkProducts = $(".match_products_listing_class input:checkbox:checked").map(function(){
-      if($(this).val() != 'allproductsmatch'){ return $(this).val(); }
-    }).get();
-    if(checkProducts.length > 0)
-    {
-        if($(".match-products-error").is(":visible") || $(".match-products-success").is(":visible")){
-            $(".match-products-error").hide();
-            $(".match-products-success").hide();
-            $(".matchProducts").show();
-        }else{
-            $(".matchProducts").show();    
-        }
+    var checkProducts = checkSelectedProducts('match_products_listing_class','allproductsmatch');
+    var checkSelectedProductsCount = checkProducts.length;//console.log(checkProducts);
+    if(checkSelectedProductsCount == 0){
+        $(".match-products-error").html('You need to select atleast one product to update mapping.');
+        $(".match-products-error").show();
+    }else{
+        $(".match-products-error").hide();
+        $(".matchProducts").show();
         $('.match_products_btn').addClass("disable_anchor");
         jQuery.post( ajax_object.ajax_url + "?action=wc_update_products_mapping",$('#wc_match_products_form').serialize(), function(data) {
             var responsedata = JSON.parse(data);
@@ -607,31 +596,24 @@ function wcProductsMapping(){
                 }, 3000);
             }
         });
-    }else{
-        $(".match-products-error").html();
-        $(".match-products-error").html('You need to select atleast one product to update mapping.');
-        $(".match-products-error").show();
-        setTimeout(function() {
-            $('.match-products-error').fadeOut("slow");
-        }, 3000);
     }
+    setTimeout(function()
+    {
+        $('.match-products-error').fadeOut("slow");
+    }, 3000);
 }
 
 
 //On click of import products button send ajax to import products and on sucess update the html....
 function wcProductsImport(){
-    var checkProducts = $(".import_products_listing_class input:checkbox:checked").map(function(){
-      if($(this).val() != 'allproductsimport'){ return $(this).val(); }
-    }).get();
-    if(checkProducts.length > 0)
-    {
-        if($(".import-products-error").is(":visible") || $(".import-products-success").is(":visible")){
-            $(".import-products-error").hide();
-            $(".import-products-success").hide();
-            $(".importProducts").show();
-        }else{
-            $(".importProducts").show();    
-        }
+    var checkProducts = checkSelectedProducts('import_products_listing_class','allproductsimport');
+    var checkSelectedProductsCount = checkProducts.length;//console.log(checkProducts);
+    if(checkSelectedProductsCount == 0){
+        $(".import-products-error").html('You need to select atleast one product to import.');
+        $(".import-products-error").show();
+    }else{
+        $(".import-products-error").hide();
+        $(".importProducts").show();
         $('.import_products_btn').addClass("disable_anchor");
         jQuery.post( ajax_object.ajax_url + "?action=wc_import_iskp_products",$('#wc_import_products_form').serialize(), function(data) {
             var responsedata = JSON.parse(data);
@@ -664,12 +646,18 @@ function wcProductsImport(){
                 }, 3000);
             }
         });
-    }else{
-        $(".import-products-error").html();
-        $(".import-products-error").html('You need to select atleast one product to import.');
-        $(".import-products-error").show();
-        setTimeout(function() {
-            $('.import-products-error').fadeOut("slow");
-        }, 3000);
     }
+    setTimeout(function()
+    {
+        $('.import-products-error').fadeOut("slow");
+    }, 3000);
 }
+
+//This is a common function used to check whether the product is selected or not for import,export,mapping....
+function checkSelectedProducts($class,$except){
+    var checkProducts = $("."+$class+" input:checkbox:checked").map(function(){
+                            if($(this).val() != $except){ return $(this).val(); }
+                        }).get();
+    return checkProducts;
+}
+
