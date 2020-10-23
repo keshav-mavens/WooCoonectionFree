@@ -56,13 +56,7 @@ function wooconnection_user_arrive_checkout(){
         $reachedUseremail = "";
     }
 
-    //get or set the reached checkout page user email..
-    $reachedUseremail = get_set_user_email();
-    if(empty($reachedUseremail)){
-        $reachedUseremail = "";
-    }
-
-	// Validate email is in valid format or not 
+    // Validate email is in valid format or not 
     validate_email($reachedUseremail,$callback_purpose,$wooconnectionLogger);
     
     //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
