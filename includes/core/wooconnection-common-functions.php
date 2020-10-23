@@ -1319,4 +1319,19 @@ function getCartTriggers(){
   return $wcGeneralTriggers;
 }
 
+//get or set the user email first check user is loged in if not then get email from woocommerce session email...
+function get_set_user_email(){
+    $useremail = "";
+    if(is_user_logged_in()) {
+      $currentLoginUser = wp_get_current_user();
+      if(!empty($currentLoginUser->user_email)){
+        $useremail = $currentLoginUser->user_email;
+      }else{
+        $useremail = get_user_meta($currentLoginUser->ID, 'billing_email', true);
+      }
+    }
+    return $useremail;
+}
+
+
 ?>

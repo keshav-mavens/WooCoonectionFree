@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action('user_register','wooconnection_trigger_register_user', 10, 1);
 
 //Function Definiation : wooconnection_trigger_register_user
-function wooconnection_trigger_register_user($new_user_id){
+function wooconnection_trigger_register_user($registeruser){
     // Create instance of our wooconnection logger class to use off the whole things.
     $wooconnectionLogger = new WC_Logger();
     
@@ -30,7 +30,7 @@ function wooconnection_trigger_register_user($new_user_id){
     }
 
     //New user id....
-    $userid = $new_user_id;
+    $userid = $registeruser;
 
     //Woocommerce Standard trigger : Get the call name and integration name of goal "Woocommerce User Registration"... 
     $generalRegistrationNewUserTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_GENERAL,'New User Registration');
