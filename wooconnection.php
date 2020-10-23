@@ -137,7 +137,6 @@ class WooConnectionPro {
         } 
     }
 }
-
 // Create global so you can use this variable beyond initial creation.
 global $wooconnection;
 
