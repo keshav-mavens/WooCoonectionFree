@@ -99,7 +99,9 @@ class WooConnectionPro {
                 ('Order Successful','wooconnection','successfulorder',1,1),
                 ('Order Failed','wooconnection','failedorder',1,1),
                 ('Checkout Page View','wooconnectionuser','checkoutpage',2,2),
-                ('Cart Emptied','wooconnectionuser','emptiedcart',2,2)");
+                ('Cart Emptied','wooconnectionuser','emptiedcart',2,2),
+                ('Item Added to Cart','wooconnectionuser','added',2,2),
+                ('Review Left','wooconnectionuser','review',2,2)");
         }
     }
 
