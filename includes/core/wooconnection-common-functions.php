@@ -1182,7 +1182,12 @@ function getApplicationOrderDetails($access_token,$orderRelationId,$callback_pur
 function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
     if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
         //create json array to push ocde in infusionsoft...
-        $comma_separated = implode(",", $noteText);
+        if (strpos($noteText, ",") !== false)
+        {
+          $comma_separated = implode(",", $noteText);
+        }else{
+          $comma_separated = $noteText;
+        }
         $jsonData ='{"body": "'.$comma_separated.'","title":"'.$itemTitle.'" ,"contact_id":'.$orderContactId.'}';
         $url = 'https://api.infusionsoft.com/crm/rest/v1/notes';
         $ch = curl_init($url);
