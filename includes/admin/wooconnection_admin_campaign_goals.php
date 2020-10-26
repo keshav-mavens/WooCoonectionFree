@@ -62,6 +62,22 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                 </tbody>
               </table>
           </div>
+          <h4>WooCommerce Order Triggers</h4>
+          <div class="table-responsive">
+              <table class="table table-striped table-overflow">
+                <thead>
+                  <tr>
+                    <th style="width:30%">Trigger Goal Name</th>
+                    <th style="width:30%">Trigger Integration Name</th>
+                    <th style="width:40%">Trigger Call Name</th>
+                    <th style="width:40%">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    <?php echo getOrderTriggers();?>
+                </tbody>
+              </table>
+          </div>
         <?php }else{
               echo $checkAuthenticationStatus;
         } ?>

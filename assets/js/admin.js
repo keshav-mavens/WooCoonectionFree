@@ -335,6 +335,7 @@ function activateWcPlugin(){
 //show the popup to edit the trigger deatils....
 function popupEditDetails(triggerid){
     if(triggerid != ""){
+        $checkClass = $("#trigger_tr_"+triggerid).attr('class');
         jQuery.post( ajax_object.ajax_url + "?action=wc_get_trigger_details",{triggerid:triggerid}, function(data) {
             var responsedata = JSON.parse(data);
             if(responsedata.status == "1") {
@@ -349,6 +350,11 @@ function popupEditDetails(triggerid){
                 }
                 if(responsedata.triggerCallName != ""){
                     jQuery("#callname").val(responsedata.triggerCallName);
+                    if($checkClass!="" && $checkClass == 'readonly'){
+                        $('#callname').attr('readonly', true);
+                    }else{
+                        $('#callname').attr('readonly', false);
+                    }
                 }
                 $("#editTriggerDetails").show();
                 //validate a application_settings_form form.....

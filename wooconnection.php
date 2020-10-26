@@ -101,7 +101,10 @@ class WooConnectionPro {
                 ('Checkout Page View','wooconnectionuser','checkoutpage',2,2),
                 ('Cart Emptied','wooconnectionuser','emptiedcart',2,2),
                 ('Item Added to Cart','wooconnectionuser','added',2,2),
-                ('Review Left','wooconnectionuser','review',2,2)");
+                ('Review Left','wooconnectionuser','review',2,2),
+                ('Any Purchase','wooconnectionorder','success',3,2),
+                ('Specific Product','wooconnectionorder','Product SKU',3,2),
+                ('Coupon Code Applied','wooconnectionorder','coupon',3,2)");
         }
     }
 

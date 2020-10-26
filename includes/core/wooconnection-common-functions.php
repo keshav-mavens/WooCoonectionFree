@@ -1338,5 +1338,37 @@ function get_set_user_email(){
     return $useremail;
 }
 
+//get the list of order triggers...
+function getOrderTriggers(){
+  global $wpdb,$table_prefix;
+  $table_name = 'wooconnection_campaign_goals';
+  $wp_table_name = $table_prefix . "$table_name";
+  $trigger_type = WOOCONNECTION_TRIGGER_TYPE_ORDER;
+  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type);
+  $wcGeneralTriggers = '';
+  if(isset($campaignGoalDetails) && !empty($campaignGoalDetails)){
+    foreach ($campaignGoalDetails as $key => $value) {
+        $trigger_id = $value->id;
+        $trigger_goal_name = $value->wc_goal_name;
+        $trigger_integration_name = $value->wc_integration_name;
+        $trigger_call_name = $value->wc_call_name;
+        if($trigger_goal_name == 'Specific Product'){
+            $callName = '<a href="javascript:void(0);">'.strtolower($trigger_call_name).'</a>';
+            $class = 'readonly';
+        }else{
+            $callName = strtolower($trigger_call_name);
+            $class = '';
+        }
+        $wcGeneralTriggers.='<tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
+                                <td>'.$trigger_goal_name.'</td>
+                                <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
+                                <td id="trigger_call_name_'.$trigger_id.'">'.$callName.'</td>
+                                <td><i class="fa fa-edit" aria-hidden="true" style="cursor:pointer;" onclick="popupEditDetails('.$trigger_id.');"></i>
+                                </td>
+                              </tr>';
+    }
+  }
+  return $wcGeneralTriggers;
+}
 
 ?>
