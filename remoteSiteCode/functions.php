@@ -886,7 +886,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
 		  		$accessToken = $admin_auth_details['access_token'];		
 		  	}
 		}
-	  	$accessToken =  'WgwxHGRxfeZWJfs2zSMdKD6GikxR';
+	  	$accessToken =  '9DAwBtlZbAGGKaeQ5t9G5aWGjpoA';
 	  	//Order Data by order id.....
 	    $orderDetails = new WC_Order( $orderid );
 	    //Get the order items from order then execute loop to create the order items array....
