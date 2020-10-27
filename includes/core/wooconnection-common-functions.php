@@ -1415,6 +1415,7 @@ function get_products_listing(){
   return $productLisingWithSku;
 }
 
+
 //get the list of coupons with coupon code...
 function get_coupons_listing(){
   $couponsLisingWithCode = "";
