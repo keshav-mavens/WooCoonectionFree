@@ -886,7 +886,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
 		  		$accessToken = $admin_auth_details['access_token'];		
 		  	}
 		}
-	  	$accessToken =  'B3iXSvOettCtfcXCR7NEEwAChmaD';
+	  	$accessToken =  'WgwxHGRxfeZWJfs2zSMdKD6GikxR';
 	  	//Order Data by order id.....
 	    $orderDetails = new WC_Order( $orderid );
 	    //Get the order items from order then execute loop to create the order items array....
@@ -915,34 +915,8 @@ function wooconnection_trigger_status_complete_hook($orderid){
 	   	$wcOrderData = $orderDetails->get_data();//Get the order related data like billing data....
 
 	   	global $wpdb,$table_prefix;
-        if($wcproductSku == 'pro_wc'){
-   //      	$software_product_id = 'wooconnectionpaid';
-			// $secret_key = 'wooconnectionpaid16';
-			// //set the table name.....
-	  //       $table_name = 'woocommerce_software_licenses';
-	  //       $wp_table_name = $table_prefix . "$table_name";
-	  //        //check if data exist prievously by email....
-	  //        $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE activation_email='".$orderEmail."'");
-	         
-	  //        //if exist then add custom row to database table with dynamic product id.....
-	  //        if(!empty($campaignGoalDetails)){
-	  //           if(!empty($campaignGoalDetails[0]->license_key)){
-		 //             $todayDate = date("Y-m-d h:i:s");
-		 //             $license_details_array = array();
-		 //             $license_details_array['order_id'] = $orderid;
-		 //             $license_details_array['activation_email'] = $orderEmail;
-		 //             $license_details_array['license_key'] = $campaignGoalDetails[0]->license_key;
-		 //             $license_details_array['software_version'] = 16;
-		 //             $license_details_array['created'] = $todayDate;
-		 //             $license_details_array['software_product_id'] = $software_product_id;
-		 //             $license_details_array['activations_limit'] = 5;
-		 //             $result_check_license_details = $wpdb->insert($wp_table_name,$license_details_array);
-	  //           }
-	  //       }
-	  //       //if previously license details not exist with billing email, then call the function "createNewSoftware".....
-	  //       else{
-	  //           createNewSoftware($orderid,$orderEmail,$software_product_id,$secret_key);
-	  //       }
+	   	if($wcproductSku == 'pro_wc'){
+        	$orderDetails->update_status( 'completed' );
 	        $callname = 'wcpurchasepro';
 	        if(!empty($contactId)){
 	        	achieveTrigger($contactId,$wcOrderData,$accessToken,$callname);
@@ -1154,27 +1128,21 @@ function achieveTrigger($contactId,$orderDetails,$accessToken,$callname){
 	}
 }
 
+//Allowing adding only one wooconnection product item to cart and displaying an error message
+add_filter( 'woocommerce_add_to_cart_validation', 'cart_items_validation', 10, 1 );
+function cart_items_validation( $validate ) {
+    if( ! WC()->cart->is_empty() ){
+        wc_add_notice( __("You can add only one item to cart", "woocommerce" ), 'error' );
+        $validate = false;
+    }
+    return $validate;
+}
 
-
-//Function Defination : This function is used to hit the api request "generate_key"......
-function createNewSoftware($orderid,$order_email,$software_product_id,$secret_key){
-    $queryParameters = array('request' => 'generate_key',
-                             'email' => $order_email,
-                             'product_id' => $software_product_id,
-                             'secret_key'=>$secret_key,
-                             'order_id' => $orderid,
-                             'version'=>16,
-                             'key_prefix'=>'wc',
-                             'activations'=>5
-                             );
-    $adminRemoteUrl = "https://tqmstaging.com/wooconnection/";
-    $targetUrl = add_query_arg('wc-api', 'software-api', $adminRemoteUrl).'&'.http_build_query($queryParameters);
-    $responseData = wp_remote_get($targetUrl);
-    if(isset($responseData) && !empty($responseData))
-    {
-        $activationResponse = json_decode($responseData['body'],true);
-        if(!empty($activationResponse['error'])){
-        }else{
-        }
+// Avoiding checkout when there is more than one item and displaying an error message
+add_action( 'woocommerce_check_cart_items', 'cart_items_check' ); // Cart and Checkout
+function cart_items_check() {
+    if( sizeof( WC()->cart->get_cart() ) > 1 ){
+        // Display an error message
+        wc_add_notice( __("More than one items in cart is not allowed to checkout", "woocommece"), 'error' );
     }
 }
