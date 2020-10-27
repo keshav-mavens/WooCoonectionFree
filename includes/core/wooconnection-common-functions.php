@@ -83,6 +83,8 @@ function getGeneralTriggers(){
                                 </td>
                               </tr>';
     }
+  }else{
+    $wcGeneralTriggers = '<tr><td colspan="4" style="text-align: center; vertical-align: middle;">No General Triggers Exist</td></tr>';
   }
   return $wcGeneralTriggers;
 }
@@ -1312,14 +1314,30 @@ function getCartTriggers(){
         $trigger_goal_name = $value->wc_goal_name;
         $trigger_integration_name = $value->wc_integration_name;
         $trigger_call_name = $value->wc_call_name;
-        $wcGeneralTriggers.='<tr id="trigger_tr_'.$trigger_id.'">
+        if($trigger_goal_name == 'Item Added to Cart'){
+            $call_name = explode('added', $trigger_call_name);
+            $callName = 'added'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$call_name[1].'</a>';
+            $class = 'readonly';
+        }
+        else if($trigger_goal_name == 'Review Left'){
+            $call_name = explode('review', $trigger_call_name);
+            $callName = 'review'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$call_name[1].'</a>';
+            $class = 'readonly';
+        }
+        else{
+            $callName = strtolower($trigger_call_name);
+            $class = '';
+        }
+        $wcGeneralTriggers.='<tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
                                 <td>'.$trigger_goal_name.'</td>
                                 <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
-                                <td id="trigger_call_name_'.$trigger_id.'">'.strtolower($trigger_call_name).'</td>
+                                <td id="trigger_call_name_'.$trigger_id.'">'.$callName.'</td>
                                 <td><i class="fa fa-edit" aria-hidden="true" style="cursor:pointer;" onclick="popupEditDetails('.$trigger_id.');"></i>
                                 </td>
                               </tr>';
     }
+  }else{
+    $wcGeneralTriggers = '<tr><td colspan="4" style="text-align: center; vertical-align: middle;">No Cart Triggers Exist</td></tr>';
   }
   return $wcGeneralTriggers;
 }
@@ -1353,9 +1371,15 @@ function getOrderTriggers(){
         $trigger_integration_name = $value->wc_integration_name;
         $trigger_call_name = $value->wc_call_name;
         if($trigger_goal_name == 'Specific Product'){
-            $callName = '<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.strtolower($trigger_call_name).'</a>';
+            $callName = '<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$trigger_call_name.'</a>';
             $class = 'readonly';
-        }else{
+        }
+        else if($trigger_goal_name == 'Coupon Code Applied'){
+            $call_name = explode('coupon', $trigger_call_name);
+            $callName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
+            $class = 'readonly';
+        }
+        else{
             $callName = strtolower($trigger_call_name);
             $class = '';
         }
@@ -1367,6 +1391,8 @@ function getOrderTriggers(){
                                 </td>
                               </tr>';
     }
+  }else{
+    $wcGeneralTriggers = '<tr><td colspan="4" style="text-align: center; vertical-align: middle;">No Order Triggers Exist</td></tr>';
   }
   return $wcGeneralTriggers;
 }
@@ -1388,5 +1414,32 @@ function get_products_listing(){
   }
   return $productLisingWithSku;
 }
+
+//get the list of coupons with coupon code...
+function get_coupons_listing(){
+  $couponsLisingWithCode = "";
+  $woo_coupons_listing = get_posts(array('post_type' => 'shop_coupon','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  if(isset($woo_coupons_listing) && !empty($woo_coupons_listing)){
+    foreach ($woo_coupons_listing as $key => $value)
+    {
+        if(isset($value->post_excerpt) && !empty($value->post_excerpt)){
+            $couponDescriptionLength = strlen($value->post_excerpt);
+            if($couponDescriptionLength > 60){
+                $coupondesc_default = substr($value->post_excerpt, 0, 60);
+                $couponDescription = $coupondesc_default.'....';    
+            }else{
+                $couponDescription = $value->post_excerpt;
+            }
+            
+        }else{
+          $couponDescription = "--";
+        }
+        $couponsLisingWithCode.='<tr><td id="coupon_'.$value->ID.'_code">'.$value->post_name.'</td><td>'.$couponDescription.'</td><td><i class="fa fa-copy" onclick = "copyContent(\'coupon_'.$value->ID.'_code\')" style="cursor:pointer"></i></td></tr>';
+    }
+  }
+  return $couponsLisingWithCode;
+}
+
+
 
 ?>
