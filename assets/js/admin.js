@@ -76,6 +76,10 @@
                         if($('#activation_setup_form').length){
                             validateForms('activation_setup_form');
                         }
+                        //apply data tables on products listing with sku...
+                        if(jQuery("#products_listing_with_sku").length){
+                            applyDatables("products_listing_with_sku");
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -458,6 +462,21 @@ function applyDatables(tabel_id){
                     }
                 });
             }
+        }
+        //Campaign Goals Tab: apply datatables on products listing with sku..
+        else if(tabel_id == 'products_listing_with_sku') {
+            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
+            {
+                $('#'+tabel_id).DataTable({
+                    "pagingType": "simple_numbers",
+                    "pageLength": 5,
+                    "searching": false,
+                    "bLengthChange" : false,
+                    "bInfo":false,
+                    "scrollX": false,
+                    "ordering": false,
+                });
+            }   
         }
     }
 }

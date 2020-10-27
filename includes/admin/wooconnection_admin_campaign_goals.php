@@ -124,6 +124,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   </div>
 </div>
 
+<!--Below model is used to show the list of products with their sku with copy feature-->
 <div class="modal" role="dialog" id="productsListing">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -133,7 +134,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
       </div>
       <div class="modal-body">
         <div class="table-responsive">
-          <table class="table table-striped">
+          <table class="table table-striped" id="products_listing_with_sku">
               <thead><tr><th>Product Name</th><th>Product Sku</th><th>Action</th></tr></thead>
               <tbody><?php echo get_products_listing(); ?></tbody>
           </table>
