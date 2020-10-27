@@ -583,3 +583,23 @@ function checkSelectedProducts($class,$except){
                         }).get();
     return checkProducts;
 }
+
+//This is a common function used to perform the copy clipboard content action........
+function copyContent(elementid) {
+  var elementDetails = document.getElementById(elementid);
+  if(window.getSelection) {
+    var selectWindow = window.getSelection();
+    var eleTextRange = document.createRange();
+    eleTextRange.selectNodeContents(elementDetails);
+    selectWindow.removeAllRanges();
+    selectWindow.addRange(eleTextRange);
+    document.execCommand("Copy");
+    var executeCommand = document.execCommand('copy',true);
+  }else if(document.body.createTextRange) {
+    var eleTextRange = document.body.createTextRange();
+    eleTextRange.moveToElementText(elementDetails);
+    eleTextRange.select();
+    var executeCommand = document.execCommand('copy',true);
+  }
+  
+}

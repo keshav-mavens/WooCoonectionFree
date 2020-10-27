@@ -124,4 +124,23 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   </div>
 </div>
 
+<div class="modal" role="dialog" id="productsListing">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Products With Sku</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-striped">
+              <thead><tr><th>Product Name</th><th>Product Sku</th><th>Action</th></tr></thead>
+              <tbody><?php echo get_products_listing(); ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!--Campaign Goals SETUP END

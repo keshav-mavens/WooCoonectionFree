@@ -1353,7 +1353,7 @@ function getOrderTriggers(){
         $trigger_integration_name = $value->wc_integration_name;
         $trigger_call_name = $value->wc_call_name;
         if($trigger_goal_name == 'Specific Product'){
-            $callName = '<a href="javascript:void(0);">'.strtolower($trigger_call_name).'</a>';
+            $callName = '<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.strtolower($trigger_call_name).'</a>';
             $class = 'readonly';
         }else{
             $callName = strtolower($trigger_call_name);
@@ -1369,6 +1369,24 @@ function getOrderTriggers(){
     }
   }
   return $wcGeneralTriggers;
+}
+
+//get the list of products with sku...
+function get_products_listing(){
+  $productLisingWithSku = "";
+  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  if(isset($woo_products_listing) && !empty($woo_products_listing)){
+    foreach ($woo_products_listing as $key => $value)
+    {
+        $currentProductSku = '--';//get_set_product_sku($value->ID);
+        $productLisingWithSku .= '<tr><td>'.$value->post_title.'</td><td id="product_'.$value->ID.'_sku">'.$currentProductSku.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
+                                      onclick="copyContent(\'product_'.$value->ID.'_sku\')">
+                                      </i>
+                                  </td>
+                              </tr>';
+    }
+  }
+  return $productLisingWithSku;
 }
 
 ?>
