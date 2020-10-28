@@ -107,7 +107,6 @@ function activate_wooconnection_plugin()
 								     'licence_key' => $pluginactivationkey,
 								     'secret_key' => ACTIVATION_SECRET_KEY,
 								     'product_id' => ACTIVATION_PRODUCT_ID,
-								     'instance' => ACTIVATION_INSTANCE,
 								     'platform' => SITE_URL
 								     );
 		    $targetUrl = add_query_arg('wc-api', 'software-api', ADMIN_REMOTE_URL).'&'.http_build_query($queryParameters);
