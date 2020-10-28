@@ -76,6 +76,11 @@
                         if($('#activation_setup_form').length){
                             validateForms('activation_setup_form');
                         }
+
+                        //apply change icon rule on campaign goals "How it works" button..
+                        if($("#collapseCampaignGoals").length){
+                            applyCollapseRules('collapseCampaignGoals');
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -259,7 +264,7 @@ function validateForms(form){
                         alphanumeric: 'Only alphanumeric characters are allowed in trigger integration name!',
                     },
                     callname: {
-                        required: 'Please enter trigger integration name!',
+                        required: 'Please enter trigger call name!',
                         alphanumeric: 'Only alphanumeric characters are allowed in trigger call name!',
                     }
                 }
@@ -576,4 +581,16 @@ function checkSelectedProducts($class,$except){
                             if($(this).val() != $except){ return $(this).val(); }
                         }).get();
     return checkProducts;
+}
+
+//on collapse div change the icon of button done.....
+function applyCollapseRules(div_id){
+    if(div_id != ""){
+        $('#'+div_id).on('shown.bs.collapse', function() {
+            $("#icon_"+div_id).addClass('fa-caret-up').removeClass('fa-caret-down');
+        });
+        $('#'+div_id).on('hidden.bs.collapse', function() {
+           $("#icon_"+div_id).addClass('fa-caret-down').removeClass('fa-caret-up');
+        });    
+    }
 }
