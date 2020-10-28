@@ -886,7 +886,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
 		  		$accessToken = $admin_auth_details['access_token'];		
 		  	}
 		}
-	  	$accessToken =  '9DAwBtlZbAGGKaeQ5t9G5aWGjpoA';
+	  	$accessToken =  '7ItE850U3fYEvRGQJesals3kkVst';
 	  	//Order Data by order id.....
 	    $orderDetails = new WC_Order( $orderid );
 	    //Get the order items from order then execute loop to create the order items array....
@@ -915,15 +915,56 @@ function wooconnection_trigger_status_complete_hook($orderid){
 	   	$wcOrderData = $orderDetails->get_data();//Get the order related data like billing data....
 
 	   	global $wpdb,$table_prefix;
-	   	if($wcproductSku == 'pro_wc'){
-        	$orderDetails->update_status( 'completed' );
+	   	$table_name = 'woocommerce_software_licenses';
+		$wp_table_name = $table_prefix . "$table_name";
+		//Check whether the license key already exist for same user or not if exist then pass to create license key with same user email...
+		if(!empty($orderEmail)){
+			//check if data exist prievously by email....
+			$campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE activation_email='".$orderEmail."'");
+			if(!empty($campaignGoalDetails)){
+				if(!empty($campaignGoalDetails[0]->license_key)){
+					$str = $campaignGoalDetails[0]->license_key;
+					$details = explode("wc",$str);
+					if(!empty($details[1])){
+						$license_key = $details[1];
+					}
+				}
+			}
+		}
+		//Check product sku then set the values and process license key generate process.....
+		if($wcproductSku == 'pro_wc'){
+			//Check if license key is exist then create new license key with existing license key.....
+			if(!empty($license_key)){
+				//Define software product id for paid plugin....
+				$software_product_id = 'wooconnectionpaid';
+				//Define the activation limit for wooconnection paid plugin....
+				$activations_limit = '5';
+				//Call the common function to save the license key with same email.....
+				createNewLicense($orderid,$orderEmail,$license_key,$software_product_id,$activations_limit);
+			}
+			//Mark order complete
+			$orderDetails->update_status( 'completed' );
+			//Define the call name.....
 	        $callname = 'wcpurchasepro';
+	        //check is contact id is not empty the call the common function to send email with plugin link.......
 	        if(!empty($contactId)){
 	        	achieveTrigger($contactId,$wcOrderData,$accessToken,$callname);
 	        }
-	    }else{
+		}else{
+			//Check if license key is exist then create new license key with existing license key.....
+			if(!empty($license_key)){
+				//Define software product id for free plugin....
+				$software_product_id = 'wooconnectionfree';
+				//Define the activation limit unlimited for wooconnection free plugin....
+				$activations_limit = '';
+				//Call the common function to save the license key with same email.....
+				createNewLicense($orderid,$orderEmail,$license_key,$software_product_id,$activations_limit);
+			}
+			//Mark order complete
         	$orderDetails->update_status( 'completed' );
+        	//Define the call name.....
         	$callname  = 'wcpurchase';
+        	//check is contact id is not empty the call the common function to send email with plugin link......
         	if(!empty($contactId)){
 	        	achieveTrigger($contactId,$wcOrderData,$accessToken,$callname);
 	        }
@@ -1145,4 +1186,18 @@ function cart_items_check() {
         // Display an error message
         wc_add_notice( __("More than one items in cart is not allowed to checkout", "woocommece"), 'error' );
     }
+}
+
+
+//Function Defination : This function is used to hit the api request "generate_key"......
+function createNewLicense($orderid,$order_email,$license_key,$software_product_id,$activations_limit=''){
+	global $wpdb;
+	$insertDetails = apply_filters( 'woocommerce_software_addon_save_license_key', array(
+	    'order_id' => $orderid,'activation_email' => $order_email,'license_key' => 'wc' . $license_key,'software_product_id' => $software_product_id,'software_version' => 16, 'activations_limit'   => $activations_limit,'created' => current_time( 'mysql' )));
+	$format = array('%s','%s','%s','%s','%s','%s','%s','%s');
+	$wpdb->insert( 'wp_woocommerce_software_licenses',$insertDetails,$format);
+	$lastInsertId = $wpdb->insert_id;
+	if($lastInsertId > 0){
+		update_post_meta( $orderid,  'software_processed', 1);
+	}
 }

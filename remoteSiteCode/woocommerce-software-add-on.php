@@ -324,9 +324,8 @@ CREATE TABLE {$wpdb->wc_software_activations} (
 				} elseif ( isset( $item['quantity'] ) ) {
 					$quantity = absint( $item['quantity'] );
 				}
-			    
-			    $wp_table_name = "wp_woocommerce_software_licenses";
-            	// FOUND SOME SOFTWARE - Lets make those licenses!
+
+				// FOUND SOME SOFTWARE - Lets make those licenses!
 				for ( $i = 0; $i < $quantity; $i++ ) {
 
 					$data = array(
@@ -337,21 +336,7 @@ CREATE TABLE {$wpdb->wc_software_activations} (
 						'software_version'    => empty( $meta['_software_version'][0] ) ? '' : $meta['_software_version'][0],
 						'activations_limit'   => empty( $meta['_software_activations'][0] ) ? '' : (int) $meta['_software_activations'][0],
 						);
-					
-						//Check whether the license key already exist for same user or not if exist then pass to create license key with same user email...
-						if(!empty($data['activation_email'])){
-							//check if data exist prievously by email....
-	            			$campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE activation_email='".$data['activation_email']."'");
-	            			if(!empty($campaignGoalDetails)){
-	            				if(!empty($campaignGoalDetails[0]->license_key)){
-	            					$str = $campaignGoalDetails[0]->license_key;
-									$details = explode("wc",$str);
-									if(!empty($details[1])){
-										$data['license_key'] = $details[1];
-									}
-								}
-							}
-						}
+
 					$key_id = $this->save_license_key( $data );
 				}
 			}
