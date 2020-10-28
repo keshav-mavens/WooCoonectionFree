@@ -11,59 +11,6 @@ function wc_load_tab_main_content(){
 	exit();
 }
 
-//Wordpress hook : This action is triggered when user try to save application details.
-add_action( 'wp_ajax_wc_save_application_details', 'wc_save_application_details');
-//Function Definiation : wc_save_application_details
-function wc_save_application_details(){
-	if(isset($_POST) && !empty($_POST)){
-		$application_settings_array = array();
-		if(isset($_POST['applicationtype']) && !empty($_POST['applicationtype'])){
-			$application_settings_array['applicationtype'] = $_POST['applicationtype'];	
-		}
-		$applicationappname = '';
-		if(isset($_POST['applicationappname']) && !empty($_POST['applicationappname'])){
-			$application_settings_array['applicationappname'] = trim($_POST['applicationappname']);	
-			$applicationappname = trim($_POST['applicationappname']);
-		}
-		$applicationapikey = '';
-		if(isset($_POST['applicationapikey']) && !empty($_POST['applicationapikey'])){
-			$application_settings_array['applicationapikey'] = trim($_POST['applicationapikey']);
-			$applicationapikey = trim($_POST['applicationapikey']);
-		}
-		if(!empty($applicationappname) && !empty($applicationapikey))
-		{
-			$appresponse = connect_application(trim($_POST['applicationappname']),trim($_POST['applicationapikey']));
-			$checkResponse = strrpos($appresponse, "ERROR");
-			if ($checkResponse === false)  {
-				update_option('application_settings',$application_settings_array);
-				if($application_settings_array['applicationtype'] == APPLICATION_TYPE_INFUSIONSOFT){
-					$page_id = add_check_page_affiliate_direct();
-					if(!empty($page_id)){
-						update_option('affiliate_page_id',$page_id);
-					}
-				}
-				echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'applicationtype'=>$_POST['applicationtype']));
-			}else{
-				echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>$appresponse));
-			}
-		}
-		else{
-			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>''));
-		}
-	}else{
-		echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>''));
-	}
-	die();
-}
-
-//Function : This function is used to create connection with infusionsoft and keap application
-function connect_application($applicationname,$applicationkey){
-	$application_connection = new wooconnection_iSDK;
-	$application_connection->cfgCon($applicationname, $applicationkey);
-  	$checkerApplicationResponse = $application_connection->dsGetSetting('Contact', 'optiontypes');
-  	return $checkerApplicationResponse;
-}
-
 //Wordpress hook : This action is triggered when user try to activate the plugin.
 add_action( 'wp_ajax_activate_wooconnection_plugin', 'activate_wooconnection_plugin');
 //Function Definiation : activate_wooconnection_plugin
