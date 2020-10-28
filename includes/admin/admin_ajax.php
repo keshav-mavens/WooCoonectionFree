@@ -155,7 +155,12 @@ function wc_get_trigger_details()
     			$triggerIntegrationName = strtolower($triggerDetails[0]->wc_integration_name);	
     		}
 	        if(!empty($triggerDetails[0]->wc_call_name)){
-    			$triggerCallName = strtolower($triggerDetails[0]->wc_call_name);	
+    			if($triggerGoalName == 'Specific Product' || $triggerGoalName == 'Item Added to Cart' || $triggerGoalName == 'Review Left' || $triggerGoalName == 'Coupon Code Applied'){
+		            $triggerCallName = $triggerDetails[0]->wc_call_name;
+		        }
+		        else{
+		            $triggerCallName = strtolower($triggerDetails[0]->wc_call_name);
+		        }
     		}
 	    }
     	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerGoalName'=>$triggerGoalName,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName));
@@ -179,10 +184,32 @@ function wc_update_trigger_details()
     			$triggerIntegrationName = strtolower(trim($_POST['integrationname']));	
     		}
 	        if(isset($_POST['callname']) && !empty($_POST['callname'])){
-    			$triggerCallName = strtolower(trim($_POST['callname']));	
+    			if($_POST['edittriggername'] == 'Specific Product'){
+		            $triggerCallName = trim($_POST['callname']);
+		        	$displayCallName = '<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$triggerCallName.'</a>';
+		        }
+		        else if($_POST['edittriggername'] == 'Item Added to Cart'){
+	        		$triggerCallName = trim($_POST['callname']);
+	        		$call_name = explode('added', $triggerCallName);
+	        		$displayCallName = 'added'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$call_name[1].'</a>';
+		        }elseif ($_POST['edittriggername'] == 'Review Left') {
+		        	$triggerCallName = trim($_POST['callname']);
+		        	$call_name = explode('review', $triggerCallName);
+	        		$displayCallName = 'review'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$call_name[1].'</a>';
+		        }
+		        else if($_POST['edittriggername'] == 'Coupon Code Applied'){
+		            $triggerCallName = trim($_POST['callname']);
+		            $call_name = explode('coupon', $triggerCallName);
+		        	$displayCallName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
+		        }
+		        else{
+		            $triggerCallName = strtolower(trim($_POST['callname']));
+		        	$displayCallName = strtolower(trim($_POST['callname']));
+		        }
+
     		}
     		$updateResult = $wpdb->update($wp_table_name, array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName),array('id' => $_POST['edittriggerid']));
-    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName));
+    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName,'displayCallName'=>$displayCallName));
     	}
 	}
 	die();	

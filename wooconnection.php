@@ -18,7 +18,6 @@ class WooConnectionPro {
         register_activation_hook( __FILE__, array($this, 'insert_campaign_goals_database_table' ) );
         register_activation_hook( __FILE__, array($this, 'create_countries_database_table' ) );
         register_activation_hook( __FILE__, array($this, 'insert_countries_database_table' ) );
-        //register_activation_hook( __FILE__, array($this, 'insert_pro_campaign_goals' ) );
     }
 
     
@@ -101,6 +100,7 @@ class WooConnectionPro {
                 ('Order Failed','wooconnection','failedorder',1,1)");
         }
 
+        //Check Table Records : First need to check whether the table records is exist or not if not exist then create new table records with pro campaign goals.......
         $checkTableRecordsPro = $wpdb->get_results('SELECT * FROM '.$wp_table_name.'  WHERE wc_trigger_verison=2');
         if(empty($checkTableRecordsPro)){
             $wpdb->query("INSERT INTO ".$wp_table_name."

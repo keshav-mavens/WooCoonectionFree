@@ -247,6 +247,9 @@ function validateForms(form){
             });
 
             $("#"+form).validate({
+                onfocusout: false,
+                onkeyup: false,
+                ignore: ".ignore",
                 rules:{
                         integrationname: {
                             required: true,
@@ -263,7 +266,7 @@ function validateForms(form){
                         alphanumeric: 'Only alphanumeric characters are allowed in trigger integration name!',
                     },
                     callname: {
-                        required: 'Please enter trigger integration name!',
+                        required: 'Please enter trigger call name!',
                         alphanumeric: 'Only alphanumeric characters are allowed in trigger call name!',
                     }
                 }
@@ -343,11 +346,14 @@ function popupEditDetails(triggerid){
         jQuery.post( ajax_object.ajax_url + "?action=wc_get_trigger_details",{triggerid:triggerid}, function(data) {
             var responsedata = JSON.parse(data);
             if(responsedata.status == "1") {
+                jQuery("label.error").hide();
                 jQuery("#edittriggerid").val(triggerid);
                 jQuery("#edittriggerid").val(triggerid);
                 if(responsedata.triggerGoalName != ""){
                     jQuery(".trigger_goal_name").html('');
                     jQuery(".trigger_goal_name").html(responsedata.triggerGoalName);
+                    jQuery("#edittriggername").val('');
+                    jQuery("#edittriggername").val(responsedata.triggerGoalName);
                 }
                 if(responsedata.triggerIntegrationName != ""){
                     jQuery("#integrationname").val(responsedata.triggerIntegrationName);
@@ -356,8 +362,10 @@ function popupEditDetails(triggerid){
                     jQuery("#callname").val(responsedata.triggerCallName);
                     if($checkClass!="" && $checkClass == 'readonly'){
                         $('#callname').attr('readonly', true);
+                        $('#callname').addClass('ignore');
                     }else{
                         $('#callname').attr('readonly', false);
+                        $('#callname').removeClass('ignore');
                     }
                 }
                 $("#editTriggerDetails").show();
@@ -392,8 +400,8 @@ function updateTriggerdetails(){
                 if(responsedata.triggerIntegrationName != ""){
                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_integration_name_'+trigger_id).html(responsedata.triggerIntegrationName);
                 }
-                if(responsedata.triggerCallName != ""){
-                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.triggerCallName);
+                if(responsedata.displayCallName != ""){
+                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.displayCallName);
                 }
             }else{
                 $(".trigger-details-error").show();
