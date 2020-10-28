@@ -191,11 +191,11 @@ function wc_update_trigger_details()
 		        else if($_POST['edittriggername'] == 'Item Added to Cart'){
 	        		$triggerCallName = trim($_POST['callname']);
 	        		$call_name = explode('added', $triggerCallName);
-	        		$displayCallName = 'added'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$call_name[1].'</a>';
+	        		$displayCallName = 'added'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListingAdded">'.$call_name[1].'</a>';
 		        }elseif ($_POST['edittriggername'] == 'Review Left') {
 		        	$triggerCallName = trim($_POST['callname']);
 		        	$call_name = explode('review', $triggerCallName);
-	        		$displayCallName = 'review'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$call_name[1].'</a>';
+	        		$displayCallName = 'review'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListingReview">'.$call_name[1].'</a>';
 		        }
 		        else if($_POST['edittriggername'] == 'Coupon Code Applied'){
 		            $triggerCallName = trim($_POST['callname']);

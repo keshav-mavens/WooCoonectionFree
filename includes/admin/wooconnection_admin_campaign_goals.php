@@ -125,7 +125,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   </div>
 </div>
 
-<!--Below model is used to show the list of products with their sku with copy feature-->
+<!--Below model is used to show the list of products with their sku with copy feature for specific product purchase trigger-->
 <div class="modal" role="dialog" id="productsListing">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -145,9 +145,51 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   </div>
 </div>
 
+
+<!--Below model is used to show the list of products with their sku with copy feature for specific product added to cart triggger-->
+<div class="modal" role="dialog" id="productsListingAdded">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Products With Sku</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-striped" id="products_listing_with_sku_added">
+              <thead><tr><th>Product Name</th><th>Product Sku</th><th>Action</th></tr></thead>
+              <tbody><?php echo get_products_listing_added(); ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Below model is used to show the list of products with their sku with copy feature for preview left to product triggger-->
+<div class="modal" role="dialog" id="productsListingReview">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Products With Sku</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-striped" id="products_listing_with_sku_review">
+              <thead><tr><th>Product Name</th><th>Product Sku</th><th>Action</th></tr></thead>
+              <tbody><?php echo get_products_listing_review(); ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!--Below model is used to show the list of coupons with their code with copy feature-->
 <div class="modal" role="dialog" id="couponsListing">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title">Coupons Code Listing</h4>

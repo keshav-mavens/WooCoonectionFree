@@ -76,9 +76,26 @@
                         if($('#activation_setup_form').length){
                             validateForms('activation_setup_form');
                         }
+                        //apply change icon rule on campaign goals "How it works" button..
+                        if($("#collapseCampaignGoals").length){
+                            applyCollapseRules('collapseCampaignGoals');
+                        }
+
                         //apply data tables on products listing with sku...
                         if(jQuery("#products_listing_with_sku").length){
                             applyDatables("products_listing_with_sku");
+                        }
+                        //apply data tables on products listing with sku for item added to cart trigger...
+                        if(jQuery("#products_listing_with_sku_added").length){
+                            applyDatables("products_listing_with_sku_added");
+                        }
+                        //apply data tables on products listing with sku for review left for product cart trigger...
+                        if(jQuery("#products_listing_with_sku_review").length){
+                            applyDatables("products_listing_with_sku_review");
+                        }
+                        //apply data tables on coupons listing with coupon code...
+                        if(jQuery("#coupon_listing_with_sku").length){
+                            applyDatables("coupon_listing_with_sku");
                         }
                     });
                     //Check if "response" done....
@@ -472,7 +489,8 @@ function applyDatables(tabel_id){
             }
         }
         //Campaign Goals Tab: apply datatables on products listing with sku..
-        else if(tabel_id == 'products_listing_with_sku') {
+        else if(tabel_id == 'products_listing_with_sku' || tabel_id == 'products_listing_with_sku_added' 
+                || tabel_id == 'products_listing_with_sku_review' || tabel_id == 'coupon_listing_with_sku') {
             if(!$.fn.DataTable.isDataTable('#'+tabel_id))
             {
                 $('#'+tabel_id).DataTable({
@@ -609,6 +627,18 @@ function checkSelectedProducts($class,$except){
                             if($(this).val() != $except){ return $(this).val(); }
                         }).get();
     return checkProducts;
+}
+
+//on collapse div change the icon of button done.....
+function applyCollapseRules(div_id){
+    if(div_id != ""){
+        $('#'+div_id).on('shown.bs.collapse', function() {
+            $("#icon_"+div_id).addClass('fa-caret-up').removeClass('fa-caret-down');
+        });
+        $('#'+div_id).on('hidden.bs.collapse', function() {
+           $("#icon_"+div_id).addClass('fa-caret-down').removeClass('fa-caret-up');
+        });    
+    }
 }
 
 //This is a common function used to perform the copy clipboard content action........
