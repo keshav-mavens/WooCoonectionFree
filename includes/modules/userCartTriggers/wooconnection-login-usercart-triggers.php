@@ -144,9 +144,27 @@ function wooconnection_cart_product_add_trigger(){
 
     //check if contact id is exist then hit the trigger....
     if(isset($itemAddCartContactId) && !empty($itemAddCartContactId)) {
-        if(!empty($standardAddItemCartIntegrationName) && !empty($standardAddItemCartCallName))
+        $productSku = '';
+        if(isset($_POST['product_sku']) && !empty($_POST['product_sku'])){
+            $productSku = $_POST['product_sku'];
+        }
+        //if "-" is exist in product sku then replace with empty
+        if (strpos($productSku, '-') !== false)
         {
-            $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardAddItemCartIntegrationName,$standardAddItemCartCallName,$itemAddCartContactId,$callback_purpose);
+            $productSku=str_replace("-", "", $productSku);
+        }
+        else if (strpos($productSku, '_') !== false)
+        {
+            $productSku=str_replace("_", "", $productSku);
+        }
+        else
+        {
+            $productSku=$productSku;
+        }
+        $productSku = 'added'.substr($productSku, 0,35);
+        if(!empty($standardAddItemCartIntegrationName))
+        {
+            $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardAddItemCartIntegrationName,$productSku,$itemAddCartContactId,$callback_purpose);
             if(!empty($standardAddItemCartTriggerResponse)){
                 if(empty($standardAddItemCartTriggerResponse[0]['success'])){
                     //Campign goal is not exist in infusionsoft/keap application then store the logs..
@@ -161,8 +179,6 @@ function wooconnection_cart_product_add_trigger(){
         }
     }
     return true;
-    
-    
 }
 
 
@@ -232,9 +248,28 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
 
         //check if contact id is exist then hit the trigger....
         if(isset($reviewLeftCartContactId) && !empty($reviewLeftCartContactId)) {
-            if(!empty($standardReviewItemCartIntegrationName) && !empty($standardReviewItemCartCallName))
+            $productSkuById = get_post_meta($_POST['comment_post_ID'], '_sku', true);
+            $productSku = '';
+            if(isset($productSkuById) && !empty($productSkuById)){
+                $productSku = $productSkuById;
+            }
+            //if "-" is exist in product sku then replace with empty
+            if (strpos($productSku, '-') !== false)
             {
-                $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardReviewItemCartIntegrationName,$standardReviewItemCartCallName,$reviewLeftCartContactId,$callback_purpose);
+                $productSku=str_replace("-", "", $productSku);
+            }
+            else if (strpos($productSku, '_') !== false)
+            {
+                $productSku=str_replace("_", "", $productSku);
+            }
+            else
+            {
+                $productSku=$productSku;
+            }
+            $productSku = 'review'.substr($productSku, 0,34);
+            if(!empty($standardReviewItemCartIntegrationName))
+            {
+                $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardReviewItemCartIntegrationName,$productSku,$reviewLeftCartContactId,$callback_purpose);
                 if(!empty($standardAddItemCartTriggerResponse)){
                     if(empty($standardAddItemCartTriggerResponse[0]['success'])){
                         //Campign goal is not exist in infusionsoft/keap application then store the logs..
