@@ -100,6 +100,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
             }
         }
         
+        //Call the common function to hit the any purchase trigger....
         $anyPurchaseTrigger = orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger);
 
         //Get the order items from order then execute loop to create the order items array....
@@ -118,6 +119,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 $length = 40;
                 $productSku = get_set_product_sku($item['product_id'],$length);
                 if(isset($productSku) && !empty($productSku)){
+                    //Call the common function to hit the specific product purchase trigger....
                     $specificPurchaseTrigger = orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,$wooconnectionLogger);
                 }
             }
