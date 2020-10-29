@@ -76,6 +76,7 @@
                         if($('#activation_setup_form').length){
                             validateForms('activation_setup_form');
                         }
+
                         //apply change icon rule on campaign goals "How it works" button..
                         if($("#collapseCampaignGoals").length){
                             applyCollapseRules('collapseCampaignGoals');
