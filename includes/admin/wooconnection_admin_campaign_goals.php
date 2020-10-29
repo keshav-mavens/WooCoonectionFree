@@ -158,4 +158,22 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
     </div>
   </div>
 </div>
+<div class="modal" role="dialog" id="refferalListing">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Refferal Listing</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+       <div class="table-responsive">
+          <table class="table table-striped" id="refferal_partners_listing">
+                <thead><tr><th>Id</th><th>Referral Partner Name</th><th>Referral Partner Code</th><th>Action</th></tr></thead>
+                <tbody><?php //echo affiliateListing(); ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <!--Campaign Goals SETUP END-->

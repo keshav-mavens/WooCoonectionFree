@@ -113,7 +113,8 @@ class WooConnectionPro {
                 ('Review Left','wooconnectionuser','review{Product SKU}',2,2),
                 ('Any Purchase','wooconnectionorder','success',3,2),
                 ('Specific Product','wooconnectionorder','{Product SKU}',3,2),
-                ('Coupon Code Applied','wooconnectionorder','coupon{Coupon Code}',3,2)");
+                ('Coupon Code Applied','wooconnectionorder','coupon{Coupon Code}',3,2),
+                ('Referral Partner Order','wooconnectionorder','refferal{Refferal Partner Id}',3,2)");
         }
     }
 

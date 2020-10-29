@@ -148,6 +148,12 @@ function wc_update_trigger_details()
 		            $call_name = explode('coupon', $triggerCallName);
 		        	$displayCallName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
 		        }
+		        else if($trigger_goal_name == 'Referral Partner Order'){
+		            $triggerCallName = trim($_POST['callname']);
+		            $call_name = explode('refferal', $triggerCallName);
+		            $callName = 'refferal'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#refferalListing">'.$call_name[1].'</a>';
+		            $class = 'readonly';
+		        }
 		        else{
 		            $triggerCallName = strtolower(trim($_POST['callname']));
 		        	$displayCallName = strtolower(trim($_POST['callname']));

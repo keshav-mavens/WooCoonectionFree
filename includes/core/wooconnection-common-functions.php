@@ -1382,6 +1382,11 @@ function getOrderTriggers(){
             $callName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
             $class = 'readonly';
         }
+        else if($trigger_goal_name == 'Referral Partner Order'){
+            $call_name = explode('refferal', $trigger_call_name);
+            $callName = 'refferal'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#refferalListing">'.$call_name[1].'</a>';
+            $class = 'readonly';
+        }
         else{
             $callName = strtolower($trigger_call_name);
             $class = '';
@@ -1612,5 +1617,58 @@ function orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooc
     }
     return true;
 }
+
+//Get the infusionsoft/keap application order deatils on the basis of order id....
+function getRefferalPartnersListing(){
+  $data = array();
+  $access_token = 'CO903UICQEZYTSne6bG2yHJbELBd';
+  if(!empty($access_token)){
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/affiliates';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+        //curl_setopt($ch, CURLOPT_POSTFIELDS, $productDetailsArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = $callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          return $sucessData['affiliates'];
+        }
+        curl_close($ch);
+  }
+  return $data;
+}
+
+function affiliateListing(){
+  $arrayData = getRefferalPartnersListing();  
+  $listing = '';
+  if(isset($arrayData) && !empty($arrayData)){
+    foreach ($arrayData as $key => $value) {
+        $listing .= '<tr>'.$value['id'].'</tr><tr>'.$value['name'].'</tr><tr>'.$value['code'].'</tr>';
+    }
+  }else{
+    $listing = '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Affiliates Exist!</td></tr>';
+  }
+  return $listing;
+}
+
+
+
 
 ?>
