@@ -1484,5 +1484,91 @@ function get_set_product_sku($productId,$length=''){
     return $productSku;
 }
 
+//Function is used to apply the any purchase trigger......
+function orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger){
+    if(!empty($orderContactId)){
+        //Concate a error message to store the logs...
+        $callback_purpose = 'Wooconnection Any Purchase : Process of any purchase success order trigger';
+        // //Woocommerce Order trigger : Get the call name and integration name of goal "Any Purchase"... 
+        $purchaseProductTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_ORDER,'Any Purchase');
+
+        //Define variables....
+        $purchaseProductIntegrationName = '';
+        $purchaseProductCallName = '';
+
+        //Check campaign goal details...
+        if(isset($purchaseProductTrigger) && !empty($purchaseProductTrigger)){
+            
+            //Get and set the wooconnection goal integration name
+            if(isset($purchaseProductTrigger[0]->wc_integration_name) && !empty($purchaseProductTrigger[0]->wc_integration_name)){
+                $purchaseProductIntegrationName = $purchaseProductTrigger[0]->wc_integration_name;
+            }
+
+            //Get and set the wooconnection goal call name
+            if(isset($purchaseProductTrigger[0]->wc_call_name) && !empty($purchaseProductTrigger[0]->wc_call_name)){
+                $purchaseProductCallName = $purchaseProductTrigger[0]->wc_call_name;
+            }    
+        }
+
+        // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
+        if(!empty($purchaseProductIntegrationName) && !empty($purchaseProductCallName))
+        {
+            $orderAnyPurchaseTriggerResponse = achieveTriggerGoal($access_token,$purchaseProductIntegrationName,$purchaseProductCallName,$orderContactId,$callback_purpose);
+            if(!empty($orderAnyPurchaseTriggerResponse)){
+                if(empty($orderAnyPurchaseTriggerResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($orderAnyPurchaseTriggerResponse[0]['message']) && !empty($orderAnyPurchaseTriggerResponse[0]['message'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Any Purchase : Process of any purchase success order trigger is failed where contact id is '.$orderContactId.' because '.$orderAnyPurchaseTriggerResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Any Purchase : Process of any purchase success order trigger is failed where contact id is '.$orderContactId.'');
+                    }
+                    
+                }
+            }    
+        }
+    }
+    return true;
+}
+
+//Function is used to apply the specific product purchase trigger......
+function orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,$wooconnectionLogger){
+    if(!empty($orderContactId) && !empty($productSku)){
+        //Concate a error message to store the logs...
+        $callback_purpose = 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger';
+        // //Woocommerce Order trigger : Get the call name and integration name of goal "Specific Product"... 
+        $specificPurchaseProductTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_ORDER,'Specific Product');
+
+        //Define variables....
+        $specificPurchaseProductIntegrationName = '';
+        $specificPurchaseProductCallName = $productSku;
+
+        //Check campaign goal details...
+        if(isset($specificPurchaseProductTrigger) && !empty($specificPurchaseProductTrigger)){
+            
+            //Get and set the wooconnection goal integration name
+            if(isset($specificPurchaseProductTrigger[0]->wc_integration_name) && !empty($specificPurchaseProductTrigger[0]->wc_integration_name)){
+                $specificPurchaseProductIntegrationName = $specificPurchaseProductTrigger[0]->wc_integration_name;
+            }
+        }
+
+        // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
+        if(!empty($specificPurchaseProductIntegrationName) && !empty($specificPurchaseProductCallName))
+        {
+            $orderSpecificPurchaseTriggerResponse = achieveTriggerGoal($access_token,$specificPurchaseProductIntegrationName,$specificPurchaseProductCallName,$orderContactId,$callback_purpose);
+            if(!empty($orderSpecificPurchaseTriggerResponse)){
+                if(empty($orderSpecificPurchaseTriggerResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($orderSpecificPurchaseTriggerResponse[0]['message']) && !empty($orderSpecificPurchaseTriggerResponse[0]['message'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.' because '.$orderSpecificPurchaseTriggerResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.'');
+                    }
+                    
+                }
+            }    
+        }
+    }
+    return true;
+}
 
 ?>
