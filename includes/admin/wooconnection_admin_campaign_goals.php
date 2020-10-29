@@ -125,7 +125,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   </div>
 </div>
 
-<!--Below model is used to show the list of products with their sku with copy feature for specific product purchase trigger-->
+<!--Below model is used to show the list of products with their sku with copy feature for specific product purchase trigger,item added to cart, review left for product trigger-->
 <div class="modal" role="dialog" id="productsListing">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -133,13 +133,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
         <h4 class="modal-title">Products With Sku</h4>
         <button type="button" class="close" onclick="hideCustomModel('productsListing')">&times;</button>
       </div>
-      <div class="modal-body">
-        <div class="table-responsive">
-          <table class="table table-striped" id="products_listing_with_sku">
-              <thead><tr><th>Product Name</th><th>Product Sku</th><th>Action</th></tr></thead>
-              <tbody id="products_sku_listing"></tbody>
-          </table>
-        </div>
+      <div class="modal-body"><div class="table-responsive" id="products_sku_listing"></div>
       </div>
     </div>
   </div>

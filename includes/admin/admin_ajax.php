@@ -326,10 +326,11 @@ function wc_get_products_listing()
 	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		//check select products exist in post data to import.....
-		$productsListing = '';
 		if(isset($_POST['length']) && !empty($_POST['length'])){
-	      	$skuLength = $_POST['length'];
-	      	$productsListing =get_products_listing($skuLength);
+			$skuLength = $_POST['length'];
+			$productsListing .= '<table class="table table-striped" id="products_listing_with_sku_'.$skuLength.'"><thead><tr><th>Product Name</th><th>Product Sku</th><th>Action</th></tr></thead>';
+			$productsListing .= '<tbody id="products_sku_listing">'.get_products_listing($skuLength).'</tbody>';
+	    	$productsListing .= '</table>';
 	    }
 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListing'=>$productsListing));
 	}

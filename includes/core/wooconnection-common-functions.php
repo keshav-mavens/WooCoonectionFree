@@ -1414,6 +1414,8 @@ function get_products_listing($length){
                                   </td>
                               </tr>';
     }
+  }else{
+    $productLisingWithSku .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Products Exist!</td></tr>';
   }
   return $productLisingWithSku;
 }
@@ -1440,6 +1442,8 @@ function get_coupons_listing(){
         }
         $couponsLisingWithCode.='<tr><td id="coupon_'.$value->ID.'_code">'.substr($value->post_name, 0, 34).'</td><td>'.$couponDescription.'</td><td><i class="fa fa-copy" onclick = "copyContent(\'coupon_'.$value->ID.'_code\')" style="cursor:pointer"></i></td></tr>';
     }
+  }else{
+    $couponsLisingWithCode .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Coupons Exist!</td></tr>';
   }
   return $couponsLisingWithCode;
 }
