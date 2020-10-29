@@ -1655,6 +1655,7 @@ function getRefferalPartnersListing(){
   return $data;
 }
 
+//Function is used to get the list of refferal partners....
 function affiliateListing(){
   $arrayData = getRefferalPartnersListing();  
   $listing = '';
