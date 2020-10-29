@@ -1408,7 +1408,7 @@ function get_products_listing($length){
     foreach ($woo_products_listing as $key => $value)
     {
         $currentProductSku = get_set_product_sku($value->ID,$length);
-        $productLisingWithSku .= '<tr><td>'.$value->post_title.'</td><td id="product_'.$value->ID.'_sku">'.$currentProductSku.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
+        $productLisingWithSku .= '<tr><td  class="skucss">'.$value->post_title.'</td><td id="product_'.$value->ID.'_sku"  class="skucss">'.$currentProductSku.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
                                       onclick="copyContent(\'product_'.$value->ID.'_sku\')">
                                       </i>
                                   </td>
@@ -1440,7 +1440,7 @@ function get_coupons_listing(){
         }else{
           $couponDescription = "--";
         }
-        $couponsLisingWithCode.='<tr><td id="coupon_'.$value->ID.'_code">'.substr($value->post_name, 0, 34).'</td><td>'.$couponDescription.'</td><td><i class="fa fa-copy" onclick = "copyContent(\'coupon_'.$value->ID.'_code\')" style="cursor:pointer"></i></td></tr>';
+        $couponsLisingWithCode.='<tr><td id="coupon_'.$value->ID.'_code" class="skucss">'.substr($value->post_name, 0, 34).'</td><td class="skucss">'.$couponDescription.'</td><td><i class="fa fa-copy" onclick = "copyContent(\'coupon_'.$value->ID.'_code\')" style="cursor:pointer"></i></td></tr>';
     }
   }else{
     $couponsLisingWithCode .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Coupons Exist!</td></tr>';
@@ -1562,6 +1562,48 @@ function orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,
                         $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.' because '.$orderSpecificPurchaseTriggerResponse[0]['message'].'');    
                     }else{
                         $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.'');
+                    }
+                    
+                }
+            }    
+        }
+    }
+    return true;
+}
+
+
+//Function is used to apply the specific product purchase trigger......
+function orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooconnectionLogger){
+    if(!empty($orderContactId) && !empty($couponName)){
+        //Concate a error message to store the logs...
+        $callback_purpose = 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger';
+        // //Woocommerce Order trigger : Get the call name and integration name of goal "Coupon Code Applied"... 
+        $couponCodeTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_ORDER,'Coupon Code Applied');
+
+        //Define variables....
+        $couponCodeIntegrationName = '';
+        $couponCodeCallName = $couponName;
+
+        //Check campaign goal details...
+        if(isset($couponCodeTrigger) && !empty($couponCodeTrigger)){
+            
+            //Get and set the wooconnection goal integration name
+            if(isset($couponCodeTrigger[0]->wc_integration_name) && !empty($couponCodeTrigger[0]->wc_integration_name)){
+                $couponCodeIntegrationName = $couponCodeTrigger[0]->wc_integration_name;
+            }
+        }
+
+        // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
+        if(!empty($couponCodeIntegrationName) && !empty($couponCodeCallName))
+        {
+            $couponCodeTriggerResponse = achieveTriggerGoal($access_token,$couponCodeIntegrationName,$couponCodeCallName,$orderContactId,$callback_purpose);
+            if(!empty($couponCodeTriggerResponse)){
+                if(empty($couponCodeTriggerResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($couponCodeTriggerResponse[0]['message']) && !empty($couponCodeTriggerResponse[0]['message'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger is failed where contact id is '.$orderContactId.' because '.$couponCodeTriggerResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger is failed where contact id is '.$orderContactId.'');
                     }
                     
                 }

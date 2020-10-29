@@ -103,6 +103,17 @@ function wooconnection_trigger_status_complete_hook($orderid){
         //Call the common function to hit the any purchase trigger....
         $anyPurchaseTrigger = orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger);
 
+        //add goals form specfic coupons...
+        if(!empty($orderAssociatedCoupons)){
+            foreach ($orderAssociatedCoupons as $key => $value) {
+                if(!empty($value)){
+                    //Call the common function to hit the coupon applied trigger....
+                    $couponName = 'coupon'.substr($value, 0, 34);
+                    $couponApplyTrigger = orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooconnectionLogger);
+                }
+            }
+        }
+        
         //Get the order items from order then execute loop to create the order items array....
         if ( sizeof( $products_items = $order->get_items() ) > 0 ) {
             foreach($products_items as $item_id => $item)
