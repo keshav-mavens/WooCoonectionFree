@@ -1316,12 +1316,14 @@ function getCartTriggers(){
         $trigger_call_name = $value->wc_call_name;
         if($trigger_goal_name == 'Item Added to Cart'){
             $call_name = explode('added', $trigger_call_name);
-            $callName = 'added'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListingAdded">'.$call_name[1].'</a>';
+            $length = 35;
+            $callName = 'added'.'<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$call_name[1].'</a>';
             $class = 'readonly';
         }
         else if($trigger_goal_name == 'Review Left'){
             $call_name = explode('review', $trigger_call_name);
-            $callName = 'review'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListingReview">'.$call_name[1].'</a>';
+            $length = 34;
+            $callName = 'review'.'<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$call_name[1].'</a>';
             $class = 'readonly';
         }
         else{
@@ -1371,7 +1373,8 @@ function getOrderTriggers(){
         $trigger_integration_name = $value->wc_integration_name;
         $trigger_call_name = $value->wc_call_name;
         if($trigger_goal_name == 'Specific Product'){
-            $callName = '<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$trigger_call_name.'</a>';
+            $length = 40;
+            $callName = '<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$trigger_call_name.'</a>';
             $class = 'readonly';
         }
         else if($trigger_goal_name == 'Coupon Code Applied'){
@@ -1398,13 +1401,13 @@ function getOrderTriggers(){
 }
 
 //get the list of products with sku...
-function get_products_listing(){
+function get_products_listing($length){
   $productLisingWithSku = "";
   $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
   if(isset($woo_products_listing) && !empty($woo_products_listing)){
     foreach ($woo_products_listing as $key => $value)
     {
-        $currentProductSku = get_set_product_sku($value->ID,40);
+        $currentProductSku = get_set_product_sku($value->ID,$length);
         $productLisingWithSku .= '<tr><td>'.$value->post_title.'</td><td id="product_'.$value->ID.'_sku">'.$currentProductSku.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
                                       onclick="copyContent(\'product_'.$value->ID.'_sku\')">
                                       </i>
@@ -1439,42 +1442,6 @@ function get_coupons_listing(){
     }
   }
   return $couponsLisingWithCode;
-}
-
-//get the list of products with sku for add item to cart logic...
-function get_products_listing_added(){
-  $productLisingWithSku = "";
-  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
-  if(isset($woo_products_listing) && !empty($woo_products_listing)){
-    foreach ($woo_products_listing as $key => $value)
-    {
-        $currentProductSku = get_set_product_sku($value->ID,35);
-        $productLisingWithSku .= '<tr><td>'.$value->post_title.'</td><td id="product_'.$value->ID.'_sku">'.$currentProductSku.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
-                                      onclick="copyContent(\'product_'.$value->ID.'_sku\')">
-                                      </i>
-                                  </td>
-                              </tr>';
-    }
-  }
-  return $productLisingWithSku;
-}
-
-//get the list of products with sku for review post for product logic...
-function get_products_listing_review(){
-  $productLisingWithSku = "";
-  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
-  if(isset($woo_products_listing) && !empty($woo_products_listing)){
-    foreach ($woo_products_listing as $key => $value)
-    {
-        $currentProductSku = get_set_product_sku($value->ID,34);
-        $productLisingWithSku .= '<tr><td>'.$value->post_title.'</td><td id="product_'.$value->ID.'_sku">'.$currentProductSku.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
-                                      onclick="copyContent(\'product_'.$value->ID.'_sku\')">
-                                      </i>
-                                  </td>
-                              </tr>';
-    }
-  }
-  return $productLisingWithSku;
 }
 
 //get or set the product sku on the basis of product id and set the length of sku on the basis of lenght set in parameter..

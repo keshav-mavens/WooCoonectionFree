@@ -81,18 +81,6 @@
                             applyCollapseRules('collapseCampaignGoals');
                         }
 
-                        //apply data tables on products listing with sku...
-                        if(jQuery("#products_listing_with_sku").length){
-                            applyDatables("products_listing_with_sku");
-                        }
-                        //apply data tables on products listing with sku for item added to cart trigger...
-                        if(jQuery("#products_listing_with_sku_added").length){
-                            applyDatables("products_listing_with_sku_added");
-                        }
-                        //apply data tables on products listing with sku for review left for product cart trigger...
-                        if(jQuery("#products_listing_with_sku_review").length){
-                            applyDatables("products_listing_with_sku_review");
-                        }
                         //apply data tables on coupons listing with coupon code...
                         if(jQuery("#coupon_listing_with_sku").length){
                             applyDatables("coupon_listing_with_sku");
@@ -489,8 +477,7 @@ function applyDatables(tabel_id){
             }
         }
         //Campaign Goals Tab: apply datatables on products listing with sku..
-        else if(tabel_id == 'products_listing_with_sku' || tabel_id == 'products_listing_with_sku_added' 
-                || tabel_id == 'products_listing_with_sku_review' || tabel_id == 'coupon_listing_with_sku') {
+        else if(tabel_id == 'products_listing_with_sku' || tabel_id == 'coupon_listing_with_sku') {
             if(!$.fn.DataTable.isDataTable('#'+tabel_id))
             {
                 $('#'+tabel_id).DataTable({
@@ -659,4 +646,22 @@ function copyContent(elementid) {
     var executeCommand = document.execCommand('copy',true);
   }
   
+}
+
+//Onlick of products sku get the products listing with listing then show the popup....
+function showProductsListing(length){
+    jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length}, function(data) {
+        var responsedata = JSON.parse(data);
+        if(responsedata.status == "1") {
+            if(responsedata.productsListing != ""){
+                jQuery("#products_sku_listing").html('');
+                jQuery("#products_sku_listing").html(responsedata.productsListing);
+            }
+            $("#productsListing").show();
+            //apply data tables on products listing with sku...
+            if(jQuery("#products_listing_with_sku").length){
+                applyDatables("products_listing_with_sku");
+            }
+        }
+    });
 }

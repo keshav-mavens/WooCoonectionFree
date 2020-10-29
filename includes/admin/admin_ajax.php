@@ -372,4 +372,23 @@ function wc_update_products_mapping()
 	die();
 }
 
+//Wordpress hook : This action is triggered when user try to export products.....
+add_action( 'wp_ajax_wc_get_products_listing', 'wc_get_products_listing');
+//Function Definiation : wc_get_products_listing
+function wc_get_products_listing()
+{
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		//check select products exist in post data to import.....
+		$productsListing = '';
+		if(isset($_POST['length']) && !empty($_POST['length'])){
+	      	$skuLength = $_POST['length'];
+	      	$productsListing =get_products_listing($skuLength);
+	    }
+	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListing'=>$productsListing));
+	}
+	die();
+}
+
+
 ?>
