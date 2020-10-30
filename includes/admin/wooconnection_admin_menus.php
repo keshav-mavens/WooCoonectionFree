@@ -41,7 +41,7 @@ $applicationLabel = applicationLabel($type);
 	        </li>
 			
 	        <li class="expanded  <?php echo $leftMenuClass; ?>">
-				<a href="javascript:void(0);" id="automation" class="last">
+				<a href="javascript:void(0);" id="automation">
 					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/auto.png" alt=""></span>
 					<span class="menu-text">Campaign Automation</span>
 			        <div class="clr"></div>
@@ -50,6 +50,19 @@ $applicationLabel = applicationLabel($type);
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="campaign_goals">Campaign Goals</a></li>
 	            </ul>
 	        </li>
+
+	        <li class="expanded <?php echo $leftMenuClass; ?>">
+				<a class="last" href="javascript:void(0);" id="advanced_options">
+					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/integration.png" alt=""></span>
+					<span class="menu-text">Advanced Options</span>
+			        <div class="clr"></div>
+				</a>
+	            <ul class="sub-menu">
+	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="custom_fields">Custom Fields</a></li>
+	            </ul>
+	        </li>
+
+
 		</ul>
 	</div>
 </div>
