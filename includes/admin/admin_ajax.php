@@ -101,7 +101,7 @@ function wc_get_trigger_details()
     			$triggerIntegrationName = strtolower($triggerDetails[0]->wc_integration_name);	
     		}
 	        if(!empty($triggerDetails[0]->wc_call_name)){
-    			if($triggerGoalName == 'Specific Product' || $triggerGoalName == 'Item Added to Cart' || $triggerGoalName == 'Review Left' || $triggerGoalName == 'Coupon Code Applied'){
+    			if($triggerGoalName == 'Specific Product' || $triggerGoalName == 'Item Added to Cart' || $triggerGoalName == 'Review Left' || $triggerGoalName == 'Coupon Code Applied' || $triggerGoalName == 'Referral Partner Order'){
 		            $triggerCallName = $triggerDetails[0]->wc_call_name;
 		        }
 		        else{
@@ -148,12 +148,11 @@ function wc_update_trigger_details()
 		            $call_name = explode('coupon', $triggerCallName);
 		        	$displayCallName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
 		        }
-		        else if($trigger_goal_name == 'Referral Partner Order'){
+		        else if($_POST['edittriggername'] == 'Referral Partner Order'){
 		            $triggerCallName = trim($_POST['callname']);
 		            $call_name = explode('refferal', $triggerCallName);
-		            $callName = 'refferal'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#refferalListing">'.$call_name[1].'</a>';
-		            $class = 'readonly';
-		        }
+		            $displayCallName = 'refferal'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#refferalListing">'.$call_name[1].'</a>';
+		       	}
 		        else{
 		            $triggerCallName = strtolower(trim($_POST['callname']));
 		        	$displayCallName = strtolower(trim($_POST['callname']));
