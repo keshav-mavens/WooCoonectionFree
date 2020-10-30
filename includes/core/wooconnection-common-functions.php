@@ -1621,8 +1621,18 @@ function orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooc
 //Get the infusionsoft/keap application order deatils on the basis of order id....
 function getRefferalPartnersListing(){
   $data = array();
-  $access_token = 'CO903UICQEZYTSne6bG2yHJbELBd';
+  //first need to check connection is created or not infusionsoft/keap application then next process need to done..
+  $applicationAuthenticationDetails = getAuthenticationDetails();
+  //get the access token....
+  $access_token = '';
+  if(!empty($applicationAuthenticationDetails)){
+    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+    }
+  }
   if(!empty($access_token)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
         $url = 'https://api.infusionsoft.com/crm/rest/v1/affiliates';
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -1661,10 +1671,15 @@ function affiliateListing(){
   $listing = '';
   if(isset($arrayData) && !empty($arrayData)){
     foreach ($arrayData as $key => $value) {
-        $listing .= '<tr>'.$value['id'].'</tr><tr>'.$value['name'].'</tr><tr>'.$value['code'].'</tr>';
+      $listing = '<tr>
+                  <td id="refferal_'.$value['id'].'_code">'.$value['id'].'</td>
+                  <td>'.$value['name'].'</td>
+                  <td>'.$value['code'].'</td>
+                  <td><i class="fa fa-copy" onclick = "copyContent(\'refferal_'.$value['id'].'_code\')" style="cursor:pointer"></i></td>
+                  </tr>';
     }
   }else{
-    $listing = '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Affiliates Exist!</td></tr>';
+    $listing = '<tr><td colspan="4" style="text-align: center; vertical-align: middle;">No Affiliates Exist!</td></tr>';
   }
   return $listing;
 }

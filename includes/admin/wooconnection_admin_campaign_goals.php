@@ -169,7 +169,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
        <div class="table-responsive">
           <table class="table table-striped" id="refferal_partners_listing">
                 <thead><tr><th>Id</th><th>Referral Partner Name</th><th>Referral Partner Code</th><th>Action</th></tr></thead>
-                <tbody><?php //echo affiliateListing(); ?></tbody>
+                <tbody><?php echo affiliateListing(); ?></tbody>
           </table>
         </div>
       </div>
