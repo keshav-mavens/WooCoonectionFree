@@ -83,6 +83,8 @@ function getGeneralTriggers(){
                                 </td>
                               </tr>';
     }
+  }else{
+    $wcGeneralTriggers = '<tr><td colspan="4" style="text-align: center; vertical-align: middle;">No General Triggers Exist</td></tr>';
   }
   return $wcGeneralTriggers;
 }
