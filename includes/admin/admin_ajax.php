@@ -248,7 +248,7 @@ function wc_export_wc_products()
                     }else{
                         $wcproductShortDesc = "";
                     }
-                    //create final array with values.....
+                    //create final array with values.......
                     $productDetailsArray['active'] = true;
                     $productDetailsArray['product_desc'] = $wcproductDesc;
                     $productDetailsArray['sku'] = $wcproductSku;
