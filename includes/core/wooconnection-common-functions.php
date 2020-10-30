@@ -1671,7 +1671,7 @@ function affiliateListing(){
   $listing = '';
   if(isset($arrayData) && !empty($arrayData)){
     foreach ($arrayData as $key => $value) {
-      $listing = '<tr>
+      $listing .= '<tr>
                   <td id="refferal_'.$value['id'].'_code">'.$value['id'].'</td>
                   <td>'.$value['name'].'</td>
                   <td>'.$value['code'].'</td>
