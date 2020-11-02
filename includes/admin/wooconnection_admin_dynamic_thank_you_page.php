@@ -39,3 +39,4 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
     </div>
   </div>
 </div>
+<!--Dynamic Thankspage SETUP END-->
