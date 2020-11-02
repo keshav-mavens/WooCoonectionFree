@@ -55,7 +55,7 @@ body { background-color: #f1f1f1 !important; font-family: 'Roboto'; color: #303A
     color: #364699;
     font-weight: 500;
 }
-.group-list .group-field { border: 1px solid #d8d8d8 !important; display: block; margin-top: 10px; cursor: move; border-radius: 5px; height: 41px; line-height: 40px; font-size: 15px; color: #000; background-color: #fff; padding-left: 16px; padding-right: 10px; margin-left: 4%; margin-right: 4%; }
+.group-list .group-field { border: 1px solid #d8d8d8 !important; display: block; margin-top: 10px; cursor: move; border-radius: 5px; /*height: 41px; line-height: 40px;*/ font-size: 15px; color: #000; background-color: #fff; /*padding-left: 16px; padding-right: 10px;*/ margin-left: 4%; margin-right: 4%; }
 .group-list .group-name .controls, .group-list .group-field .controls, .iw_ty_ov_li .iw_ty_ov_name .controls { display: inline-block; float: right; }
 ul.group-fields { padding-bottom: 10px; padding-top: 5px; }
 span.controls i { background: #ffffff; /* padding: 6px; */

@@ -54,7 +54,12 @@
 	//Note for order item tax.....
 	define("ITEM_TAX_NOTES", "Order Tax");
 	//Note for order item discount......
-	define("ITEM_DISCOUNT_NOTES", "Order Discount")
+	define("ITEM_DISCOUNT_NOTES", "Order Discount");
+	//Below 3 entities is related to default thanks override....
+	define('DEFAULT_WORDPRESS_POST', 1);
+	define('DEFAULT_WORDPRESS_PAGE', 2);
+	define('DEFAULT_WORDPRESS_CUSTOM_URL', 3);
+
 
 ?>
 

@@ -1300,6 +1300,67 @@ function addOrderItems($access_token,$orderid,$productId,$type,$price,$quan,$des
     }
 }
 
+function get_wp_posts(){
+    $wp_posts_options_html = '';
+    $wpPostsListing = get_posts(array('post_type'=> 'post','orderby' => 'ID','post_status' => 'publish','order' => 'DESC','posts_per_page' => -1));
+    if(!empty($wpPostsListing)){
+      foreach ($wpPostsListing as $key => $value) {
+          $wpPostName = $value->post_title;
+          $wp_posts_options_html.= '<option value="'.$value->ID.'">'.$wpPostName.'</option>';
+      }
+    }else{
+      $wp_posts_options_html = '<option>No Wordpress Posts Exist!</option>';
+    }
+    return $wp_posts_options_html;
+}
 
+function get_wp_pages(){
+    $wp_page_options_html = '';
+    $wpPagesListing = get_posts(array('post_type'=> 'page','orderby' => 'ID','post_status' => 'publish','order' => 'DESC','posts_per_page' => -1));
+    if(!empty($wpPagesListing)){
+      foreach ($wpPagesListing as $key => $value) {
+          $wpPageName = $value->post_title;
+          $wp_page_options_html.= '<option value="'.$value->ID.'">'.$wpPageName.'</option>';
+      }
+    }else{
+      $wp_page_options_html = '<option>No Wordpress Pages Exist!</option>';
+    }
+    return $wp_page_options_html;
+}
+
+//get the list of products and create the options html...
+function get_products_options(){
+  $productLisingWithOptions = "";
+  $products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  if(isset($products_listing) && !empty($products_listing))
+  {
+      foreach ($products_listing as $key => $value)
+      {
+        $productLisingWithOptions.= '<option value="'.$value->ID.'">'.$value->post_title.'</option>';
+      }
+  }else{
+    $productLisingWithOptions.= '<option value="">No Products Exist!</option>';
+  }
+  return $productLisingWithOptions;
+}
+
+//get the list of categories and create the options html...
+function get_category_options(){
+  $categoriesLisingWithOptions = "";
+  $category_args = array(
+      'orderby'    => 'name',
+      'order'      => 'asc',
+      'hide_empty' => false,
+  );
+  $product_categories = get_terms( 'product_cat', $category_args );
+  if(isset($product_categories) && !empty($product_categories)){
+    foreach ($product_categories as $key => $value) {
+      $categoriesLisingWithOptions.= '<option value="'.$value->term_id.'">'.$value->name.'</option>';
+    }
+  }else{
+    $categoriesLisingWithOptions.= '<option value="">No Categories Exist</option>';
+  }
+  return $categoriesLisingWithOptions;
+}
 
 ?>

@@ -81,6 +81,41 @@
                         if($("#collapseCampaignGoals").length){
                             applyCollapseRules('collapseCampaignGoals');
                         }
+
+                        //add select 2 for wordpress posts field
+                        if($(".redirectpostsselect").length){
+                            applySelectTwo('redirectpostsselect');
+                        }
+
+                        //add select 2 for wordpress pages field
+                        if($(".redirectpagesselect").length){
+                            applySelectTwo('redirectpagesselect');
+                        }
+
+                        //add select 2 for wordpress pages field
+                        if($(".redirectcartproductsselect").length){
+                            applySelectTwo('redirectcartproductsselect');
+                        }
+
+                        //add select 2 for wordpress pages field
+                        if($(".redirectcartcategoriesselect").length){
+                            applySelectTwo('redirectcartcategoriesselect');
+                        }
+
+                        //validate a activation_setup_form form.....
+                        if($('#thank_default_form').length){
+                            validateForms('thank_default_form');
+                        }
+
+                        //validate a activation_setup_form form.....
+                        if($('#thank_override_form_product').length){
+                            validateForms('thank_override_form_product');
+                        }
+
+                        //validate a activation_setup_form form.....
+                        if($('#thank_override_form_product_cat').length){
+                            validateForms('thank_override_form_product_cat');
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -216,6 +251,100 @@
                     $('.all_products_checkbox_match').prop("checked", false);
                 }
             });
+
+
+            //on change of override redirect condition show hide the corresponding fields....
+            $document.on("change","#overrideredirecturltype",function(event) {
+                event.stopPropagation();
+                var selectedCondition = $(this).val();
+                if (selectedCondition == DEFAULT_WORDPRESS_POST) {
+                    $(".redirect-type-common").hide();
+                    $("#redirect-type-post").show();
+                    //$(".redirectcartproductsselect").val("").trigger("change");
+                }else if (selectedCondition == DEFAULT_WORDPRESS_PAGE) {
+                    $(".redirect-type-common").hide();
+                    $("#redirect-type-page").show();
+                    //$(".redirectcartcategoriesselect").val("").trigger("change");
+                }else if(selectedCondition == DEFAULT_WORDPRESS_CUSTOM_URL){
+                    $(".redirect-type-common").hide();
+                    $("#redirect-type-custom-url").show();
+                }
+            });
+
+
+
+            //on click of edit icon of override ul show the edit override form.....
+            $document.on("click",".controls .edit_default_thankpage_override",function(event) {
+                event.stopPropagation();
+                $(".thankyou_default_title").html('Edit Default Thankyou Page');
+                jQuery.post( ajax_object.ajax_url + "?action=wc_get_thankyou_default_override",{option:'default_thankyou_details'}, function(data) {
+                    var responsedata = JSON.parse(data);
+                    if(responsedata.status == "1") {
+                        if(responsedata.redirectType != "" && responsedata.redirectType !== null){
+                            jQuery("#overrideredirecturltype").val(responsedata.redirectType);
+                            $("#overrideredirecturltype").trigger("change");
+                            if(responsedata.redirectType == DEFAULT_WORDPRESS_PAGE){
+                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
+                                    jQuery("#redirectwordpresspage").val(responsedata.redirectValue);
+                                }
+                            }
+                            else if (responsedata.redirectType == DEFAULT_WORDPRESS_POST)
+                            {
+                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
+                                    jQuery("#redirectwordpresspost").val(responsedata.redirectValue);
+                                }
+                            }
+                            else{
+                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
+                                    jQuery("#customurl").val(responsedata.redirectValue);
+                                }
+                            }   
+                        }
+                    }
+                });
+                $('.defaultoverride,.main_rendered_thank_overrides').toggle();
+            });
+        
+            //on click of edit icon of override ul show the edit override form.....
+            $document.on("click",".controls .add_product_rules",function(event) {
+                event.stopPropagation();
+                //$(".thankyou_default_title").html('Edit Default Thankyou Page');
+                $('.productoverride,.main_rendered_thank_overrides').toggle();
+            });
+
+            //on click of edit icon of override ul show the edit override form.....
+            $document.on("click",".controls .add_product_category_rules",function(event) {
+                event.stopPropagation();
+                //$(".thankyou_default_title").html('Edit Default Thankyou Page');
+                $('.productcatoverride,.main_rendered_thank_overrides').toggle();
+            });
+
+            //on click of cancel button show the initial listing of overrides...
+            $document.on("click",".restore_overrides",function(event) {
+                event.stopPropagation();
+                var current_override_id = $(this).data('id');
+                if(current_override_id !== '' && current_override_id !== null){
+                    $("#"+current_override_id)[0].reset();
+                    $("#"+current_override_id).validate().resetForm();
+                }
+                $('.main_rendered_thank_overrides').toggle();
+                $('.hide').hide();
+            });
+
+            //on click of edit icon of override ul show the edit override form.....
+            $document.on("click",".controls .edit_product_rule_override",function(event) {
+                event.stopPropagation();
+                $(".thankyou_override_title_product").html('Edit Product Thankyou Page Override');
+                $('.productoverride,.main_rendered_thank_overrides').toggle();
+            });
+
+            //on click of edit icon of override ul show the edit override form.....
+            $document.on("click",".controls .edit_product_category_rule_override",function(event) {
+                event.stopPropagation();
+                $(".thankyou_override_title_product_cat").html('Edit Product Thankyou Page Category Override');
+                $('.productcatoverride,.main_rendered_thank_overrides').toggle();
+            });
+
         });
 }(jQuery));
 
@@ -270,6 +399,65 @@ function validateForms(form){
                 }
             });
         }
+        
+        //check form is thank override form then validate it..
+        if(form == "thank_default_form"){
+            $("#"+form).validate({
+                rules:{
+                      redirectwordpresspost: "required",
+                      redirectwordpresspage: "required",
+                      customurl: "required",
+                    },
+                messages:{
+                    redirectwordpresspost: {
+                        required: 'Please select the post for redirection!'
+                    },
+                    redirectwordpresspage: {
+                        required: 'Please select the page for redirection!'
+                    },
+                    customurl: {
+                        required: 'Please enter the custom url for redirection'
+                    },
+                }
+            }); 
+        }
+
+        //check form is thank override form then validate it..
+        if(form == "thank_override_form_product"){
+            $("#"+form).validate({
+                rules:{
+                      procductoverridename: "required",
+                      "redirectcartproducts[]": "required",
+                    },
+                messages:{
+                    procductoverridename: {
+                        required: 'Please enter the name of override'
+                    },
+                    "redirectcartproducts[]": {
+                        required: 'Please select the cart products!'
+                    },
+                }
+            }); 
+        }
+
+        //check form is thank override form then validate it..
+        if(form == "thank_override_form_product_cat"){
+            $("#"+form).validate({
+                rules:{
+                      productcatoverridename: "required",
+                      "redirectcartcategories[]": "required",
+                    },
+                messages:{
+                    productcatoverridename: {
+                        required: 'Please enter the name of override'
+                    },
+                    "redirectcartcategories[]": {
+                        required: 'Please select the cart categories!'
+                    },
+                }
+            }); 
+        }
+
     }
 }
 
@@ -473,7 +661,33 @@ function applySelectTwo(element){
         if(element == 'application_match_products_dropdown'){
             $("."+element).select2({
             });    
+        }
+        //add select 2 for products field on thankypu override form..
+        if(element == 'redirectpostsselect'){
+            $("."+element).select2({
+                placeholder: 'Select Post',
+            });    
+        }
+        //add select 2 for Categories field on thankypu override form..
+        if(element == 'redirectpagesselect'){
+            $("."+element).select2({
+                placeholder: 'Select Page',
+            });    
         } 
+        //add select 2 for Categories field on thankypu override form..
+        if(element == 'redirectcartproductsselect'){
+            $("."+element).select2({
+                placeholder: 'Select Cart Products',
+                multiple : true,
+            });    
+        }
+        //add select 2 for Categories field on thankypu override form..
+        if(element == 'redirectcartcategoriesselect'){
+            $("."+element).select2({
+                placeholder: 'Select Cart Categories',
+                multiple : true,
+            });    
+        }
         
     }
 }
@@ -593,4 +807,97 @@ function applyCollapseRules(div_id){
            $("#icon_"+div_id).addClass('fa-caret-down').removeClass('fa-caret-up');
         });    
     }
+}
+
+//save the thank you override.....
+function saveThanksDefaultOverride(){
+    if($('#thank_default_form').valid()){
+        if($(".override-error").is(":visible") || $(".override-success").is(":visible")){
+            $(".override-error").hide();
+            $(".override-success").hide();
+            $(".savingDefaultOverrideDetails").show();
+        }else{
+            $(".savingDefaultOverrideDetails").show();    
+        }
+        $('.save_thank_you_default_override').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_default_override",$('#thank_default_form').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".savingDefaultOverrideDetails").hide();
+            if(responsedata.status == "1") {
+                $('.defaultoverride,.main_rendered_thank_overrides').toggle();
+                $('.save_thank_you_default_override').removeClass("disable_anchor");
+            }else{
+                $(".override-error").show();
+                $(".override-error").html('Something Went Wrong');
+                setTimeout(function()
+                {
+                    $('.override-error').fadeOut("slow");
+                    $('.save_thank_you_default_override').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+    }  
+}
+
+
+//save the thank you override.....
+function saveThanksProductOverride(){
+    if($('#thank_override_form_product').valid()){
+        if($(".override-error").is(":visible") || $(".override-success").is(":visible")){
+            $(".override-error").hide();
+            $(".override-success").hide();
+            $(".savingProductOverrideDetails").show();
+        }else{
+            $(".savingProductOverrideDetails").show();    
+        }
+        $('.save_thank_you_product_override').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_override",$('#thank_override_form_product').serialize(), function(data) {
+            // var responsedata = JSON.parse(data);
+            // $(".savingDefaultOverrideDetails").hide();
+            // if(responsedata.status == "1") {
+            //     $('.defaultoverride,.main_rendered_thank_overrides').toggle();
+            //     $('.save_thank_you_default_override').removeClass("disable_anchor");
+            //     //loading_thanks_overrides();
+            // }else{
+            //     $(".override-error").show();
+            //     $(".override-error").html('Something Went Wrong');
+            //     setTimeout(function()
+            //     {
+            //         $('.override-error').fadeOut("slow");
+            //         $('.save_thank_you_default_override').removeClass("disable_anchor");
+            //     }, 3000);
+            // }
+        });
+    }  
+}
+
+//save the thank you override.....
+function saveThanksProductCatOverride(){
+    if($('#thank_override_form_product_cat').valid()){
+        if($(".override-error").is(":visible") || $(".override-success").is(":visible")){
+            $(".override-error").hide();
+            $(".override-success").hide();
+            $(".savingProductCatOverrideDetails").show();
+        }else{
+            $(".savingProductCatOverrideDetails").show();    
+        }
+        $('.save_thank_you_product_cat_override').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_category_override",$('#thank_override_form_product_cat').serialize(), function(data) {
+            // var responsedata = JSON.parse(data);
+            // $(".savingDefaultOverrideDetails").hide();
+            // if(responsedata.status == "1") {
+            //     $('.defaultoverride,.main_rendered_thank_overrides').toggle();
+            //     $('.save_thank_you_default_override').removeClass("disable_anchor");
+            //     //loading_thanks_overrides();
+            // }else{
+            //     $(".override-error").show();
+            //     $(".override-error").html('Something Went Wrong');
+            //     setTimeout(function()
+            //     {
+            //         $('.override-error').fadeOut("slow");
+            //         $('.save_thank_you_default_override').removeClass("disable_anchor");
+            //     }, 3000);
+            // }
+        });
+    }  
 }

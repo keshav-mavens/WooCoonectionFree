@@ -290,5 +290,87 @@ function wc_update_products_mapping()
 	}
 	die();
 }
+//Wordpress hook : This action is triggered when user try to add new custom field group.....
+add_action( 'wp_ajax_wc_save_thanks_default_override', 'wc_save_thanks_default_override');
+//Function Definiation : wc_save_thanks_default_override
+function wc_save_thanks_default_override()
+{
+	if(isset($_POST) && !empty($_POST)){
+		$defaultThanksArray = array();
+		if(isset($_POST['overrideredirecturltype']) && !empty($_POST['overrideredirecturltype'])){
+			if($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_POST){
+				if(!empty($_POST['redirectwordpresspost'])){
+					$defaultThanksArray['redirectType'] = $_POST['overrideredirecturltype'];
+					$defaultThanksArray['redirectValue'] = $_POST['redirectwordpresspost'];
+				}
+			}else if ($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_PAGE) {
+				if(!empty($_POST['redirectwordpresspage'])){
+					$defaultThanksArray['redirectType'] = $_POST['overrideredirecturltype'];
+					$defaultThanksArray['redirectValue'] = $_POST['redirectwordpresspage'];	
+				}
+			}else if ($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_CUSTOM_URL){
+				if(!empty($_POST['customurl'])){
+					$defaultThanksArray['redirectType'] = $_POST['overrideredirecturltype'];
+					$defaultThanksArray['redirectValue'] = $_POST['customurl'];
+				}
+			}
+		}
+		update_option('default_thankyou_details', $defaultThanksArray);
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
+
+//Wordpress hook : This action is triggered when user try to add new custom field group.....
+add_action( 'wp_ajax_wc_save_thanks_product_override', 'wc_save_thanks_product_override');
+//Function Definiation : wc_save_thanks_product_override
+function wc_save_thanks_product_override()
+{
+	if(isset($_POST) && !empty($_POST)){
+		echo "<pre>";
+		print_r($_POST);
+		die();
+	}
+}
+
+//Wordpress hook : This action is triggered when user try to add new custom field group.....
+add_action( 'wp_ajax_wc_save_thanks_product_category_override', 'wc_save_thanks_product_category_override');
+//Function Definiation : wc_save_thanks_product_override
+function wc_save_thanks_product_category_override()
+{
+	if(isset($_POST) && !empty($_POST)){
+		echo "<pre>";
+		print_r($_POST);
+		die();
+	}
+}
+
+
+//Wordpress hook : This action is triggered when user try to add new custom field group.....
+add_action( 'wp_ajax_wc_get_thankyou_default_override', 'wc_get_thankyou_default_override');
+//Function Definiation : wc_get_thankyou_default_override
+function wc_get_thankyou_default_override()
+{
+	if(isset($_POST) && !empty($_POST)){
+		$redirectType = '';
+		$redirectValue = '';
+		if(isset($_POST['option']) && !empty($_POST['option'])){
+			//Get plugin details..
+			$default_thankyou_details = get_option($_POST['option']);
+			if (isset($default_thankyou_details) && !empty($default_thankyou_details)) {
+				if(!empty($default_thankyou_details['redirectType'])){
+					$redirectType = $default_thankyou_details['redirectType'];
+				}
+				if(!empty($default_thankyou_details['redirectValue'])){
+					$redirectValue = $default_thankyou_details['redirectValue'];
+				}
+			}
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'redirectType'=>$redirectType,'redirectValue'=>$redirectValue));
+	}
+	die();
+}
+
+
 
 ?>
