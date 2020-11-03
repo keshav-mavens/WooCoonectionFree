@@ -1,0 +1,147 @@
+<style>
+table.bodyContainer {
+    width: 100%;
+}
+td.infusion-field-label-container {
+    width: 20%;
+}
+td.infusion-field-input-container {
+    width: 100%;
+    padding-bottom: 16px;
+}
+.infusion-submit {
+    text-align: right;
+}
+.infusion-submit button {
+    padding: 5px 20px !important;
+    background-color: #364699 !important;
+    color: #fff !important;
+    font-size: 16px !important;
+    text-align: center !important;
+    border-radius: 50px !important;
+    font-family: 'Roboto' !important;
+    transition: all .5s !important;
+    border-color: #364699 !important;
+    box-shadow: none;
+    border: none;
+}
+.infusion-submit button:focus {
+    color: #fff !important;
+    background-color: #364699 !important;
+    border-color: #364699 !important;
+    box-shadow: 0 0 0 0.2rem rgb(54, 70, 153, 0.5)!important;
+}
+</style>
+<script src="https://jordan.infusionsoft.app/app/webTracking/getTrackingCode?b=1.70.0.260969" type="text/javascript">
+</script>
+<div class="text" id="webformErrors" name="errorContent">
+</div>
+<form accept-charset="UTF-8" action="https://jordan.infusionsoft.com/app/form/process/3ad0a2f3c7d3ad15f9d0bf692f9c730f" class="infusion-form" id="inf_form_3ad0a2f3c7d3ad15f9d0bf692f9c730f" method="POST" name="WooConnection - Request App~br~Info to Push Abandon Cart Campaign" onsubmit="submitWebForm()">
+<script type="text/javascript">
+function submitWebForm() {
+var form = document.forms[0];
+var resolution = document.createElement('input');
+resolution.setAttribute('id', 'screenResolution');
+resolution.setAttribute('type', 'hidden');
+resolution.setAttribute('name', 'screenResolution');
+var resolutionString = screen.width + 'x' + screen.height;
+resolution.setAttribute('value', resolutionString);
+form.appendChild(resolution);
+var pluginString = '';
+if (window.ActiveXObject) {
+    var activeXNames = {'AcroPDF.PDF':'Adobe Reader',
+        'ShockwaveFlash.ShockwaveFlash':'Flash',
+        'QuickTime.QuickTime':'Quick Time',
+        'SWCtl':'Shockwave',
+        'WMPLayer.OCX':'Windows Media Player',
+        'AgControl.AgControl':'Silverlight'};
+    var plugin = null;
+    for (var activeKey in activeXNames) {
+        try {
+            plugin = null;
+            plugin = new ActiveXObject(activeKey);
+        } catch (e) {
+            // do nothing, the plugin is not installed
+        }
+        pluginString += activeXNames[activeKey] + ',';
+    }
+    var realPlayerNames = ['rmockx.RealPlayer G2 Control',
+        'rmocx.RealPlayer G2 Control.1',
+        'RealPlayer.RealPlayer(tm) ActiveX Control (32-bit)',
+        'RealVideo.RealVideo(tm) ActiveX Control (32-bit)',
+        'RealPlayer'];
+    for (var index = 0; index < realPlayerNames.length; index++) {
+        try {
+            plugin = new ActiveXObject(realPlayerNames[index]);
+        } catch (e) {
+            continue;
+        }
+        if (plugin) {
+            break;
+        }
+    }
+    if (plugin) {
+        pluginString += 'RealPlayer,';
+    }
+} else {
+    for (var i = 0; i < navigator.plugins.length; i++) {
+        pluginString += navigator.plugins[i].name + ',';
+    }
+}
+pluginString = pluginString.substring(0, pluginString.lastIndexOf(','));
+var plugins = document.createElement('input');
+plugins.setAttribute('id', 'pluginList');
+plugins.setAttribute('type', 'hidden');
+plugins.setAttribute('name', 'pluginList');
+plugins.setAttribute('value', pluginString);
+form.appendChild(plugins);
+var java = navigator.javaEnabled();
+var javaEnabled = document.createElement('input');
+javaEnabled.setAttribute('id', 'javaEnabled');
+javaEnabled.setAttribute('type', 'hidden');
+javaEnabled.setAttribute('name', 'javaEnabled');
+javaEnabled.setAttribute('value', java);
+form.appendChild(javaEnabled);
+jQuery('.infusion-submit button').attr('disabled', true);
+}
+</script><input name="inf_form_xid" type="hidden" value="3ad0a2f3c7d3ad15f9d0bf692f9c730f" /><input name="inf_form_name" type="hidden" value="WooConnection - Request App~br~Info to Push Abandon Cart Campaign" /><input name="infusionsoft_version" type="hidden" value="1.70.0.260969" />
+<div class="simple beta-base beta-font-b" id="mainContent" style="height:100%">
+<table cellpadding="10" cellspacing="0" class="background" style="width: 100%; height: 100%"><tbody><tr><td align="center" valign="top">
+<table bgcolor="#FFFFFF" cellpadding="0" cellspacing="0" class="bodyContainer webFormBodyContainer"><tbody><tr><td class="header" sectionid="header">
+</td></tr><tr><td class="body" sectionid="body" style="padding: 20px;" valign="top">
+<div>
+<table class="infusion-field-container" style="width:100%;"><tbody><tr><td class="infusion-field-label-container">
+<label for="inf_field_FirstName">First Name *</label>
+</td><td class="infusion-field-input-container" style="width:300px;">
+<input class="infusion-field-input" id="inf_field_FirstName" name="inf_field_FirstName" placeholder="First Name *" type="text" />
+</td></tr></tbody></table>
+</div>
+<div>
+<table class="infusion-field-container" style="width:100%;"><tbody><tr><td class="infusion-field-label-container">
+<label for="inf_field_Email">Email *</label>
+</td><td class="infusion-field-input-container" style="width:300px;">
+<input class="infusion-field-input" id="inf_field_Email" name="inf_field_Email" placeholder="Email *" type="text" />
+</td></tr></tbody></table>
+</div>
+<div>
+<table class="infusion-field-container" style="width:100%;"><tbody><tr><td class="infusion-field-label-container">
+<label for="inf_custom_InfusionsoftApp">Infusionsoft/Keap App URL *</label>
+</td><td class="infusion-field-input-container" style="width:300px;">
+<input class="infusion-field-input" id="inf_custom_InfusionsoftApp" name="inf_custom_InfusionsoftApp" placeholder="Infusionsoft/Keap App URL *" type="text" />
+</td></tr></tbody></table>
+</div>
+<div>
+
+</div>
+<div>
+<div class="infusion-submit">
+<button style="" type="submit" value="Submit">Submit</button>
+</div>
+</div>
+</td></tr><tr><td class="footer" sectionid="footer" style="padding: 20px;" valign="top">
+</td></tr></tbody></table>
+</td></tr></tbody></table>
+</div>
+</form>
+<script type="text/javascript" src="https://jordan.infusionsoft.app/app/webTracking/getTrackingCode"></script>
+<script type="text/javascript" src="https://jordan.infusionsoft.com/app/timezone/timezoneInputJs?xid=3ad0a2f3c7d3ad15f9d0bf692f9c730f"></script>

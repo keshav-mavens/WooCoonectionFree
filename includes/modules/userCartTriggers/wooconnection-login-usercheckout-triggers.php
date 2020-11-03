@@ -55,7 +55,7 @@ function wooconnection_user_arrive_checkout(){
     if(empty($reachedUseremail)){
         $reachedUseremail = "";
     }
-
+    
     // Validate email is in valid format or not 
     validate_email($reachedUseremail,$callback_purpose,$wooconnectionLogger);
     
@@ -79,6 +79,24 @@ function wooconnection_user_arrive_checkout(){
                     
                 }
             }
+
+            //Below code is used to push user in reached checkout page process for cart abandon follow up process.
+            $followUpIntegrationName = 'wooconnection';
+            $followUpCallName = 'reachedcheckout';
+            $callback_purpose_follow_up = 'Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up';
+            $standardReachedCheckoutFollowUpResponse = achieveTriggerGoal($access_token,$followUpIntegrationName,$followUpCallName,$reachedContactId,$callback_purpose);
+            if(!empty($standardReachedCheckoutFollowUpResponse)){
+                if(empty($standardReachedCheckoutFollowUpResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($standardReachedCheckoutFollowUpResponse[0]['message']) && !empty($standardReachedCheckoutFollowUpResponse[0]['message'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up is failed where contact id is '.$reachedContactId.' because '.$standardReachedCheckoutFollowUpResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up is failed where contact id is '.$reachedContactId.'');
+                    }
+                    
+                }
+            }
+
         }
     }
     return true;

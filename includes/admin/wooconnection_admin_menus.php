@@ -48,6 +48,7 @@ $applicationLabel = applicationLabel($type);
 				</a>
 	            <ul class="sub-menu">
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="campaign_goals">Campaign Goals</a></li>
+	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="infusionsoft_keap_bundle">Infusionsoft Campaign Bundle</a></li>
 	            </ul>
 	        </li>
 		</ul>

@@ -106,6 +106,23 @@ function wooconnection_trigger_status_complete_hook($orderid){
             //Call the common function to hit the any purchase trigger....
             $anyPurchaseTrigger = orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger);
 
+            //Below code is used to push user in reached checkout page process for cart abandon follow up process.
+            $followUpIntegrationName = 'wooconnection';
+            $followUpCallName = 'woopurchase';
+            $callback_purpose_follow_up = 'Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user fron follow up sequence';
+            $generallSuccessfullOrderFollowUpResponse = achieveTriggerGoal($access_token,$followUpIntegrationName,$followUpCallName,$orderContactId,$callback_purpose_follow_up);
+            if(!empty($generallSuccessfullOrderFollowUpResponse)){
+                if(empty($generallSuccessfullOrderFollowUpResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($generallSuccessfullOrderFollowUpResponse[0]['message']) && !empty($generallSuccessfullOrderFollowUpResponse[0]['message'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence is failed where contact id is '.$orderContactId.' because '.$generallSuccessfullOrderFollowUpResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence is failed where contact id is '.$orderContactId.'');
+                    }
+                    
+                }
+            }
+
             //add goals form specfic coupons...
             if(!empty($orderAssociatedCoupons)){
                 foreach ($orderAssociatedCoupons as $key => $value) {
