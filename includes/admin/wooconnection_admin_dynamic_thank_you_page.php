@@ -32,32 +32,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                             <i class="fa fa-plus add_product_rules" title="Add New Thank You Page Override Product Rules"></i>
                         </span>
                     </span>
-                    <ul class="group-fields">
-                      <li class="group-field">
-                        <span class="group-name">First Product Rule
-                            <span class="controls">
-                                <i class="fa fa-pencil edit_product_rule_override" title="Edit Thank You Page Override Product Rules"></i>
-                                <i class="fa fa-times delete_current_override" title="Delete thankyou override" data-id=""></i>
-                            </span>
-                        </span>
-                      </li>
-                      <li class="group-field">
-                        <span class="group-name">Second Product Rule
-                            <span class="controls">
-                                <i class="fa fa-pencil edit_product_rule_override" title="Edit Thank You Page Override Product Rules"></i>
-                                <i class="fa fa-times delete_current_override" title="Delete thankyou override" data-id=""></i>
-                            </span>
-                        </span>
-                      </li>
-                      <li class="group-field">
-                        <span class="group-name">Third Product Rule
-                            <span class="controls">
-                                <i class="fa fa-pencil edit_product_rule_override" title="Edit Thank You Page Override Product Rules"></i>
-                                <i class="fa fa-times delete_current_override" title="Delete thankyou override" data-id=""></i>
-                            </span>
-                        </span>
-                      </li>
-                    </ul>
+                    <span id="product_thank_overrides"><?php echo loading_product_thanks_overrides(); ?></span>
                   </li>
                   <li class="group-list">
                     <span class="group-name">Thank You Page Product Category Rules
@@ -65,32 +40,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                             <i class="fa fa-plus add_product_category_rules" title="Add New Thank You Page Override Product Category Rules"></i>
                         </span>
                     </span>
-                    <ul class="group-fields">
-                      <li class="group-field">
-                        <span class="group-name">First Product Category Rule
-                            <span class="controls">
-                                <i class="fa fa-pencil edit_product_category_rule_override" title="Edit Thank You Page Override Product Category Rules"></i>
-                                <i class="fa fa-times delete_current_override" title="Delete thankyou override" data-id=""></i>
-                            </span>
-                        </span>
-                      </li>
-                      <li class="group-field">
-                        <span class="group-name">Second Product Category Rule
-                            <span class="controls">
-                                <i class="fa fa-pencil edit_product_category_rule_override" title="Edit Thank You Page Override Product Category Rules"></i>
-                                <i class="fa fa-times delete_current_override" title="Delete thankyou override" data-id=""></i>
-                            </span>
-                        </span>
-                      </li>
-                      <li class="group-field">
-                        <span class="group-name">Third Product Category Rule
-                            <span class="controls">
-                                <i class="fa fa-pencil edit_product_category_rule_override" title="Edit Thank You Page Override Product Rules"></i>
-                                <i class="fa fa-times delete_current_override" title="Delete thankyou override" data-id=""></i>
-                            </span>
-                        </span>
-                      </li>
-                    </ul>
+                    <span id="product_cat_thank_overrides"><?php echo loading_product_cat_thanks_overrides(); ?></span>
                   </li>
               </ul>
           </div>
@@ -161,6 +111,13 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                           <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                       </div>
                   </div>
+                  <div class="form-group row">
+                      <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Redirect URL</label>
+                      <div class="col-lg-10 col-md-9 col-sm-12 col-12">
+                          <input class="form-control" name="productrediecturl" id="productrediecturl" type="text" placeholder="Redirect URL">
+                          <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                      </div>
+                  </div>
                   <div class="form-group row" id="redirect-condition-cartproducts">
                       <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Select Cart Products</label>
                       <div class="col-lg-10 col-md-9 col-sm-12 col-12">
@@ -194,7 +151,13 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                               <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                           </div>
                       </div>
-                      
+                      <div class="form-group row">
+                          <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Redirect URL</label>
+                          <div class="col-lg-10 col-md-9 col-sm-12 col-12">
+                              <input class="form-control" name="productcatrediecturl" id="productcatrediecturl" type="text" placeholder="Redirect URL">
+                              <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                          </div>
+                      </div>
                       <div class="form-group row" id="redirect-condition-cartcategories">
                         <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Select Cart Categories</label>
                         <div class="col-lg-10 col-md-9 col-sm-12 col-12">
@@ -230,5 +193,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
     var DEFAULT_WORDPRESS_POST = '<?php echo DEFAULT_WORDPRESS_POST ?>';
     var DEFAULT_WORDPRESS_PAGE = '<?php echo DEFAULT_WORDPRESS_PAGE ?>';
     var DEFAULT_WORDPRESS_CUSTOM_URL = '<?php echo DEFAULT_WORDPRESS_CUSTOM_URL ?>';
+    var REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS = '<?php echo REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS ?>';
+    var REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES = '<?php echo REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES ?>';
 </script>
 <!--Dynamic Thankspage SETUP END

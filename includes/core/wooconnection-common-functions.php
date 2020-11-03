@@ -1363,4 +1363,46 @@ function get_category_options(){
   return $categoriesLisingWithOptions;
 }
 
+function loading_product_thanks_overrides(){
+  global $wpdb,$table_prefix;
+  //override main table...
+  $override_table_name = 'wooconnection_thankyou_overrides';
+  $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
+  $thankyouOverrides = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE wc_override_status=".STATUS_ACTIVE." and wc_override_redirect_condition = ".REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS." ORDER BY wc_override_sort_order ASC");
+  $thankyouOverridesListing = "";
+  if(isset($thankyouOverrides) && !empty($thankyouOverrides)){
+    $thankyouOverridesListing = '<ul class="group-fields override_product_rule">';
+    foreach ($thankyouOverrides as $key => $value) {
+        if(!empty($value->id)){
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="group-name">'.$value->wc_override_name.'<span class="controls"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$value->id.'"></i></span></span></li>';
+        }
+    }
+    $thankyouOverridesListing .= '</ul>';
+  }else{
+    $thankyouOverridesListing = '<p>We dont have any product Overrides</p>';
+  }
+  return $thankyouOverridesListing;
+}
+
+function loading_product_cat_thanks_overrides(){
+  global $wpdb,$table_prefix;
+  //override main table...
+  $override_table_name = 'wooconnection_thankyou_overrides';
+  $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
+  $thankyouOverrides = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE wc_override_status=".STATUS_ACTIVE." and wc_override_redirect_condition = ".REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES." ORDER BY wc_override_sort_order ASC");
+  $thankyouOverridesListing = "";
+  if(isset($thankyouOverrides) && !empty($thankyouOverrides)){
+    $thankyouOverridesListing = '<ul class="group-fields override_product_category_rule">';
+    foreach ($thankyouOverrides as $key => $value) {
+        if(!empty($value->id)){
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="group-name">'.$value->wc_override_name.'<span class="controls"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$value->id.'"></i></span></span></li>';
+        }
+    }
+    $thankyouOverridesListing .= '</ul>';
+  }else{
+    $thankyouOverridesListing = '<p>We dont have any product category Overrides</p>';
+  }
+  return $thankyouOverridesListing;
+}
+
 ?>

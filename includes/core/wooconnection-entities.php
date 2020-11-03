@@ -59,8 +59,12 @@
 	define('DEFAULT_WORDPRESS_POST', 1);
 	define('DEFAULT_WORDPRESS_PAGE', 2);
 	define('DEFAULT_WORDPRESS_CUSTOM_URL', 3);
-
-
+	//Below 7 entities is related to redirect thanks override....
+	define('REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS', 1);
+	define('REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES', 2);
+	//database custom entries status
+	define('STATUS_ACTIVE', 1);
+	define('STATUS_DELETED', 2);
 ?>
 
 

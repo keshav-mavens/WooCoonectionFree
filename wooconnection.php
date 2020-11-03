@@ -149,8 +149,6 @@ class WooConnectionPro {
             $sqlOverride .= "  `wc_override_name` varchar(1024) NOT NULL, ";
             $sqlOverride .= "  `wc_override_redirect_url` text NOT NULL, ";
             $sqlOverride .= "  `wc_override_redirect_condition` tinyint(4) DEFAULT 1 COMMENT '1-cart specific products,2-cart specific categories',";
-            $sqlOverride .= "  `wc_override_cart_item_numbers` int(11) DEFAULT NULL, ";
-            $sqlOverride .= "  `wc_override_cart_value` decimal(10,2) DEFAULT NULL, ";
             $sqlOverride .= "  `wc_override_sort_order` int(11) DEFAULT NULL,";
             $sqlOverride .= "  `wc_override_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-deleted',";
             $sqlOverride .= "  `created`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
