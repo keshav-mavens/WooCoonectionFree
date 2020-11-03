@@ -107,8 +107,8 @@ function wooconnection_trigger_status_complete_hook($orderid){
             $anyPurchaseTrigger = orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger);
 
             //Below code is used to push user in reached checkout page process for cart abandon follow up process.
-            $followUpIntegrationName = 'wooconnection';
-            $followUpCallName = 'woopurchase';
+            $followUpIntegrationName = 'wooconnection';//
+            $followUpCallName = 'woopurchase';//
             $callback_purpose_follow_up = 'Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user fron follow up sequence';
             $generallSuccessfullOrderFollowUpResponse = achieveTriggerGoal($access_token,$followUpIntegrationName,$followUpCallName,$orderContactId,$callback_purpose_follow_up);
             if(!empty($generallSuccessfullOrderFollowUpResponse)){
