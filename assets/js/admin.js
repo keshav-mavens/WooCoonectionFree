@@ -508,32 +508,49 @@ function validateForms(form){
         }
         //check form is "thank_default_form" then validate it.......
         if(form == "thank_default_form"){
+            
+            //code is used to validate a url is in valid format e.g with http,https....
+            jQuery.validator.addMethod("checkurl", function(value, element) {
+                return this.optional(element) || /^(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(value);
+            });
+
             $("#"+form).validate({
                 rules:{
                       redirectwordpresspost: "required",
                       redirectwordpresspage: "required",
-                      customurl: "required",
+                      customurl: {
+                        required: true,
+                        checkurl : true,
+                      },
                     },
                 messages:{
                     redirectwordpresspost: {
                         required: 'Please select the post for redirection!'
                     },
                     redirectwordpresspage: {
-                        required: 'Please select the page for redirection!'
+                        required: 'Please select the page for redirection!',
                     },
                     customurl: {
-                        required: 'Please enter the custom url for redirection'
+                        required: 'Please enter the custom url for redirection',
+                        checkurl: 'Please enter the valid redirect url',
                     },
                 }
             }); 
         }
         //check form is "thank_override_form_product" then validate it.......
         if(form == "thank_override_form_product"){
-           $("#"+form).validate({
+            
+            //code is used to validate a url is in valid format e.g with http,https....
+            jQuery.validator.addMethod("checkurl", function(value, element) {
+                return this.optional(element) || /^(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(value);
+            });
+            
+            $("#"+form).validate({
                 rules:{
                       procductoverridename: "required",
                       productrediecturl: {
                             required: true,
+                            checkurl : true,
                       },
                       "redirectcartproducts[]": "required",
                     },
@@ -543,6 +560,7 @@ function validateForms(form){
                     },
                     productrediecturl: {
                         required: 'Please enter the redirect url for redirection',
+                        checkurl: 'Please enter the valid redirect url',
                     },
                     "redirectcartproducts[]": {
                         required: 'Please select the cart products!'
@@ -552,10 +570,19 @@ function validateForms(form){
         }
         //check form is "thank_override_form_product_cat" then validate it........
         if(form == "thank_override_form_product_cat"){
+            
+            //code is used to validate a url is in valid format e.g with http,https....
+            jQuery.validator.addMethod("checkurl", function(value, element) {
+                return this.optional(element) || /^(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(value);
+            });
+
             $("#"+form).validate({
                 rules:{
                       productcatoverridename: "required",
-                      productcatrediecturl: "required",
+                      productcatrediecturl:{
+                         required : true,
+                         checkurl : true,
+                      },
                       "redirectcartcategories[]": "required",
                     },
                 messages:{
@@ -563,7 +590,8 @@ function validateForms(form){
                         required: 'Please enter the name of override'
                     },
                     productcatrediecturl: {
-                        required: 'Please enter the redirect url for redirection'
+                        required: 'Please enter the redirect url for redirection',
+                        checkurl: 'Please enter the valid redirect url',
                     },
                     "redirectcartcategories[]": {
                         required: 'Please select the cart categories!'
