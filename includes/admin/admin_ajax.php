@@ -290,42 +290,46 @@ function wc_update_products_mapping()
 	}
 	die();
 }
-//Wordpress hook : This action is triggered when user try to add new custom field group.....
+//Wordpress hook : This action is triggered when user try to update the default thanlkyou override.....
 add_action( 'wp_ajax_wc_save_thanks_default_override', 'wc_save_thanks_default_override');
 //Function Definiation : wc_save_thanks_default_override
 function wc_save_thanks_default_override()
 {
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
-		$defaultThanksArray = array();
+		$defaultThanksArray = array();//define empty array...
+		//check select redirect type in post data to save default thankyou override.........
 		if(isset($_POST['overrideredirecturltype']) && !empty($_POST['overrideredirecturltype'])){
-			if($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_POST){
+			if($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_POST){//check if redirect type is wordpress post....
 				if(!empty($_POST['redirectwordpresspost'])){
 					$defaultThanksArray['redirectType'] = $_POST['overrideredirecturltype'];
 					$defaultThanksArray['redirectValue'] = $_POST['redirectwordpresspost'];
 				}
-			}else if ($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_PAGE) {
+			}else if ($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_PAGE) {//check if redirect type is wordpress page....
 				if(!empty($_POST['redirectwordpresspage'])){
 					$defaultThanksArray['redirectType'] = $_POST['overrideredirecturltype'];
 					$defaultThanksArray['redirectValue'] = $_POST['redirectwordpresspage'];	
 				}
-			}else if ($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_CUSTOM_URL){
+			}else if ($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_CUSTOM_URL){//check if redirect type is custom url....
 				if(!empty($_POST['customurl'])){
 					$defaultThanksArray['redirectType'] = $_POST['overrideredirecturltype'];
 					$defaultThanksArray['redirectValue'] = $_POST['customurl'];
 				}
 			}
 		}
+		//update the option "default_thankyou_details" to save the default thankyou details.......
 		update_option('default_thankyou_details', $defaultThanksArray);
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	}
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to add new custom field group.....
+//Wordpress hook : This action is triggered when user try to add/update the product thankyou override.....
 add_action( 'wp_ajax_wc_save_thanks_product_override', 'wc_save_thanks_product_override');
 //Function Definiation : wc_save_thanks_product_override
 function wc_save_thanks_product_override()
 {
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		global $table_prefix, $wpdb;
         
@@ -337,7 +341,8 @@ function wc_save_thanks_product_override()
         $override_product_table_name = 'wooconnection_thankyou_override_related_products';
         $wp_thankyou_override_related_products = $table_prefix . "$override_product_table_name";
 		
-		$override_fields_array = array();
+		$override_fields_array = array();//define empty array...
+		//check the post variables and assign to array....
 		if(isset($_POST['procductoverridename']) && !empty($_POST['procductoverridename'])){
 			$override_fields_array['wc_override_name'] = trim($_POST['procductoverridename']);
 		}
@@ -347,7 +352,9 @@ function wc_save_thanks_product_override()
 		if(!empty($_POST['redirectcartproducts'])){
 			$override_products_array = $_POST['redirectcartproducts'];
 		}
+		//assign redirect condition product thankyou override.....
 		$override_fields_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS;
+		//first check the override id is exist in post data if exist then needs to perform update override process.....
 		if(isset($_POST['productoverrideid']) && !empty($_POST['productoverrideid'])){
 			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_array,array('id' => $_POST['productoverrideid']));
 			//if products array exist and not empty then add entries in tables..
@@ -362,7 +369,7 @@ function wc_save_thanks_product_override()
 	   				}
 	   			}
 	   		}
-	   	}else{
+	   	}else{//if override is not exist then need to add new product override....
 			//insert the record for custom field group 
 			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_array);
 			//check if insert successfull...
@@ -391,11 +398,12 @@ function wc_save_thanks_product_override()
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to add new custom field group.....
+//Wordpress hook : This action is triggered when user try to add/update the product category thankyou override.....
 add_action( 'wp_ajax_wc_save_thanks_product_category_override', 'wc_save_thanks_product_category_override');
-//Function Definiation : wc_save_thanks_product_override
+//Function Definiation : wc_save_thanks_product_category_override
 function wc_save_thanks_product_category_override()
 {
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		global $table_prefix, $wpdb;
 		
@@ -407,7 +415,8 @@ function wc_save_thanks_product_category_override()
         $override_cat_table_name = 'wooconnection_thankyou_override_related_categories';
         $wp_thankyou_override_related_categories = $table_prefix . "$override_cat_table_name";
 
-        $override_fields_cat_array = array();
+        $override_fields_cat_array = array();//define empty array...
+        //check the post variables and assign to array....
 		if(isset($_POST['productcatoverridename']) && !empty($_POST['productcatoverridename'])){
 			$override_fields_cat_array['wc_override_name'] = trim($_POST['productcatoverridename']);
 		}
@@ -417,9 +426,12 @@ function wc_save_thanks_product_category_override()
 		if(!empty($_POST['redirectcartcategories'])){
 			$override_categories_array = $_POST['redirectcartcategories'];
 		}
+		//assign redirect condition product thankyou override.....
 		$override_fields_cat_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES;
+		//first check the override id is exist in post data if exist then needs to perform update override process.....
 		if(isset($_POST['productcatoverrideid']) && !empty($_POST['productcatoverrideid'])){
 			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_cat_array,array('id' => $_POST['productcatoverrideid']));
+			//if products array exist and not empty then add entries in tables..
 			if(isset($override_categories_array) && !empty($override_categories_array)){
 	   			$updateResultCat = $wpdb->update($wp_thankyou_override_related_categories, array('wc_override_cat_status' => STATUS_DELETED),array('override_id' => $_POST['productcatoverrideid']));
 				$override_cat_array = array();
@@ -431,7 +443,7 @@ function wc_save_thanks_product_category_override()
 	   				}
 	   			}
 	   		}
-		}else{
+		}else{//if override is not exist then need to add new product override....
 			//insert the record for custom field group 
 			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_cat_array);
 			//check if insert successfull...
@@ -461,16 +473,17 @@ function wc_save_thanks_product_category_override()
 }
 
 
-//Wordpress hook : This action is triggered when user try to add new custom field group.....
+//Wordpress hook : This action is triggered when user try to eidt the default thankyou override.....
 add_action( 'wp_ajax_wc_get_thankyou_default_override', 'wc_get_thankyou_default_override');
 //Function Definiation : wc_get_thankyou_default_override
 function wc_get_thankyou_default_override()
 {
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
-		$redirectType = '';
-		$redirectValue = '';
+		$redirectType = '';//define empty variable...
+		$redirectValue = '';//define empty variable...
+		//check option "default_thankyou_details" exist in wp_options table if yes then set the values of redirect type and redirect value.....
 		if(isset($_POST['option']) && !empty($_POST['option'])){
-			//Get plugin details..
 			$default_thankyou_details = get_option($_POST['option']);
 			if (isset($default_thankyou_details) && !empty($default_thankyou_details)) {
 				if(!empty($default_thankyou_details['redirectType'])){
@@ -491,8 +504,10 @@ add_action( 'wp_ajax_wc_delete_thankyou_override', 'wc_delete_thankyou_override'
 //Function Definiation : wc_delete_thankyou_override
 function wc_delete_thankyou_override()
 {
+	//first check the override id is exist in post data if exist then needs to perform delete override process.....
 	if(isset($_POST['overrideid']) && !empty($_POST['overrideid'])){
 		global $table_prefix, $wpdb;
+       	
        	//override main table...
         $override_table_name = 'wooconnection_thankyou_overrides';
         $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
@@ -500,9 +515,14 @@ function wc_delete_thankyou_override()
     	//override products table name....
         $override_product_table_name = 'wooconnection_thankyou_override_related_products';
         $wp_thankyou_override_related_products = $table_prefix . "$override_product_table_name";
+
+        //override cat table name....
+        $override_cat_table_name = 'wooconnection_thankyou_override_related_categories';
+        $wp_thankyou_override_related_categories = $table_prefix . "$override_cat_table_name";
 		
-		//check if last insert id is exist then update..
+		//mark override as a deleted.....
 		$updateResult = $wpdb->update($wp_thankyou_override_table_name, array('wc_override_status' => STATUS_DELETED),array('id' => $_POST['overrideid']));
+		//if update done sucessfully then needs to update the related products entires as a deleted in "$wp_thankyou_override_related_products" table or in "$wp_thankyou_override_related_categories" table depends on the overridetype
 		if($updateResult){
 			if(isset($_POST['overridetype']) && !empty($_POST['overridetype'])){
 				if($_POST['overridetype'] == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
@@ -525,28 +545,30 @@ function wc_delete_thankyou_override()
 	die();
 }
 
-//Wordpress hook : This action is triggered when user click on  dynamic thankyou pages tab then loads tha thankyou page overrides...
+//Wordpress hook : This function is used to load the latest thanks override after add/edit/delete override.....
 add_action( 'wp_ajax_loading_thanks_overrides', 'loading_thanks_overrides');
 //Function Definiation : loading_thanks_overrides
 function loading_thanks_overrides()
 {
-	$thankyouOverridesListing = '';
+	$thankyouOverridesListing = '';//define empty variable......
+	//check override type then on the basis of it call the common function........
 	if(isset($_POST['overridesType']) && !empty($_POST['overridesType'])){
 		if($_POST['overridesType'] == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
-			$thankyouOverridesListing = loading_product_thanks_overrides();
+			$thankyouOverridesListing = loading_product_thanks_overrides();//call the common function to get the list of product thankyou overrides
 		}else if ($_POST['overridesType'] == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
-			$thankyouOverridesListing = loading_product_cat_thanks_overrides();
+			$thankyouOverridesListing = loading_product_cat_thanks_overrides();//call the common function to get the list of product category thankyou overrides
 		}
 	}
 	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'thankyouOverridesListing'=>$thankyouOverridesListing));
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to edit the tahnk you page override......
+//Wordpress hook : This action is triggered when user try to edit the product thankyou override and then get the product details and return to show in the form...............
 add_action( 'wp_ajax_wc_get_product_thankyou_override', 'wc_get_product_thankyou_override');
 //Function Definiation : wc_get_product_thankyou_override
 function wc_get_product_thankyou_override()
 {
+	//first check the override id is exist in post data if exist then get the details of it.....
 	if(isset($_POST['overrideid']) && !empty($_POST['overrideid']))
 	{
 		global $table_prefix, $wpdb;
@@ -554,9 +576,9 @@ function wc_get_product_thankyou_override()
       	$wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
         $thankyouOverride = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE id=".$_POST['overrideid']." and wc_override_status =".STATUS_ACTIVE);
         if(isset($thankyouOverride) && !empty($thankyouOverride)){
-        	$overridename = "";
-        	$overrideurl = "";
-        	$products = array();
+        	$overridename = "";//define empty variable......
+        	$overrideurl = "";//define empty variable......
+        	$products = array();//define empty array...
         	if(!empty($thankyouOverride[0]->wc_override_name)){
         		$overridename = $thankyouOverride[0]->wc_override_name;
         	}
@@ -565,7 +587,7 @@ function wc_get_product_thankyou_override()
         	}
         	if(!empty($thankyouOverride[0]->wc_override_redirect_condition)){
         		if($thankyouOverride[0]->wc_override_redirect_condition == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
-        			$products = get_override_related_products($_POST['overrideid']);
+        			$products = get_override_related_products($_POST['overrideid']);//call the common function to get the product related to thanks override....
         		}
         	}
         	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'overridename'=>$overridename,'overrideurl'=>$overrideurl,'products'=>$products));	
@@ -574,31 +596,12 @@ function wc_get_product_thankyou_override()
 	die();
 }
 
-//get the list of products related to thank you page override....
-function get_override_related_products($overrideid){
-	global $table_prefix, $wpdb;
-	//override products table name....
-    $override_product_table_name = 'wooconnection_thankyou_override_related_products';
-    $wp_thankyou_override_related_products = $table_prefix . "$override_product_table_name";
-    $thankyouOverrideProductsArray = array();
-    if(!empty($overrideid)){
-    	$thankyouOverrideProducts = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_related_products." WHERE override_id=".$overrideid." and wc_override_product_status =".STATUS_ACTIVE);
-    	if(isset($thankyouOverrideProducts) && !empty($thankyouOverrideProducts)){
-    		foreach ($thankyouOverrideProducts as $key => $value) {
-    			if(!empty($value->override_product_id)){
-    				$thankyouOverrideProductsArray[] = $value->override_product_id;
-    			}
-    		}
-    	}
-    }
-    return $thankyouOverrideProductsArray;
-}
-
-//Wordpress hook : This action is triggered when user try to edit the tahnk you page override......
+//Wordpress hook : This action is triggered when user try to edit the product category thankyou override and then get the product details and return to show in the form...............
 add_action( 'wp_ajax_wc_get_product_cat_thankyou_override', 'wc_get_product_cat_thankyou_override');
 //Function Definiation : wc_get_product_cat_thankyou_override
 function wc_get_product_cat_thankyou_override()
 {
+	//first check the override id is exist in post data if exist then get the details of it.....
 	if(isset($_POST['overrideid']) && !empty($_POST['overrideid']))
 	{
 		global $table_prefix, $wpdb;
@@ -606,9 +609,9 @@ function wc_get_product_cat_thankyou_override()
       	$wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
         $thankyouOverride = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE id=".$_POST['overrideid']." and wc_override_status =".STATUS_ACTIVE);
         if(isset($thankyouOverride) && !empty($thankyouOverride)){
-        	$overridename = "";
-        	$overrideurl = "";
-        	$categories = array();
+        	$overridename = "";//define empty variable......
+        	$overrideurl = "";//define empty variable......
+        	$categories = array();//define empty array...
         	if(!empty($thankyouOverride[0]->wc_override_name)){
         		$overridename = $thankyouOverride[0]->wc_override_name;
         	}
@@ -617,7 +620,7 @@ function wc_get_product_cat_thankyou_override()
         	}
         	if(!empty($thankyouOverride[0]->wc_override_redirect_condition)){
         		if($thankyouOverride[0]->wc_override_redirect_condition == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES){
-        			$categories = get_override_related_cat($_POST['overrideid']);
+        			$categories = get_override_related_cat($_POST['overrideid']);//call the common function to get the category related to thanks override....
         		}
         	}
         	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'overridename'=>$overridename,'overrideurl'=>$overrideurl,'categories'=>$categories));	
@@ -626,37 +629,20 @@ function wc_get_product_cat_thankyou_override()
 	die();
 }
 
-//get the list of categories related to thank you page override....
-function get_override_related_cat($overrideid){
-	global $table_prefix, $wpdb;
-	//override cat table name....
-    $override_cat_table_name = 'wooconnection_thankyou_override_related_categories';
-    $wp_thankyou_override_related_categories = $table_prefix . "$override_cat_table_name";
-    $thankyouOverrideCatArray = array();
-    if(!empty($overrideid)){
-    	$thankyouOverrideCat = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_related_categories." WHERE override_id=".$overrideid." and wc_override_cat_status =".STATUS_ACTIVE);	
-    	if(isset($thankyouOverrideCat) && !empty($thankyouOverrideCat)){
-    		foreach ($thankyouOverrideCat as $key => $value) {
-    			if(!empty($value->override_cat_id)){
-    				$thankyouOverrideCatArray[] = $value->override_cat_id;
-    			}
-    		}
-    	}
-    }
-    return $thankyouOverrideCatArray;
-}
-
-//Wordpress hook : This action is triggered when user try to sort the thank you page overrides.....
+//Wordpress hook : This action is triggered when user try to sort the thank you page overrides and then update the sorting order.....
 add_action( 'wp_ajax_update_thankyou_overrides_order', 'update_thankyou_overrides_order');
 //Function Definiation : update_thankyou_overrides_order
 function update_thankyou_overrides_order()
 {
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		global $table_prefix, $wpdb;
        	//override main table...
         $override_table_name = 'wooconnection_thankyou_overrides';
         $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
+        //then check the sort order array exist in post data.........
 		if(isset($_POST['order']) && !empty($_POST['order'])){
+			//excuate a loop to update the sort order......
 			for($i = 0; $i < count($_POST['order']); $i++) {
 			    $override_id = $_POST['order'][$i];
 			    $latest_order = $i+1;

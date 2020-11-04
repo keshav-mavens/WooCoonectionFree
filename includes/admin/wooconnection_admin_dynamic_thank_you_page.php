@@ -20,14 +20,14 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
           <div class="main_rendered_thank_overrides">
               <ul class="main-override">
                   <li class="group-list">
-                    <span class="group-name">Setup Default Thank You Page
+                    <span class="group-name">Default Thank You Page
                         <span class="controls">
                             <i class="fa fa-pencil edit_default_thankpage_override" title="Edit default thankyou page override"></i>
                         </span>
                     </span>
                   </li>
                   <li class="group-list">
-                    <span class="group-name">Thank You Page Product Rules
+                    <span class="group-name">Thank You Page Product Based Overrides
                         <span class="controls">
                             <i class="fa fa-plus add_product_rules" title="Add New Thank You Page Override Product Rules"></i>
                         </span>
@@ -35,7 +35,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                     <span id="product_thank_overrides"><?php echo loading_product_thanks_overrides(); ?></span>
                   </li>
                   <li class="group-list">
-                    <span class="group-name">Thank You Page Product Category Rules
+                    <span class="group-name">Thank You Page Product Category Based Overrides
                         <span class="controls">
                             <i class="fa fa-plus add_product_category_rules" title="Add New Thank You Page Override Product Category Rules"></i>
                         </span>
@@ -103,7 +103,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
               <div class="hide productoverride">
                 <form action="" method="post" id="thank_override_form_product" onsubmit="return false">
                   <input type="hidden" name="productoverrideid" id="productoverrideid" value="" />
-                  <h5 class="text-left thankyou_override_title_product">Create Product Rule Override</h5>
+                  <h5 class="text-left thankyou_override_title_product">Create Product Thankyou Page Override</h5>
                   <div class="form-group row">
                       <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Name</label>
                       <div class="col-lg-10 col-md-9 col-sm-12 col-12">
@@ -143,7 +143,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                   <div class="hide productcatoverride">
                       <form action="" method="post" id="thank_override_form_product_cat" onsubmit="return false">
                       <input type="hidden" name="productcatoverrideid" id="productcatoverrideid" value="" />
-                      <h5 class="text-left thankyou_override_title_product_cat">Create Product Category Rule Override</h5>
+                      <h5 class="text-left thankyou_override_title_product_cat">Create Product Category Thankyou Page Override</h5>
                       <div class="form-group row">
                           <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Name</label>
                           <div class="col-lg-10 col-md-9 col-sm-12 col-12">

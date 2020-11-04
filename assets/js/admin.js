@@ -82,47 +82,47 @@
                             applyCollapseRules('collapseCampaignGoals');
                         }
 
-                        //add select 2 for wordpress posts field
+                        //add select 2 for wordpress posts field on thankyou page.....
                         if($(".redirectpostsselect").length){
                             applySelectTwo('redirectpostsselect');
                         }
 
-                        //add select 2 for wordpress pages field
+                        //add select 2 for wordpress pages field on thankyou page.....
                         if($(".redirectpagesselect").length){
                             applySelectTwo('redirectpagesselect');
                         }
 
-                        //add select 2 for wordpress pages field
+                        //add select 2 for cart products field on thankyou page.....
                         if($(".redirectcartproductsselect").length){
                             applySelectTwo('redirectcartproductsselect');
                         }
 
-                        //add select 2 for wordpress pages field
+                        //add select 2 for cart categories field on thankyou page.....
                         if($(".redirectcartcategoriesselect").length){
                             applySelectTwo('redirectcartcategoriesselect');
                         }
 
-                        //validate a activation_setup_form form.....
+                        //validate a "thank_default_form" form of thankyou page........
                         if($('#thank_default_form').length){
                             validateForms('thank_default_form');
                         }
 
-                        //validate a activation_setup_form form.....
+                        //validate a "thank_override_form_product" form of thankyou page at the time of add thankyou rule on the basis of product........
                         if($('#thank_override_form_product').length){
                             validateForms('thank_override_form_product');
                         }
 
-                        //validate a activation_setup_form form.....
+                        //validate a "thank_override_form_product_cat" form of thankyou page at the time of add thankyou rule on the basis of product categories........
                         if($('#thank_override_form_product_cat').length){
                             validateForms('thank_override_form_product_cat');
                         }
 
-                        //sortable the thankyou overrides..
+                        //apply sortable rule on the thankyou overrides of product rule.....
                         if($(".override_product_rule").length){
                             sortabledivs('override_product_rule');
                         }
 
-                        //sortable the thankyou overrides..
+                        //apply sortable rule on the thankyou overrides of product category rule.....
                         if($(".override_product_category_rule").length){
                             sortabledivs('override_product_category_rule');
                         }
@@ -263,7 +263,7 @@
             });
 
 
-            //on change of override redirect condition show hide the corresponding fields....
+            //on change of override redirect condition show hide the corresponding fields on default thankyou page....
             $document.on("change","#overrideredirecturltype",function(event) {
                 event.stopPropagation();
                 var selectedCondition = $(this).val();
@@ -280,10 +280,9 @@
                     $("#redirect-type-custom-url").show();
                 }
             });
+            
 
-
-
-            //on click of edit icon of override ul show the edit override form.....
+            //on click of edit icon of default thankyou override show the edit default thankyou override form.....
             $document.on("click",".controls .edit_default_thankpage_override",function(event) {
                 event.stopPropagation();
                 $(".thankyou_default_title").html('Edit Default Thankyou Page');
@@ -315,24 +314,30 @@
                 $('.defaultoverride,.main_rendered_thank_overrides').toggle();
             });
         
-            //on click of edit icon of override ul show the edit override form.....
+            //on click of "+" icon of thankyou product override show the form to add product thankyou override.....
             $document.on("click",".add_product_rules",function(event) {
                 event.stopPropagation();
+                jQuery("#productoverrideid").val('');
+                $("#thank_override_form_product")[0].reset();
+                $("#thank_override_form_product").validate().resetForm();
                 $(".redirectcartproductsselect").val("").trigger("change");
                 $('.productoverride,.main_rendered_thank_overrides').toggle();
             });
 
-            //on click of edit icon of override ul show the edit override form.....
+            //on click of "+" icon of thankyou product override show the form to add product category thankyou override.....
             $document.on("click",".add_product_category_rules",function(event) {
                 event.stopPropagation();
+                jQuery("#productcatoverrideid").val('');
+                $("#thank_override_form_product_cat")[0].reset();
+                $("#thank_override_form_product_cat").validate().resetForm();
                 $(".redirectcartcategoriesselect").val("").trigger("change");
                 $('.productcatoverride,.main_rendered_thank_overrides').toggle();
             });
 
-            //on click of cancel button show the initial listing of overrides...
+            //on click of cancel button from add/edit forms then show the initial listing of overrides...
             $document.on("click",".restore_overrides",function(event) {
                 event.stopPropagation();
-                var current_override_id = $(this).data('id');
+                var current_override_id = $(this).data('id');//get the override id...
                 if(current_override_id !== '' && current_override_id !== null){
                     $("#"+current_override_id)[0].reset();
                     $("#"+current_override_id).validate().resetForm();
@@ -341,10 +346,11 @@
                 $('.hide').hide();
             });
 
-            //on click of edit icon of override ul show the edit override form.....
+            //on click of edit icon of thankyou product override show the form to edit product thankyou override.....
             $document.on("click",".edit_product_rule_override",function(event) {
                 event.stopPropagation();
-                var currrent_override_id = $(this).data("id");
+                var currrent_override_id = $(this).data("id");//get the override id...
+                //check form id then send ajax to get the details of if and then show the form.......
                 if(currrent_override_id > 0){
                     jQuery("#productoverrideid").val(currrent_override_id);
                     $(".thankyou_override_title_product").html('Edit Product Thankyou Page Override');
@@ -370,16 +376,18 @@
                         }
                     });
                 }
+                //use toggle event to show hide the form and override listing.....
                 $('.productoverride,.main_rendered_thank_overrides').toggle();
             });
 
-            //on click of edit icon of override ul show the edit override form.....
+            //on click of edit icon of thankyou product override show the form to edit product category thankyou override.....
             $document.on("click",".edit_product_category_rule_override",function(event) {
                 event.stopPropagation();
-                var currrent_override_id = $(this).data("id");
+                var currrent_override_id = $(this).data("id");//get the override id...
+                //check form id then send ajax to get the details of if and then show the form.......
                 if(currrent_override_id > 0){
                     jQuery("#productcatoverrideid").val(currrent_override_id);
-                    $(".thankyou_override_title_product_cat").html('Edit Product Thankyou Page Category Override');
+                    $(".thankyou_override_title_product_cat").html('Edit Product Category Thankyou Page Override');
                     jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_cat_thankyou_override",{overrideid:currrent_override_id}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
@@ -402,32 +410,46 @@
                         }
                     });
                 }
+                //use toggle event to show hide the form and override listing.....
                 $('.productcatoverride,.main_rendered_thank_overrides').toggle();
             });
 
-            //on click of "*" icon of override delete the current override
+            //on click of "*" icon of override delete the current override whethe its a product thankyou override or product thankyou override
             $document.on("click",".delete_current_override_product",function(event) {
                 event.stopPropagation();
-                var current_override_id = $(this).data('id');
-                var current_override_type = $(this).data('type');
-                var deleteConfirmation = confirm("You want to delete this override?");
+                var current_override_id = $(this).data('id');//get the override id...
+                var current_override_type = $(this).data('type');//get the override type whether its a product or product category...
+                //first check the override id is accurate then get the confirmation from user and then send ajax and mark override as a deleted...
                 if(current_override_id > 0 ){
-                    if(deleteConfirmation == true){
-                        jQuery(".tab_related_content").addClass('overlay');
-                        jQuery.post(ajax_object.ajax_url + "?action=wc_delete_thankyou_override&jsoncallback=x", {overrideid: current_override_id,overridetype:current_override_type}, function(data) {
-                            jQuery(".tab_related_content").removeClass('overlay');
-                            var responsedata = JSON.parse(data);
-                            if(responsedata.status == "1") {
-                                if(current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
-                                    loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);
-                                    swal("Saved!", 'Product Rule Thankyou override deleted Successfully.', "success");
-                                }else if (current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
-                                    loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);
-                                    swal("Saved!", 'Product Category Rule Thankyou override deleted Successfully.', "success");
+                    swal({
+                        title: "Are you sure to delete this override?",
+                        text: "You will not be able to recover!",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Yes",
+                        cancelButtonText: "cancel",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            jQuery(".tab_related_content").addClass('overlay');
+                            jQuery.post(ajax_object.ajax_url + "?action=wc_delete_thankyou_override&jsoncallback=x", {overrideid: current_override_id,overridetype:current_override_type}, function(data) {
+                                jQuery(".tab_related_content").removeClass('overlay');
+                                var responsedata = JSON.parse(data);
+                                if(responsedata.status == "1") {
+                                    if(current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
+                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
+                                        swal("Saved!", 'Product Thankyou page override deleted Successfully.', "success");
+                                    }else if (current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
+                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
+                                        swal("Saved!", 'Product Category Thankyou page override deleted Successfully.', "success");
+                                    }
                                 }
-                            }
-                        });
-                    }
+                            });
+                        }
+                    });
                 }
             });
         });
@@ -484,8 +506,7 @@ function validateForms(form){
                 }
             });
         }
-        
-        //check form is thank override form then validate it..
+        //check form is "thank_default_form" then validate it.......
         if(form == "thank_default_form"){
             $("#"+form).validate({
                 rules:{
@@ -506,13 +527,14 @@ function validateForms(form){
                 }
             }); 
         }
-
-        //check form is thank override form then validate it..
+        //check form is "thank_override_form_product" then validate it.......
         if(form == "thank_override_form_product"){
-            $("#"+form).validate({
+           $("#"+form).validate({
                 rules:{
                       procductoverridename: "required",
-                      productrediecturl: "required",
+                      productrediecturl: {
+                            required: true,
+                      },
                       "redirectcartproducts[]": "required",
                     },
                 messages:{
@@ -520,7 +542,7 @@ function validateForms(form){
                         required: 'Please enter the name of override'
                     },
                     productrediecturl: {
-                        required: 'Please enter the redirect url for redirection'
+                        required: 'Please enter the redirect url for redirection',
                     },
                     "redirectcartproducts[]": {
                         required: 'Please select the cart products!'
@@ -528,8 +550,7 @@ function validateForms(form){
                 }
             }); 
         }
-
-        //check form is thank override form then validate it..
+        //check form is "thank_override_form_product_cat" then validate it........
         if(form == "thank_override_form_product_cat"){
             $("#"+form).validate({
                 rules:{
@@ -550,7 +571,6 @@ function validateForms(form){
                 }
             }); 
         }
-
     }
 }
 
@@ -755,33 +775,32 @@ function applySelectTwo(element){
             $("."+element).select2({
             });    
         }
-        //add select 2 for products field on thankypu override form..
+        //add select 2 for wordpress posts field on thankyou page.....
         if(element == 'redirectpostsselect'){
             $("."+element).select2({
                 placeholder: 'Select Post',
             });    
         }
-        //add select 2 for Categories field on thankypu override form..
+        //add select 2 for wordpress pages field on thankyou page.....
         if(element == 'redirectpagesselect'){
             $("."+element).select2({
                 placeholder: 'Select Page',
             });    
         } 
-        //add select 2 for Categories field on thankypu override form..
+        //add select 2 for cart products field on thankyou page.....
         if(element == 'redirectcartproductsselect'){
             $("."+element).select2({
                 placeholder: 'Select Cart Products',
                 multiple : true,
             });    
         }
-        //add select 2 for Categories field on thankypu override form..
+        //add select 2 for cart categories field on thankyou page.....
         if(element == 'redirectcartcategoriesselect'){
             $("."+element).select2({
                 placeholder: 'Select Cart Categories',
                 multiple : true,
             });    
         }
-        
     }
 }
 
@@ -902,7 +921,7 @@ function applyCollapseRules(div_id){
     }
 }
 
-//save the thank you override.....
+//on click of save button of default thankyou override call the  function "saveThanksDefaultOverride" to update the default thankyou override....
 function saveThanksDefaultOverride(){
     if($('#thank_default_form').valid()){
         if($(".override-error").is(":visible") || $(".override-success").is(":visible")){
@@ -919,7 +938,7 @@ function saveThanksDefaultOverride(){
             if(responsedata.status == "1") {
                 $('.defaultoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_default_override').removeClass("disable_anchor");
-                swal("Saved!", 'Default Thankyou details updated Successfully.', "success");
+                swal("Saved!", 'Default Thankyou page override details updated Successfully.', "success");
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');
@@ -934,7 +953,7 @@ function saveThanksDefaultOverride(){
 }
 
 
-//save the thank you override.....
+//on click of save button of product thankyou override call the function "saveThanksProductOverride" to add/update the product thankyou override....
 function saveThanksProductOverride(){
     if($('#thank_override_form_product').valid()){
         if($(".override-error").is(":visible") || $(".override-success").is(":visible")){
@@ -951,8 +970,8 @@ function saveThanksProductOverride(){
             if(responsedata.status == "1") {
                 $('.productoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_override').removeClass("disable_anchor");
-                swal("Saved!", 'Product Rule Thankyou details updated Successfully.', "success");
-                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);
+                swal("Saved!", 'Product Thankyou override details updated Successfully.', "success");
+                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');
@@ -966,7 +985,7 @@ function saveThanksProductOverride(){
     }  
 }
 
-//save the thank you override.....
+//on click of save button of product category thankyou override call the function "saveThanksProductCatOverride" to add/update the product thankyou override....
 function saveThanksProductCatOverride(){
     if($('#thank_override_form_product_cat').valid()){
         if($(".override-error").is(":visible") || $(".override-success").is(":visible")){
@@ -983,8 +1002,8 @@ function saveThanksProductCatOverride(){
             if(responsedata.status == "1") {
                 $('.productcatoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_cat_override').removeClass("disable_anchor");
-                swal("Saved!", 'Product Category Rule Thankyou details updated Successfully.', "success");
-                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);
+                swal("Saved!", 'Product Category Thankyou override details updated Successfully.', "success");
+                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');
@@ -999,7 +1018,7 @@ function saveThanksProductCatOverride(){
 }
 
 
-//load the thank you overrides.....
+//This function is used to load the latest thanks override after add/edit/delete override.....
 function loading_thanks_overrides($type){
     jQuery(".tab_related_content").addClass('overlay');
     jQuery.post(ajax_object.ajax_url+"?action=loading_thanks_overrides&jsoncallback=x", {overridesType:$type}, function(data) {
@@ -1010,14 +1029,14 @@ function loading_thanks_overrides($type){
                 if($type == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
                     $("#product_thank_overrides").html('');
                     $("#product_thank_overrides").html(responsedata.thankyouOverridesListing);
-                    //sortable the thankyou overrides..
+                    //apply sortable rule on the thankyou overrides of product rule.....
                     if($(".override_product_rule").length){
                         sortabledivs('override_product_rule');
                     }
                 }else if($type == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES){
                     $("#product_cat_thank_overrides").html('');
                     $("#product_cat_thank_overrides").html(responsedata.thankyouOverridesListing);
-                    //sortable the thankyou overrides..
+                    //apply sortable rule on the thankyou overrides of product category rule.....
                     if($(".override_product_category_rule").length){
                         sortabledivs('override_product_category_rule');
                     }
@@ -1029,27 +1048,29 @@ function loading_thanks_overrides($type){
 
 //comman function to sort the ul,li,div etc...
 function sortabledivs(element){
+    //first check the element is not empty...
     if(element != ""){
+        //apply sortable rule on the thankyou overrides of product rule.....
         if(element == 'override_product_rule'){
             jQuery( "."+element ).sortable({
                update: function( event, ui ) {
                     jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_rule").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);
+                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
                         }
                     });
                 }
             });    
         }
-        //apply sortable to thankyou page overrides.....
+        //apply sortable rule on the thankyou overrides of product category rule.....
         else if(element == 'override_product_category_rule'){
             jQuery( "."+element ).sortable({
                update: function( event, ui ) {
                     jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_category_rule").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);
+                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
                         }
                     });
                 }
