@@ -628,6 +628,11 @@ span#customize_referral_partner_url {
 .skucss{
     word-break: break-all;
 }
+.no_override_exist{
+    text-align: center;
+    padding: 21px 20px 10px;
+    font-size: 17px; 
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;

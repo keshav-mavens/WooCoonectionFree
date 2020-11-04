@@ -32,7 +32,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                             <i class="fa fa-plus add_product_rules" title="Add New Thank You Page Override Product Rules"></i>
                         </span>
                     </span>
-                    <span id="product_thank_overrides"><?php echo loading_product_thanks_overrides(); ?></span>
+                    <div id="product_thank_overrides"><?php echo loading_product_thanks_overrides(); ?></div>
                   </li>
                   <li class="group-list">
                     <span class="group-name">Thank You Page Product Category Based Overrides
@@ -40,7 +40,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                             <i class="fa fa-plus add_product_category_rules" title="Add New Thank You Page Override Product Category Rules"></i>
                         </span>
                     </span>
-                    <span id="product_cat_thank_overrides"><?php echo loading_product_cat_thanks_overrides(); ?></span>
+                    <div id="product_cat_thank_overrides"><?php echo loading_product_cat_thanks_overrides(); ?></div>
                   </li>
               </ul>
           </div>

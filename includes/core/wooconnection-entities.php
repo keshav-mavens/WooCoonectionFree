@@ -65,6 +65,10 @@
 	//database custom entries status
 	define('STATUS_ACTIVE', 1);
 	define('STATUS_DELETED', 2);
+
+	//override link yes no...
+	define('REDIRECT_OVERRIDE_TRUE', 1);
+	define('REDIRECT_OVERRIDE_FALSE', 0);
 ?>
 
 

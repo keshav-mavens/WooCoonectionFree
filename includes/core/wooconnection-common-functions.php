@@ -1384,7 +1384,7 @@ function loading_product_thanks_overrides(){
     }
     $thankyouOverridesListing .= '</ul>';
   }else{
-    $thankyouOverridesListing = '<p>We dont have any product Overrides</p>';
+    $thankyouOverridesListing = "<p class='no_override_exist'>We don't have any product based overrides</p>";
   }
   return $thankyouOverridesListing;//return html....
 }
@@ -1407,7 +1407,7 @@ function loading_product_cat_thanks_overrides(){
     }
     $thankyouOverridesListing .= '</ul>';
   }else{
-    $thankyouOverridesListing = '<p>We dont have any product category Overrides</p>';
+    $thankyouOverridesListing = "<p class='no_override_exist'>We don't have any product category based overrides</p>";
   }
   return $thankyouOverridesListing;//return html....
 }
