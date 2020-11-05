@@ -52,11 +52,11 @@ if(empty($checkAuthenticationStatus)){
 				<ul class="sub-menu getting_started" style="<?php echo $getStartedUlStatus; ?>">
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs <?php echo $getStartedSubmenuClass; ?>" id="guided_setup">Guided Setup</a></li>
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="plugin_activation">Activation</a></li>
-	                <li class="sub-menu-expand <?php echo $leftMenuClass; ?>"><a href="javascript:void(0);" class="nav-tabs" id="application_settings"><span class="applicationtype" id="<?php echo $configurationType; ?>"><?php echo $applicationLabel; ?></span> Settings</a></li>
+	                <li class="sub-menu-expand common_disable_class <?php echo $leftMenuClass; ?>"><a href="javascript:void(0);" class="nav-tabs" id="application_settings"><span class="applicationtype" id="<?php echo $configurationType; ?>"><?php echo $applicationLabel; ?></span> Settings</a></li>
 	            </ul>
 	        </li>
 			
-	        <li class="expanded  <?php echo $leftMenuClass; ?>">
+	        <li class="expanded  common_disable_class <?php echo $leftMenuClass; ?>">
 				<a href="javascript:void(0);" id="import_products">
 					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/export.png" alt=""></span>
 					<span class="menu-text">Import and Match</span>
@@ -64,7 +64,7 @@ if(empty($checkAuthenticationStatus)){
 		        </a>
 	        </li>
 			
-	        <li class="expanded  <?php echo $leftMenuClass; ?>">
+	        <li class="expanded common_disable_class  <?php echo $leftMenuClass; ?>">
 				<a href="javascript:void(0);" id="automation" class="last <?php echo $automationActiveClass; ?>">
 					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/auto.png" alt=""></span>
 					<span class="menu-text">Automate</span>

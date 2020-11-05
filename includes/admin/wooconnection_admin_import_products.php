@@ -15,7 +15,7 @@ if(isset($configurationType) && !empty($configurationType)){
 $applicationLabel = applicationLabel($type);
 ?>
 <div class="info-header">
-    <p><?php echo IMPORT_EXPORT_LABEL_FREE; ?> Products</p>
+    <p>Import and Match Products</p>
 </div>
 <div class="righttextInner">
 	<span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span>  

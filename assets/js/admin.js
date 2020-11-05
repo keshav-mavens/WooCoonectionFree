@@ -368,6 +368,7 @@ function activateWcPlugin(){
                 }
             }else{
                 $(".activation-details-error").show();
+                $(".common_disable_class").addClass('leftMenusDisable');
                 if(responsedata.errormessage != "" && responsedata.errormessage !== null){
                     $(".activation-details-error").html('');
                     $(".activation-details-error").html(responsedata.errormessage);
