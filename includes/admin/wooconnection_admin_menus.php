@@ -79,5 +79,5 @@ if(empty($checkAuthenticationStatus)){
 </div>
 <script type="text/javascript">
 	//Define variable for use in js code....
-	var WOOCONNECTION_PLUGIN_URL = '<?php echo WOOCONNECTION_PLUGIN_URL ?>';
+	var WOOCONNECTION_PLUGIN_URL = "<?php echo WOOCONNECTION_PLUGIN_URL ?>";
 </script>

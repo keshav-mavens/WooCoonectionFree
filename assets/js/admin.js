@@ -358,6 +358,14 @@ function activateWcPlugin(){
                 }else{
                     $(".activation-details-success").show();
                 }
+                if(responsedata.licence_email != "" && responsedata.licence_email !== null){
+                    $("#activationEmail").val('');
+                    $("#activationEmail").val(responsedata.licence_email);
+                }
+                if(responsedata.licence_key != "" && responsedata.licence_key !== null){
+                    $("#activationKey").val('');
+                    $("#activationKey").val(responsedata.licence_key);
+                }
             }else{
                 $(".activation-details-error").show();
                 if(responsedata.errormessage != "" && responsedata.errormessage !== null){

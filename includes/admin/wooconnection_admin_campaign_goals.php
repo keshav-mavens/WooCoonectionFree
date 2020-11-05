@@ -18,7 +18,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   <p>Configure Campaign Goals</p>
 </div>
 <div class="righttextInner">
-<span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span> 
+  <span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span> 
   <div class="row">
     <div class="col-md-12 ">
        <?php if(empty($checkAuthenticationStatus)){?>
@@ -92,4 +92,4 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   </div>
 </div>
 
-<!--Campaign Goals SETUP END
+<!--Campaign Goals SETUP END-->
