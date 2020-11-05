@@ -13,6 +13,30 @@ if(isset($configurationType) && !empty($configurationType)){
 }
 //Get the application lable to display.....
 $applicationLabel = applicationLabel($type);
+
+//check the application authentication status if authorized then show the campaign goals tab on plugin load else show the getting started tab....
+$checkAuthenticationStatus = applicationAuthenticationStatus();
+//define default tab is getting started tab......
+$getStartedActiveClass = "active";
+$getStartedSubmenuClass = "active-sub-menu";
+$getStartedUlStatus = "display: block";
+
+//define empty variable for automation tab.....
+$automationActiveClass = "";
+$automationSubmenuClass = "";
+$automationUlStatus = "";
+
+//if plugin is activated then set the classes for automation tab to show by dafult.....
+if(empty($checkAuthenticationStatus)){
+	$getStartedActiveClass = "";
+	$getStartedSubmenuClass = "";
+	$getStartedUlStatus = "";
+
+	$automationActiveClass = "active";
+	$automationSubmenuClass = "active-sub-menu";
+	$automationUlStatus = "display: block";
+}
+
 ?>
 <div class="col-lg-3 col-md-4 col-sm-4 col-12 p-l-0 p-r-0">
 	<div class="mobile-menu">
@@ -20,13 +44,13 @@ $applicationLabel = applicationLabel($type);
     </div>
 	<div class="main-menu-wc">
 	    <ul class="navigation accordian-list">
-	        <li class="expanded"><a href="javascript:void(0);" class="tablinks active" id="getting_started">
+	        <li class="expanded"><a href="javascript:void(0);" class="tablinks <?php echo $getStartedActiveClass; ?>" id="getting_started">
 			<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/started.png" alt=""></span>
 			<span class="menu-text">Getting Started</span>
 			<div class="clr"></div>
 			</a>
-				<ul class="sub-menu" style="display: block;">
-	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs active-sub-menu" id="guided_setup">Guided Setup</a></li>
+				<ul class="sub-menu getting_started" style="<?php echo $getStartedUlStatus; ?>">
+	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs <?php echo $getStartedSubmenuClass; ?>" id="guided_setup">Guided Setup</a></li>
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="plugin_activation">Activation</a></li>
 	                <li class="sub-menu-expand <?php echo $leftMenuClass; ?>"><a href="javascript:void(0);" class="nav-tabs" id="application_settings"><span class="applicationtype" id="<?php echo $configurationType; ?>"><?php echo $applicationLabel; ?></span> Settings</a></li>
 	            </ul>
@@ -35,19 +59,19 @@ $applicationLabel = applicationLabel($type);
 	        <li class="expanded  <?php echo $leftMenuClass; ?>">
 				<a href="javascript:void(0);" id="import_products">
 					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/export.png" alt=""></span>
-					<span class="menu-text"><?php echo IMPORT_EXPORT_LABEL_FREE; ?></span>
+					<span class="menu-text">Import and Match</span>
 		        	<div class="clr"></div>
 		        </a>
 	        </li>
 			
 	        <li class="expanded  <?php echo $leftMenuClass; ?>">
-				<a href="javascript:void(0);" id="automation" class="last">
+				<a href="javascript:void(0);" id="automation" class="last <?php echo $automationActiveClass; ?>">
 					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/auto.png" alt=""></span>
-					<span class="menu-text">Campaign Automation</span>
+					<span class="menu-text">Automate</span>
 			        <div class="clr"></div>
 				</a>
-	            <ul class="sub-menu">
-	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="campaign_goals">Campaign Goals</a></li>
+	            <ul class="sub-menu automation" style="<?php echo $automationUlStatus; ?>">
+	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs automation_active <?php echo $automationSubmenuClass; ?> " id="campaign_goals">Campaign Goals</a></li>
 	            </ul>
 	        </li>
 		</ul>

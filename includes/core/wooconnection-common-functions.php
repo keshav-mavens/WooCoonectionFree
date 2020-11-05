@@ -326,12 +326,14 @@ function getPluginDetails(){
   $pluginDetails = array();
   $pluginDetails['activation_email'] = '';
   $pluginDetails['activation_key'] = '';
+  $pluginDetails['plugin_activation_status'] = '';
   //Get plugin details..
   $plugin_settings = get_option('wc_plugin_details');
   if(isset($plugin_settings) && !empty($plugin_settings)){
     if($plugin_settings['plugin_activation_status'] == PLUGIN_ACTIVATED){
         $pluginDetails['activation_email'] = $plugin_settings['wc_license_email'];
         $pluginDetails['activation_key'] = $plugin_settings['wc_license_key'];
+        $pluginDetails['plugin_activation_status'] = PLUGIN_ACTIVATED;
     }
   }
   return $pluginDetails; 

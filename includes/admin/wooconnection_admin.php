@@ -17,7 +17,15 @@
         <div class="row">
           <?php require_once('wooconnection_admin_menus.php'); ?>
   		  	<div class="col-lg-9 col-md-8 col-sm-8 col-12 p-l-0 p-r-0 tab_related_content">
-  		  	<?php require_once('wooconnection_admin_guided_setup.php'); ?>
+  		  	<?php
+            //check the application authentication status if authorized then show the campaign goals page content else show the getting started tab content....
+            $checkAuthenticationStatus = applicationAuthenticationStatus();
+            if(empty($checkAuthenticationStatus)){
+              require_once('wooconnection_admin_campaign_goals.php');//call the campaign goals file....
+            }else{
+              require_once('wooconnection_admin_guided_setup.php');//call the guided setup file....
+            }
+          ?>
   		  	</div>
           <div class="col-lg-9 col-md-8 col-sm-8 col-12 p-l-0 p-r-0 import_tab_content" style="display: none;">
             <?php require_once('wooconnection_admin_import_products.php'); ?>
