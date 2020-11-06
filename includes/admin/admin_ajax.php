@@ -24,28 +24,32 @@ function activate_wooconnection_plugin()
 		if(isset($_POST['pluginactivationemail']) && !empty($_POST['pluginactivationemail'])){
 			$pluginactivationemail = trim($_POST['pluginactivationemail']);
 		}
-		else
-		{
-			if(!empty($plugin_settings['wc_license_email'])){
-				$pluginactivationemail = $plugin_settings['wc_license_email'];
-			}
+		
+		if(!empty($plugin_settings['wc_license_email'])){
+			$existingactivationemail = $plugin_settings['wc_license_email'];
 		}
 		
 		//check post activation key exist or not..if not exist then need to check from the options table...
 		if(isset($_POST['pluginactivationkey']) && !empty($_POST['pluginactivationkey'])){
 			$pluginactivationkey = trim($_POST['pluginactivationkey']);
 		}
-		else
-		{
-			if(!empty($plugin_settings['wc_license_key'])){
-				$pluginactivationkey = $plugin_settings['wc_license_email'];
+
+		if(!empty($plugin_settings['wc_license_key'])){
+			$existingactivationkey = $plugin_settings['wc_license_key'];
+		}
+
+		//check or set if email and key is same with existing plugin details....
+		$pluginActivated = RESPONSE_STATUS_FALSE;
+		if(!empty($existingactivationemail) && !empty($existingactivationkey)){
+			if($existingactivationemail == $pluginactivationemail && $existingactivationkey == $pluginactivationkey){
+				$pluginActivated = RESPONSE_STATUS_TRUE;
 			}
 		}
-		
+
 		//check the plugin status in activation table if plugin is already activated then return the success with success message
-		if(!empty($plugin_settings['plugin_activation_status']) && $plugin_settings['plugin_activation_status'] == PLUGIN_ACTIVATED)
+		if(!empty($plugin_settings['plugin_activation_status']) && $plugin_settings['plugin_activation_status'] == PLUGIN_ACTIVATED && $pluginActivated == RESPONSE_STATUS_TRUE)
 		{
-			echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'successmessage'=>'Your Plugin is Already Activated'));
+			echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'successmessage'=>'Your Plugin is Already Activated.'));
 		}
 		else if(!empty($pluginactivationemail) && !empty($pluginactivationkey))
 		{
@@ -71,7 +75,7 @@ function activate_wooconnection_plugin()
 					$plugin_details_array['wc_license_key'] = $pluginactivationkey;
 					$plugin_details_array['plugin_activation_status'] = PLUGIN_ACTIVATED;
 		    		update_option('wc_plugin_details', $plugin_details_array);
-		    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'successmessage'=>''));
+		    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'successmessage'=>'','licence_email'=>$pluginactivationemail,'licence_key'=>$pluginactivationkey));
 		    	}
 		    }
 		}

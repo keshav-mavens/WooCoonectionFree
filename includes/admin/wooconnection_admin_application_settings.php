@@ -2,15 +2,15 @@
 <?php
 	$pluginDetailsArray = getPluginDetails();//Get plugin activation related details....
 	$configurationType = applicationType();//Get the application type so that application type selected from dropdown.....
-	$selectedTypeIs = 'selected';
-	$selectedTypeKp = '';
+	$selectedTypeIs = 'checked';//set radio(infusionsoft) checked by default.....
+	$selectedTypeKp = '';//define variable...
 	$type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
 	if(isset($configurationType) && !empty($configurationType)){
 		if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
 			$type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
-			$selectedTypeIs = 'selected';
+			$selectedTypeIs = 'checked';//set radio(infusionsoft) checked
 		}else if ($configurationType == APPLICATION_TYPE_KEAP) {
-			$selectedTypeKp = 'selected';
+			$selectedTypeKp = 'checked';//set radio(keap) checked by default.....
 			$type = APPLICATION_TYPE_KEAP_LABEL;
 		}
 	}
@@ -37,11 +37,9 @@
 		<div class="form-group row">
 			<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Application Type</label>
 			<div class="col-lg-10 col-md-9 col-sm-12 col-12">
-			<select name="applicationtype" id="applicationtype" aria-invalid="false">
-				<option value="<?php echo APPLICATION_TYPE_INFUSIONSOFT; ?>" <?=$selectedTypeIs;?>>Infusionsoft</option>
-				<option value="<?php echo APPLICATION_TYPE_KEAP; ?>" <?=$selectedTypeKp;?>>Keap</option>
-			</select>
-			<div class="note-bottom">Select integration type. Eg: Infusionsoft, Keap</div>
+			   	<input type="radio" id="<?php echo APPLICATION_TYPE_INFUSIONSOFT; ?>" name="applicationtype" value="<?php echo APPLICATION_TYPE_INFUSIONSOFT; ?>" <?php echo $selectedTypeIs; ?>>Infusionsoft
+			  	<input type="radio" id="<?php echo APPLICATION_TYPE_KEAP; ?>" name="applicationtype" value="<?php echo APPLICATION_TYPE_KEAP; ?>" <?php echo $selectedTypeKp; ?>>Keap
+				<div class="note-bottom">Choose application type. Eg: Infusionsoft, Keap</div>
 			</div>
 		</div>
 		
@@ -63,5 +61,4 @@
 <script type="text/javascript">
 	var ADMIN_REMOTE_URL = '<?php echo  ADMIN_REMOTE_URL ?>';
 </script>
-<!-- <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script> -->
-<!--Settings END
+<!--Settings END-->

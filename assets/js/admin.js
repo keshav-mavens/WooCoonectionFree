@@ -19,35 +19,42 @@
                   $(this).next('ul.sub-menu').slideToggle();
                 }
                 var menu_heading = $(this).attr('id');
-                if(menu_heading != "" && menu_heading == "import_products"){
-                    jQuery(".ajax_loader").show();
-                    jQuery(".tab_related_content").addClass('overlay');
-                    var tab_id = 'import_products';
-                    if(tab_id != ""){
-                        jQuery.post( ajax_object.ajax_url + "?action=wc_load_tab_main_content",{tab_id:tab_id}, function(data) {
-                            jQuery(".ajax_loader").hide();
-                            if(!$('.tab_related_content').is(':visible')){
-                               $(".tab_related_content").show(); 
-                            }
-                            $(".tab_related_content").html('');
-                            $(".tab_related_content").html(data);
-                            jQuery(".tab_related_content").removeClass('overlay');
-                            if(jQuery("#export_products_listing").length){
-                                applyDatables("export_products_listing");
-                            }
-                            //add select 2 for woocommerce products field
-                            if($(".wc_iskp_products_dropdown").length){
-                                applySelectTwo('wc_iskp_products_dropdown');
-                            }
-                        });
+                if(menu_heading != ""){
+                    var howManyMenus = $('.'+menu_heading+' li').length; 
+                    if(howManyMenus == '1'){
+                        //code to trigger the click event when only one submenu exist in main menu....
+                        $('.'+menu_heading+'_active').trigger('click');
                     }
-                    //Check if "response" done....
-                    var checkResponse = getQueryParameter('response');
-                    if(checkResponse != ""){
-                        var uri = window.location.toString();
-                        if (uri.indexOf("&") > 0) {
-                            var clean_uri = uri.substring(0, uri.indexOf("&"));
-                            window.history.replaceState({}, document.title, clean_uri);
+                    if(menu_heading == "import_products"){
+                        jQuery(".ajax_loader").show();
+                        jQuery(".tab_related_content").addClass('overlay');
+                        var tab_id = 'import_products';
+                        if(tab_id != ""){
+                            jQuery.post( ajax_object.ajax_url + "?action=wc_load_tab_main_content",{tab_id:tab_id}, function(data) {
+                                jQuery(".ajax_loader").hide();
+                                if(!$('.tab_related_content').is(':visible')){
+                                   $(".tab_related_content").show(); 
+                                }
+                                $(".tab_related_content").html('');
+                                $(".tab_related_content").html(data);
+                                jQuery(".tab_related_content").removeClass('overlay');
+                                if(jQuery("#export_products_listing").length){
+                                    applyDatables("export_products_listing");
+                                }
+                                //add select 2 for woocommerce products field
+                                if($(".wc_iskp_products_dropdown").length){
+                                    applySelectTwo('wc_iskp_products_dropdown');
+                                }
+                            });
+                        }
+                        //Check if "response" done....
+                        var checkResponse = getQueryParameter('response');
+                        if(checkResponse != ""){
+                            var uri = window.location.toString();
+                            if (uri.indexOf("&") > 0) {
+                                var clean_uri = uri.substring(0, uri.indexOf("&"));
+                                window.history.replaceState({}, document.title, clean_uri);
+                            }
                         }
                     }
                 }
@@ -77,7 +84,7 @@
                             validateForms('activation_setup_form');
                         }
 
-                        //apply change icon rule on campaign goals "How it works" button..
+                        //apply change icon rule on campaign goals "How this works" button..
                         if($("#collapseCampaignGoals").length){
                             applyCollapseRules('collapseCampaignGoals');
                         }
@@ -216,6 +223,39 @@
                     $('.all_products_checkbox_match').prop("checked", false);
                 }
             });
+
+            //apply change icon rule on campaign goals "How this works" button..
+            if($("#collapseCampaignGoals").length){
+                applyCollapseRules('collapseCampaignGoals');
+            }
+
+            //this code is used to control the activate button enable and disable process on the basis of email value...
+            $document.on("keyup","#pluginactivationemail",function(event) {
+                var emailValue = $(this).val();
+                var existingEmailValue = $("#activationEmail").val();
+                if(existingEmailValue != "" && emailValue != ""){
+                    if(emailValue == existingEmailValue){
+                        $(".plugin_activation_btn").addClass('disable_anchor');
+                    }else{
+                        $(".plugin_activation_btn").removeClass('disable_anchor');
+                    }
+                }
+            });
+            
+            //this code is used to control the activate button enable and disable process on the basis of plugin key value...
+            $document.on("keyup","#pluginactivationkey",function(event) {
+                var keyValue = $(this).val();
+                var existingKeyValue = $("#activationKey").val();
+                if(existingKeyValue != "" && keyValue != ""){
+                    if(keyValue == existingKeyValue){
+                        $(".plugin_activation_btn").addClass('disable_anchor');
+                    }else{
+                        $(".plugin_activation_btn").removeClass('disable_anchor');
+                    }
+                }
+            });
+
+
         });
 }(jQuery));
 
@@ -278,7 +318,7 @@ function saveApplicationSettings(){
     var activationEmail = $("#activationEmail").val();
     var activationKey = $("#activationKey").val();siteUrl
     var currentSiteUrl = $("#siteUrl").val();
-    var connectionType = $("#applicationtype").val();
+    var connectionType = $('input[name=applicationtype]:checked', '#application_settings_form').val();
     var formData = {userEmail:activationEmail,userPluginKey:activationKey,requestWebUrl:currentSiteUrl,connectionType:connectionType}; //Array 
     $.ajax({
         url : ADMIN_REMOTE_URL+"authentication.php",
@@ -318,8 +358,17 @@ function activateWcPlugin(){
                 }else{
                     $(".activation-details-success").show();
                 }
+                if(responsedata.licence_email != "" && responsedata.licence_email !== null){
+                    $("#activationEmail").val('');
+                    $("#activationEmail").val(responsedata.licence_email);
+                }
+                if(responsedata.licence_key != "" && responsedata.licence_key !== null){
+                    $("#activationKey").val('');
+                    $("#activationKey").val(responsedata.licence_key);
+                }
             }else{
                 $(".activation-details-error").show();
+                $(".common_disable_class").addClass('leftMenusDisable');
                 if(responsedata.errormessage != "" && responsedata.errormessage !== null){
                     $(".activation-details-error").html('');
                     $(".activation-details-error").html(responsedata.errormessage);

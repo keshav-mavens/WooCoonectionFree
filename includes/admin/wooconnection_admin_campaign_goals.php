@@ -18,11 +18,11 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   <p>Configure Campaign Goals</p>
 </div>
 <div class="righttextInner">
-<span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span> 
+  <span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span> 
   <div class="row">
     <div class="col-md-12 ">
        <?php if(empty($checkAuthenticationStatus)){?>
-       <p class="text-right"><a class="btn btn-primary btn-theme" data-toggle="collapse" href="#collapseCampaignGoals" role="button" aria-expanded="false" aria-controls="collapseCampaignGoals">How is Works <i class="fa fa-caret-down" id="icon_collapseCampaignGoals" aria-hidden="true"></i></a></p>
+       <p class="text-right"><a class="btn btn-primary btn-theme" data-toggle="collapse" href="#collapseCampaignGoals" role="button" aria-expanded="false" aria-controls="collapseCampaignGoals">How This Works <i class="fa fa-caret-down" id="icon_collapseCampaignGoals" aria-hidden="true"></i></a></p>
         <div class="collapse" id="collapseCampaignGoals">
           <div class="card card-body col-md-12 m-b-40">
             <p class="heading-text text-center m-t-30">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
@@ -92,4 +92,4 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   </div>
 </div>
 
-<!--Campaign Goals SETUP END
+<!--Campaign Goals SETUP END-->

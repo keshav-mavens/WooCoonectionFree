@@ -628,6 +628,15 @@ span#customize_referral_partner_url {
 .skucss{
     word-break: break-all;
 }
+input[type=radio] {
+    border-radius: 50%;
+    margin-right: .25rem;
+    line-height: .71428571;
+    margin-left: .35em;
+}
+input[type=radio]:checked::before {
+    background-color: #364698;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;
