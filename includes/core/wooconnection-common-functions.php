@@ -1426,7 +1426,7 @@ function contactOrderCustomFields($access_token,$fieldType){
 }
 
 //Function is used to add order/contact custom fields to infusionsoft/keap application....
-function addCustomField($access_token,$formType,$fieldName,$fieldType){
+function addCustomField($access_token,$formType,$fieldName,$fieldType,$fieldHeader){
   $fieldId = '';
   // Create instance of our wooconnection logger class to use off the whole things.
   $wooconnectionLogger = new WC_Logger();
@@ -1454,7 +1454,7 @@ function addCustomField($access_token,$formType,$fieldName,$fieldType){
                     <param><value><string>".$customFieldType."</string></value></param>
                     <param><value><string>".$fieldName."</string></value></param>
                     <param><value><string>".$fieldType."</string></value></param>
-                    <param><value><int>8</int></value></param></params>
+                    <param><value><int>".$fieldHeader."</int></value></param></params>
                   </methodCall>";
       curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -1532,7 +1532,7 @@ function cfRelatedHeaders($tab_type_id=""){
 
     $tabRelatedHeaders='<option value="">Select header</option>';
     if(!empty($access_token)){
-      $relatedTabHeaders = getHeaders($access_token,$form_type_id);
+      $relatedTabHeaders = getHeaders($access_token,$tab_type_id);
       if(isset($relatedTabHeaders) && !empty($relatedTabHeaders)){
         foreach ($relatedTabHeaders as $key => $value) {
           $tabRelatedHeaders.= '<option value="';
@@ -1610,10 +1610,10 @@ function getTabs($access_token,$form_type_id){
   return $tabsArray;
 }
 
-function getHeaders($access_token,$form_type_id){
+function getHeaders($access_token,$tab_type_id){
   // Create instance of our wooconnection logger class to use off the whole things.
   $wooconnectionLogger = new WC_Logger();
-  $tabsArray = '';
+  $headersArray = '';
   $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
   $ch = curl_init($url);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -1635,7 +1635,7 @@ function getHeaders($access_token,$form_type_id){
                       <value><string>TabId</string></value>
                     </param>
                     <param>
-                      <value><string>2</string></value>
+                      <value><string>".$tab_type_id."</string></value>
                     </param>
                     <param>
                       <value><array>
@@ -1666,11 +1666,11 @@ function getHeaders($access_token,$form_type_id){
             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
         }
     }else{
-      $tabsArray = $responsedata;
+      $headersArray = $responsedata;
     }
-    return $tabsArray;
+    return $headersArray;
   }
   curl_close($ch);
-  return $tabsArray;
+  return $headersArray;
 }
 ?>

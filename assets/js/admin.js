@@ -260,7 +260,39 @@
                 }
             });
 
+            //On change of form type from custom fields popup form change the custom fields related tabs... 
+            $document.on("change","#cfFormType", function(event)
+            {
+                event.stopPropagation();
+                var selectedFormType = $(this).children("option:selected").attr('id');
+                if(selectedFormType != "" && selectedFormType !== null){
+                    $(".custom_field_header").hide();
+                    jQuery("#cftab").html('<option value="">Select Tab</option>');
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_cf_form_type_tabs",{selectedFormType:selectedFormType}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            $("#cftab").html(responsedata.tabsHtml);
+                        }
+                        $(".custom_field_header").show();
+                    });
+                }
+            });
 
+            //On change of custom field tab from custom fields popup form change the custom fields related headers...
+            $document.on("change","#cftab", function(event)
+            {
+                event.stopPropagation();
+                var selectedTabType = $(this).children("option:selected").val();
+                if(selectedTabType != "" && selectedTabType !== null){
+                    jQuery("#cfheader").html('<option value="">Select Header</option>');
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_cf_tab_headers",{selectedTabType:selectedTabType}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            $("#cfheader").html(responsedata.headerHtml);
+                        }
+                    });
+                }
+            });
         });
 }(jQuery));
 
@@ -320,12 +352,20 @@ function validateForms(form){
         if(form == "add_custom_field_form"){
             $("#"+form).validate({
                 rules:{
-                    cfname: "required"
+                    cfname: "required",
+                    cftab: "required",
+                    cfheader: "required"
                 },
                 messages:{
                     cfname: {
                         required: 'Please enter custom field name!'
-                    }
+                    },
+                    cftab: {
+                        required: 'Please select the custom field tab!'
+                    },
+                    cfheader: {
+                        required: 'Please select the custom field header!'
+                    },
                 }
             });
         }

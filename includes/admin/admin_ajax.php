@@ -313,11 +313,7 @@ function wc_add_custom_field(){
 	    if(!empty($access_token)){
 	    	if(!empty($_POST['cfFormType']) && !empty($_POST['cfname']))
 			{
-				if($_POST['cfFormType'] == CUSTOM_FIELD_FORM_TYPE_CONTACT){
-					$customFieldRes = addCustomField($access_token,CUSTOM_FIELD_FORM_TYPE_CONTACT,$_POST['cfname'],$_POST['cfDataType']);
-				}else if ($_POST['cfFormType'] == CUSTOM_FIELD_FORM_TYPE_ORDER) {
-					$customFieldRes = addCustomField($access_token,CUSTOM_FIELD_FORM_TYPE_ORDER,$_POST['cfname'],$_POST['cfDataType']);
-				}
+				$customFieldRes = addCustomField($access_token,$_POST['cfFormType'],$_POST['cfname'],$_POST['cfDataType'],$_POST['cfheader']);
 				if(is_int($customFieldRes)){
 					$contactOrderFields = getPredefindCustomfields();
 					$fieldOptions = "<option value=''></option>";
@@ -338,6 +334,35 @@ function wc_add_custom_field(){
 			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>'Authentication Error'));
 	    }
 		
+	}
+	die();
+}
+
+
+//Wordpress hook : This action is triggered when user change the custom field form type like contact order.....
+add_action( 'wp_ajax_wc_cf_form_type_tabs', 'wc_cf_form_type_tabs');
+//Function Definiation : wc_cf_form_type_tabs
+function wc_cf_form_type_tabs(){
+	if(isset($_POST) && !empty($_POST)){
+		if(isset($_POST['selectedFormType']) && !empty($_POST['selectedFormType'])){
+		 	$tabsHtml =	cfRelatedTabs($_POST['selectedFormType']);
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'tabsHtml'=>$tabsHtml));
+	}
+	die();
+}
+
+
+
+//Wordpress hook : This action is triggered when user change the custom field tab.....
+add_action( 'wp_ajax_wc_cf_tab_headers', 'wc_cf_tab_headers');
+//Function Definiation : wc_cf_tab_headers
+function wc_cf_tab_headers(){
+	if(isset($_POST) && !empty($_POST)){
+		if(isset($_POST['selectedTabType']) && !empty($_POST['selectedTabType'])){
+			$headerHtml =	cfRelatedHeaders($_POST['selectedTabType']);
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'headerHtml'=>$headerHtml));
 	}
 	die();
 }
