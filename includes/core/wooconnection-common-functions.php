@@ -1302,6 +1302,375 @@ function addOrderItems($access_token,$orderid,$productId,$type,$price,$quan,$des
     }
 }
 
+//Custom fields : Get all latest custom fields from infusionsoft/keap application related to orders/contacts..........
+function getPredefindCustomfields(){
+  //first need to check whether the application authentication is done or not..
+  $applicationAuthenticationDetails = getAuthenticationDetails();
+  //get the access token....
+  $access_token = '';
+  if(!empty($applicationAuthenticationDetails)){//check authentication details......
+      if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+          $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+      }
+  }
+  
+  $contactOrderFields = array();//define empty array.....
+  //set in array contact basis information fields....
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':FirstName'] = "Contact First Name";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':MiddleName'] = "Contact Middle Name";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':LastName'] = "Contact Last Name";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Nickname'] = "Contact Nick Name";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantName'] = "Contact Assistant Name";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantPhone'] = "Contact Assistant Phone";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress2'] = "Contact Email Address 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress3'] = "Contact Email Address 3";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone1'] = "Contact Phone 1";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone2'] = "Contact Phone 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone3'] = "Contact Phone 3";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone4'] = "Contact Phone 4";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone5'] = "Contact Phone 5";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax1'] = "Contact Fax 1";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax2'] = "Contact Fax 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Anniversary'] = "Contact Anniversary";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Birthday'] = "Contact Birthday";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address2Street1'] = "Contact Address 2 Street 1";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address2Street2'] = "Contact Address 2 Street 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address3Street1'] = "Contact Address 3 Street 1";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address3Street2'] = "Contact Address 3 Street 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City'] = "Contact Address City 1";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City2'] = "Contact Address City 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City3'] = "Contact Address City 3";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State'] = "Contact Address State 1";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State2'] = "Contact Address State 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State3'] = "Contact Address State 3";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country'] = "Contact Address Country 1";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country2'] = "Contact Address Country 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country3'] = "Contact Address Country 3";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode'] = "Contact Address Postal Code 1";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode2'] = "Contact Address Postal Code 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode3'] = "Contact Address Postal Code 3";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour1'] = "Contact Address ZipFour 1";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour2'] = "Contact Address ZipFour 2";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour3'] = "Contact Address ZipFour 3";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Suffix'] = "Contact Suffix";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':SpouseName'] = "Contact Spouse Name";
+  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ContactNotes'] = "Contact Notes";
+  
+  //Infusionsoft/keap application access token check....
+  if($access_token){
+    //Infusionsoft/keap : Get Infusionsoft/Keap Contact Custom Fields
+    $contactCustomFields = contactOrderCustomFields($access_token,CUSTOM_FIELD_FORM_TYPE_CONTACT);
+    
+    //Infusionsoft/keap : Get Infusionsoft/Keap Order Custom Fields
+    $orderCustomFields = contactOrderCustomFields($access_token,CUSTOM_FIELD_FORM_TYPE_ORDER);
+    
+    //create the options with label and name of custom field...
+    if(isset($contactCustomFields) && !empty($contactCustomFields)){
+      foreach($contactCustomFields as $contactcf) {
+          $optionValue = "FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':_'.$contactcf["label"];
+          $contactOrderFields["Contact Related Custom Fields"][$optionValue] = $contactcf["label"];
+      }
+    }
+      
+    if(isset($orderCustomFields) && !empty($orderCustomFields)){
+      foreach($orderCustomFields as $contactocf) {
+          $optionValue = "FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.':_'.$contactocf["label"];
+          $contactOrderFields["Order Related Custom Fields"][$optionValue] = $contactocf["label"];
+      } 
+    }
+  }
+  return $contactOrderFields;//return array.....
+}
 
+//Function is used to get order/contact related custom fields....
+function contactOrderCustomFields($access_token,$fieldType){
+    $customFieldsArray = array();//define empty array.....
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
+    if(!empty($access_token)){
+      if($fieldType == CUSTOM_FIELD_FORM_TYPE_CONTACT){
+        $url = "https://api.infusionsoft.com/crm/rest/v1/contacts/model";
+      }else if ($fieldType == CUSTOM_FIELD_FORM_TYPE_ORDER) {
+        $url = "https://api.infusionsoft.com/crm/rest/v1/orders/model";
+      }
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $url); //using the setopt function to send request to the url
+      $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+      );
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+      $response = curl_exec($ch); //executing request
+      $err = curl_error($ch);
+      if($err){
+      }else{
+        $sucessData = json_decode($response,true);
+        if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+          $errorMessage = "Get contact and order related custom fields is failed ";
+          if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+            $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+          }
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }
+        if(!empty($sucessData['custom_fields'])){
+          $customFieldsArray = $sucessData['custom_fields'];
+        }
+        return $customFieldsArray;
+      }
+      
+      curl_close($ch); 
+    }
+    return $customFieldsArray;//return array.....
+}
 
+//Function is used to add order/contact custom fields to infusionsoft/keap application....
+function addCustomField($access_token,$formType,$fieldName,$fieldType){
+  $fieldId = '';
+  // Create instance of our wooconnection logger class to use off the whole things.
+  $wooconnectionLogger = new WC_Logger();
+  if(!empty($access_token) && !empty($formType) && !empty($fieldName)){
+      // Create instance of our wooconnection logger class to use off the whole things.
+      $wooconnectionLogger = new WC_Logger();
+      $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: text/xml',
+        'Content-Type: text/xml',
+        'Authorization: Bearer '. $access_token
+      );
+      if($formType == CUSTOM_FIELD_FORM_TYPE_CONTACT){
+        $customFieldType = "Contact";
+      }else if ($formType == CUSTOM_FIELD_FORM_TYPE_ORDER) {
+        $customFieldType = "Order";
+      }
+      
+      //Create xml to hit the curl request for add order item.....
+      $xmlData = "<methodCall>
+                    <methodName>DataService.addCustomField</methodName>
+                    <params><param><value><string></string></value></param>
+                    <param><value><string>".$customFieldType."</string></value></param>
+                    <param><value><string>".$fieldName."</string></value></param>
+                    <param><value><string>".$fieldType."</string></value></param>
+                    <param><value><int>8</int></value></param></params>
+                  </methodCall>";
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      //check if error occur due to any reason and then save the logs...
+      if($err){
+          $errorMessage = "Add custom field is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+      }else{
+        //Covert/Decode response to xml.....
+        $responsedata = xmlrpc_decode($response);
+        //check if any error occur like invalid access token,then save logs....
+        if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+            if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+                $errorMessage = "Add custom field is failed due to ". $responsedata['faultString']; 
+                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+            }
+        }else{
+          $fieldId = $responsedata;
+        }
+        return $fieldId;
+      }
+      curl_close($ch);
+  }
+  return $fieldId;
+}
+
+function cfRelatedTabs($form_type_id=""){
+  
+  //first need to check whether the application authentication is done or not..
+  $applicationAuthenticationDetails = getAuthenticationDetails();
+  //get the access token....
+  $access_token = '';
+  if(!empty($applicationAuthenticationDetails)){//check authentication details......
+      if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+          $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+      }
+  }
+  //Infusion soft connection check
+  $tabRelatedOptions = '<option value="">Select tab</option>';
+  if(!empty($access_token)){
+    if(!empty($form_type_id)){
+      $form_type_id = $form_type_id;
+    }else{
+      $form_type_id = CUSTOM_FIELD_FORM_TYPE_CONTACT;
+    }
+    $relatedTabs = getTabs($access_token,$form_type_id);
+    if(isset($relatedTabs) && !empty($relatedTabs)){
+        foreach ($relatedTabs as $key => $value) {
+          $tabRelatedOptions.= '<option value="';
+          $tabRelatedOptions.= $value['Id'];
+          $tabRelatedOptions.= '">' . $value['TabName'];
+          $tabRelatedOptions .= '</option>';
+        }
+    }
+    
+  }
+  $tabRelatedOptions .= '</option>';
+  
+  return $tabRelatedOptions;
+}
+
+function cfRelatedHeaders($tab_type_id=""){
+    //first need to check whether the application authentication is done or not..
+    $applicationAuthenticationDetails = getAuthenticationDetails();
+    //get the access token....
+    $access_token = '';
+    if(!empty($applicationAuthenticationDetails)){//check authentication details......
+        if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+            $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+        }
+    }
+
+    $tabRelatedHeaders='<option value="">Select header</option>';
+    if(!empty($access_token)){
+      $relatedTabHeaders = getHeaders($access_token,$form_type_id);
+      if(isset($relatedTabHeaders) && !empty($relatedTabHeaders)){
+        foreach ($relatedTabHeaders as $key => $value) {
+          $tabRelatedHeaders.= '<option value="';
+          $tabRelatedHeaders.= $value['Id'];
+          $tabRelatedHeaders.= '">' . $value['Name'];
+          $tabRelatedHeaders.= "</option>";
+        }
+      }
+    }
+    $tabRelatedHeaders .= '</option>';
+    return $tabRelatedHeaders;
+}
+
+function getTabs($access_token,$form_type_id){
+  // Create instance of our wooconnection logger class to use off the whole things.
+  $wooconnectionLogger = new WC_Logger();
+  $tabsArray = '';
+  $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $header = array(
+    'Accept: text/xml',
+    'Content-Type: text/xml',
+    'Authorization: Bearer '. $access_token
+  );
+  
+  //Create xml to hit the curl request for add order item.....
+  $xmlData = "<methodCall>
+                <methodName>DataService.findByField</methodName>
+                <params>
+                    <param><value><string></string></value></param>
+                    <param><value><string>DataFormTab</string></value></param>
+                    <param><value><int>200</int></value></param>
+                    <param><value><int>0</int></value></param>
+                    <param>
+                      <value><string>FormId</string></value>
+                    </param>
+                    <param>
+                      <value><string>".$form_type_id."</string></value>
+                    </param>
+                    <param>
+                      <value><array>
+                        <data>
+                          <value><string>Id</string></value>
+                          <value><string>TabName</string></value>
+                        </data>
+                      </array></value>
+                    </param>
+                </params>
+              </methodCall>";
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+  $response = curl_exec($ch);
+  $err = curl_error($ch);
+  //check if error occur due to any reason and then save the logs...
+  if($err){
+      $errorMessage = "Get custom fields tab is failed due to ". $err; 
+      $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+  }else{
+    //Covert/Decode response to xml.....
+    $responsedata = xmlrpc_decode($response);
+    //check if any error occur like invalid access token,then save logs....
+    if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+        if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+            $errorMessage = "Get custom fields tab is failed due to ". $responsedata['faultString']; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }
+    }else{
+      $tabsArray = $responsedata;
+    }
+    return $tabsArray;
+  }
+  curl_close($ch);
+  return $tabsArray;
+}
+
+function getHeaders($access_token,$form_type_id){
+  // Create instance of our wooconnection logger class to use off the whole things.
+  $wooconnectionLogger = new WC_Logger();
+  $tabsArray = '';
+  $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $header = array(
+    'Accept: text/xml',
+    'Content-Type: text/xml',
+    'Authorization: Bearer '. $access_token
+  );
+  
+  //Create xml to hit the curl request for add order item.....
+  $xmlData = "<methodCall>
+                <methodName>DataService.findByField</methodName>
+                <params>
+                    <param><value><string></string></value></param>
+                    <param><value><string>DataFormGroup</string></value></param>
+                    <param><value><int>200</int></value></param>
+                    <param><value><int>0</int></value></param>
+                    <param>
+                      <value><string>TabId</string></value>
+                    </param>
+                    <param>
+                      <value><string>2</string></value>
+                    </param>
+                    <param>
+                      <value><array>
+                        <data>
+                          <value><string>Id</string></value>
+                          <value><string>Name</string></value>
+                        </data>
+                      </array></value>
+                    </param>
+                </params>
+              </methodCall>";
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+  $response = curl_exec($ch);
+  $err = curl_error($ch);
+  //check if error occur due to any reason and then save the logs...
+  if($err){
+      $errorMessage = "Get custom fields headers is failed due to ". $err; 
+      $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+  }else{
+    //Covert/Decode response to xml.....
+    $responsedata = xmlrpc_decode($response);
+    //check if any error occur like invalid access token,then save logs....
+    if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+        if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+            $errorMessage = "Get custom fields headers is failed due to ". $responsedata['faultString']; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }
+    }else{
+      $tabsArray = $responsedata;
+    }
+    return $tabsArray;
+  }
+  curl_close($ch);
+  return $tabsArray;
+}
 ?>

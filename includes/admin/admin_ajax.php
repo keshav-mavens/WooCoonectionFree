@@ -295,4 +295,51 @@ function wc_update_products_mapping()
 	die();
 }
 
+//Wordpress hook : This action is triggered when user try to add custom field to infusionsoft....
+add_action( 'wp_ajax_wc_add_custom_field', 'wc_add_custom_field');
+//Function Definiation : wc_add_custom_field
+function wc_add_custom_field(){
+	if(isset($_POST) && !empty($_POST)){
+		//first need to check whether the application authentication is done or not..
+        $applicationAuthenticationDetails = getAuthenticationDetails();
+        //get the access token....
+        $access_token = '';
+        if(!empty($applicationAuthenticationDetails)){//check authentication details......
+            if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+                $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+            }
+        }
+
+	    if(!empty($access_token)){
+	    	if(!empty($_POST['cfFormType']) && !empty($_POST['cfname']))
+			{
+				if($_POST['cfFormType'] == CUSTOM_FIELD_FORM_TYPE_CONTACT){
+					$customFieldRes = addCustomField($access_token,CUSTOM_FIELD_FORM_TYPE_CONTACT,$_POST['cfname'],$_POST['cfDataType']);
+				}else if ($_POST['cfFormType'] == CUSTOM_FIELD_FORM_TYPE_ORDER) {
+					$customFieldRes = addCustomField($access_token,CUSTOM_FIELD_FORM_TYPE_ORDER,$_POST['cfname'],$_POST['cfDataType']);
+				}
+				if(is_int($customFieldRes)){
+					$contactOrderFields = getPredefindCustomfields();
+					$fieldOptions = "<option value=''></option>";
+					if(isset($contactOrderFields) && !empty($contactOrderFields)){
+						foreach($contactOrderFields as $key => $value) {
+							$fieldOptions .= "<optgroup label=\"$key\">";
+							foreach($value as $key1 => $value1) {
+								$optionSelected = "";
+								$fieldOptions .= '<option value="'.$key1.'"'.$optionSelected.'>'.$value1.'</option>';
+							}
+							$fieldOptions .= "</optgroup>";
+						}
+					}
+					echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'fieldOptions'=>$fieldOptions,'cfLatestName'=>trim($_POST['cfname'])));
+				}
+			}	
+	    }else{
+			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>'Authentication Error'));
+	    }
+		
+	}
+	die();
+}
+
 ?>

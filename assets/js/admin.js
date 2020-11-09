@@ -83,10 +83,15 @@
                         if($('#activation_setup_form').length){
                             validateForms('activation_setup_form');
                         }
-
+                        
                         //apply change icon rule on campaign goals "How this works" button..
                         if($("#collapseCampaignGoals").length){
                             applyCollapseRules('collapseCampaignGoals');
+                        }
+
+                        //validate a "add_custom_field_form" form.....
+                        if($('#add_custom_field_form').length){
+                            validateForms('add_custom_field_form');
                         }
                     });
                     //Check if "response" done....
@@ -306,6 +311,20 @@ function validateForms(form){
                     callname: {
                         required: 'Please enter trigger call name!',
                         alphanumeric: 'Only alphanumeric characters are allowed in trigger call name!',
+                    }
+                }
+            });
+        }
+
+        //check form is add custom field form then validate it..
+        if(form == "add_custom_field_form"){
+            $("#"+form).validate({
+                rules:{
+                    cfname: "required"
+                },
+                messages:{
+                    cfname: {
+                        required: 'Please enter custom field name!'
                     }
                 }
             });
@@ -641,5 +660,42 @@ function applyCollapseRules(div_id){
         $('#'+div_id).on('hidden.bs.collapse', function() {
            $("#icon_"+div_id).addClass('fa-caret-down').removeClass('fa-caret-up');
         });    
+    }
+}
+
+//save custom field to infusionsoft application....
+function saveCustomFields(){
+    if($('#add_custom_field_form').valid()){
+        if($(".add-cf-error").is(":visible") || $(".add-cf-success").is(":visible")){
+            $(".add-cf-error").hide();
+            $(".add-cf-success").hide();
+            $(".addcf").show();
+        }else{
+            $(".addcf").show();    
+        }
+        $('.save_cf_btn').addClass("disable_anchor");
+        // var cfDataType = $("#cfDataType option:selected").text();
+        // $("#cfdata").val(cfDataType);
+        jQuery.post( ajax_object.ajax_url + "?action=wc_add_custom_field",$('#add_custom_field_form').serialize(), function(data) {
+            // var responsedata = JSON.parse(data);
+            // $(".addcf").hide();
+            // if(responsedata.status == "1") {
+            //     $("#addCustomFieldModel").hide();
+            //     // $(".wccfmappingwith").html('');
+            //     // $(".wccfmappingwith").html(responsedata.fieldOptions);
+            //     // $("#wccfmapping option").filter(function() {
+            //     //   return $(this).text() == responsedata.cfLatestName;
+            //     // }).prop('selected', true);
+            // }else{
+            //     $(".add-cf-error").show();
+            //     if(responsedata.errormessage != "" && responsedata.errormessage !== null){
+            //         $(".add-cf-error").html('');
+            //         $(".add-cf-error").html(responsedata.errormessage);
+            //     }else{
+            //         $(".add-cf-error").html('');
+            //         $(".add-cf-error").html('Something Went Wrong');
+            //     }
+            // }
+        });
     }
 }

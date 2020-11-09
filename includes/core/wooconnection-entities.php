@@ -54,7 +54,11 @@
 	//Note for order item tax.....
 	define("ITEM_TAX_NOTES", "Order Tax");
 	//Note for order item discount......
-	define("ITEM_DISCOUNT_NOTES", "Order Discount")
+	define("ITEM_DISCOUNT_NOTES", "Order Discount");
+	//custom field form type entitiy.....
+	define('CUSTOM_FIELD_FORM_TYPE_CONTACT', -1);
+	define('CUSTOM_FIELD_FORM_TYPE_ORDER', -9);
+
 
 ?>
 
