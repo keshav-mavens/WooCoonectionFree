@@ -4,8 +4,8 @@
  * Description: Automatically sync your WooCommerce orders with your Infusionsoft or Keap account.
  * Version: 16
  * Author: Fullstackmarketing.co
- * Author URI: http://www.informationstreet.com
- * Plugin URI: https://www.fullstackmarketing.co
+ * Author URI: http://www.fullstackmarketing.co
+ * Plugin URI: https://www.wooconnection.com
  */
 
 define( 'WOOCONNECTION_VERSION', '16' );//Version Entity
