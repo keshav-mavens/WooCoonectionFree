@@ -29,17 +29,17 @@
 </div>
 <div class="righttextInner"> 
 	<span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span>
-	<p class="heading-text m-b-40 m-t-20">To connect your woocommerce site to <span class="applicationtype"><?php echo $applicationLabel; ?></span> application, please first authorize the application.</p>
+	<p class="heading-text m-b-40 m-t-20">There are 2 simple steps to connect your Keap or Infusionsoft account to your WooCommerce site. Simply choose the edition of the software you're using (Keap or Infusionsoft) and then click the authorize button. You will be taken to a login screen that will let you give WooConnection the permissions it needs to access your account. We'll take it from there.</p>
 	<form action="" method="post" id="application_settings_form" onsubmit="return false">
 		<input type="hidden" name="activationEmail" id="activationEmail" value="<?php echo $pluginDetailsArray['activation_email']; ?>">
 		<input type="hidden" name="activationKey" id="activationKey" value="<?php echo $pluginDetailsArray['activation_key']; ?>">
 		<input type="hidden" name="siteUrl" id="siteUrl" value="<?php echo SITE_URL; ?>">
 		<div class="form-group row">
-			<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Application Type</label>
+			<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Which Edition Are You Using?</label>
 			<div class="col-lg-10 col-md-9 col-sm-12 col-12">
 			   	<input type="radio" id="<?php echo APPLICATION_TYPE_INFUSIONSOFT; ?>" name="applicationtype" value="<?php echo APPLICATION_TYPE_INFUSIONSOFT; ?>" <?php echo $selectedTypeIs; ?>>Infusionsoft
 			  	<input type="radio" id="<?php echo APPLICATION_TYPE_KEAP; ?>" name="applicationtype" value="<?php echo APPLICATION_TYPE_KEAP; ?>" <?php echo $selectedTypeKp; ?>>Keap
-				<div class="note-bottom">Choose application type. Eg: Infusionsoft, Keap</div>
+				<div class="note-bottom">Choose which product you are using (Keap or Infusionsoft). This will make sure that we only enable the features in WooConnection that will work with your edition of the software.</div>
 			</div>
 		</div>
 		
