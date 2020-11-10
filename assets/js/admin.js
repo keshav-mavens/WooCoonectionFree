@@ -485,6 +485,11 @@ function applyDatables(tabel_id){
                     "ordering": false,
                     drawCallback: function(dt) {
                       applySelectTwo('wc_iskp_products_dropdown');
+                        if ($('.all_products_checkbox_export').is(":checked"))
+                        {
+                            $('.all_products_checkbox_export').prop("checked", false);
+                        }
+                        $('.each_product_checkbox_export').prop("checked", false);
                     }
                 });
             }
@@ -503,6 +508,11 @@ function applyDatables(tabel_id){
                     "ordering": false,
                     drawCallback: function(dt) {
                       applySelectTwo('application_match_products_dropdown');
+                        if ($('.all_products_checkbox_match').is(":checked"))
+                        {
+                            $('.all_products_checkbox_match').prop("checked", false);
+                        }
+                        $('.each_product_checkbox_match').prop("checked", false);
                     }
                 });
             }
