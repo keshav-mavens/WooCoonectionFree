@@ -396,7 +396,7 @@ function popupEditDetails(triggerid){
                 jQuery("#edittriggerid").val(triggerid);
                 if(responsedata.triggerGoalName != ""){
                     jQuery(".trigger_goal_name").html('');
-                    jQuery(".trigger_goal_name").html(responsedata.triggerGoalName);
+                    jQuery(".trigger_goal_name").html('Edit ' + responsedata.triggerGoalName + ' Trigger');
                 }
                 if(responsedata.triggerIntegrationName != ""){
                     jQuery("#integrationname").val(responsedata.triggerIntegrationName);
@@ -485,6 +485,11 @@ function applyDatables(tabel_id){
                     "ordering": false,
                     drawCallback: function(dt) {
                       applySelectTwo('wc_iskp_products_dropdown');
+                        if ($('.all_products_checkbox_export').is(":checked"))
+                        {
+                            $('.all_products_checkbox_export').prop("checked", false);
+                        }
+                        $('.each_product_checkbox_export').prop("checked", false);
                     }
                 });
             }
@@ -503,6 +508,11 @@ function applyDatables(tabel_id){
                     "ordering": false,
                     drawCallback: function(dt) {
                       applySelectTwo('application_match_products_dropdown');
+                        if ($('.all_products_checkbox_match').is(":checked"))
+                        {
+                            $('.all_products_checkbox_match').prop("checked", false);
+                        }
+                        $('.each_product_checkbox_match').prop("checked", false);
                     }
                 });
             }
