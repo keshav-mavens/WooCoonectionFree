@@ -26,16 +26,40 @@ span.closeCfModel {
 	        <br/>
 	        Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
 	      	</p>
-			<div class="main_rendered">
+			<div class="main_rendered custom_fields_main_html">
 		      	<div class="loading_custom_fields" style="display: none;">
 			      	<img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.svg">
 		      	</div>
 		      	<ul class="main-group">
 				</ul>
 			  	<div class="text-center m-t-50">
-			  		<span class="create-new-group"><span class="default_message">We don't have any Custom Fields</span> <a href="javascript:void(0)" class="btn btn-theme third addnewgroup"><span>Create Group</span></a></span>
+			  		<span class="create-new-group"><span class="default_message">We don't have any Custom Fields</span> <a href="javascript:void(0)" class="btn btn-theme third addcfieldgroup"><span>Create Group</span></a></span>
 			  	</div>
 			</div>
+			<div class="add-editform-groups">
+				<div class="hide customfieldgroup">
+				    <form action="" method="post" id="form_cfield_group" onsubmit="return false">
+				      	<input type="hidden" name="cfieldgroupid" id="cfieldgroupid" value="" />
+				      	<h5 class="text-left cfieldgrouptitle">Create Custom Fields Group</h5>
+				      	<div class="form-group row">
+							<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Group Name</label>
+							<div class="col-lg-10 col-md-9 col-sm-12 col-12">
+								<input class="form-control" type="text" placeholder="Custom Field Group Name" name="cfieldgroupname" id="cfieldgroupname">
+								<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+							</div>
+						</div>
+						<div class="row m-t-40">
+							<div class="col-md-12 text-right">
+								<div class="buttonloading savingcfieldGroup" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Saving....</div>
+								<input type="button" value="Cancel" class="btn btn-primary btn-radius btn-theme-default restorecfieldGroups" data-id="form_cfield_group">
+								<input type="button" value="Save" class="btn btn-primary btn-radius btn-theme savingcfieldGroupBtn" onclick="savecfieldGroup()">
+								<div class="alert-error-message cfieldgrouperror" style="display: none;"></div>
+								<div class="alert-sucess-message cfieldgroupsuccess" style="display: none;">Custom fields group saved successfully.</div>
+							</div>
+						</div>
+				   	</form>
+				</div>
+	  		</div>
 			<?php }else{
               echo $checkAuthenticationStatus;
         	} ?>
@@ -43,7 +67,7 @@ span.closeCfModel {
   	</div>
 </div>
 
-<div id="addCustomFieldModel" class="modal" role="dialog" style="display: block;">
+<div id="addCustomFieldModel" class="modal" role="dialog">
  <div class="modal-dialog modal-lg">
 	<div class="modal-content">
 	    <div class="modal-header">

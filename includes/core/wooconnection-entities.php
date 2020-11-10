@@ -58,6 +58,12 @@
 	//custom field form type entitiy.....
 	define('CUSTOM_FIELD_FORM_TYPE_CONTACT', -1);
 	define('CUSTOM_FIELD_FORM_TYPE_ORDER', -9);
+	//database custom entries status
+	define('STATUS_ACTIVE', 1);
+	define('STATUS_INACTIVE', 2);
+	define('STATUS_DELETED', 3);
+
+
 
 
 ?>
