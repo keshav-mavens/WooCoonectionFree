@@ -62,10 +62,17 @@
 	define('STATUS_ACTIVE', 1);
 	define('STATUS_INACTIVE', 2);
 	define('STATUS_DELETED', 3);
+	define('CF_FIELD_TYPE_TEXT', 1);
+	define('CF_FIELD_TYPE_TEXTAREA', 2);
+	define('CF_FIELD_TYPE_DROPDOWN', 3);
+	define('CF_FIELD_TYPE_RADIO', 4);
+	define('CF_FIELD_TYPE_CHECKBOX', 5);
+	define('CF_FIELD_TYPE_DATE', 6);
+	define('CF_FIELD_REQUIRED_YES', 1);
+	define('CF_FIELD_REQUIRED_NO', 2);
 
-
-
-
+	define('CF_FIELD_ACTION_SHOW', 'show');
+	define('CF_FIELD_ACTION_HIDE', 'hide');
 ?>
 
 

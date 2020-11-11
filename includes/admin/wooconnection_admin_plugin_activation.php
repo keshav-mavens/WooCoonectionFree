@@ -21,8 +21,8 @@ if(!empty($pluginActivationDetails['plugin_activation_status']) && $pluginActiva
 </div>
 <div class="righttextInner"> 
 	<span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span>
-	<h5>Enter activation email and activation key to activate a plugin.</h5>
-	<div class="form-area">
+	<h5>Enter your email and activation key to activate WooConnection. Your activation key was emailed to you after you purchased the plugin.</h5>
+    <div class="form-area">
 		<form action="" method="post" id="activation_setup_form" onsubmit="return false">
 			<input type="hidden" name="activationEmail" id="activationEmail" value="<?php echo $pluginEmail; ?>">
 			<input type="hidden" name="activationKey" id="activationKey" value="<?php echo $pluginKey; ?>">

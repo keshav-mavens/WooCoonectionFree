@@ -399,52 +399,249 @@ function wc_save_cfield_group()
 }
 
 //Wordpress hook : This action is triggered when user click on  custom fields tab then loads tha custom fields group and its related fields.
-add_action( 'wp_ajax_loading_custom_fields', 'loading_custom_fields');
-//Function Definiation : loading_custom_fields
-function loading_custom_fields()
+add_action( 'wp_ajax_wc_loading_cfields', 'wc_loading_cfields');
+//Function Definiation : wc_loading_cfields
+function wc_loading_cfields()
 {
-	$htmldata = get_custom_fields_listing_with_groups();
+	$htmldata = get_cfields_groups();
 	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'htmldata'=>$htmldata));
 	die();
 }
 
 //get the custom field groups.....
-function get_custom_fields_listing_with_groups(){
+function get_cfields_groups(){
   global $wpdb,$table_prefix;
   $table_name = 'wooconnection_custom_field_groups';
   $wp_table_name = $table_prefix . "$table_name";
-  $customFieldGroups = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_custom_field_group_status=".STATUS_ACTIVE." ORDER BY wc_custom_field_sort_order ASC");
+  $customFieldGroups = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_custom_field_group_status !=".STATUS_DELETED." ORDER BY wc_custom_field_sort_order ASC");
   $customFieldsListing = "";
   if(isset($customFieldGroups) && !empty($customFieldGroups)){
     foreach ($customFieldGroups as $key => $value) {
         if(!empty($value->id)){
-        	$custom_fields_html = '';//get_custom_fields_by_groupid($value->id);
-        	$customFieldsListing .=  '<li class="group-list" id="'.$value->id.'"><span class="group-name">'.$value->wc_custom_field_group_name.'<span class="controls"><i class="fa fa-plus add_new_group_field" title="Add custom field to this group" data-id="'.$value->id.'"></i>
-        		<i class="fa fa-pencil edit_group_details" title="Edit custom field group details" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_group" title="Delete custom field group" data-id="'.$value->id.'"></i><i class="fa fa-eye-slash" aria-hidden="true"></i></span></span>'.$custom_fields_html.'</li>';
+        	$custom_fields_html = get_cfields($value->id);
+        	if($value->wc_custom_field_group_status == STATUS_ACTIVE){
+        		$showhidehtml = '<i class="fa fa-eye showhidecfieldgroup" title="Hide custom field group with its custom fields" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i>';
+        	}else{
+        		$showhidehtml = '<i class="fa fa-eye-slash showhidecfieldgroup" title="Show custom field group with its custom fields" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
+        	}
+        	
+        	$customFieldsListing .=  '<li class="group-list" id="'.$value->id.'"><span class="group-name">'.$value->wc_custom_field_group_name.'<span class="controls"><i class="fa fa-plus addgroupcfield" title="Add custom field to this group" data-id="'.$value->id.'"></i>
+        		<i class="fa fa-pencil editcfieldgroup" title="Edit custom field group details" data-id="'.$value->id.'">
+        		</i>'.$showhidehtml.'<i class="fa fa-times deletecfieldgroup" title="Delete custom field group" data-id="'.$value->id.'"></i></span></span>'.$custom_fields_html.'</li>';
         }
     }
   }
   return $customFieldsListing;
 }
 
-// //get the group custom fields by group id.,....
-// function get_custom_fields_by_groupid($groupid){
-// 	global $wpdb,$table_prefix;
-// 	$custom_fields_table_name = 'wooconnection_custom_fields';
-//  	$wp_custom_fields = $table_prefix . "$custom_fields_table_name";
-// 	$customFieldsHtml = '';
-// 	if(!empty($groupid)){
-// 		$customFields = $wpdb->get_results("SELECT * FROM ".$wp_custom_fields." WHERE wc_cf_group_id = ".$groupid." and wc_cf_status=".STATUS_ACTIVE." ORDER BY wc_cf_sort_order ASC");
-// 		if(isset($customFields) && !empty($customFields)){
-// 			$customFieldsHtml .= '<ul class="group-fields group_custom_field_'.$groupid.'">';
-// 			foreach ($customFields as $key => $value) {
-// 				$customFieldsHtml .= '<li class="group-field" id="'.$value->id.'">'.$value->wc_cf_name.'<span class="controls"><i class="fa fa-pencil edit_current_form_fields" title="Edit Current Custom Field" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_field" title="Edit Current Custom Field" data-id="'.$value->id.'"></i></span></li>';
-// 			}
-// 			$customFieldsHtml .= '</ul>';
-// 		}
-// 	}
-// 	return $customFieldsHtml;
-// }
+//get the group custom fields by group id.,....
+function get_cfields($groupid){
+	global $wpdb,$table_prefix;
+	$cfields_table_name = 'wooconnection_custom_fields';
+ 	$cfields_table_name = $table_prefix . "$cfields_table_name";
+	$customFieldsHtml = '';
+	if(!empty($groupid)){
+		$customFields = $wpdb->get_results("SELECT * FROM ".$cfields_table_name." WHERE wc_cf_group_id = ".$groupid." and wc_cf_status!=".STATUS_DELETED." ORDER BY wc_cf_sort_order ASC");
+		if(isset($customFields) && !empty($customFields)){
+			$customFieldsHtml .= '<ul class="group-fields group_custom_field_'.$groupid.'">';
+			foreach ($customFields as $key => $value) {
+				if($value->wc_cf_status == STATUS_ACTIVE){
+	        		$showhidehtml = '<i class="fa fa-eye showhidecfield" title="Hide custom field" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i>';
+	        	}else{
+	        		$showhidehtml = '<i class="fa fa-eye-slash showhidecfield" title="Show custom field" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
+	        	}
+				$customFieldsHtml .= '<li class="group-field" id="'.$value->id.'">'.$value->wc_cf_name.'<span class="controls"><i class="fa fa-pencil editcfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i>'.$showhidehtml.'<i class="fa fa-times deletecfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i></span></li>';
+			}
+			$customFieldsHtml .= '</ul>';
+		}
+	}
+	return $customFieldsHtml;
+}
 
+//Wordpress hook : This action is triggered when user try to delete custom field group.....
+add_action( 'wp_ajax_wc_delete_cfield_group', 'wc_delete_cfield_group');
+//Function Definiation : wc_delete_cfield_group
+function wc_delete_cfield_group()
+{
+	if(isset($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupId'])){
+		global $table_prefix, $wpdb;
+       	$cfield_group_table_name = 'wooconnection_custom_field_groups';
+        $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
+        $updateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_group_status' => STATUS_DELETED),array('id' => $_POST['cfieldgroupId']));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
+
+//Wordpress hook : This action is triggered when user try to edit the custom field group......
+add_action( 'wp_ajax_wc_get_cfield_group', 'wc_get_cfield_group');
+//Function Definiation : wc_get_cfield_group
+function wc_get_cfield_group()
+{
+	if(isset($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupId']))
+	{
+		global $table_prefix, $wpdb;
+       	$cfield_group_table_name = 'wooconnection_custom_field_groups';
+        $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
+        $cfieldgroup = $wpdb->get_results("SELECT * FROM ".$cfield_group_table_name." WHERE id=".$_POST['cfieldgroupId']." and wc_custom_field_group_status =".STATUS_ACTIVE);
+        if(isset($cfieldgroup) && !empty($cfieldgroup)){
+        	$cfieldgroupname = "";
+        	if(!empty($cfieldgroup[0]->wc_custom_field_group_name)){
+        		$cfieldgroupname = $cfieldgroup[0]->wc_custom_field_group_name;
+        	}
+        	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldgroupname'=>$cfieldgroupname));	
+        }	
+	}
+	die();
+}
+
+
+//Wordpress hook : This action is triggered when user try to delete custom field group.....
+add_action( 'wp_ajax_wc_update_cfieldgroup_showhide', 'wc_update_cfieldgroup_showhide');
+//Function Definiation : wc_update_cfieldgroup_showhide
+function wc_update_cfieldgroup_showhide()
+{
+	if(isset($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupactiontype'])){
+		global $table_prefix, $wpdb;
+       	$cfield_group_table_name = 'wooconnection_custom_field_groups';
+        $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
+		if($_POST['cfieldgroupactiontype'] == CF_FIELD_ACTION_SHOW){
+			$status = STATUS_ACTIVE;
+		}elseif ($_POST['cfieldgroupactiontype'] == CF_FIELD_ACTION_HIDE) {
+			$status = STATUS_INACTIVE;
+		}
+		$updateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_group_status' => $status),array('id' => $_POST['cfieldgroupId']));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
+
+//Wordpress hook : This action is triggered when user try to add new custom field.
+add_action( 'wp_ajax_wc_save_groupcfield', 'wc_save_groupcfield');
+//Function Definiation : wc_save_groupcfield
+function wc_save_groupcfield()
+{
+	if(isset($_POST) && !empty($_POST)){
+		global $table_prefix, $wpdb;
+		$cfields_table_name = 'wooconnection_custom_fields';
+    	$cfields_table_name = $table_prefix . "$cfields_table_name";
+		
+		$cfields_array = array();
+		if(isset($_POST['cfieldname']) && !empty($_POST['cfieldname'])){
+			$cfields_array['wc_cf_name'] = trim($_POST['cfieldname']);
+		}
+		if(isset($_POST['cfieldtype']) && !empty($_POST['cfieldtype'])){
+			$cfields_array['wc_cf_type'] = $_POST['cfieldtype'];
+			if($_POST['cfieldtype'] == CF_FIELD_TYPE_DROPDOWN || $_POST['cfieldtype'] == CF_FIELD_TYPE_RADIO)
+			{
+	         	$infoCustom = array();
+	         	$string_version = '';
+	         	if(isset($_POST['cfieldoptionvalue']) && !empty($_POST['cfieldoptionvalue']) && isset($_POST['cfieldoptionlabel']) && !empty($_POST['cfieldoptionlabel']))
+				{
+				    $contact_custom_fields_value = $_POST['cfieldoptionvalue'];
+				    $contact_custom_fields_label = $_POST['cfieldoptionlabel'];
+				    if(count($contact_custom_fields_value) > 0)
+				    {               
+				        for( $i = 1; $i <= count($contact_custom_fields_value); $i++)
+				        {
+				            $infoCustom[] =  $contact_custom_fields_value[$i].'#'.$contact_custom_fields_label[$i];
+				        }
+				    }
+				}
+	            if(isset($infoCustom) && !empty($infoCustom)){
+	            	$string_version = implode('@', $infoCustom);
+	            	if ($string_version != ''){
+	            		$cfields_array['wc_cf_options'] = $string_version;
+	            	}
+	            }
+	            if(isset($_POST['cfielddefault2value']) && !empty($_POST['cfielddefault2value'])){
+	            	$cfields_array['wc_cf_default_value'] = trim($_POST['cfielddefault2value']);
+	            }
+	     		
+	     	}else if ($_POST['customfieldtype'] == CF_FIELD_TYPE_CHECKBOX) {
+	     		if(isset($_POST['cfielddefault1value'])){
+	            	$cfields_array['wc_cf_default_value'] = trim($_POST['cfielddefault1value']);
+	            }
+	     	}
+		}
+		if(isset($_POST['cfieldmandatory']) && !empty($_POST['cfieldmandatory'])){
+			$cfields_array['wc_cf_mandatory'] = $_POST['cfieldmandatory'];
+		}
+		if(isset($_POST['cfieldplaceholder']) && !empty($_POST['cfieldplaceholder'])){
+			$cfields_array['wc_cf_placeholder'] = trim($_POST['cfieldplaceholder']);
+		}
+		if(isset($_POST['cfieldmapping']) && !empty($_POST['cfieldmapping'])){
+			
+			$mappedInputData = trim($_POST['cfieldmapping']);
+			if(strpos($mappedInputData, "FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":") !== false) {
+				$arrayData = explode("FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":", $mappedInputData);
+				$mappedData = $arrayData[1];
+				$cfields_array['wc_cf_mapped_field_type'] = CUSTOM_FIELD_FORM_TYPE_CONTACT;
+			}elseif (strpos($mappedInputData, "FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":") !== false) {
+				$arrayData = explode("FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":", $mappedInputData);
+				$mappedData = $arrayData[1];
+				$cfields_array['wc_cf_mapped_field_type'] = CUSTOM_FIELD_FORM_TYPE_ORDER;
+			}
+			$cfields_array['wc_cf_mapped'] = $mappedData;
+		}
+		
+		if(isset($_POST['cfieldid']) && !empty($_POST['cfieldid'])){
+			$result_check_update = $wpdb->update($cfields_table_name,$cfields_array,array('id' => $_POST['cfieldid']));
+			echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+		}else{
+			if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
+				if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
+					$cfields_array['wc_cf_group_id'] = $_POST['cfieldparentgroupid'];
+				}
+				$result_check_custom_field = $wpdb->insert($cfields_table_name,$cfields_array);
+				if($result_check_custom_field){
+				   	$lastInsertId = $wpdb->insert_id;
+				   	if(!empty($lastInsertId)){
+				   		$updateResult = $wpdb->update($cfields_table_name, array('wc_cf_sort_order' => $lastInsertId),array('id' => $lastInsertId));
+				   	}
+				}
+				echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+			}
+		}
+		
+	}
+	die();
+}
+
+//Wordpress hook : This action is triggered when user try to delete custom field group.....
+add_action( 'wp_ajax_wc_update_cfield_showhide', 'wc_update_cfield_showhide');
+//Function Definiation : wc_update_cfield_showhide
+function wc_update_cfield_showhide()
+{
+	if(isset($_POST['cfieldId']) && !empty($_POST['cfieldId']) && !empty($_POST['cfieldactiontype'])){
+		global $table_prefix, $wpdb;
+       	$cfield_table_name = 'wooconnection_custom_fields';
+        $cfield_table_name = $table_prefix . "$cfield_table_name";
+		if($_POST['cfieldactiontype'] == CF_FIELD_ACTION_SHOW){
+			$status = STATUS_ACTIVE;
+		}elseif ($_POST['cfieldactiontype'] == CF_FIELD_ACTION_HIDE) {
+			$status = STATUS_INACTIVE;
+		}
+		$updateResult = $wpdb->update($cfield_table_name, array('wc_cf_status' => $status),array('id' => $_POST['cfieldId']));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
+
+
+//Wordpress hook : This action is triggered when user try to delete custom field .....
+add_action( 'wp_ajax_wc_delete_cfield', 'wc_delete_cfield');
+//Function Definiation : wc_delete_cfield
+function wc_delete_cfield()
+{
+	if(isset($_POST['cfieldId']) && !empty($_POST['cfieldId'])){
+		global $table_prefix, $wpdb;
+		$cfield_table_name = 'wooconnection_custom_fields';
+    	$cfield_table_name = $table_prefix . "$cfield_table_name";
+		$updateResult = $wpdb->update($cfield_table_name, array('wc_cf_status' => STATUS_DELETED),array('id' => $_POST['cfieldId']));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
 
 ?>

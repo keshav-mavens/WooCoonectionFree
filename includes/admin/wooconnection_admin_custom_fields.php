@@ -59,6 +59,107 @@ span.closeCfModel {
 						</div>
 				   	</form>
 				</div>
+				<div class="hide customfields">
+					<form action="" method="post" id="form_cfield" onsubmit="return false">
+						<input type="hidden" name="cfieldparentgroupid" id="cfieldparentgroupid" value="" />
+						<input type="hidden" name="cfieldid" id="cfieldid" value="" />
+						<h5 class="text-left cfieldtitle">Add Custom Field</h5>
+						<div class="form-group row">
+							<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom Field Name</label>
+							<div class="col-lg-10 col-md-9 col-sm-12 col-12">
+								<input class="form-control" type="text" name="cfieldname" id="cfieldname" placeholder="Custom Field Name">
+								<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry</div>
+							</div>
+						</div>
+						<div class="form-group row">
+							<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom Field Type</label>
+							<div class="col-lg-10 col-md-9 col-sm-12 col-12">
+								<select name="cfieldtype" id="cfieldtype">
+									<option value = "<?php echo CF_FIELD_TYPE_TEXT ?>" data-id="input-type-<?php echo CF_FIELD_TYPE_TEXT; ?>">Field Input Type Text</option>
+									<option value = "<?php echo CF_FIELD_TYPE_TEXTAREA ?>" data-id="input-type-<?php echo CF_FIELD_TYPE_TEXTAREA; ?>">Field Input Type Text Area</option>
+									<option value = "<?php echo CF_FIELD_TYPE_DROPDOWN ?>" data-id="input-type-<?php echo CF_FIELD_TYPE_DROPDOWN; ?>">Field Input Type Select</option>
+									<option value = "<?php  echo CF_FIELD_TYPE_RADIO ?>" data-id="input-type-<?php echo CF_FIELD_TYPE_RADIO; ?>">Field Input Type Radio</option>
+									<option  value = "<?php  echo  CF_FIELD_TYPE_CHECKBOX ?>" data-id="input-type-<?php echo CF_FIELD_TYPE_CHECKBOX; ?>">Field Input Type Checkbox(Yes / No)</option>
+									<option value = "<?php  echo  CF_FIELD_TYPE_DATE ?>"  data-id="input-type-<?php echo CF_FIELD_TYPE_DATE; ?>">Field Input Type Date</option>
+								</select>
+								<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry</div>
+							</div>
+						</div>
+						<div class="form-group row input-type-<?php echo CF_FIELD_TYPE_DROPDOWN; ?> input-type-<?php echo CF_FIELD_TYPE_RADIO; ?> externalcfields" style="display:  none;">
+							<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom Field Related Options </label>
+							<div class="col-lg-10 col-md-9 col-sm-12 col-12">
+								<div class="row">
+									<div class="col-lg-6"><input type="text" name="cfieldoptionvalue[1]" placeholder="Field Value" id="cfieldoptionvalue" required></div>
+									<div class="col-lg-5"><input type="text" name="cfieldoptionlabel[1]" placeholder="Field Label" id="cfieldoptionlabel" required></div>
+									<div class="col-lg-1"><span type="button" class="addcfieldoptions"><i class="fa fa-plus"></i></span></div>
+								</div>
+							</div>
+						</div>
+						<div class="morecfieldoptions">
+						</div>
+						<div  class="form-group row input-type-<?php echo CF_FIELD_TYPE_CHECKBOX; ?> externalcfields" style="display:  none;">
+							<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom  Field Default Value</label>
+							<div class="col-lg-10 col-md-9 col-sm-12 col-12">
+								<select name="cfielddefault1value" id="cfielddefault1value"><option value="0">no</option><option value="1">yes</option></select>
+								<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry</div>
+							</div>
+						</div>
+						<div class="form-group row input-type-<?php echo CF_FIELD_TYPE_DROPDOWN; ?> input-type-<?php echo CF_FIELD_TYPE_RADIO; ?> externalcfields" style="display:  none;">
+							<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom  Field Default Value</label>
+							<div class="col-lg-10 col-md-9 col-sm-12 col-12">
+								<input id="cfielddefault2value" name="cfielddefault2value" type="text" value="" placeholder="Optional">
+								<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry</div>
+							</div>
+						</div>
+						<div class="form-group row input-type-<?php echo CF_FIELD_TYPE_TEXT; ?> input-type-<?php echo CF_FIELD_TYPE_TEXTAREA; ?> input-type-<?php echo CF_FIELD_TYPE_DATE; ?> externalcfields">
+							<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom  Field Placeholder</label>
+							<div class="col-lg-10 col-md-9 col-sm-12 col-12">
+								<input name="cfieldplaceholder" id="cfieldplaceholder" type="text" value="" placeholder="Optional" /><br>
+								<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry</div>
+							</div>
+						</div>
+						<div class="form-group row">
+							<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom  Field Required?</label>
+							<div class="col-lg-10 col-md-9 col-sm-12 col-12">
+								<select name="cfieldmandatory" id="cfieldmandatory">
+									<option value="<?php echo CF_FIELD_REQUIRED_NO; ?>" selected="">no</option>
+									<option value="<?php echo CF_FIELD_REQUIRED_YES; ?>">yes</option>
+								</select>
+								<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry</div>
+							</div>
+						</div>
+						<div class="form-group row">
+							<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom  Field Mapped</label>
+							<div class="col-lg-10 col-md-9 col-sm-12 col-12">
+								<select name="cfieldmapping" id="cfieldmapping" class="cfieldmappingwith">
+									<option value=""></option>
+									<?php 
+										$fieldOptions = "";
+										foreach($preDefinedCustomFields as $key => $value) {
+											$fieldOptions .= "<optgroup label=\"$key\">";
+											foreach($value as $key1 => $value1) {
+												$optionSelected = "";
+												$fieldOptions .= '<option value="'.$key1.'"'.$optionSelected.'>'.$value1.'</option>';
+											}
+											$fieldOptions .= "</optgroup>";
+										}
+										echo $fieldOptions;
+									?>
+								</select>
+								<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry</div>
+							</div>
+						</div>
+						<div class="row m-t-40">
+							<div class="col-md-12 text-right">
+								<div class="buttonloading savinggroupcfield" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Saving....</div>
+								<div class="alert-error-message groupcfielderror" style="display: none;"></div>
+								<div class="alert-sucess-message groupcfieldsuccess" style="display: none;">Custom fields saved successfully.</div>
+								<input type="button" value="Cancel" class="btn btn-primary btn-radius btn-theme-default restoregroupcfields" data-id="form_cfield">
+								<input type="button" value="Save" class="btn btn-primary btn-radius btn-theme savingGroupCfieldBtn" onclick="savegroupcfield()">
+							</div>
+						</div>
+					</form>
+				</div>
 	  		</div>
 			<?php }else{
               echo $checkAuthenticationStatus;
@@ -120,7 +221,7 @@ span.closeCfModel {
 					<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom field tab</label>
 					<div class="col-lg-10 col-md-9 col-sm-12 col-12">
 						<select name="cftab" id="cftab" class="">
-							<?php echo cfRelatedTabs(); ?>
+							<!-- <?php //echo cfRelatedTabs(); ?> -->
 						</select>
 						<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
 					</div>
@@ -130,7 +231,7 @@ span.closeCfModel {
 					<div class="col-lg-10 col-md-9 col-sm-12 col-12">
 						<select name="cfheader" id="cfheader" class="">
 							<!-- <option value="">Select header</option> -->
-							<?php echo cfRelatedHeaders(); ?>
+							<!-- <?php //echo cfRelatedHeaders(); ?> -->
 						</select>
 						<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
 					</div>
@@ -149,3 +250,15 @@ span.closeCfModel {
 		</div>
   	</div>
 </div>
+<script type="text/javascript">
+	//below 6 is related to the custom fields types...
+	var CF_FIELD_TYPE_TEXT = '<?php echo CF_FIELD_TYPE_TEXT ?>';
+	var CF_FIELD_TYPE_TEXTAREA = '<?php echo CF_FIELD_TYPE_TEXTAREA ?>';
+	var CF_FIELD_TYPE_DROPDOWN = '<?php echo CF_FIELD_TYPE_DROPDOWN ?>';
+	var CF_FIELD_TYPE_RADIO = '<?php echo CF_FIELD_TYPE_RADIO ?>';
+	var CF_FIELD_TYPE_CHECKBOX = '<?php echo CF_FIELD_TYPE_CHECKBOX ?>';
+	var CF_FIELD_TYPE_DATE = '<?php echo CF_FIELD_TYPE_DATE ?>';
+
+	var CF_FIELD_ACTION_SHOW = '<?php echo CF_FIELD_ACTION_SHOW ?>';
+	var CF_FIELD_ACTION_HIDE = '<?php echo CF_FIELD_ACTION_HIDE ?>';
+</script>

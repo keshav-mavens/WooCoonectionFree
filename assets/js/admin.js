@@ -98,9 +98,15 @@
                         if($('#form_cfield_group').length){
                             validateForms('form_cfield_group');
                         }
+
                         //Custom fields Group : Load fields group and its custom fields...
                         if(jQuery(".custom_fields_main_html").length) {
                             loadingCustomFields();
+                        }
+
+                        //validate a "form_cfield_group" form.....
+                        if($('#form_cfield').length){
+                            validateForms('form_cfield');
                         }
                         
                     });
@@ -313,18 +319,202 @@
                 $("#form_cfield_group").validate().resetForm();
             });
 
-            $document.on("click",".restorecfieldGroups",function(event) {
+            $document.on("click",".restorecfieldGroups, .restoregroupcfields",function(event) {
                 event.stopPropagation();
-                // option_counter = 1;
-                var current_form_id = $(this).data('id');
-                if(current_form_id !== '' && current_form_id !== null){
-                    $("#"+current_form_id)[0].reset();
-                    $("#"+current_form_id).validate().resetForm();
+                // cfieldoptioncount = 1;
+                var form = $(this).data('id');
+                if(form !== '' && form !== null){
+                    $("#"+form)[0].reset();
+                    $("#"+form).validate().resetForm();
                 }
                 $('.custom_fields_main_html').toggle();
                 $('.hide').hide();
             });
 
+            $document.on("click",".addgroupcfield",function(event) {
+                event.stopPropagation();
+                var cfieldgroupId = $(this).data('id');
+                if(cfieldgroupId > 0){
+                    $("#cfieldparentgroupid").val(cfieldgroupId)
+                }
+                jQuery("#cfieldid").val('');
+                $(".cfieldtitle").html('Add Custom Field');
+                $('#cfieldtype').val('1').trigger('change');
+                $(".more-options").html('');
+                $("#form_cfield")[0].reset();
+                $("#form_cfield").validate().resetForm();
+                $('.customfields,.custom_fields_main_html').toggle();
+            });
+
+           
+            $document.on("click",".deletecfieldgroup",function(event) {
+                event.stopPropagation();
+                var cfieldgroupId = $(this).data('id');
+                if(cfieldgroupId > 0 ){
+                    swal({
+                        title: "Are you sure to delete this custom field group?",
+                        text: "You will not be able to recover!",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Yes",
+                        cancelButtonText: "cancel",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            jQuery(".tab_related_content").addClass('overlay');
+                            jQuery.post(ajax_object.ajax_url + "?action=wc_delete_cfield_group&jsoncallback=x", {cfieldgroupId: cfieldgroupId}, function(data) {
+                                jQuery(".tab_related_content").removeClass('overlay');
+                                var responsedata = JSON.parse(data);
+                                if(responsedata.status == "1") {
+                                    loadingCustomFields();
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
+
+
+            $document.on("change","#cfieldtype",function(event){
+                event.stopPropagation();
+                var inputType = $(this).find(':selected').data('id');
+                if(inputType != "" && inputType !== null){
+                    $(".externalcfields").hide();
+                    $("."+inputType).show();
+                }
+            });
+
+            var cfieldoptionsmaxlen  = 15;
+            var cfieldoptioncount = 1;
+            $document.on("click",".addcfieldoptions",function(event){
+                event.stopPropagation();
+                if(cfieldoptioncount < cfieldoptionsmaxlen){
+                   cfieldoptioncount++;
+                   $(".morecfieldoptions")
+                   .append('<div class="form-group row cfieldoptions_'+cfieldoptioncount+'"><label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label"></label><div class="col-lg-10 col-md-9 col-sm-12 col-12"><div class="row"><div class="col-lg-6"><input type="text" name="cfieldoptionvalue[' + cfieldoptioncount + ']" placeholder="Field Value" required id="cfieldoptionvalue_'+cfieldoptioncount+'"></div><div class="col-lg-5"><input type="text" name="cfieldoptionlabel[' + cfieldoptioncount + ']" placeholder="Field Label" id="cfieldoptionlabel_'+cfieldoptioncount+'" required></div><div class="col-lg-1 removecfieldoptions" data-target="cfieldoptions_'+cfieldoptioncount+'"><i class="fa fa-trash"></i></div></div></div></div>');
+                }
+            });
+            
+            $document.on("click",".removecfieldoptions", function(event){
+               event.stopPropagation();
+               var cfieldoption = $(this).data("target");
+               $('.'+cfieldoption).remove();
+               cfieldoptioncount--;
+            });
+
+            $document.on("click",".editcfieldgroup",function(event) {
+                event.stopPropagation();
+                var cfieldgroupId = $(this).data("id");
+                if(cfieldgroupId > 0){
+                    jQuery("#cfieldgroupid").val(cfieldgroupId);
+                    $(".cfieldgrouptitle").html('Edit Custom Field Group');
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_get_cfield_group",{cfieldgroupId:cfieldgroupId}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            if(responsedata.cfieldgroupname != "" && responsedata.cfieldgroupname !== null){
+                                jQuery("#cfieldgroupname").val(responsedata.cfieldgroupname);
+                            }
+                        }
+                    });
+                }
+                $('.customfieldgroup,.custom_fields_main_html').toggle();
+            });
+            
+            $document.on("click",".showhidecfieldgroup",function(event) {
+                event.stopPropagation();
+                var cfieldgroupId = $(this).data('id');
+                var cfieldgroupactiontype = $(this).data("target");
+                if(cfieldgroupId > 0 ){
+                    swal({
+                        title: "Are you sure to "+cfieldgroupactiontype+" this group with all custom fields of it?",
+                        text: "You will not be able to recover!",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Yes",
+                        cancelButtonText: "cancel",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            jQuery(".tab_related_content").addClass('overlay');
+                            jQuery.post(ajax_object.ajax_url + "?action=wc_update_cfieldgroup_showhide&jsoncallback=x", {cfieldgroupId: cfieldgroupId,cfieldgroupactiontype:cfieldgroupactiontype}, function(data) {
+                                jQuery(".tab_related_content").removeClass('overlay');
+                                var responsedata = JSON.parse(data);
+                                if(responsedata.status == "1") {
+                                    loadingCustomFields();
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
+
+            $document.on("click",".showhidecfield",function(event) {
+                event.stopPropagation();
+                var cfieldId = $(this).data('id');
+                var cfieldactiontype = $(this).data("target");
+                if(cfieldId > 0 ){
+                    swal({
+                        title: "Are you sure to "+cfieldactiontype+" this custom field ?",
+                        text: "You will not be able to recover!",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Yes",
+                        cancelButtonText: "cancel",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            jQuery(".tab_related_content").addClass('overlay');
+                            jQuery.post(ajax_object.ajax_url + "?action=wc_update_cfield_showhide&jsoncallback=x", {cfieldId: cfieldId,cfieldactiontype:cfieldactiontype}, function(data) {
+                                jQuery(".tab_related_content").removeClass('overlay');
+                                var responsedata = JSON.parse(data);
+                                if(responsedata.status == "1") {
+                                    loadingCustomFields();
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
+
+            //on click of "*" icon of group delete the custom field....
+            $document.on("click",".deletecfield",function(event) {
+                event.stopPropagation();
+                var cfieldId = $(this).data('id');
+                if(cfieldId > 0 ){
+                    swal({
+                        title: "Are you sure to delete this custom field ?",
+                        text: "You will not be able to recover!",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Yes",
+                        cancelButtonText: "cancel",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            jQuery(".tab_related_content").addClass('overlay');
+                            jQuery.post(ajax_object.ajax_url + "?action=wc_delete_cfield&jsoncallback=x", {cfieldId: cfieldId}, function(data) {
+                                jQuery(".tab_related_content").removeClass('overlay');
+                                var responsedata = JSON.parse(data);
+                                if(responsedata.status == "1") {
+                                    loadingCustomFields();
+                                }
+                            });
+                        }
+                    });
+                }
+            });
         });
 }(jQuery));
 
@@ -415,6 +605,20 @@ function validateForms(form){
                 }
             }); 
         }
+        
+        //check form is custom fields form then validate it..
+        if(form == "form_cfield"){
+            $("#"+form).validate({
+                rules:{
+                      cfieldname: "required",
+                    },
+                messages:{
+                    cfieldname: {
+                        required: 'Please enter custom field name!'
+                    }
+                }
+            }); 
+        }
     }
 }
 
@@ -501,7 +705,7 @@ function popupEditDetails(triggerid){
                 jQuery("#edittriggerid").val(triggerid);
                 if(responsedata.triggerGoalName != ""){
                     jQuery(".trigger_goal_name").html('');
-                    jQuery(".trigger_goal_name").html(responsedata.triggerGoalName);
+                    jQuery(".trigger_goal_name").html('Edit ' + responsedata.triggerGoalName + ' Trigger');
                 }
                 if(responsedata.triggerIntegrationName != ""){
                     jQuery("#integrationname").val(responsedata.triggerIntegrationName);
@@ -590,6 +794,11 @@ function applyDatables(tabel_id){
                     "ordering": false,
                     drawCallback: function(dt) {
                       applySelectTwo('wc_iskp_products_dropdown');
+                        if ($('.all_products_checkbox_export').is(":checked"))
+                        {
+                            $('.all_products_checkbox_export').prop("checked", false);
+                        }
+                        $('.each_product_checkbox_export').prop("checked", false);
                     }
                 });
             }
@@ -608,6 +817,11 @@ function applyDatables(tabel_id){
                     "ordering": false,
                     drawCallback: function(dt) {
                       applySelectTwo('application_match_products_dropdown');
+                        if ($('.all_products_checkbox_match').is(":checked"))
+                        {
+                            $('.all_products_checkbox_match').prop("checked", false);
+                        }
+                        $('.each_product_checkbox_match').prop("checked", false);
                     }
                 });
             }
@@ -819,7 +1033,7 @@ function savecfieldGroup(){
 function loadingCustomFields(){
     $(".loading_custom_fields").show();
     jQuery(".tab_related_content").addClass('overlay');
-    jQuery.post(ajax_object.ajax_url+"?action=loading_custom_fields&jsoncallback=x", {}, function(data) {
+    jQuery.post(ajax_object.ajax_url+"?action=wc_loading_cfields&jsoncallback=x", {}, function(data) {
         var responsedata = JSON.parse(data);
         $(".loading_custom_fields").hide();
         jQuery(".tab_related_content").removeClass('overlay');
@@ -853,3 +1067,62 @@ function loadingCustomFields(){
 }
 
 
+
+function savegroupcfield(){
+    if($('#form_cfield').valid()){
+        if(!$(".groupcfielderror").is(":visible")){
+            $(".savinggroupcfield").show(); 
+        }else{
+            $(".groupcfielderror").hide();
+            $(".savinggroupcfield").show();       
+        }
+        $('.savingGroupCfieldBtn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_groupcfield",$('#form_cfield').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".savinggroupcfield").hide();
+            if(responsedata.status == "1") {
+                $('.add_custom_field,.main_rendered').toggle();
+                $('.savingGroupCfieldBtn').removeClass("disable_anchor");
+                loadingCustomFields();
+            }else{
+                $(".groupcfielderror").show();
+                $(".groupcfielderror").html('Something Went Wrong');
+            }
+            setTimeout(function()
+            {
+                $('.groupcfielderror').fadeOut("slow");
+                $('.savingGroupCfieldBtn').removeClass("disable_anchor");
+            }, 3000);
+        });  
+    }
+}
+
+function sortabledivs(element){
+    if(element != ""){
+        if(element == 'main-group'){
+            jQuery( "."+element ).sortable({
+               update: function( event, ui ) {
+                    jQuery.post( ajax_object.ajax_url + "?action=update_custom_field_groups_order",{order: $(".main-group").sortable('toArray')}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            loadingCustomFields();
+                        }
+                    });
+                }
+            });    
+        }
+        else
+        {
+            jQuery( "."+element ).sortable({
+               update: function( event, ui ) {
+                    jQuery.post( ajax_object.ajax_url + "?action=update_custom_fields_order",{order: $("."+element).sortable('toArray')}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            loadingCustomFields();
+                        }
+                    });
+               }
+            });
+        }
+    }
+}

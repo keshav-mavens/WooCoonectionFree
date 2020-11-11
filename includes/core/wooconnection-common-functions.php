@@ -203,6 +203,16 @@ function compareWooProductsWithAppProducts($wooCommerceProducts,$applicationProd
 function exportProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
     $exportTableHtml  = '';//Define variable..
     $exportProductsData = array();//Define array...
+    //first need to check connection is created or not infusionsoft/keap application then next process need to done..
+    $applicationAuthenticationDetails = getAuthenticationDetails();
+    //get the access token....
+    $access_token = '';
+    if(!empty($applicationAuthenticationDetails)){
+      if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+          $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+      }
+    }
+
     //First check if wooproducts exist...
     if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
         //Create first table....
@@ -240,24 +250,34 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
                     if(isset($productExistId) && !empty($productExistId)){
-                      $productsDropDown = createApplicationProductsSelect($applicationProductsArray,$productExistId);
-                    }elseif (!empty($wcproductSku)) {//Then check product sku,If product sku exist then check product in application with same sku is exist ot not....
+                      $productName = getApplicationProductDetails($access_token,$productExistId);
+                      if(!empty($productName)){
+                          $productsDropDown = '<input type="hidden" value="'.$productExistId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productName;
+                      }else{
+                        $productsDropDown = 'Mapped Product Not Exist In App!';
+                      }
+                    }else if (!empty($wcproductSku)) {//Then check product sku,If product sku exist then check product in application with same sku is exist ot not....
                       $checkSkuMatchWithIskpProducts = checkProductMapping($wcproductSku,$applicationProductsArray); 
                       //if product/multiple products with same sku is exist then get the last matched product id.... 
                       if(isset($checkSkuMatchWithIskpProducts) && !empty($checkSkuMatchWithIskpProducts)){
                           $matchId =  end($checkSkuMatchWithIskpProducts);
                           //On the basis of match product id set the product selected and create html.....
                           if(!empty($matchId)){
-                              $productsDropDown = createApplicationProductsSelect($applicationProductsArray,$matchId);
+                            $productName = getApplicationProductDetails($access_token,$matchId);
+                            if(!empty($productName)){
+                                $productsDropDown = '<input type="hidden" value="'.$matchId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productName;
+                            }else{
+                              $productsDropDown = 'Mapped Product Not Exist In App!';
+                            }
                           }
                       }else{//If product with same sku is not exist, then create select without any product selected...
-                        $productsDropDown = createApplicationProductsSelect($applicationProductsArray);
+                        $productsDropDown = 'No mapping exist!';
                       }
                     }else{//If relation is not exist with product then create select without any product selected...
-                      $productsDropDown = createApplicationProductsSelect($applicationProductsArray);
+                      $productsDropDown = 'No mapping exist!';
                     }
                     //Create final select html.....
-                    $productSelectHtml = '<select class="wc_iskp_products_dropdown" name="wc_product_export_with_'.$wc_product_id.'" data-id="'.$wc_product_id.'"><option value="0">Select '.$applicationType.' product</option>'.$productsDropDown.'</select>';
+                    $productSelectHtml = $productsDropDown;
                 }else{
                   //Set the html of select if no products exist in application....
                   $productSelectHtml = 'No '.$applicationType.' Products Exist!';
@@ -289,7 +309,7 @@ function checkProductMapping($sku,$productsArray){
               //compare sku, if match the return the ids..
               if(isset($value['sku']) && !empty($value['sku'])){
                   if($value['sku'] == $sku){
-                    $matchProductsId[] = $value['id'];
+                    $matchProductsIds[] = $value['id'];
                   }    
               }
           }
@@ -297,29 +317,6 @@ function checkProductMapping($sku,$productsArray){
     }
     return $matchProductsIds;//Return array....
 }
-
-//create the infusionsoft products dropdown for mapping..........
-function createApplicationProductsSelect($applicationProducts,$relativeProduct=''){
-    $application_products_options_html = '';//Define variable...
-    if(isset($applicationProducts['products']) && !empty($applicationProducts['products'])){//check application products...
-        foreach($applicationProducts['products'] as $applicationProductDetails) {
-          $appProductId = $applicationProductDetails['id'];//get or set the product id....
-          $appProductName = $applicationProductDetails['product_name'];//get or set the product name....
-          $appProductSelected = "";
-          if(!empty($relativeProduct)){//if relation exist...
-              if($relativeProduct == $appProductId){//then compare the relation between products....
-                  $appProductSelected = "selected";//set product selected....
-              }else{
-                  $appProductSelected = "";
-              }
-          }
-          //create the final html.....
-          $application_products_options_html.= '<option value="'.$appProductId.'" '.$appProductSelected.' data-id="'.$appProductId.'">'.$appProductName.'</option>';
-        }
-    }
-    return $application_products_options_html;//return html...
-}
-
 
 //Function is used to check whether the plugin is activated or not if not activated then return "leftMenusDisable" class....
 function getPluginDetails(){
@@ -454,15 +451,7 @@ function createMatchProductsHtml(){
   //Define array to manage the sorting.....
   $wcproductsArray = array();
   //call the common function to get the list of woocommerce products they are in relation with application products.......
-  $wooCommerceProducts = listExistingExportedProducts();
-  //Sort the products ids , to manage the listing display.....
-  if(!empty($wooCommerceProducts)){
-      foreach ($wooCommerceProducts as $key => $row)
-      {
-          $wcproductsArray[$key] = $row;
-      }
-      array_multisort($wcproductsArray, SORT_DESC, $wooCommerceProducts);
-  }
+  $wooCommerceProducts = listExistingDatabaseWooProducts();
   
   //Get the application type and set the lable on the basis of it.... 
   $configurationType = applicationType();
@@ -474,17 +463,18 @@ function createMatchProductsHtml(){
       $type = APPLICATION_TYPE_KEAP_LABEL;
     }
   }
+
   //Set the application label on the basis of type...
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
   $applicationProductsArray = getApplicationProducts();
   
   //set html if no products exist in woocommerce they are in relation with applcation products....
-  if(empty($wcproductsArray)){
+  if(empty($wooCommerceProducts)){
     $table_match_products_html = '<p class="heading-text" style="text-align:center">No products mapping exist.</p>';
   }else{
       //Compare woocommerce publish products application products....
-      $matchProductsData = compareMatchProductsWithAppProducts($wcproductsArray,$applicationProductsArray,$applicationLabel);
+      $matchProductsData = compareMatchProductsWithAppProducts($wooCommerceProducts,$applicationProductsArray,$applicationLabel);
       //Check export products data....
       if(isset($matchProductsData) && !empty($matchProductsData)){
           //Get the match products table html and append to table
@@ -506,28 +496,6 @@ function createMatchProductsHtml(){
   //return the html...
   return $table_match_products_html;
 }
-
-//list of woocommerce products they are is relation with application products...
-function listExistingExportedProducts(){
-  global $wpdb;
-  //get the those products they are in relation with application products.....
-  $metaDetails = $wpdb->get_results("SELECT * FROM `".$wpdb->postmeta."` WHERE meta_key='is_kp_product_id'");
-  $exportProductIds = array();//Define array.....
-  if (isset($metaDetails) && !empty($metaDetails)){
-      foreach ($metaDetails as $key => $value) {
-        if(!empty($value->meta_value) && !empty($value->post_id)){//check meta value and post id....
-            $productId = $value->post_id;//product id.....
-            $productStatus = get_post_status( $productId );
-            if($productStatus == 'publish'){//check product status.....
-              $exportProductIds[] = $productId;
-            }
-        }
-      }
-  }
-  //Return array.....
-  return $exportProductIds;
-}
-
 
 //compare products of infusionsoft/keap with existing woocommerce products....
 function compareMatchProductsWithAppProducts($wooCommerceProducts,$applicationProductsArray,$applicationLabel)
@@ -562,7 +530,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
         $productExistId = '';
         foreach ($wooCommerceProducts as $key => $value) {
             if(!empty($value)){
-                $wc_product_id = $value;//Define product id...                  
+                $wc_product_id = $value->ID;//Define product id...                  
                 $wcproduct = wc_get_product($wc_product_id);//Get product details..
                 $wcproductPrice = $wcproduct->get_regular_price();//Get product price....
                 $currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
@@ -1302,6 +1270,40 @@ function addOrderItems($access_token,$orderid,$productId,$type,$price,$quan,$des
     }
 }
 
+//Function is used to get the product information from the the authenticate application.....
+function getApplicationProductDetails($access_token,$productId){
+    $productName = '';
+    if(!empty($access_token) && !empty($productId))
+    {
+        $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$productId;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url); //using the setopt function to send request to the url
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+        $response = curl_exec($ch); //executing request
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+           
+          }else{
+            if(!empty($sucessData['product_name'])){
+                $productName = $sucessData['product_name'];
+            }
+          }
+          return $productName;
+        }
+        curl_close($ch);  
+    }
+    return $productName;
+}
+
 //Custom fields : Get all latest custom fields from infusionsoft/keap application related to orders/contacts..........
 function getPredefindCustomfields(){
   //first need to check whether the application authentication is done or not..
@@ -1484,193 +1486,193 @@ function addCustomField($access_token,$formType,$fieldName,$fieldType,$fieldHead
   return $fieldId;
 }
 
-function cfRelatedTabs($form_type_id=""){
+// function cfRelatedTabs($form_type_id=""){
   
-  //first need to check whether the application authentication is done or not..
-  $applicationAuthenticationDetails = getAuthenticationDetails();
-  //get the access token....
-  $access_token = '';
-  if(!empty($applicationAuthenticationDetails)){//check authentication details......
-      if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
-          $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
-      }
-  }
-  //Infusion soft connection check
-  $tabRelatedOptions = '<option value="">Select tab</option>';
-  if(!empty($access_token)){
-    if(!empty($form_type_id)){
-      $form_type_id = $form_type_id;
-    }else{
-      $form_type_id = CUSTOM_FIELD_FORM_TYPE_CONTACT;
-    }
-    $relatedTabs = getTabs($access_token,$form_type_id);
-    if(isset($relatedTabs) && !empty($relatedTabs)){
-        foreach ($relatedTabs as $key => $value) {
-          $tabRelatedOptions.= '<option value="';
-          $tabRelatedOptions.= $value['Id'];
-          $tabRelatedOptions.= '">' . $value['TabName'];
-          $tabRelatedOptions .= '</option>';
-        }
-    }
+//   //first need to check whether the application authentication is done or not..
+//   $applicationAuthenticationDetails = getAuthenticationDetails();
+//   //get the access token....
+//   $access_token = '';
+//   if(!empty($applicationAuthenticationDetails)){//check authentication details......
+//       if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+//           $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+//       }
+//   }
+//   //Infusion soft connection check
+//   $tabRelatedOptions = '<option value="">Select tab</option>';
+//   if(!empty($access_token)){
+//     if(!empty($form_type_id)){
+//       $form_type_id = $form_type_id;
+//     }else{
+//       $form_type_id = CUSTOM_FIELD_FORM_TYPE_CONTACT;
+//     }
+//     $relatedTabs = getTabs($access_token,$form_type_id);
+//     if(isset($relatedTabs) && !empty($relatedTabs)){
+//         foreach ($relatedTabs as $key => $value) {
+//           $tabRelatedOptions.= '<option value="';
+//           $tabRelatedOptions.= $value['Id'];
+//           $tabRelatedOptions.= '">' . $value['TabName'];
+//           $tabRelatedOptions .= '</option>';
+//         }
+//     }
     
-  }
-  $tabRelatedOptions .= '</option>';
+//   }
+//   $tabRelatedOptions .= '</option>';
   
-  return $tabRelatedOptions;
-}
+//   return $tabRelatedOptions;
+// }
 
-function cfRelatedHeaders($tab_type_id=""){
-    //first need to check whether the application authentication is done or not..
-    $applicationAuthenticationDetails = getAuthenticationDetails();
-    //get the access token....
-    $access_token = '';
-    if(!empty($applicationAuthenticationDetails)){//check authentication details......
-        if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
-            $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
-        }
-    }
+// function cfRelatedHeaders($tab_type_id=""){
+//     //first need to check whether the application authentication is done or not..
+//     $applicationAuthenticationDetails = getAuthenticationDetails();
+//     //get the access token....
+//     $access_token = '';
+//     if(!empty($applicationAuthenticationDetails)){//check authentication details......
+//         if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+//             $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+//         }
+//     }
 
-    $tabRelatedHeaders='<option value="">Select header</option>';
-    if(!empty($access_token)){
-      $relatedTabHeaders = getHeaders($access_token,$tab_type_id);
-      if(isset($relatedTabHeaders) && !empty($relatedTabHeaders)){
-        foreach ($relatedTabHeaders as $key => $value) {
-          $tabRelatedHeaders.= '<option value="';
-          $tabRelatedHeaders.= $value['Id'];
-          $tabRelatedHeaders.= '">' . $value['Name'];
-          $tabRelatedHeaders.= "</option>";
-        }
-      }
-    }
-    $tabRelatedHeaders .= '</option>';
-    return $tabRelatedHeaders;
-}
+//     $tabRelatedHeaders='<option value="">Select header</option>';
+//     if(!empty($access_token)){
+//       $relatedTabHeaders = getHeaders($access_token,$tab_type_id);
+//       if(isset($relatedTabHeaders) && !empty($relatedTabHeaders)){
+//         foreach ($relatedTabHeaders as $key => $value) {
+//           $tabRelatedHeaders.= '<option value="';
+//           $tabRelatedHeaders.= $value['Id'];
+//           $tabRelatedHeaders.= '">' . $value['Name'];
+//           $tabRelatedHeaders.= "</option>";
+//         }
+//       }
+//     }
+//     $tabRelatedHeaders .= '</option>';
+//     return $tabRelatedHeaders;
+// }
 
-function getTabs($access_token,$form_type_id){
-  // Create instance of our wooconnection logger class to use off the whole things.
-  $wooconnectionLogger = new WC_Logger();
-  $tabsArray = '';
-  $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  $header = array(
-    'Accept: text/xml',
-    'Content-Type: text/xml',
-    'Authorization: Bearer '. $access_token
-  );
+// function getTabs($access_token,$form_type_id){
+//   // Create instance of our wooconnection logger class to use off the whole things.
+//   $wooconnectionLogger = new WC_Logger();
+//   $tabsArray = '';
+//   $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+//   $ch = curl_init($url);
+//   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//   $header = array(
+//     'Accept: text/xml',
+//     'Content-Type: text/xml',
+//     'Authorization: Bearer '. $access_token
+//   );
   
-  //Create xml to hit the curl request for add order item.....
-  $xmlData = "<methodCall>
-                <methodName>DataService.findByField</methodName>
-                <params>
-                    <param><value><string></string></value></param>
-                    <param><value><string>DataFormTab</string></value></param>
-                    <param><value><int>200</int></value></param>
-                    <param><value><int>0</int></value></param>
-                    <param>
-                      <value><string>FormId</string></value>
-                    </param>
-                    <param>
-                      <value><string>".$form_type_id."</string></value>
-                    </param>
-                    <param>
-                      <value><array>
-                        <data>
-                          <value><string>Id</string></value>
-                          <value><string>TabName</string></value>
-                        </data>
-                      </array></value>
-                    </param>
-                </params>
-              </methodCall>";
-  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
-  $response = curl_exec($ch);
-  $err = curl_error($ch);
-  //check if error occur due to any reason and then save the logs...
-  if($err){
-      $errorMessage = "Get custom fields tab is failed due to ". $err; 
-      $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-  }else{
-    //Covert/Decode response to xml.....
-    $responsedata = xmlrpc_decode($response);
-    //check if any error occur like invalid access token,then save logs....
-    if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
-        if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
-            $errorMessage = "Get custom fields tab is failed due to ". $responsedata['faultString']; 
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-        }
-    }else{
-      $tabsArray = $responsedata;
-    }
-    return $tabsArray;
-  }
-  curl_close($ch);
-  return $tabsArray;
-}
+//   //Create xml to hit the curl request for add order item.....
+//   $xmlData = "<methodCall>
+//                 <methodName>DataService.findByField</methodName>
+//                 <params>
+//                     <param><value><string></string></value></param>
+//                     <param><value><string>DataFormTab</string></value></param>
+//                     <param><value><int>200</int></value></param>
+//                     <param><value><int>0</int></value></param>
+//                     <param>
+//                       <value><string>FormId</string></value>
+//                     </param>
+//                     <param>
+//                       <value><string>".$form_type_id."</string></value>
+//                     </param>
+//                     <param>
+//                       <value><array>
+//                         <data>
+//                           <value><string>Id</string></value>
+//                           <value><string>TabName</string></value>
+//                         </data>
+//                       </array></value>
+//                     </param>
+//                 </params>
+//               </methodCall>";
+//   curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+//   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+//   curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+//   $response = curl_exec($ch);
+//   $err = curl_error($ch);
+//   //check if error occur due to any reason and then save the logs...
+//   if($err){
+//       $errorMessage = "Get custom fields tab is failed due to ". $err; 
+//       $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+//   }else{
+//     //Covert/Decode response to xml.....
+//     $responsedata = xmlrpc_decode($response);
+//     //check if any error occur like invalid access token,then save logs....
+//     if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+//         if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+//             $errorMessage = "Get custom fields tab is failed due to ". $responsedata['faultString']; 
+//             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+//         }
+//     }else{
+//       $tabsArray = $responsedata;
+//     }
+//     return $tabsArray;
+//   }
+//   curl_close($ch);
+//   return $tabsArray;
+// }
 
-function getHeaders($access_token,$tab_type_id){
-  // Create instance of our wooconnection logger class to use off the whole things.
-  $wooconnectionLogger = new WC_Logger();
-  $headersArray = '';
-  $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  $header = array(
-    'Accept: text/xml',
-    'Content-Type: text/xml',
-    'Authorization: Bearer '. $access_token
-  );
+// function getHeaders($access_token,$tab_type_id){
+//   // Create instance of our wooconnection logger class to use off the whole things.
+//   $wooconnectionLogger = new WC_Logger();
+//   $headersArray = '';
+//   $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+//   $ch = curl_init($url);
+//   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//   $header = array(
+//     'Accept: text/xml',
+//     'Content-Type: text/xml',
+//     'Authorization: Bearer '. $access_token
+//   );
   
-  //Create xml to hit the curl request for add order item.....
-  $xmlData = "<methodCall>
-                <methodName>DataService.findByField</methodName>
-                <params>
-                    <param><value><string></string></value></param>
-                    <param><value><string>DataFormGroup</string></value></param>
-                    <param><value><int>200</int></value></param>
-                    <param><value><int>0</int></value></param>
-                    <param>
-                      <value><string>TabId</string></value>
-                    </param>
-                    <param>
-                      <value><string>".$tab_type_id."</string></value>
-                    </param>
-                    <param>
-                      <value><array>
-                        <data>
-                          <value><string>Id</string></value>
-                          <value><string>Name</string></value>
-                        </data>
-                      </array></value>
-                    </param>
-                </params>
-              </methodCall>";
-  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
-  $response = curl_exec($ch);
-  $err = curl_error($ch);
-  //check if error occur due to any reason and then save the logs...
-  if($err){
-      $errorMessage = "Get custom fields headers is failed due to ". $err; 
-      $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-  }else{
-    //Covert/Decode response to xml.....
-    $responsedata = xmlrpc_decode($response);
-    //check if any error occur like invalid access token,then save logs....
-    if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
-        if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
-            $errorMessage = "Get custom fields headers is failed due to ". $responsedata['faultString']; 
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-        }
-    }else{
-      $headersArray = $responsedata;
-    }
-    return $headersArray;
-  }
-  curl_close($ch);
-  return $headersArray;
-}
+//   //Create xml to hit the curl request for add order item.....
+//   $xmlData = "<methodCall>
+//                 <methodName>DataService.findByField</methodName>
+//                 <params>
+//                     <param><value><string></string></value></param>
+//                     <param><value><string>DataFormGroup</string></value></param>
+//                     <param><value><int>200</int></value></param>
+//                     <param><value><int>0</int></value></param>
+//                     <param>
+//                       <value><string>TabId</string></value>
+//                     </param>
+//                     <param>
+//                       <value><string>".$tab_type_id."</string></value>
+//                     </param>
+//                     <param>
+//                       <value><array>
+//                         <data>
+//                           <value><string>Id</string></value>
+//                           <value><string>Name</string></value>
+//                         </data>
+//                       </array></value>
+//                     </param>
+//                 </params>
+//               </methodCall>";
+//   curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+//   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+//   curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+//   $response = curl_exec($ch);
+//   $err = curl_error($ch);
+//   //check if error occur due to any reason and then save the logs...
+//   if($err){
+//       $errorMessage = "Get custom fields headers is failed due to ". $err; 
+//       $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+//   }else{
+//     //Covert/Decode response to xml.....
+//     $responsedata = xmlrpc_decode($response);
+//     //check if any error occur like invalid access token,then save logs....
+//     if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+//         if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+//             $errorMessage = "Get custom fields headers is failed due to ". $responsedata['faultString']; 
+//             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+//         }
+//     }else{
+//       $headersArray = $responsedata;
+//     }
+//     return $headersArray;
+//   }
+//   curl_close($ch);
+//   return $headersArray;
+// }
 ?>
