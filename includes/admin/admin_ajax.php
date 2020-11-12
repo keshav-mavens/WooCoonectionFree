@@ -295,10 +295,11 @@ function wc_update_products_mapping()
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to add custom field to infusionsoft....
+//Custom fields Tab : wordpress hook is call when user click on save button of custom field application form to save custom field in application.....
 add_action( 'wp_ajax_wc_save_cfield_app', 'wc_save_cfield_app');
 //Function Definiation : wc_save_cfield_app
 function wc_save_cfield_app(){
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		//first need to check whether the application authentication is done or not..
         $applicationAuthenticationDetails = getAuthenticationDetails();
@@ -310,23 +311,27 @@ function wc_save_cfield_app(){
             }
         }
 
+	    //check accesss token...
 	    if(!empty($access_token)){
 	  		if(!empty($_POST['cfieldformtypeapp']) && !empty($_POST['cfieldnameapp']))
 			{
+				//call the common function to add the custom field in application whether it is for contact or order.......
 				$customFieldRes = addCustomField($access_token,$_POST['cfieldformtypeapp'],$_POST['cfieldnameapp'],$_POST['cfieldtypeapp'],$_POST['cfieldheaderapp']);
 				if(is_int($customFieldRes)){
-					$contactOrderFields = getPredefindCustomfields();
+					$preFields = getPredefindCustomfields();//call the common function to get the latest custom fields listing.
 					$cfieldOptions = "<option value=''></option>";
-					if(isset($contactOrderFields) && !empty($contactOrderFields)){
-						foreach($contactOrderFields as $key => $value) {
+					if(isset($preFields) && !empty($preFields)){
+						//create options html.....
+						foreach($preFields as $key => $value) {
 							$cfieldOptions .= "<optgroup label=\"$key\">";
 							foreach($value as $key1 => $value1) {
-								$optionSelected = "";
-								$cfieldOptions .= '<option value="'.$key1.'"'.$optionSelected.'>'.$value1.'</option>';
+								$cfieldoptionSelected = "";
+								$cfieldOptions .= '<option value="'.$key1.'"'.$cfieldoptionSelected.'>'.$value1.'</option>';
 							}
 							$cfieldOptions .= "</optgroup>";
 						}
 					}
+					//return response with options html....
 					echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldOptions'=>$cfieldOptions,'cfieldName'=>trim($_POST['cfieldnameapp'])));
 				}
 			}	
@@ -339,56 +344,72 @@ function wc_save_cfield_app(){
 }
 
 
-//Wordpress hook : This action is triggered when user change the custom field form type like contact order.....
+//Custom fields Tab : wordpress hook is call to get the custom fields tab on change custom field type e.g contact, order at the time of custom field creation....
 add_action( 'wp_ajax_wc_cfield_app_tabs', 'wc_cfield_app_tabs');
 //Function Definiation : wc_cfield_app_tabs
 function wc_cfield_app_tabs(){
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
+		//first check form type.....
 		if(isset($_POST['cfieldFormType']) && !empty($_POST['cfieldFormType'])){
-		 	$tabsHtml =	cfRelatedTabs($_POST['cfieldFormType']);
+		 	//call the common function to get the tabs on the basis of form type e.g contact , order.......
+		 	$cfieldtabsHtml =	cfRelatedTabs($_POST['cfieldFormType']);
 		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'tabsHtml'=>$tabsHtml));
+		//return response with tabs html....
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldtabsHtml'=>$cfieldtabsHtml));
 	}
 	die();
 }
 
 
 
-//Wordpress hook : This action is triggered when user change the custom field tab.....
+//Custom fields Tab : wordpress hook is call to get the custom fields headers on change custom field tab at the time of custom field creation....
 add_action( 'wp_ajax_wc_cfield_app_headers', 'wc_cfield_app_headers');
 //Function Definiation : wc_cfield_app_headers
 function wc_cfield_app_headers(){
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
+		//first check form type.....
 		if(isset($_POST['cfieldFormTab']) && !empty($_POST['cfieldFormTab'])){
-			$headerHtml =	cfRelatedHeaders($_POST['cfieldFormTab']);
+			//call the common function to get the headers on the basis of tab.......
+			$cfieldheaderHtml =	cfRelatedHeaders($_POST['cfieldFormTab']);
 		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'headerHtml'=>$headerHtml));
+		//return response with headers html....
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldheaderHtml'=>$cfieldheaderHtml));
 	}
 	die();
 }
 
-//Wordpress hook : Funtion is use to add new custom field group as custom field parent.....
+//Custom fields Tab : wordpress hook is call when user click on save button of custom field group form.....
 add_action( 'wp_ajax_wc_save_cfield_group', 'wc_save_cfield_group');
 //Function Definiation : wc_save_cfield_group
 function wc_save_cfield_group()
 {
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
+		
 		global $table_prefix, $wpdb;
+        //define table name....
         $cfield_group_table_name = 'wooconnection_custom_field_groups';
         $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
         
-        $cfield_group_fields_array = array();
+        $cfield_group_fields_array = array();//empty array....
+		//check group name.....
 		if(isset($_POST['cfieldgroupname']) && !empty($_POST['cfieldgroupname'])){
 			$cfield_group_fields_array['wc_custom_field_group_name'] = trim($_POST['cfieldgroupname']);
 		}
 		
+		//check group id then needs to update......
 		if(isset($_POST['cfieldgroupid']) && !empty($_POST['cfieldgroupid'])){
+
 			$result_cfield_group = $wpdb->update($cfield_group_table_name,$cfield_group_fields_array,array('id' => $_POST['cfieldgroupid']));
-		}else{
+		}else{//else needs to create new custom field group....
 			$result_cfield_group = $wpdb->insert($cfield_group_table_name,$cfield_group_fields_array);
 			if($result_cfield_group){
 			    $cfieldGroupLastInsertId = $wpdb->insert_id;
+			    //check last created custom field group id.....
 			    if(!empty($cfieldGroupLastInsertId)){
+			    	//then update the sort order with its primary key....
 			   		$cfieldGroupUpdateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_sort_order' => $cfieldGroupLastInsertId),array('id' => $cfieldGroupLastInsertId));
 			   	}
 			}
@@ -398,97 +419,117 @@ function wc_save_cfield_group()
     die();
 }
 
-//Wordpress hook : This action is triggered when user click on  custom fields tab then loads tha custom fields group and its related fields.
+//Custom fields Tab : wordpress hook is call to load the all custom fields at the time delete,edit,add custom field....
 add_action( 'wp_ajax_wc_loading_cfields', 'wc_loading_cfields');
 //Function Definiation : wc_loading_cfields
 function wc_loading_cfields()
 {
-	$htmldata = get_cfields_groups();
-	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'htmldata'=>$htmldata));
+	$cfieldhtml = get_cfields_groups();//call the function to get the custom fields
+	//return response with html....
+	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldhtml'=>$cfieldhtml));
 	die();
 }
 
-//get the custom field groups.....
+//Custom fields Tab : Code is used get the custom fields groups and its custom fields then create html....
 function get_cfields_groups(){
   global $wpdb,$table_prefix;
+  //define table name....
   $table_name = 'wooconnection_custom_field_groups';
   $wp_table_name = $table_prefix . "$table_name";
+  //get custom field groups which is not deleted......
   $customFieldGroups = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_custom_field_group_status !=".STATUS_DELETED." ORDER BY wc_custom_field_sort_order ASC");
-  $customFieldsListing = "";
+  $customFieldsListing = "";//define variable.....
+  //check if data is not empty rotate loop....
   if(isset($customFieldGroups) && !empty($customFieldGroups)){
     foreach ($customFieldGroups as $key => $value) {
         if(!empty($value->id)){
-        	$custom_fields_html = get_cfields($value->id);
+        	$custom_fields_html = get_cfields($value->id);//get the custom fields by parent group id....
+        	//set show/hide icon on the basis of its status.....
         	if($value->wc_custom_field_group_status == STATUS_ACTIVE){
         		$showhidehtml = '<i class="fa fa-eye showhidecfieldgroup" title="Hide custom field group with its custom fields" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i>';
         	}else{
         		$showhidehtml = '<i class="fa fa-eye-slash showhidecfieldgroup" title="Show custom field group with its custom fields" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
         	}
-        	
+        	//concate a html inside loop....
         	$customFieldsListing .=  '<li class="group-list" id="'.$value->id.'"><span class="group-name">'.$value->wc_custom_field_group_name.'<span class="controls"><i class="fa fa-plus addgroupcfield" title="Add custom field to this group" data-id="'.$value->id.'"></i>
         		<i class="fa fa-pencil editcfieldgroup" title="Edit custom field group details" data-id="'.$value->id.'">
         		</i>'.$showhidehtml.'<i class="fa fa-times deletecfieldgroup" title="Delete custom field group" data-id="'.$value->id.'"></i></span></span>'.$custom_fields_html.'</li>';
         }
     }
   }
-  return $customFieldsListing;
+  return $customFieldsListing;//return html
 }
 
-//get the group custom fields by group id.,....
+//Custom fields Tab : Code is used get the custom fields by parent group id then create html....
 function get_cfields($groupid){
 	global $wpdb,$table_prefix;
+	//define table name....
 	$cfields_table_name = 'wooconnection_custom_fields';
  	$cfields_table_name = $table_prefix . "$cfields_table_name";
 	$customFieldsHtml = '';
+	//check parent group id....
 	if(!empty($groupid)){
+		//get all custom fields related to particular group......
 		$customFields = $wpdb->get_results("SELECT * FROM ".$cfields_table_name." WHERE wc_cf_group_id = ".$groupid." and wc_cf_status!=".STATUS_DELETED." ORDER BY wc_cf_sort_order ASC");
+		//check if data is not empty rotate loop....
 		if(isset($customFields) && !empty($customFields)){
 			$customFieldsHtml .= '<ul class="group-fields group_custom_field_'.$groupid.'">';
 			foreach ($customFields as $key => $value) {
+				//set show/hide icon on the basis of its status.....
 				if($value->wc_cf_status == STATUS_ACTIVE){
 	        		$showhidehtml = '<i class="fa fa-eye showhidecfield" title="Hide custom field" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i>';
 	        	}else{
 	        		$showhidehtml = '<i class="fa fa-eye-slash showhidecfield" title="Show custom field" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
 	        	}
+				//concate a html inside loop....
 				$customFieldsHtml .= '<li class="group-field" id="'.$value->id.'">'.$value->wc_cf_name.'<span class="controls"><i class="fa fa-pencil editcfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i>'.$showhidehtml.'<i class="fa fa-times deletecfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i></span></li>';
 			}
 			$customFieldsHtml .= '</ul>';
 		}
 	}
-	return $customFieldsHtml;
+	return $customFieldsHtml;//return html
 }
 
-//Wordpress hook : This action is triggered when user try to delete custom field group.....
+//Custom fields Tab : wordpress hook is call when user click on "*" icon of particular custom field group then proceed the delete process......
 add_action( 'wp_ajax_wc_delete_cfield_group', 'wc_delete_cfield_group');
 //Function Definiation : wc_delete_cfield_group
 function wc_delete_cfield_group()
 {
+	//check custom field group id exist in post data.....
 	if(isset($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupId'])){
 		global $table_prefix, $wpdb;
+       	//define table name....
        	$cfield_group_table_name = 'wooconnection_custom_field_groups';
         $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
+        //update custom field status in database....
         $updateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_group_status' => STATUS_DELETED),array('id' => $_POST['cfieldgroupId']));
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	}
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to edit the custom field group......
+//Custom fields Tab : wordpress hook is call when user click on "edit" icon of particular custom field group then hide the custom fields listing and show the custom field group form......
 add_action( 'wp_ajax_wc_get_cfield_group', 'wc_get_cfield_group');
 //Function Definiation : wc_get_cfield_group
 function wc_get_cfield_group()
 {
+	//check custom field group id exist in post data.....
 	if(isset($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupId']))
 	{
 		global $table_prefix, $wpdb;
+       	//define table name....
        	$cfield_group_table_name = 'wooconnection_custom_field_groups';
         $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
-        $cfieldgroup = $wpdb->get_results("SELECT * FROM ".$cfield_group_table_name." WHERE id=".$_POST['cfieldgroupId']." and wc_custom_field_group_status =".STATUS_ACTIVE);
+        //get all custom field group data on the basis of id......
+        $cfieldgroup = $wpdb->get_results("SELECT * FROM ".$cfield_group_table_name." WHERE id=".$_POST['cfieldgroupId']." and wc_custom_field_group_status !=".STATUS_DELETED);
+        //check if data is not empty....
         if(isset($cfieldgroup) && !empty($cfieldgroup)){
-        	$cfieldgroupname = "";
+        	$cfieldgroupname = "";//define empty variable....
+        	//set the group name....
         	if(!empty($cfieldgroup[0]->wc_custom_field_group_name)){
         		$cfieldgroupname = $cfieldgroup[0]->wc_custom_field_group_name;
         	}
+        	//return response with custom field group name....
         	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldgroupname'=>$cfieldgroupname));	
         }	
 	}
@@ -496,25 +537,28 @@ function wc_get_cfield_group()
 }
 
 
-//Wordpress hook : This action is triggered when user try to delete custom field group.....
+//Custom fields Tab : wordpress hook is call when user click on "eye" or "eye-slash" icon of particular custom field group then proceed to set status show or hide custom field group and also of its custom fields......
 add_action( 'wp_ajax_wc_update_cfieldgroup_showhide', 'wc_update_cfieldgroup_showhide');
 //Function Definiation : wc_update_cfieldgroup_showhide
 function wc_update_cfieldgroup_showhide()
 {
 	if(isset($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupactiontype'])){
 		global $table_prefix, $wpdb;
+       	//define table names....
        	$cfield_group_table_name = 'wooconnection_custom_field_groups';
         $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
-
         $cfields_table_name = 'wooconnection_custom_fields';
     	$cfields_table_name = $table_prefix . "$cfields_table_name";
 
+		//set show/hide on the basis of action type.....
 		if($_POST['cfieldgroupactiontype'] == CF_FIELD_ACTION_SHOW){
 			$status = STATUS_ACTIVE;
 		}elseif ($_POST['cfieldgroupactiontype'] == CF_FIELD_ACTION_HIDE) {
 			$status = STATUS_INACTIVE;
 		}
+		//update custom field group status....
 		$updateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_group_status' => $status),array('id' => $_POST['cfieldgroupId']));
+		//once the group status is update then update the show/hide status of its custom  fields.....
 		if($updateResult){
 			$wpdb->query($wpdb->prepare('UPDATE '.$cfields_table_name.' SET wc_cf_status = '.$status.' WHERE wc_cf_group_id = '.$_POST['cfieldgroupId'].' and  wc_cf_status != '.STATUS_DELETED.''));
 		}
@@ -523,25 +567,27 @@ function wc_update_cfieldgroup_showhide()
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to add new custom field.
+//Custom fields Tab : wordpress hook is call when user click on save button of custom field form.....
 add_action( 'wp_ajax_wc_save_groupcfield', 'wc_save_groupcfield');
 //Function Definiation : wc_save_groupcfield
 function wc_save_groupcfield()
 {
 	if(isset($_POST) && !empty($_POST)){
 		global $table_prefix, $wpdb;
+		//define table names....
 		$cfields_table_name = 'wooconnection_custom_fields';
     	$cfields_table_name = $table_prefix . "$cfields_table_name";
 		
-		$cfields_array = array();
+		$cfields_array = array();//define empty array....
 		if(isset($_POST['cfieldname']) && !empty($_POST['cfieldname'])){
 			$cfields_array['wc_cf_name'] = trim($_POST['cfieldname']);
 		}
+		//check field type then set or get the values in variables....
 		if(isset($_POST['cfieldtype']) && !empty($_POST['cfieldtype'])){
 			$cfields_array['wc_cf_type'] = $_POST['cfieldtype'];
 			if($_POST['cfieldtype'] == CF_FIELD_TYPE_DROPDOWN || $_POST['cfieldtype'] == CF_FIELD_TYPE_RADIO)
 			{
-	         	$customOptionsArray = array();
+	         	$customOptionsArray = array();//define empty array....
 	         	$cfieldsOptionBreak = '';
 	         	if(isset($_POST['cfieldoptionvalue']) && !empty($_POST['cfieldoptionvalue']) && isset($_POST['cfieldoptionlabel']) && !empty($_POST['cfieldoptionlabel']))
 				{
@@ -591,18 +637,21 @@ function wc_save_groupcfield()
 			$cfields_array['wc_cf_mapped'] = $mappedWith;
 		}
 		
+		//check if custom field id is exist then perform the update process....
 		if(isset($_POST['cfieldid']) && !empty($_POST['cfieldid'])){
 			$resultcfieldupdate = $wpdb->update($cfields_table_name,$cfields_array,array('id' => $_POST['cfieldid']));
 			echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-		}else{
+		}else{//else needs to create new custom field group....
 			if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
 				if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
 					$cfields_array['wc_cf_group_id'] = $_POST['cfieldparentgroupid'];
 				}
 				$resultcfield = $wpdb->insert($cfields_table_name,$cfields_array);
 				if($resultcfield){
+					//check last created custom field id.....
 				   	$lastcfieldInsertId = $wpdb->insert_id;
 				   	if(!empty($lastcfieldInsertId)){
+				   		//then update the sort order with its primary key....
 				   		$updateResult = $wpdb->update($cfields_table_name, array('wc_cf_sort_order' => $lastcfieldInsertId),array('id' => $lastcfieldInsertId));
 				   	}
 				}
@@ -613,20 +662,24 @@ function wc_save_groupcfield()
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to delete custom field group.....
+//Custom fields Tab : wordpress hook is call when user click on "eye" or "eye-slash" icon of particular custom field then proceed to set status show or hide custom field......
 add_action( 'wp_ajax_wc_update_cfield_showhide', 'wc_update_cfield_showhide');
 //Function Definiation : wc_update_cfield_showhide
 function wc_update_cfield_showhide()
 {
+	//check if custom field id is exist then perform the update show/hide status process....
 	if(isset($_POST['cfieldId']) && !empty($_POST['cfieldId']) && !empty($_POST['cfieldactiontype'])){
 		global $table_prefix, $wpdb;
+		//define table names....
        	$cfield_table_name = 'wooconnection_custom_fields';
         $cfield_table_name = $table_prefix . "$cfield_table_name";
+        //set show/hide on the basis of action type.....
 		if($_POST['cfieldactiontype'] == CF_FIELD_ACTION_SHOW){
 			$status = STATUS_ACTIVE;
 		}elseif ($_POST['cfieldactiontype'] == CF_FIELD_ACTION_HIDE) {
 			$status = STATUS_INACTIVE;
 		}
+		//update custom field group status....
 		$updateResult = $wpdb->update($cfield_table_name, array('wc_cf_status' => $status),array('id' => $_POST['cfieldId']));
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	}
@@ -634,33 +687,40 @@ function wc_update_cfield_showhide()
 }
 
 
-//Wordpress hook : This action is triggered when user try to delete custom field .....
+//Custom fields Tab : wordpress hook is call when user click on "*" icon of particular custom field then proceed the delete process.....
 add_action( 'wp_ajax_wc_delete_cfield', 'wc_delete_cfield');
 //Function Definiation : wc_delete_cfield
 function wc_delete_cfield()
 {
+	//check if custom field id is exist then proceed delete process....
 	if(isset($_POST['cfieldId']) && !empty($_POST['cfieldId'])){
 		global $table_prefix, $wpdb;
+		//define table names....
 		$cfield_table_name = 'wooconnection_custom_fields';
     	$cfield_table_name = $table_prefix . "$cfield_table_name";
+    	//update custom field status....
 		$updateResult = $wpdb->update($cfield_table_name, array('wc_cf_status' => STATUS_DELETED),array('id' => $_POST['cfieldId']));
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	}
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to edit custom field.
+//Custom fields Tab : wordpress hook is call when user click on "edit" icon of particular custom field then hide the custom fields listing and show the custom field form......
 add_action( 'wp_ajax_wc_get_cfield', 'wc_get_cfield');
 //Function Definiation : wc_get_cfield
 function wc_get_cfield()
 {
+	//check if custom field id is exist then get then get the details of it....
 	if(isset($_POST['cfieldId']) && !empty($_POST['cfieldId']))
 	{
 		global $table_prefix, $wpdb;
+		//define table names....
 		$cfield_table_name = 'wooconnection_custom_fields';
     	$cfield_table_name = $table_prefix . "$cfield_table_name";
+    	//get all custom field data on the basis of id......
     	$cfieldData = $wpdb->get_results("SELECT * FROM ".$cfield_table_name." WHERE id=".$_POST['cfieldId']." and wc_cf_status !=".STATUS_DELETED);
     	if(isset($cfieldData) && !empty($cfieldData)){
+    		//define empty variables and arrays....
     		$cfieldname = "";
     		$cfieldtype = "";
     		$cfieldplaceholder = "";
@@ -674,6 +734,7 @@ function wc_get_cfield()
     		$cfieldoptionsHtml = '';
     		$cfieldoptionsCount = '';
     		$cfielddefaultvalue = '';
+    		//set and get the values.....
     		if(!empty($cfieldData[0]->wc_cf_name)){
         		$cfieldname = $cfieldData[0]->wc_cf_name;
         	}
@@ -723,25 +784,30 @@ function wc_get_cfield()
         			$cfieldMappedWith = 'FormType:'.$cfieldData[0]->wc_cf_mapped_field_type.':'.$cfieldmapped;
         		}
         	}
+        	//return response with all fields of custom fields form....
         	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldname'=>$cfieldname,'cfieldtype' => $cfieldtype,'cfieldplaceholder'=>$cfieldplaceholder,'cfielddefaultvalue'=>$cfielddefaultvalue,'cfieldmandatory'=>$cfieldmandatory,'cfieldmapped'=>$cfieldMappedWith,'cfieldoptionsCount'=>$cfieldoptionsCount,'cfieldoptionVal'=>$cfieldoptionVal,'cfieldoptionLab'=>$cfieldoptionLab,'cfieldoptionsHtml'=>$cfieldoptionsHtml));
         }
 	}
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to sort the custom field groups.....
+//Custom fields Tab : wordpress hook is call apply sortable event on custom field groups.....
 add_action( 'wp_ajax_wc_update_cfieldgroups_order', 'wc_update_cfieldgroups_order');
 //Function Definiation : wc_update_cfieldgroups_order
 function wc_update_cfieldgroups_order()
 {
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		global $table_prefix, $wpdb;
+		//define table names....
 		$cfield_group_table_name = 'wooconnection_custom_field_groups';
         $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
+        //check custom field group order exist in post data.........
 		if(isset($_POST['cfieldgrouplatestorder']) && !empty($_POST['cfieldgrouplatestorder'])){
 			for($i = 0; $i < count($_POST['cfieldgrouplatestorder']); $i++) {
 			    $cfieldgroupid = $_POST['cfieldgrouplatestorder'][$i];
 			    $cfieldgrouplatestorder = $i+1;
+			    //check group id and then update the sorting order with latest order come in post data.....
 			    if(isset($cfieldgroupid) && !empty($cfieldgroupid)){
 					$groupupdateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_sort_order' => $cfieldgrouplatestorder),array('id' => $cfieldgroupid));
 			    }
@@ -752,19 +818,23 @@ function wc_update_cfieldgroups_order()
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to sort the custom fields.....
+//Custom fields Tab : wordpress hook is call apply sortable event on custom fields.....
 add_action( 'wp_ajax_wc_update_groupcfields_order', 'wc_update_groupcfields_order');
 //Function Definiation : wc_update_groupcfields_order
 function wc_update_groupcfields_order()
 {
+	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		global $table_prefix, $wpdb;
+		//define table names....
 		$cfield_table_name = 'wooconnection_custom_fields';
     	$cfield_table_name = $table_prefix . "$cfield_table_name";
+    	//check custom field group exist in post data.........
 		if(isset($_POST['groupcfieldlatestorder']) && !empty($_POST['groupcfieldlatestorder'])){
 			for($i = 0; $i < count($_POST['groupcfieldlatestorder']); $i++) {
 			    $groupcfieldid = $_POST['groupcfieldlatestorder'][$i];
 			    $groupcfieldlatestorder = $i+1;
+			    //check custom field id and then update the sorting order with latest order come in post data.....
 			    if(isset($groupcfieldid) && !empty($groupcfieldid)){
 					$cfieldupdateResult = $wpdb->update($cfield_table_name, array('wc_cf_sort_order' => $groupcfieldlatestorder),array('id' => $groupcfieldid));
 			    }

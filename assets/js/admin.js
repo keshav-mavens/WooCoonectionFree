@@ -298,7 +298,7 @@
                     jQuery.post( ajax_object.ajax_url + "?action=wc_cfield_app_tabs",{cfieldFormType:cfieldFormType}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            $("#cfieldtabapp").html(responsedata.tabsHtml);//change the html of custom field tab.......
+                            $("#cfieldtabapp").html(responsedata.cfieldtabsHtml);//change the html of custom field tab.......
                         }
                         $(".cfield_header").show();
                     });
@@ -316,7 +316,7 @@
                     jQuery.post( ajax_object.ajax_url + "?action=wc_cfield_app_headers",{cfieldFormTab:cfieldFormTab}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            $("#cfieldheaderapp").html(responsedata.headerHtml);//change the html of custom field header.......
+                            $("#cfieldheaderapp").html(responsedata.cfieldheaderHtml);//change the html of custom field header.......
                         }
                     });
                 }
@@ -1184,8 +1184,8 @@ function loadingCustomFields(){
         $(".loading_custom_fields").hide();
         jQuery(".tab_related_content").removeClass('overlay');
         if(responsedata.status == "1") {
-            if(responsedata.htmldata != ""){
-                $(".main-group").html(responsedata.htmldata);
+            if(responsedata.cfieldhtml != ""){
+                $(".main-group").html(responsedata.cfieldhtml);
                 $(".default_message").html('');
                 $(".default_message").html('Above is the listing of available custom fields');    
                 $('.main-group li.group-list').each(function () {
