@@ -1304,7 +1304,7 @@ function getApplicationProductDetails($access_token,$productId){
     return $productName;
 }
 
-//Custom fields : Get all latest custom fields from infusionsoft/keap application related to orders/contacts..........
+//Custom fields Tab :  Get all latest custom fields from infusionsoft/keap application related to orders/contacts..........
 function getPredefindCustomfields(){
   //first need to check whether the application authentication is done or not..
   $applicationAuthenticationDetails = getAuthenticationDetails();
@@ -1316,80 +1316,81 @@ function getPredefindCustomfields(){
       }
   }
   
-  $contactOrderFields = array();//define empty array.....
-  //set in array contact basis information fields....
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':FirstName'] = "Contact First Name";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':MiddleName'] = "Contact Middle Name";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':LastName'] = "Contact Last Name";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Nickname'] = "Contact Nick Name";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantName'] = "Contact Assistant Name";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantPhone'] = "Contact Assistant Phone";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress2'] = "Contact Email Address 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress3'] = "Contact Email Address 3";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone1'] = "Contact Phone 1";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone2'] = "Contact Phone 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone3'] = "Contact Phone 3";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone4'] = "Contact Phone 4";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone5'] = "Contact Phone 5";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax1'] = "Contact Fax 1";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax2'] = "Contact Fax 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Anniversary'] = "Contact Anniversary";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Birthday'] = "Contact Birthday";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address2Street1'] = "Contact Address 2 Street 1";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address2Street2'] = "Contact Address 2 Street 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address3Street1'] = "Contact Address 3 Street 1";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address3Street2'] = "Contact Address 3 Street 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City'] = "Contact Address City 1";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City2'] = "Contact Address City 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City3'] = "Contact Address City 3";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State'] = "Contact Address State 1";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State2'] = "Contact Address State 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State3'] = "Contact Address State 3";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country'] = "Contact Address Country 1";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country2'] = "Contact Address Country 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country3'] = "Contact Address Country 3";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode'] = "Contact Address Postal Code 1";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode2'] = "Contact Address Postal Code 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode3'] = "Contact Address Postal Code 3";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour1'] = "Contact Address ZipFour 1";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour2'] = "Contact Address ZipFour 2";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour3'] = "Contact Address ZipFour 3";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Suffix'] = "Contact Suffix";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':SpouseName'] = "Contact Spouse Name";
-  $contactOrderFields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ContactNotes'] = "Contact Notes";
+  $predefinedcfields = array();//define empty array.....
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':FirstName'] = "Contact First Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':MiddleName'] = "Contact Middle Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':LastName'] = "Contact Last Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Nickname'] = "Contact Nick Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantName'] = "Contact Assistant Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantPhone'] = "Contact Assistant Phone";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress2'] = "Contact Email Address 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress3'] = "Contact Email Address 3";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone1'] = "Contact Phone 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone2'] = "Contact Phone 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone3'] = "Contact Phone 3";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone4'] = "Contact Phone 4";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone5'] = "Contact Phone 5";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax1'] = "Contact Fax 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax2'] = "Contact Fax 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Anniversary'] = "Contact Anniversary";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Birthday'] = "Contact Birthday";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address2Street1'] = "Contact Address 2 Street 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address2Street2'] = "Contact Address 2 Street 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address3Street1'] = "Contact Address 3 Street 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address3Street2'] = "Contact Address 3 Street 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City'] = "Contact Address City 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City2'] = "Contact Address City 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City3'] = "Contact Address City 3";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State'] = "Contact Address State 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State2'] = "Contact Address State 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State3'] = "Contact Address State 3";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country'] = "Contact Address Country 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country2'] = "Contact Address Country 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country3'] = "Contact Address Country 3";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode'] = "Contact Address Postal Code 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode2'] = "Contact Address Postal Code 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode3'] = "Contact Address Postal Code 3";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour1'] = "Contact Address ZipFour 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour2'] = "Contact Address ZipFour 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour3'] = "Contact Address ZipFour 3";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Suffix'] = "Contact Suffix";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':SpouseName'] = "Contact Spouse Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ContactNotes'] = "Contact Notes";
   
   //Infusionsoft/keap application access token check....
   if($access_token){
     //Infusionsoft/keap : Get Infusionsoft/Keap Contact Custom Fields
-    $contactCustomFields = contactOrderCustomFields($access_token,CUSTOM_FIELD_FORM_TYPE_CONTACT);
+    $precontactcfields = contactOrderCustomFields($access_token,CUSTOM_FIELD_FORM_TYPE_CONTACT);
     
     //Infusionsoft/keap : Get Infusionsoft/Keap Order Custom Fields
-    $orderCustomFields = contactOrderCustomFields($access_token,CUSTOM_FIELD_FORM_TYPE_ORDER);
+    $preordercfields = contactOrderCustomFields($access_token,CUSTOM_FIELD_FORM_TYPE_ORDER);
     
     //create the options with label and name of custom field...
-    if(isset($contactCustomFields) && !empty($contactCustomFields)){
-      foreach($contactCustomFields as $contactcf) {
-          $optionValue = "FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':_'.$contactcf["label"];
-          $contactOrderFields["Contact Related Custom Fields"][$optionValue] = $contactcf["label"];
+    if(isset($precontactcfields) && !empty($precontactcfields)){
+      foreach($precontactcfields as $precustomfields) {
+          $cfieldoptionValue = "FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':_'.$precustomfields["label"];
+          $predefinedcfields["Contact Related Custom Fields"][$cfieldoptionValue] = $precustomfields["label"];
       }
     }
       
-    if(isset($orderCustomFields) && !empty($orderCustomFields)){
-      foreach($orderCustomFields as $contactocf) {
-          $optionValue = "FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.':_'.$contactocf["label"];
-          $contactOrderFields["Order Related Custom Fields"][$optionValue] = $contactocf["label"];
+    if(isset($preordercfields) && !empty($preordercfields)){
+      foreach($preordercfields as $precustomorderfields) {
+          $cfieldorderoptionValue = "FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.':_'.$precustomorderfields["label"];
+          $predefinedcfields["Order Related Custom Fields"][$cfieldorderoptionValue] = $precustomorderfields["label"];
       } 
     }
   }
-  return $contactOrderFields;//return array.....
+  return $predefinedcfields;//return array.....
 }
 
-//Function is used to get order/contact related custom fields....
+//Custom fields Tab : Code is used to get order/contact related custom fields from autherize application....
 function contactOrderCustomFields($access_token,$fieldType){
     $customFieldsArray = array();//define empty array.....
     // Create instance of our wooconnection logger class to use off the whole things.
     $wooconnectionLogger = new WC_Logger();
+    //check access token....
     if(!empty($access_token)){
+      //check form type then set curl url on the basis of it.....
       if($fieldType == CUSTOM_FIELD_FORM_TYPE_CONTACT){
         $url = "https://api.infusionsoft.com/crm/rest/v1/contacts/model";
       }else if ($fieldType == CUSTOM_FIELD_FORM_TYPE_ORDER) {
@@ -1427,7 +1428,7 @@ function contactOrderCustomFields($access_token,$fieldType){
     return $customFieldsArray;//return array.....
 }
 
-//Function is used to add order/contact custom fields to infusionsoft/keap application....
+//Custom fields Tab : Code is used to add order/contact related custom fields to autherize application....
 function addCustomField($access_token,$formType,$fieldName,$fieldType,$fieldHeader){
   $fieldId = '';
   // Create instance of our wooconnection logger class to use off the whole things.
@@ -1450,14 +1451,7 @@ function addCustomField($access_token,$formType,$fieldName,$fieldType,$fieldHead
       }
       
       //Create xml to hit the curl request for add order item.....
-      $xmlData = "<methodCall>
-                    <methodName>DataService.addCustomField</methodName>
-                    <params><param><value><string></string></value></param>
-                    <param><value><string>".$customFieldType."</string></value></param>
-                    <param><value><string>".$fieldName."</string></value></param>
-                    <param><value><string>".$fieldType."</string></value></param>
-                    <param><value><int>".$fieldHeader."</int></value></param></params>
-                  </methodCall>";
+      $xmlData = "<methodCall><methodName>DataService.addCustomField</methodName><params><param><value><string></string></value></param><param><value><string>".$customFieldType."</string></value></param><param><value><string>".$fieldName."</string></value></param><param><value><string>".$fieldType."</string></value></param><param><value><int>".$fieldHeader."</int></value></param></params></methodCall>";
       curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
       curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
@@ -1486,6 +1480,7 @@ function addCustomField($access_token,$formType,$fieldName,$fieldType,$fieldHead
   return $fieldId;
 }
 
+//Custom fields Tab : Code is used to get order/contact related custom fields tabs from autherize application....
 function cfRelatedTabs($form_type_id=""){
   
   //first need to check whether the application authentication is done or not..
@@ -1505,7 +1500,7 @@ function cfRelatedTabs($form_type_id=""){
     }else{
       $form_type_id = CUSTOM_FIELD_FORM_TYPE_CONTACT;
     }
-    $relatedTabs = getTabs($access_token,$form_type_id);
+    $relatedTabs = getTabs($access_token,$form_type_id);//call the function to get tabs
     if(isset($relatedTabs) && !empty($relatedTabs)){
         foreach ($relatedTabs as $key => $value) {
           $tabRelatedOptions.= '<option value="';
@@ -1518,9 +1513,10 @@ function cfRelatedTabs($form_type_id=""){
   }
   $tabRelatedOptions .= '</option>';
   
-  return $tabRelatedOptions;
+  return $tabRelatedOptions;//return html.....
 }
 
+//Custom fields Tab : Code is used to get order/contact related custom fields headers from autherize application....
 function cfRelatedHeaders($tab_type_id=""){
     //first need to check whether the application authentication is done or not..
     $applicationAuthenticationDetails = getAuthenticationDetails();
@@ -1545,9 +1541,10 @@ function cfRelatedHeaders($tab_type_id=""){
       }
     }
     $tabRelatedHeaders .= '</option>';
-    return $tabRelatedHeaders;
+    return $tabRelatedHeaders;//return html.....
 }
 
+//Custom fields Tab : Code is used to hit curl request to get the tabs....
 function getTabs($access_token,$form_type_id){
   // Create instance of our wooconnection logger class to use off the whole things.
   $wooconnectionLogger = new WC_Logger();
@@ -1562,29 +1559,7 @@ function getTabs($access_token,$form_type_id){
   );
   
   //Create xml to hit the curl request for add order item.....
-  $xmlData = "<methodCall>
-                <methodName>DataService.findByField</methodName>
-                <params>
-                    <param><value><string></string></value></param>
-                    <param><value><string>DataFormTab</string></value></param>
-                    <param><value><int>200</int></value></param>
-                    <param><value><int>0</int></value></param>
-                    <param>
-                      <value><string>FormId</string></value>
-                    </param>
-                    <param>
-                      <value><string>".$form_type_id."</string></value>
-                    </param>
-                    <param>
-                      <value><array>
-                        <data>
-                          <value><string>Id</string></value>
-                          <value><string>TabName</string></value>
-                        </data>
-                      </array></value>
-                    </param>
-                </params>
-              </methodCall>";
+  $xmlData = "<methodCall><methodName>DataService.findByField</methodName><params><param><value><string></string></value></param><param><value><string>DataFormTab</string></value></param><param><value><int>200</int></value></param><param><value><int>0</int></value></param><param><value><string>FormId</string></value></param><param><value><string>".$form_type_id."</string></value></param><param><value><array><data><value><string>Id</string></value><value><string>TabName</string></value></data></array></value></param></params></methodCall>";
   curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
   curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
@@ -1612,6 +1587,7 @@ function getTabs($access_token,$form_type_id){
   return $tabsArray;
 }
 
+//Custom fields Tab : Code is used to hit curl request to get the headers....
 function getHeaders($access_token,$tab_type_id){
   // Create instance of our wooconnection logger class to use off the whole things.
   $wooconnectionLogger = new WC_Logger();
@@ -1626,29 +1602,7 @@ function getHeaders($access_token,$tab_type_id){
   );
   
   //Create xml to hit the curl request for add order item.....
-  $xmlData = "<methodCall>
-                <methodName>DataService.findByField</methodName>
-                <params>
-                    <param><value><string></string></value></param>
-                    <param><value><string>DataFormGroup</string></value></param>
-                    <param><value><int>200</int></value></param>
-                    <param><value><int>0</int></value></param>
-                    <param>
-                      <value><string>TabId</string></value>
-                    </param>
-                    <param>
-                      <value><string>".$tab_type_id."</string></value>
-                    </param>
-                    <param>
-                      <value><array>
-                        <data>
-                          <value><string>Id</string></value>
-                          <value><string>Name</string></value>
-                        </data>
-                      </array></value>
-                    </param>
-                </params>
-              </methodCall>";
+  $xmlData = "<methodCall><methodName>DataService.findByField</methodName><params><param><value><string></string></value></param><param><value><string>DataFormGroup</string></value></param><param><value><int>200</int></value></param><param><value><int>0</int></value></param><param><value><string>TabId</string></value></param><param><value><string>".$tab_type_id."</string></value></param><param><value><array><data><value><string>Id</string></value><value><string>Name</string></value></data></array></value></param></params></methodCall>";
   curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
   curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
