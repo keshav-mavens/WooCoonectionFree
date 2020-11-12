@@ -505,12 +505,19 @@ function wc_update_cfieldgroup_showhide()
 		global $table_prefix, $wpdb;
        	$cfield_group_table_name = 'wooconnection_custom_field_groups';
         $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
+
+        $cfields_table_name = 'wooconnection_custom_fields';
+    	$cfields_table_name = $table_prefix . "$cfields_table_name";
+
 		if($_POST['cfieldgroupactiontype'] == CF_FIELD_ACTION_SHOW){
 			$status = STATUS_ACTIVE;
 		}elseif ($_POST['cfieldgroupactiontype'] == CF_FIELD_ACTION_HIDE) {
 			$status = STATUS_INACTIVE;
 		}
 		$updateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_group_status' => $status),array('id' => $_POST['cfieldgroupId']));
+		if($updateResult){
+			$wpdb->query($wpdb->prepare('UPDATE '.$cfields_table_name.' SET wc_cf_status = '.$status.' WHERE wc_cf_group_id = '.$_POST['cfieldgroupId'].' and  wc_cf_status != '.STATUS_DELETED.''));
+		}
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	}
 	die();
