@@ -108,6 +108,15 @@
                         if($('#form_cfield').length){
                             validateForms('form_cfield');
                         }
+
+                        if($(".cfieldmappingwith").length){
+                           applySelectTwo('cfieldmappingwith'); 
+                        }
+
+                        //sortable the custom field groups...
+                        if($(".main-group").length){
+                            sortabledivs('main-group');
+                        }
                         
                     });
                     //Check if "response" done....
@@ -276,39 +285,37 @@
                 }
             });
 
-            // //On change of form type from custom fields popup form change the custom fields related tabs... 
-            // $document.on("change","#cfFormType", function(event)
-            // {
-            //     event.stopPropagation();
-            //     var selectedFormType = $(this).children("option:selected").attr('id');
-            //     if(selectedFormType != "" && selectedFormType !== null){
-            //         $(".custom_field_header").hide();
-            //         jQuery("#cftab").html('<option value="">Select Tab</option>');
-            //         jQuery.post( ajax_object.ajax_url + "?action=wc_cf_form_type_tabs",{selectedFormType:selectedFormType}, function(data) {
-            //             var responsedata = JSON.parse(data);
-            //             if(responsedata.status == "1") {
-            //                 $("#cftab").html(responsedata.tabsHtml);
-            //             }
-            //             $(".custom_field_header").show();
-            //         });
-            //     }
-            // });
+            $document.on("change","#cfieldformtypeapp", function(event)
+            {
+                event.stopPropagation();
+                var cfieldFormType = $(this).children("option:selected").attr('id');
+                if(cfieldFormType != "" && cfieldFormType !== null){
+                    $(".cfield_header").hide();
+                    jQuery("#cfieldtabapp").html('<option value="">Select Tab</option>');
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_cfield_app_tabs",{cfieldFormType:cfieldFormType}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            $("#cfieldtabapp").html(responsedata.tabsHtml);
+                        }
+                        $(".cfield_header").show();
+                    });
+                }
+            });
 
-            // //On change of custom field tab from custom fields popup form change the custom fields related headers...
-            // $document.on("change","#cftab", function(event)
-            // {
-            //     event.stopPropagation();
-            //     var selectedTabType = $(this).children("option:selected").val();
-            //     if(selectedTabType != "" && selectedTabType !== null){
-            //         jQuery("#cfheader").html('<option value="">Select Header</option>');
-            //         jQuery.post( ajax_object.ajax_url + "?action=wc_cf_tab_headers",{selectedTabType:selectedTabType}, function(data) {
-            //             var responsedata = JSON.parse(data);
-            //             if(responsedata.status == "1") {
-            //                 $("#cfheader").html(responsedata.headerHtml);
-            //             }
-            //         });
-            //     }
-            // });
+            $document.on("change","#cfieldtabapp", function(event)
+            {
+                event.stopPropagation();
+                var cfieldFormTab = $(this).children("option:selected").val();
+                if(cfieldFormTab != "" && cfieldFormTab !== null){
+                    jQuery("#cfieldheaderapp").html('<option value="">Select Header</option>');
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_cfield_app_headers",{cfieldFormTab:cfieldFormTab}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            $("#cfieldheaderapp").html(responsedata.headerHtml);
+                        }
+                    });
+                }
+            });
 
             $document.on("click",".addcfieldgroup",function(event) {
                 event.stopPropagation();
@@ -321,7 +328,7 @@
 
             $document.on("click",".restorecfieldGroups, .restoregroupcfields",function(event) {
                 event.stopPropagation();
-                // cfieldoptioncount = 1;
+                cfieldoptioncount = 1;
                 var form = $(this).data('id');
                 if(form !== '' && form !== null){
                     $("#"+form)[0].reset();
@@ -340,9 +347,10 @@
                 jQuery("#cfieldid").val('');
                 $(".cfieldtitle").html('Add Custom Field');
                 $('#cfieldtype').val('1').trigger('change');
-                $(".more-options").html('');
+                $(".morecfieldoptions").html('');
                 $("#form_cfield")[0].reset();
                 $("#form_cfield").validate().resetForm();
+                $("#cfieldmapping").val("").trigger("change");
                 $('.customfields,.custom_fields_main_html').toggle();
             });
 
@@ -515,6 +523,91 @@
                     });
                 }
             });
+
+            $document.on("click",".editcfield",function(event) {
+                event.stopPropagation();
+                var cfieldId = $(this).data("id");
+                if(cfieldId > 0)
+                {
+                    jQuery("#cfieldid").val(cfieldId);
+                    $(".cfieldtitle").html('Edit Custom Field');
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_get_cfield",{cfieldId:cfieldId}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            if(responsedata.cfieldname !== '' && responsedata.cfieldname !== null){
+                                jQuery("#cfieldname").val(responsedata.cfieldname);
+                            } 
+                            if(responsedata.cfieldtype !== ''){
+                               jQuery("#cfieldtype").val(responsedata.cfieldtype); 
+                               $("#cfieldtype").trigger("change");
+                               if(responsedata.cfieldtype == CF_FIELD_TYPE_TEXT 
+                                    || responsedata.cfieldtype == CF_FIELD_TYPE_TEXTAREA 
+                                    || responsedata.cfieldtype == CF_FIELD_TYPE_DATE )
+                               {
+                                    if(responsedata.cfieldplaceholder !== '' && responsedata.cfieldplaceholder !== null){
+                                        jQuery("#cfieldplaceholder").val(responsedata.cfieldplaceholder); 
+                                    }
+                                    $(".morecfieldoptions").html('');   
+                               }else if(responsedata.cfieldtype == CF_FIELD_TYPE_DROPDOWN || responsedata.cfieldtype == CF_FIELD_TYPE_RADIO){
+                                    if(responsedata.cfieldoptionVal !== '' && responsedata.cfieldoptionVal !== null){
+                                        $("#cfieldoptionvalue").val(responsedata.cfieldoptionVal);
+                                    }
+                                    if(responsedata.cfieldoptionLab !== '' && responsedata.cfieldoptionLab !== null){
+                                        $("#cfieldoptionlabel").val(responsedata.cfieldoptionLab);
+                                    }
+                                    if(responsedata.cfieldoptionsCount > 1 && responsedata.cfieldoptionsHtml !== ''){
+                                        $(".morecfieldoptions").html('');
+                                        $(".morecfieldoptions").append(responsedata.cfieldoptionsHtml);
+                                    }
+                                    if(responsedata.cfielddefaultvalue !== '' && responsedata.cfielddefaultvalue !== null){
+                                        jQuery("#cfielddefault2value").val(responsedata.cfielddefaultvalue);
+                                    }
+                               }
+                               else
+                               {
+                                    $(".morecfieldoptions").html('');
+                                    if(responsedata.cfielddefaultvalue !== '' && responsedata.cfielddefaultvalue !== null){
+                                        jQuery("#cfielddefault1value").val(responsedata.cfielddefaultvalue);
+                                    }
+                               }
+                            } 
+                            if(responsedata.cfieldmandatory !== '' && responsedata.cfieldmandatory !== null)
+                            {
+                                $("#cfieldmandatory").val(responsedata.cfieldmandatory)
+                            }
+                            if(responsedata.cfieldmapped !== '' && responsedata.cfieldmapped !== null)
+                            {
+                                $('#cfieldmapping').val(responsedata.cfieldmapped).trigger('change');
+                            }else{
+                                $('#cfieldmapping').val('').trigger('change');
+                            }
+                        }
+                    });
+                }
+                $('.customfields,.main_rendered').toggle();
+                cfieldoptioncount = 1;
+            });
+            
+            $document.on("select2:select",".cfieldmappingwith", function(event)
+            {    
+                var option_data = event.params.data;
+                if(!option_data['element'])
+                {
+                    var option_name = option_data['text'];
+                    if(option_name !="" && option_name !== null){
+                        $("#addcfieldapp")[0].reset();
+                        $("#addcfieldapp").validate().resetForm();
+                        $("#cfieldnameapp").val(option_name);
+                        $("#cfieldmodelapp").show();
+                        $("#cfieldtabapp").val('');
+                        $("#cfieldheaderapp").val('');
+                        if($('#addcfieldapp').length){
+                            validateForms('addcfieldapp');
+                        }
+                    }
+                }
+            });
+
         });
 }(jQuery));
 
@@ -571,21 +664,21 @@ function validateForms(form){
         }
 
         //check form is add custom field form then validate it..
-        if(form == "add_custom_field_form"){
+        if(form == "addcfieldapp"){
             $("#"+form).validate({
                 rules:{
-                    cfname: "required",
-                    cftab: "required",
-                    cfheader: "required"
+                    cfieldnameapp: "required",
+                    cfieldtabapp: "required",
+                    cfieldheaderapp: "required"
                 },
                 messages:{
-                    cfname: {
+                    cfieldnameapp: {
                         required: 'Please enter custom field name!'
                     },
-                    cftab: {
+                    cfieldtabapp: {
                         required: 'Please select the custom field tab!'
                     },
-                    cfheader: {
+                    cfieldheaderapp: {
                         required: 'Please select the custom field header!'
                     },
                 }
@@ -841,6 +934,13 @@ function applySelectTwo(element){
         if(element == 'application_match_products_dropdown'){
             $("."+element).select2({
             });    
+        }
+
+        if(element == 'cfieldmappingwith'){
+            $("."+element).select2({
+                placeholder: 'Select Mapped Infusionsoft Field',
+                tags: true,
+            }); 
         } 
         
     }
@@ -963,42 +1063,39 @@ function applyCollapseRules(div_id){
     }
 }
 
-//save custom field to infusionsoft application....
-// function saveCustomFields(){
-//     if($('#add_custom_field_form').valid()){
-//         if($(".add-cf-error").is(":visible") || $(".add-cf-success").is(":visible")){
-//             $(".add-cf-error").hide();
-//             $(".add-cf-success").hide();
-//             $(".addcf").show();
-//         }else{
-//             $(".addcf").show();    
-//         }
-//         $('.save_cf_btn').addClass("disable_anchor");
-//         // var cfDataType = $("#cfDataType option:selected").text();
-//         // $("#cfdata").val(cfDataType);
-//         jQuery.post( ajax_object.ajax_url + "?action=wc_add_custom_field",$('#add_custom_field_form').serialize(), function(data) {
-//             // var responsedata = JSON.parse(data);
-//             // $(".addcf").hide();
-//             // if(responsedata.status == "1") {
-//             //     $("#addCustomFieldModel").hide();
-//             //     // $(".wccfmappingwith").html('');
-//             //     // $(".wccfmappingwith").html(responsedata.fieldOptions);
-//             //     // $("#wccfmapping option").filter(function() {
-//             //     //   return $(this).text() == responsedata.cfLatestName;
-//             //     // }).prop('selected', true);
-//             // }else{
-//             //     $(".add-cf-error").show();
-//             //     if(responsedata.errormessage != "" && responsedata.errormessage !== null){
-//             //         $(".add-cf-error").html('');
-//             //         $(".add-cf-error").html(responsedata.errormessage);
-//             //     }else{
-//             //         $(".add-cf-error").html('');
-//             //         $(".add-cf-error").html('Something Went Wrong');
-//             //     }
-//             // }
-//         });
-//     }
-// }
+function savecfieldapp(){
+    if($('#addcfieldapp').valid()){
+        if(!$(".cfieldapperror").is(":visible")){
+            $(".savingcfieldapp").show(); 
+        }else{
+            $(".cfieldapperror").hide();
+            $(".savingcfieldapp").show();       
+        }
+        $('.savingCfieldAppBtn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_cfield_app",$('#addcfieldapp').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".savingcfieldapp").hide();
+            if(responsedata.status == "1") {
+                $("#cfieldmodelapp").hide();
+                $(".cfieldmappingwith").html('');
+                $(".cfieldmappingwith").html(responsedata.cfieldOptions);
+                $('.savingCfieldAppBtn').removeClass("disable_anchor");
+                $("#cfieldmapping option").filter(function() {
+                  return $(this).text() == responsedata.cfieldName;
+                }).prop('selected', true);
+            }else{
+                $(".cfieldapperror").show();
+                if(responsedata.errormessage != "" && responsedata.errormessage !== null){
+                    $(".cfieldapperror").html('');
+                    $(".cfieldapperror").html(responsedata.errormessage);
+                }else{
+                    $(".cfieldapperror").html('');
+                    $(".cfieldapperror").html('Something Went Wrong');
+                }
+            }
+        });
+    }
+}
 
 
 function savecfieldGroup(){
@@ -1050,14 +1147,11 @@ function loadingCustomFields(){
                         }       
                     }
                 });
-
-
             }else{
                 $(".main-group").html('');
                 $(".default_message").html('');
                 $(".default_message").html("We don't have any Custom Fields");
             }
-            
         }
     }).fail( function(){
         $(".loading_custom_fields").html('');
@@ -1081,7 +1175,7 @@ function savegroupcfield(){
             var responsedata = JSON.parse(data);
             $(".savinggroupcfield").hide();
             if(responsedata.status == "1") {
-                $('.add_custom_field,.main_rendered').toggle();
+                $('.customfields,.main_rendered').toggle();
                 $('.savingGroupCfieldBtn').removeClass("disable_anchor");
                 loadingCustomFields();
             }else{
@@ -1102,7 +1196,7 @@ function sortabledivs(element){
         if(element == 'main-group'){
             jQuery( "."+element ).sortable({
                update: function( event, ui ) {
-                    jQuery.post( ajax_object.ajax_url + "?action=update_custom_field_groups_order",{order: $(".main-group").sortable('toArray')}, function(data) {
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_update_cfieldgroups_order",{cfieldgrouplatestorder: $(".main-group").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
                             loadingCustomFields();
@@ -1115,7 +1209,7 @@ function sortabledivs(element){
         {
             jQuery( "."+element ).sortable({
                update: function( event, ui ) {
-                    jQuery.post( ajax_object.ajax_url + "?action=update_custom_fields_order",{order: $("."+element).sortable('toArray')}, function(data) {
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_update_groupcfields_order",{groupcfieldlatestorder: $("."+element).sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
                             loadingCustomFields();

@@ -1446,7 +1446,7 @@ function addCustomField($access_token,$formType,$fieldName,$fieldType,$fieldHead
       if($formType == CUSTOM_FIELD_FORM_TYPE_CONTACT){
         $customFieldType = "Contact";
       }else if ($formType == CUSTOM_FIELD_FORM_TYPE_ORDER) {
-        $customFieldType = "Order";
+        $customFieldType = "Job";
       }
       
       //Create xml to hit the curl request for add order item.....
@@ -1486,193 +1486,193 @@ function addCustomField($access_token,$formType,$fieldName,$fieldType,$fieldHead
   return $fieldId;
 }
 
-// function cfRelatedTabs($form_type_id=""){
+function cfRelatedTabs($form_type_id=""){
   
-//   //first need to check whether the application authentication is done or not..
-//   $applicationAuthenticationDetails = getAuthenticationDetails();
-//   //get the access token....
-//   $access_token = '';
-//   if(!empty($applicationAuthenticationDetails)){//check authentication details......
-//       if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
-//           $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
-//       }
-//   }
-//   //Infusion soft connection check
-//   $tabRelatedOptions = '<option value="">Select tab</option>';
-//   if(!empty($access_token)){
-//     if(!empty($form_type_id)){
-//       $form_type_id = $form_type_id;
-//     }else{
-//       $form_type_id = CUSTOM_FIELD_FORM_TYPE_CONTACT;
-//     }
-//     $relatedTabs = getTabs($access_token,$form_type_id);
-//     if(isset($relatedTabs) && !empty($relatedTabs)){
-//         foreach ($relatedTabs as $key => $value) {
-//           $tabRelatedOptions.= '<option value="';
-//           $tabRelatedOptions.= $value['Id'];
-//           $tabRelatedOptions.= '">' . $value['TabName'];
-//           $tabRelatedOptions .= '</option>';
-//         }
-//     }
+  //first need to check whether the application authentication is done or not..
+  $applicationAuthenticationDetails = getAuthenticationDetails();
+  //get the access token....
+  $access_token = '';
+  if(!empty($applicationAuthenticationDetails)){//check authentication details......
+      if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+          $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+      }
+  }
+  //Infusion soft connection check
+  $tabRelatedOptions = '<option value="">Select tab</option>';
+  if(!empty($access_token)){
+    if(!empty($form_type_id)){
+      $form_type_id = $form_type_id;
+    }else{
+      $form_type_id = CUSTOM_FIELD_FORM_TYPE_CONTACT;
+    }
+    $relatedTabs = getTabs($access_token,$form_type_id);
+    if(isset($relatedTabs) && !empty($relatedTabs)){
+        foreach ($relatedTabs as $key => $value) {
+          $tabRelatedOptions.= '<option value="';
+          $tabRelatedOptions.= $value['Id'];
+          $tabRelatedOptions.= '">' . $value['TabName'];
+          $tabRelatedOptions .= '</option>';
+        }
+    }
     
-//   }
-//   $tabRelatedOptions .= '</option>';
+  }
+  $tabRelatedOptions .= '</option>';
   
-//   return $tabRelatedOptions;
-// }
+  return $tabRelatedOptions;
+}
 
-// function cfRelatedHeaders($tab_type_id=""){
-//     //first need to check whether the application authentication is done or not..
-//     $applicationAuthenticationDetails = getAuthenticationDetails();
-//     //get the access token....
-//     $access_token = '';
-//     if(!empty($applicationAuthenticationDetails)){//check authentication details......
-//         if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
-//             $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
-//         }
-//     }
+function cfRelatedHeaders($tab_type_id=""){
+    //first need to check whether the application authentication is done or not..
+    $applicationAuthenticationDetails = getAuthenticationDetails();
+    //get the access token....
+    $access_token = '';
+    if(!empty($applicationAuthenticationDetails)){//check authentication details......
+        if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+            $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+        }
+    }
 
-//     $tabRelatedHeaders='<option value="">Select header</option>';
-//     if(!empty($access_token)){
-//       $relatedTabHeaders = getHeaders($access_token,$tab_type_id);
-//       if(isset($relatedTabHeaders) && !empty($relatedTabHeaders)){
-//         foreach ($relatedTabHeaders as $key => $value) {
-//           $tabRelatedHeaders.= '<option value="';
-//           $tabRelatedHeaders.= $value['Id'];
-//           $tabRelatedHeaders.= '">' . $value['Name'];
-//           $tabRelatedHeaders.= "</option>";
-//         }
-//       }
-//     }
-//     $tabRelatedHeaders .= '</option>';
-//     return $tabRelatedHeaders;
-// }
+    $tabRelatedHeaders='<option value="">Select Header</option>';
+    if(!empty($access_token)){
+      $relatedTabHeaders = getHeaders($access_token,$tab_type_id);
+      if(isset($relatedTabHeaders) && !empty($relatedTabHeaders)){
+        foreach ($relatedTabHeaders as $key => $value) {
+          $tabRelatedHeaders.= '<option value="';
+          $tabRelatedHeaders.= $value['Id'];
+          $tabRelatedHeaders.= '">' . $value['Name'];
+          $tabRelatedHeaders.= "</option>";
+        }
+      }
+    }
+    $tabRelatedHeaders .= '</option>';
+    return $tabRelatedHeaders;
+}
 
-// function getTabs($access_token,$form_type_id){
-//   // Create instance of our wooconnection logger class to use off the whole things.
-//   $wooconnectionLogger = new WC_Logger();
-//   $tabsArray = '';
-//   $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-//   $ch = curl_init($url);
-//   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//   $header = array(
-//     'Accept: text/xml',
-//     'Content-Type: text/xml',
-//     'Authorization: Bearer '. $access_token
-//   );
+function getTabs($access_token,$form_type_id){
+  // Create instance of our wooconnection logger class to use off the whole things.
+  $wooconnectionLogger = new WC_Logger();
+  $tabsArray = '';
+  $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $header = array(
+    'Accept: text/xml',
+    'Content-Type: text/xml',
+    'Authorization: Bearer '. $access_token
+  );
   
-//   //Create xml to hit the curl request for add order item.....
-//   $xmlData = "<methodCall>
-//                 <methodName>DataService.findByField</methodName>
-//                 <params>
-//                     <param><value><string></string></value></param>
-//                     <param><value><string>DataFormTab</string></value></param>
-//                     <param><value><int>200</int></value></param>
-//                     <param><value><int>0</int></value></param>
-//                     <param>
-//                       <value><string>FormId</string></value>
-//                     </param>
-//                     <param>
-//                       <value><string>".$form_type_id."</string></value>
-//                     </param>
-//                     <param>
-//                       <value><array>
-//                         <data>
-//                           <value><string>Id</string></value>
-//                           <value><string>TabName</string></value>
-//                         </data>
-//                       </array></value>
-//                     </param>
-//                 </params>
-//               </methodCall>";
-//   curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-//   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-//   curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
-//   $response = curl_exec($ch);
-//   $err = curl_error($ch);
-//   //check if error occur due to any reason and then save the logs...
-//   if($err){
-//       $errorMessage = "Get custom fields tab is failed due to ". $err; 
-//       $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-//   }else{
-//     //Covert/Decode response to xml.....
-//     $responsedata = xmlrpc_decode($response);
-//     //check if any error occur like invalid access token,then save logs....
-//     if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
-//         if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
-//             $errorMessage = "Get custom fields tab is failed due to ". $responsedata['faultString']; 
-//             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-//         }
-//     }else{
-//       $tabsArray = $responsedata;
-//     }
-//     return $tabsArray;
-//   }
-//   curl_close($ch);
-//   return $tabsArray;
-// }
+  //Create xml to hit the curl request for add order item.....
+  $xmlData = "<methodCall>
+                <methodName>DataService.findByField</methodName>
+                <params>
+                    <param><value><string></string></value></param>
+                    <param><value><string>DataFormTab</string></value></param>
+                    <param><value><int>200</int></value></param>
+                    <param><value><int>0</int></value></param>
+                    <param>
+                      <value><string>FormId</string></value>
+                    </param>
+                    <param>
+                      <value><string>".$form_type_id."</string></value>
+                    </param>
+                    <param>
+                      <value><array>
+                        <data>
+                          <value><string>Id</string></value>
+                          <value><string>TabName</string></value>
+                        </data>
+                      </array></value>
+                    </param>
+                </params>
+              </methodCall>";
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+  $response = curl_exec($ch);
+  $err = curl_error($ch);
+  //check if error occur due to any reason and then save the logs...
+  if($err){
+      $errorMessage = "Get custom fields tab is failed due to ". $err; 
+      $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+  }else{
+    //Covert/Decode response to xml.....
+    $responsedata = xmlrpc_decode($response);
+    //check if any error occur like invalid access token,then save logs....
+    if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+        if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+            $errorMessage = "Get custom fields tab is failed due to ". $responsedata['faultString']; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }
+    }else{
+      $tabsArray = $responsedata;
+    }
+    return $tabsArray;
+  }
+  curl_close($ch);
+  return $tabsArray;
+}
 
-// function getHeaders($access_token,$tab_type_id){
-//   // Create instance of our wooconnection logger class to use off the whole things.
-//   $wooconnectionLogger = new WC_Logger();
-//   $headersArray = '';
-//   $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-//   $ch = curl_init($url);
-//   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//   $header = array(
-//     'Accept: text/xml',
-//     'Content-Type: text/xml',
-//     'Authorization: Bearer '. $access_token
-//   );
+function getHeaders($access_token,$tab_type_id){
+  // Create instance of our wooconnection logger class to use off the whole things.
+  $wooconnectionLogger = new WC_Logger();
+  $headersArray = '';
+  $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $header = array(
+    'Accept: text/xml',
+    'Content-Type: text/xml',
+    'Authorization: Bearer '. $access_token
+  );
   
-//   //Create xml to hit the curl request for add order item.....
-//   $xmlData = "<methodCall>
-//                 <methodName>DataService.findByField</methodName>
-//                 <params>
-//                     <param><value><string></string></value></param>
-//                     <param><value><string>DataFormGroup</string></value></param>
-//                     <param><value><int>200</int></value></param>
-//                     <param><value><int>0</int></value></param>
-//                     <param>
-//                       <value><string>TabId</string></value>
-//                     </param>
-//                     <param>
-//                       <value><string>".$tab_type_id."</string></value>
-//                     </param>
-//                     <param>
-//                       <value><array>
-//                         <data>
-//                           <value><string>Id</string></value>
-//                           <value><string>Name</string></value>
-//                         </data>
-//                       </array></value>
-//                     </param>
-//                 </params>
-//               </methodCall>";
-//   curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-//   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-//   curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
-//   $response = curl_exec($ch);
-//   $err = curl_error($ch);
-//   //check if error occur due to any reason and then save the logs...
-//   if($err){
-//       $errorMessage = "Get custom fields headers is failed due to ". $err; 
-//       $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-//   }else{
-//     //Covert/Decode response to xml.....
-//     $responsedata = xmlrpc_decode($response);
-//     //check if any error occur like invalid access token,then save logs....
-//     if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
-//         if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
-//             $errorMessage = "Get custom fields headers is failed due to ". $responsedata['faultString']; 
-//             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-//         }
-//     }else{
-//       $headersArray = $responsedata;
-//     }
-//     return $headersArray;
-//   }
-//   curl_close($ch);
-//   return $headersArray;
-// }
+  //Create xml to hit the curl request for add order item.....
+  $xmlData = "<methodCall>
+                <methodName>DataService.findByField</methodName>
+                <params>
+                    <param><value><string></string></value></param>
+                    <param><value><string>DataFormGroup</string></value></param>
+                    <param><value><int>200</int></value></param>
+                    <param><value><int>0</int></value></param>
+                    <param>
+                      <value><string>TabId</string></value>
+                    </param>
+                    <param>
+                      <value><string>".$tab_type_id."</string></value>
+                    </param>
+                    <param>
+                      <value><array>
+                        <data>
+                          <value><string>Id</string></value>
+                          <value><string>Name</string></value>
+                        </data>
+                      </array></value>
+                    </param>
+                </params>
+              </methodCall>";
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+  $response = curl_exec($ch);
+  $err = curl_error($ch);
+  //check if error occur due to any reason and then save the logs...
+  if($err){
+      $errorMessage = "Get custom fields headers is failed due to ". $err; 
+      $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+  }else{
+    //Covert/Decode response to xml.....
+    $responsedata = xmlrpc_decode($response);
+    //check if any error occur like invalid access token,then save logs....
+    if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+        if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+            $errorMessage = "Get custom fields headers is failed due to ". $responsedata['faultString']; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }
+    }else{
+      $headersArray = $responsedata;
+    }
+    return $headersArray;
+  }
+  curl_close($ch);
+  return $headersArray;
+}
 ?>

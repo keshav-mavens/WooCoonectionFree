@@ -295,77 +295,77 @@ function wc_update_products_mapping()
 	die();
 }
 
-// //Wordpress hook : This action is triggered when user try to add custom field to infusionsoft....
-// add_action( 'wp_ajax_wc_add_custom_field', 'wc_add_custom_field');
-// //Function Definiation : wc_add_custom_field
-// function wc_add_custom_field(){
-// 	if(isset($_POST) && !empty($_POST)){
-// 		//first need to check whether the application authentication is done or not..
-//         $applicationAuthenticationDetails = getAuthenticationDetails();
-//         //get the access token....
-//         $access_token = '';
-//         if(!empty($applicationAuthenticationDetails)){//check authentication details......
-//             if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
-//                 $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
-//             }
-//         }
+//Wordpress hook : This action is triggered when user try to add custom field to infusionsoft....
+add_action( 'wp_ajax_wc_save_cfield_app', 'wc_save_cfield_app');
+//Function Definiation : wc_save_cfield_app
+function wc_save_cfield_app(){
+	if(isset($_POST) && !empty($_POST)){
+		//first need to check whether the application authentication is done or not..
+        $applicationAuthenticationDetails = getAuthenticationDetails();
+        //get the access token....
+        $access_token = '';
+        if(!empty($applicationAuthenticationDetails)){//check authentication details......
+            if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+                $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+            }
+        }
 
-// 	    if(!empty($access_token)){
-// 	    	if(!empty($_POST['cfFormType']) && !empty($_POST['cfname']))
-// 			{
-// 				$customFieldRes = addCustomField($access_token,$_POST['cfFormType'],$_POST['cfname'],$_POST['cfDataType'],$_POST['cfheader']);
-// 				if(is_int($customFieldRes)){
-// 					$contactOrderFields = getPredefindCustomfields();
-// 					$fieldOptions = "<option value=''></option>";
-// 					if(isset($contactOrderFields) && !empty($contactOrderFields)){
-// 						foreach($contactOrderFields as $key => $value) {
-// 							$fieldOptions .= "<optgroup label=\"$key\">";
-// 							foreach($value as $key1 => $value1) {
-// 								$optionSelected = "";
-// 								$fieldOptions .= '<option value="'.$key1.'"'.$optionSelected.'>'.$value1.'</option>';
-// 							}
-// 							$fieldOptions .= "</optgroup>";
-// 						}
-// 					}
-// 					echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'fieldOptions'=>$fieldOptions,'cfLatestName'=>trim($_POST['cfname'])));
-// 				}
-// 			}	
-// 	    }else{
-// 			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>'Authentication Error'));
-// 	    }
+	    if(!empty($access_token)){
+	  		if(!empty($_POST['cfieldformtypeapp']) && !empty($_POST['cfieldnameapp']))
+			{
+				$customFieldRes = addCustomField($access_token,$_POST['cfieldformtypeapp'],$_POST['cfieldnameapp'],$_POST['cfieldtypeapp'],$_POST['cfieldheaderapp']);
+				if(is_int($customFieldRes)){
+					$contactOrderFields = getPredefindCustomfields();
+					$cfieldOptions = "<option value=''></option>";
+					if(isset($contactOrderFields) && !empty($contactOrderFields)){
+						foreach($contactOrderFields as $key => $value) {
+							$cfieldOptions .= "<optgroup label=\"$key\">";
+							foreach($value as $key1 => $value1) {
+								$optionSelected = "";
+								$cfieldOptions .= '<option value="'.$key1.'"'.$optionSelected.'>'.$value1.'</option>';
+							}
+							$cfieldOptions .= "</optgroup>";
+						}
+					}
+					echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldOptions'=>$cfieldOptions,'cfieldName'=>trim($_POST['cfieldnameapp'])));
+				}
+			}	
+	    }else{
+			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>'Authentication Error'));
+	    }
 		
-// 	}
-// 	die();
-// }
+	}
+	die();
+}
 
 
-// //Wordpress hook : This action is triggered when user change the custom field form type like contact order.....
-// add_action( 'wp_ajax_wc_cf_form_type_tabs', 'wc_cf_form_type_tabs');
-// //Function Definiation : wc_cf_form_type_tabs
-// function wc_cf_form_type_tabs(){
-// 	if(isset($_POST) && !empty($_POST)){
-// 		if(isset($_POST['selectedFormType']) && !empty($_POST['selectedFormType'])){
-// 		 	$tabsHtml =	cfRelatedTabs($_POST['selectedFormType']);
-// 		}
-// 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'tabsHtml'=>$tabsHtml));
-// 	}
-// 	die();
-// }
+//Wordpress hook : This action is triggered when user change the custom field form type like contact order.....
+add_action( 'wp_ajax_wc_cfield_app_tabs', 'wc_cfield_app_tabs');
+//Function Definiation : wc_cfield_app_tabs
+function wc_cfield_app_tabs(){
+	if(isset($_POST) && !empty($_POST)){
+		if(isset($_POST['cfieldFormType']) && !empty($_POST['cfieldFormType'])){
+		 	$tabsHtml =	cfRelatedTabs($_POST['cfieldFormType']);
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'tabsHtml'=>$tabsHtml));
+	}
+	die();
+}
 
 
 
-// //Wordpress hook : This action is triggered when user change the custom field tab.....
-// add_action( 'wp_ajax_wc_cf_tab_headers', 'wc_cf_tab_headers');
-// //Function Definiation : wc_cf_tab_headers
-// function wc_cf_tab_headers(){
-// 	if(isset($_POST) && !empty($_POST)){
-// 		if(isset($_POST['selectedTabType']) && !empty($_POST['selectedTabType'])){
-// 			$headerHtml =	cfRelatedHeaders($_POST['selectedTabType']);
-// 		}
-// 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'headerHtml'=>$headerHtml));
-// 	}
-// 	die();
-// }
+//Wordpress hook : This action is triggered when user change the custom field tab.....
+add_action( 'wp_ajax_wc_cfield_app_headers', 'wc_cfield_app_headers');
+//Function Definiation : wc_cfield_app_headers
+function wc_cfield_app_headers(){
+	if(isset($_POST) && !empty($_POST)){
+		if(isset($_POST['cfieldFormTab']) && !empty($_POST['cfieldFormTab'])){
+			$headerHtml =	cfRelatedHeaders($_POST['cfieldFormTab']);
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'headerHtml'=>$headerHtml));
+	}
+	die();
+}
 
 //Wordpress hook : Funtion is use to add new custom field group as custom field parent.....
 add_action( 'wp_ajax_wc_save_cfield_group', 'wc_save_cfield_group');
@@ -534,24 +534,24 @@ function wc_save_groupcfield()
 			$cfields_array['wc_cf_type'] = $_POST['cfieldtype'];
 			if($_POST['cfieldtype'] == CF_FIELD_TYPE_DROPDOWN || $_POST['cfieldtype'] == CF_FIELD_TYPE_RADIO)
 			{
-	         	$infoCustom = array();
-	         	$string_version = '';
+	         	$customOptionsArray = array();
+	         	$cfieldsOptionBreak = '';
 	         	if(isset($_POST['cfieldoptionvalue']) && !empty($_POST['cfieldoptionvalue']) && isset($_POST['cfieldoptionlabel']) && !empty($_POST['cfieldoptionlabel']))
 				{
-				    $contact_custom_fields_value = $_POST['cfieldoptionvalue'];
-				    $contact_custom_fields_label = $_POST['cfieldoptionlabel'];
-				    if(count($contact_custom_fields_value) > 0)
+				    $cfields_value = $_POST['cfieldoptionvalue'];
+				    $cfields_label = $_POST['cfieldoptionlabel'];
+				    if(count($cfields_value) > 0)
 				    {               
-				        for( $i = 1; $i <= count($contact_custom_fields_value); $i++)
+				        for( $i = 1; $i <= count($cfields_value); $i++)
 				        {
-				            $infoCustom[] =  $contact_custom_fields_value[$i].'#'.$contact_custom_fields_label[$i];
+				            $customOptionsArray[] =  $cfields_value[$i].'#'.$cfields_label[$i];
 				        }
 				    }
 				}
-	            if(isset($infoCustom) && !empty($infoCustom)){
-	            	$string_version = implode('@', $infoCustom);
-	            	if ($string_version != ''){
-	            		$cfields_array['wc_cf_options'] = $string_version;
+	            if(isset($customOptionsArray) && !empty($customOptionsArray)){
+	            	$cfieldsOptionBreak = implode('@', $customOptionsArray);
+	            	if ($cfieldsOptionBreak != ''){
+	            		$cfields_array['wc_cf_options'] = $cfieldsOptionBreak;
 	            	}
 	            }
 	            if(isset($_POST['cfielddefault2value']) && !empty($_POST['cfielddefault2value'])){
@@ -571,39 +571,37 @@ function wc_save_groupcfield()
 			$cfields_array['wc_cf_placeholder'] = trim($_POST['cfieldplaceholder']);
 		}
 		if(isset($_POST['cfieldmapping']) && !empty($_POST['cfieldmapping'])){
-			
-			$mappedInputData = trim($_POST['cfieldmapping']);
-			if(strpos($mappedInputData, "FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":") !== false) {
-				$arrayData = explode("FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":", $mappedInputData);
-				$mappedData = $arrayData[1];
+			$cfieldMappedWith = trim($_POST['cfieldmapping']);
+			if(strpos($cfieldMappedWith, "FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":") !== false) {
+				$mappedcfieldData = explode("FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":", $cfieldMappedWith);
+				$mappedWith = $mappedcfieldData[1];
 				$cfields_array['wc_cf_mapped_field_type'] = CUSTOM_FIELD_FORM_TYPE_CONTACT;
-			}elseif (strpos($mappedInputData, "FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":") !== false) {
-				$arrayData = explode("FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":", $mappedInputData);
-				$mappedData = $arrayData[1];
+			}elseif (strpos($cfieldMappedWith, "FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":") !== false) {
+				$mappedcfieldData = explode("FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":", $cfieldMappedWith);
+				$mappedWith = $mappedcfieldData[1];
 				$cfields_array['wc_cf_mapped_field_type'] = CUSTOM_FIELD_FORM_TYPE_ORDER;
 			}
-			$cfields_array['wc_cf_mapped'] = $mappedData;
+			$cfields_array['wc_cf_mapped'] = $mappedWith;
 		}
 		
 		if(isset($_POST['cfieldid']) && !empty($_POST['cfieldid'])){
-			$result_check_update = $wpdb->update($cfields_table_name,$cfields_array,array('id' => $_POST['cfieldid']));
+			$resultcfieldupdate = $wpdb->update($cfields_table_name,$cfields_array,array('id' => $_POST['cfieldid']));
 			echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 		}else{
 			if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
 				if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
 					$cfields_array['wc_cf_group_id'] = $_POST['cfieldparentgroupid'];
 				}
-				$result_check_custom_field = $wpdb->insert($cfields_table_name,$cfields_array);
-				if($result_check_custom_field){
-				   	$lastInsertId = $wpdb->insert_id;
-				   	if(!empty($lastInsertId)){
-				   		$updateResult = $wpdb->update($cfields_table_name, array('wc_cf_sort_order' => $lastInsertId),array('id' => $lastInsertId));
+				$resultcfield = $wpdb->insert($cfields_table_name,$cfields_array);
+				if($resultcfield){
+				   	$lastcfieldInsertId = $wpdb->insert_id;
+				   	if(!empty($lastcfieldInsertId)){
+				   		$updateResult = $wpdb->update($cfields_table_name, array('wc_cf_sort_order' => $lastcfieldInsertId),array('id' => $lastcfieldInsertId));
 				   	}
 				}
 				echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 			}
 		}
-		
 	}
 	die();
 }
@@ -639,6 +637,132 @@ function wc_delete_cfield()
 		$cfield_table_name = 'wooconnection_custom_fields';
     	$cfield_table_name = $table_prefix . "$cfield_table_name";
 		$updateResult = $wpdb->update($cfield_table_name, array('wc_cf_status' => STATUS_DELETED),array('id' => $_POST['cfieldId']));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
+
+//Wordpress hook : This action is triggered when user try to edit custom field.
+add_action( 'wp_ajax_wc_get_cfield', 'wc_get_cfield');
+//Function Definiation : wc_get_cfield
+function wc_get_cfield()
+{
+	if(isset($_POST['cfieldId']) && !empty($_POST['cfieldId']))
+	{
+		global $table_prefix, $wpdb;
+		$cfield_table_name = 'wooconnection_custom_fields';
+    	$cfield_table_name = $table_prefix . "$cfield_table_name";
+    	$cfieldData = $wpdb->get_results("SELECT * FROM ".$cfield_table_name." WHERE id=".$_POST['cfieldId']." and wc_cf_status !=".STATUS_DELETED);
+    	if(isset($cfieldData) && !empty($cfieldData)){
+    		$cfieldname = "";
+    		$cfieldtype = "";
+    		$cfieldplaceholder = "";
+    		$cfieldoptionsarray = "";
+    		$cfieldmandatory = "";
+    		$cfieldmapped = "";
+    		$cfieldoptionValues = array();
+    		$cfieldoptionVal = "";
+    		$cfieldoptionLab = "";
+    		$cfoptionsarray = array();
+    		$cfieldoptionsHtml = '';
+    		$cfieldoptionsCount = '';
+    		$cfielddefaultvalue = '';
+    		if(!empty($cfieldData[0]->wc_cf_name)){
+        		$cfieldname = $cfieldData[0]->wc_cf_name;
+        	}
+        	if(!empty($cfieldData[0]->wc_cf_type)){
+        		$cfieldtype = $cfieldData[0]->wc_cf_type;
+        	}
+        	if(!empty($cfieldtype)){
+        		if($cfieldtype == CF_FIELD_TYPE_TEXT || $cfieldtype == CF_FIELD_TYPE_TEXT || $cfieldtype == CF_FIELD_TYPE_DATE){
+        			if(!empty($cfieldData[0]->wc_cf_placeholder)){
+						$cfieldplaceholder = $cfieldData[0]->wc_cf_placeholder;
+        			}
+        		}elseif ($cfieldtype == CF_FIELD_TYPE_DROPDOWN || $cfieldtype == CF_FIELD_TYPE_RADIO) {
+        			if(!empty($cfieldData[0]->wc_cf_options)){
+        				$cfieldoptionsarray = explode("@",$cfieldData[0]->wc_cf_options);
+    					foreach ($cfieldoptionsarray as $key => $value) {
+    						$cfieldoptionValues[] = $value;
+    					}
+    				}
+        		}
+        	}
+        	foreach ($cfieldoptionValues as $key => $value) {
+    			$cfoptionsarray[] = explode("#",$value);
+    		}
+    		$cfieldoptionsCount =	count($cfoptionsarray);
+			if($cfieldoptionsCount == 1){
+				$cfieldoptionVal = $cfoptionsarray[0][0];
+				$cfieldoptionLab = $cfoptionsarray[0][1];
+			}else{
+				$cfieldoptionVal = $cfoptionsarray[0][0];
+				$cfieldoptionLab = $cfoptionsarray[0][1];
+				$arraycount = 2;
+				foreach(array_slice($cfoptionsarray,1) as $key=>$value)
+				{
+				    $cfieldoptionsHtml .= '<div class="form-group row custom_options_'.$arraycount.'"><label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label"></label><div class="col-lg-10 col-md-9 col-sm-12 col-12"><div class="row"><div class="col-lg-6"><input type="text" name="cfieldoptionvalue['.$arraycount.']" placeholder="Field Value" id="cfieldoptionvalue_'.$arraycount.'" value="'.$value[0].'" required></div><div class="col-lg-5"><input type="text" name="cfieldoptionlabel['.$arraycount.']" placeholder="Field Label" id="cfieldoptionlabel_'.$arraycount.'" value="'.$value[1].'" required></div><div class="col-lg-1 remove_option" data-target="custom_options_'.$arraycount.'"><i class="fa fa-trash"></i></div></div></div></div>';
+						$arraycount++;
+				}
+			}
+			if(!empty($cfieldData[0]->wc_cf_default_value)){
+        		$cfielddefaultvalue = $cfieldData[0]->wc_cf_default_value;
+        	}
+        	if(!empty($cfieldData[0]->wc_cf_mandatory)){
+        		$cfieldmandatory = $cfieldData[0]->wc_cf_mandatory;
+        	}
+        	if(!empty($cfieldData[0]->wc_cf_mapped)){
+        		$cfieldmapped = $cfieldData[0]->wc_cf_mapped;
+        		if(!empty($cfieldData[0]->wc_cf_mapped_field_type)){
+        			$cfieldMappedWith = 'FormType:'.$cfieldData[0]->wc_cf_mapped_field_type.':'.$cfieldmapped;
+        		}
+        	}
+        	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldname'=>$cfieldname,'cfieldtype' => $cfieldtype,'cfieldplaceholder'=>$cfieldplaceholder,'cfielddefaultvalue'=>$cfielddefaultvalue,'cfieldmandatory'=>$cfieldmandatory,'cfieldmapped'=>$cfieldMappedWith,'cfieldoptionsCount'=>$cfieldoptionsCount,'cfieldoptionVal'=>$cfieldoptionVal,'cfieldoptionLab'=>$cfieldoptionLab,'cfieldoptionsHtml'=>$cfieldoptionsHtml));
+        }
+	}
+	die();
+}
+
+//Wordpress hook : This action is triggered when user try to sort the custom field groups.....
+add_action( 'wp_ajax_wc_update_cfieldgroups_order', 'wc_update_cfieldgroups_order');
+//Function Definiation : wc_update_cfieldgroups_order
+function wc_update_cfieldgroups_order()
+{
+	if(isset($_POST) && !empty($_POST)){
+		global $table_prefix, $wpdb;
+		$cfield_group_table_name = 'wooconnection_custom_field_groups';
+        $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
+		if(isset($_POST['cfieldgrouplatestorder']) && !empty($_POST['cfieldgrouplatestorder'])){
+			for($i = 0; $i < count($_POST['cfieldgrouplatestorder']); $i++) {
+			    $cfieldgroupid = $_POST['cfieldgrouplatestorder'][$i];
+			    $cfieldgrouplatestorder = $i+1;
+			    if(isset($cfieldgroupid) && !empty($cfieldgroupid)){
+					$groupupdateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_sort_order' => $cfieldgrouplatestorder),array('id' => $cfieldgroupid));
+			    }
+			}
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
+
+//Wordpress hook : This action is triggered when user try to sort the custom fields.....
+add_action( 'wp_ajax_wc_update_groupcfields_order', 'wc_update_groupcfields_order');
+//Function Definiation : wc_update_groupcfields_order
+function wc_update_groupcfields_order()
+{
+	if(isset($_POST) && !empty($_POST)){
+		global $table_prefix, $wpdb;
+		$cfield_table_name = 'wooconnection_custom_fields';
+    	$cfield_table_name = $table_prefix . "$cfield_table_name";
+		if(isset($_POST['groupcfieldlatestorder']) && !empty($_POST['groupcfieldlatestorder'])){
+			for($i = 0; $i < count($_POST['groupcfieldlatestorder']); $i++) {
+			    $groupcfieldid = $_POST['groupcfieldlatestorder'][$i];
+			    $groupcfieldlatestorder = $i+1;
+			    if(isset($groupcfieldid) && !empty($groupcfieldid)){
+					$cfieldupdateResult = $wpdb->update($cfield_table_name, array('wc_cf_sort_order' => $groupcfieldlatestorder),array('id' => $groupcfieldid));
+			    }
+			}
+		}
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	}
 	die();
