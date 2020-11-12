@@ -1498,7 +1498,7 @@ function cfRelatedTabs($form_type_id=""){
       }
   }
   //Infusion soft connection check
-  $tabRelatedOptions = '<option value="">Select tab</option>';
+  $tabRelatedOptions = '<option value="">Select Tab</option>';
   if(!empty($access_token)){
     if(!empty($form_type_id)){
       $form_type_id = $form_type_id;
