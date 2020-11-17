@@ -1629,4 +1629,109 @@ function getHeaders($access_token,$tab_type_id){
   curl_close($ch);
   return $headersArray;
 }
+
+//Checkout Custom fields : Code is used to check whether a input date is valid or not....  
+function validateDatecField($dateValue, $dateFormat = 'm/d/Y'){
+    $date = DateTime::createFromFormat($dateFormat, $dateValue);
+    return $date && $date->format($dateFormat) === $dateValue;
+}
+
+//Checkout Custom fields : Code is used to update contact custom fields with contact id...  
+function updateContactCustomFields($access_token,$contact_id,$customFieldsData){
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
+    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $header = array(
+      'Accept: text/xml',
+      'Content-Type: text/xml',
+      'Authorization: Bearer '. $access_token
+    );
+    
+    //create xml html by executing loop...
+    $customFieldHtml = '';
+    foreach ($customFieldsData as $key => $value) {
+        $keyname = str_replace(" ", "", $key);
+        $customFieldHtml .= '<member><name>'.$keyname.'</name><value><string>'.$value.'</string></value></member>';
+    }
+
+
+    //Create xml to hit the curl request for add order item.....
+    $xmlData = "<methodCall><methodName>ContactService.update</methodName><params><param><value><string>privateKey</string></value></param><param><value><int>".$contact_id."</int></value></param><param><value><struct>".$customFieldHtml."</struct></value></param></params></methodCall>";
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    //check if error occur due to any reason and then save the logs...
+    if($err){
+        $errorMessage = "Update contact custom field values is failed due to ". $err; 
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+    }else{
+      //Covert/Decode response to xml.....
+      $responsedata = xmlrpc_decode($response);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+          if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+              $errorMessage = "Update contact custom field values is failed due to ". $responsedata['faultString']; 
+              $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+      }else{
+        return true;
+      }
+    }
+    curl_close($ch);
+    return true;
+}
+
+//Checkout Custom fields : Code is used to update order custom fields with order id...
+function updateOrderCustomFields($access_token,$job_id,$ordercFieldsData){
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
+    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $header = array(
+      'Accept: text/xml',
+      'Content-Type: text/xml',
+      'Authorization: Bearer '. $access_token
+    );
+    
+    //create xml html by executing loop...
+    $ordercFieldHtml = '';
+    foreach ($ordercFieldsData as $key => $value) {
+        $keyname = str_replace(" ", "", $key);
+        $ordercFieldHtml .= '<member><name>'.$keyname.'</name><value><string>'.$value.'</string></value></member>';
+    }
+
+
+    //Create xml to hit the curl request for add order item.....
+    $xmlData = "<methodCall><methodName>DataService.update</methodName><params><param><value></value></param><param><value><string>Job</string></value></param><param><value><int>".$job_id."</int></value></param><param><value><struct>".$ordercFieldHtml."</struct></value></param></params></methodCall>";
+    //echo $xmlData;
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    //check if error occur due to any reason and then save the logs...
+    if($err){
+        $errorMessage = "Update order custom field values is failed due to ". $err; 
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+    }else{
+      //Covert/Decode response to xml.....
+      $responsedata = xmlrpc_decode($response);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+          if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+              $errorMessage = "Update order custom field values is failed due to ". $responsedata['faultString']; 
+              $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+      }else{
+        return true;
+      }
+    }
+    curl_close($ch);
+    return true;
+}
 ?>

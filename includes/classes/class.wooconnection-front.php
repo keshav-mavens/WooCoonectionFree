@@ -18,6 +18,7 @@ class WooConnection_Front {
     	//Trigger Files : Include the register triggers file...
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/generalTriggers/wooconnection-general-register-triggers.php');
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/generalTriggers/wooconnection-general-order-triggers.php');
+    	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/dynamicCheckoutFields/wooconnection-dynamic-checkout-custom-fields.php');
     }
 }
 	

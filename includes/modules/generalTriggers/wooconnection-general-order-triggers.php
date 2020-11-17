@@ -136,6 +136,20 @@ function wooconnection_trigger_status_complete_hook($orderid){
                         //Call the common function to add order itema as a discount....
                         addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
                     }
+
+                    global $wpdb;
+                    $orderCustomFields =  $wpdb->get_results($wpdb->prepare("SELECT *  FROM `wp_postmeta` WHERE `post_id` = 356 AND `meta_key` LIKE '%orderCFields_%'"));
+                    $orderCFields = array();
+                    if(isset($orderCustomFields) && !empty($orderCustomFields)){
+                      foreach ($orderCustomFields as $key => $value) {
+                          $cfieldKey = explode('orderCFields', $value->meta_key);
+                          $orderCFields[$cfieldKey[1]] = $value->meta_value;
+                      }
+                    }
+
+                    if(isset($orderCFields) && !empty($orderCFields)){
+                        $responseCheck = updateOrderCustomFields($access_token, $iskporderId, $orderCFields);
+                    }
                 }
             }
         }

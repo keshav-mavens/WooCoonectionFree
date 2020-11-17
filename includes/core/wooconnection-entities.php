@@ -58,10 +58,11 @@
 	//custom field form type entitiy.....
 	define('CUSTOM_FIELD_FORM_TYPE_CONTACT', -1);
 	define('CUSTOM_FIELD_FORM_TYPE_ORDER', -9);
-	//database custom entries status
+	//database custom entries status....
 	define('STATUS_ACTIVE', 1);
 	define('STATUS_INACTIVE', 2);
 	define('STATUS_DELETED', 3);
+	//custom field input type entities........
 	define('CF_FIELD_TYPE_TEXT', 1);
 	define('CF_FIELD_TYPE_TEXTAREA', 2);
 	define('CF_FIELD_TYPE_DROPDOWN', 3);
@@ -70,7 +71,7 @@
 	define('CF_FIELD_TYPE_DATE', 6);
 	define('CF_FIELD_REQUIRED_YES', 1);
 	define('CF_FIELD_REQUIRED_NO', 2);
-
+	//custom field actions entity.....
 	define('CF_FIELD_ACTION_SHOW', 'show');
 	define('CF_FIELD_ACTION_HIDE', 'hide');
 ?>

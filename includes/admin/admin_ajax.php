@@ -434,10 +434,10 @@ function wc_loading_cfields()
 function get_cfields_groups(){
   global $wpdb,$table_prefix;
   //define table name....
-  $table_name = 'wooconnection_custom_field_groups';
-  $wp_table_name = $table_prefix . "$table_name";
+  $cfield_group_table_name = 'wooconnection_custom_field_groups';
+  $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
   //get custom field groups which is not deleted......
-  $customFieldGroups = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_custom_field_group_status !=".STATUS_DELETED." ORDER BY wc_custom_field_sort_order ASC");
+  $customFieldGroups = $wpdb->get_results("SELECT * FROM ".$cfield_group_table_name." WHERE wc_custom_field_group_status !=".STATUS_DELETED." ORDER BY wc_custom_field_sort_order ASC");
   $customFieldsListing = "";//define variable.....
   //check if data is not empty rotate loop....
   if(isset($customFieldGroups) && !empty($customFieldGroups)){
@@ -611,7 +611,7 @@ function wc_save_groupcfield()
 	            	$cfields_array['wc_cf_default_value'] = trim($_POST['cfielddefault2value']);
 	            }
 	     		
-	     	}else if ($_POST['customfieldtype'] == CF_FIELD_TYPE_CHECKBOX) {
+	     	}else if ($_POST['cfieldtype'] == CF_FIELD_TYPE_CHECKBOX) {
 	     		if(isset($_POST['cfielddefault1value'])){
 	            	$cfields_array['wc_cf_default_value'] = trim($_POST['cfielddefault1value']);
 	            }
@@ -636,7 +636,6 @@ function wc_save_groupcfield()
 			}
 			$cfields_array['wc_cf_mapped'] = $mappedWith;
 		}
-		
 		//check if custom field id is exist then perform the update process....
 		if(isset($_POST['cfieldid']) && !empty($_POST['cfieldid'])){
 			$resultcfieldupdate = $wpdb->update($cfields_table_name,$cfields_array,array('id' => $_POST['cfieldid']));
@@ -768,7 +767,7 @@ function wc_get_cfield()
 				$arraycount = 2;
 				foreach(array_slice($cfoptionsarray,1) as $key=>$value)
 				{
-				    $cfieldoptionsHtml .= '<div class="form-group row custom_options_'.$arraycount.'"><label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label"></label><div class="col-lg-10 col-md-9 col-sm-12 col-12"><div class="row"><div class="col-lg-6"><input type="text" name="cfieldoptionvalue['.$arraycount.']" placeholder="Field Value" id="cfieldoptionvalue_'.$arraycount.'" value="'.$value[0].'" required></div><div class="col-lg-5"><input type="text" name="cfieldoptionlabel['.$arraycount.']" placeholder="Field Label" id="cfieldoptionlabel_'.$arraycount.'" value="'.$value[1].'" required></div><div class="col-lg-1 remove_option" data-target="custom_options_'.$arraycount.'"><i class="fa fa-trash"></i></div></div></div></div>';
+				    $cfieldoptionsHtml .= '<div class="form-group row custom_options_'.$arraycount.'"><label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label"></label><div class="col-lg-10 col-md-9 col-sm-12 col-12"><div class="row"><div class="col-lg-6"><input type="text" name="cfieldoptionvalue['.$arraycount.']" placeholder="Field Value" id="cfieldoptionvalue_'.$arraycount.'" value="'.$value[0].'" required></div><div class="col-lg-5"><input type="text" name="cfieldoptionlabel['.$arraycount.']" placeholder="Field Label" id="cfieldoptionlabel_'.$arraycount.'" value="'.$value[1].'" required></div><div class="col-lg-1 removecfieldoptions" data-target="custom_options_'.$arraycount.'"><i class="fa fa-trash"></i></div></div></div></div>';
 						$arraycount++;
 				}
 			}
