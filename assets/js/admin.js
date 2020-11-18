@@ -88,6 +88,11 @@
                         if($("#collapseCampaignGoals").length){
                             applyCollapseRules('collapseCampaignGoals');
                         }
+
+                        //apply change icon rule on lead source "How this works" button..
+                        if($("#collapseLeadSource").length){
+                            applyCollapseRules('collapseLeadSource');
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -227,6 +232,11 @@
             //apply change icon rule on campaign goals "How this works" button..
             if($("#collapseCampaignGoals").length){
                 applyCollapseRules('collapseCampaignGoals');
+            }
+
+            //apply change icon rule on lead source "How this works" button..
+            if($("#collapseLeadSource").length){
+                applyCollapseRules('collapseLeadSource');
             }
 
             //this code is used to control the activate button enable and disable process on the basis of email value...

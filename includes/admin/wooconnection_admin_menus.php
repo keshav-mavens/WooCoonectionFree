@@ -65,7 +65,7 @@ if(empty($checkAuthenticationStatus)){
 	        </li>
 			
 	        <li class="expanded common_disable_class  <?php echo $leftMenuClass; ?>">
-				<a href="javascript:void(0);" id="automation" class="last <?php echo $automationActiveClass; ?>">
+				<a href="javascript:void(0);" id="automation" class="<?php echo $automationActiveClass; ?>">
 					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/auto.png" alt=""></span>
 					<span class="menu-text">Automate</span>
 			        <div class="clr"></div>
@@ -74,6 +74,18 @@ if(empty($checkAuthenticationStatus)){
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs automation_active <?php echo $automationSubmenuClass; ?> " id="campaign_goals">Campaign Goals</a></li>
 	            </ul>
 	        </li>
+
+	        <li class="expanded common_disable_class <?php echo $leftMenuClass; ?>" class="last">
+				<a class="last" href="javascript:void(0);" id="advanced_options">
+					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/integration.png" alt=""></span>
+					<span class="menu-text">Advanced Options</span>
+			        <div class="clr"></div>
+				</a>
+	            <ul class="sub-menu advanced_options">
+	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs advanced_options_active" id="lead_sources">Lead Sources</a></li>
+	            </ul>
+	        </li>
+
 		</ul>
 	</div>
 </div>
