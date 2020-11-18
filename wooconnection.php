@@ -19,6 +19,7 @@ class WooConnectionPro {
         register_activation_hook( __FILE__, array($this, 'create_countries_database_table' ) );
         register_activation_hook( __FILE__, array($this, 'insert_countries_database_table' ) );
         register_activation_hook( __FILE__, array($this, 'create_custom_fields_group_table' ) );
+        register_activation_hook( __FILE__, array($this, 'create_standard_custom_fields_mapping_table' ) );
     }
 
     
@@ -181,6 +182,45 @@ class WooConnectionPro {
             $sqlCf .= ") ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ; ";
             require_once( ABSPATH . '/wp-admin/includes/upgrade.php' );
             dbDelta($sqlCf);
+        }
+    }
+
+    //Function Definition : create_custom_fields_group_table
+    public function create_standard_custom_fields_mapping_table(){
+        global $table_prefix, $wpdb;
+        $table_name = 'wooconnection_standard_custom_field_mapping';
+        //create custom fields group table...
+        $wp_standard_custom_fields_mapping_table_name = $table_prefix . "$table_name";
+        if($wpdb->get_var( "show tables like '$wp_standard_custom_fields_mapping_table_name'" ) != $wp_standard_custom_fields_mapping_table_name) 
+        {
+            $sqlStandard = "CREATE TABLE `". $wp_standard_custom_fields_mapping_table_name . "` ( ";
+            $sqlStandard .= "  `id`  int(11) NOT NULL auto_increment, ";
+            $sqlStandard .= "  `wc_standard_custom_field_name` varchar(255) NOT NULL, ";
+            $sqlStandard .= "  `wc_standardcf_mapped` text DEFAULT NULL, ";
+            $sqlStandard .= "  `wc_standardcf_mapped_field_type` tinyint(4) DEFAULT -1 COMMENT '-1-contact,-9-order', ";
+            $sqlStandard .= "  `created`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
+            $sqlStandard .= "  `modified`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, ";
+            $sqlStandard .= "  PRIMARY KEY (`id`) ";
+            $sqlStandard .= ") ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ; ";
+            require_once( ABSPATH . '/wp-admin/includes/upgrade.php' );
+            dbDelta($sqlStandard);
+        }
+
+
+        //Check Table Records : First need to check whether the table records is exist or not if not exist then create new table records..
+        $checkTableRecords = $wpdb->get_results('SELECT * FROM '.$wp_standard_custom_fields_mapping_table_name.'');
+        if(empty($checkTableRecords)){
+            $wpdb->query("INSERT INTO ".$wp_standard_custom_fields_mapping_table_name."
+                (`wc_standard_custom_field_name`,`wc_standardcf_mapped`,`wc_standardcf_mapped_field_type`)
+                VALUES
+                ('First Name','FirstName','-1'),
+                ('Last Name','LastName','-1'),
+                ('Email','EmailAddress2','-1'),
+                ('Phone','Phone1','-1'),
+                ('Address','Address2Street1','-1'),
+                ('City','City','-1'),
+                ('State','State','-1'),
+                ('PostalCode','PostalCode','-1')");
         }
     }
 }

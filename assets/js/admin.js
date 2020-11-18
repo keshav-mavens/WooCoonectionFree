@@ -118,7 +118,6 @@
                         if($(".main-group").length){
                             sortabledivs('main-group');
                         }
-                        
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -189,9 +188,9 @@
             //On click of import tabs change the content of corresponding tab.......
             $document.on("click",".custom-nav-tabs a",function(event) {
                 var target_tab_id = $(this).attr('href');
-                jQuery(".ajax_loader").show();
-                jQuery(".tab_related_content").addClass('overlay');
                 if(target_tab_id != ""){
+                    jQuery(".ajax_loader").show();
+                    jQuery(".tab_related_content").addClass('overlay');
                     $(target_tab_id+"_listing").html('');
                     $(target_tab_id+"_listing").html('<p class="heading-text" style="text-align:center;">Loading Data....</p>');
                     jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id}, function(data) {
@@ -221,6 +220,15 @@
                                     //add select 2 for woocommerce products field
                                     if($(".application_match_products_dropdown").length){
                                         applySelectTwo('application_match_products_dropdown');
+                                    }
+                                }
+                                else if (target_tab_id == '#table_standard_fields_mapping') {
+                                    $(target_tab_id+"_listing").html('');
+                                    $(target_tab_id+"_listing").html(responsedata.latestHtml);
+                                    
+                                    //add select 2 for infusionsoft/keap fields....
+                                    if($(".standardcfieldmappingwith").length){
+                                        applySelectTwo('standardcfieldmappingwith');
                                     }
                                 }    
                             }
@@ -647,6 +655,26 @@
                 }
             });
 
+            //Match Products Tab : check all products checkbox rule....
+            $document.on("click",".all_fields_mapped_checkbox",function(event) {
+                if ($(this).is(":checked"))
+                {
+                    $('.each_field_mapped_checkbox').prop("checked", true);
+                }
+                else
+                {
+                    $('.each_field_mapped_checkbox').prop("checked", false);
+                }
+            });
+            
+            //Match Products Tab : on change of select box of woocommerce products mark checkbox checked or unchecked on the basis of select value.....
+            $document.on("click",".each_field_mapped_checkbox",function(event) {
+                if ($('.all_fields_mapped_checkbox').is(":checked"))
+                {
+                    $('.all_fields_mapped_checkbox').prop("checked", false);
+                }
+            });
+
         });
 }(jQuery));
 
@@ -982,6 +1010,12 @@ function applySelectTwo(element){
                 tags: true,
             }); 
         } 
+        //add select 2 for woocommerce products field
+        if(element == 'standardcfieldmappingwith'){
+            $("."+element).select2({
+                placeholder: 'Select Mapped Application Field',
+            }); 
+        }
         
     }
 }
@@ -1272,4 +1306,49 @@ function sortabledivs(element){
             });
         }
     }
+}
+
+//On click of update products mapping button send ajax to update mapping of products and on sucess update the html....
+function wcStandardFieldsMapping(){
+    var checkFields = checkSelectedProducts('standard_fields_listing_class','allfieldsmapped');
+    var checkSelectedFieldsCount = checkFields.length;//console.log(checkProducts);
+    if(checkSelectedFieldsCount == 0){
+        $(".standard-fields-error").html('You need to select atleast one standard field to update mapping.');
+        $(".standard-fields-error").show();
+    }else{
+        $(".standard-fields-error").hide();
+        $(".fieldsMapping").show();
+        $('.standard_fields_mapping_btn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_update_standard_cfields_mapping",$('#wc_standard_fields_mapping_form').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".fieldsMapping").hide();
+            if(responsedata.status == "1") {
+                $('.standard_fields_mapping_btn').removeClass("disable_anchor");
+                if(responsedata.latestMappedStandardFieldsHtml != ""){
+                     $('.standard_fields_listing_class').html();
+                     $('.standard_fields_listing_class').html(responsedata.latestMappedStandardFieldsHtml);
+                }
+                
+                //add select 2 for woocommerce products field
+                if($(".standardcfieldmappingwith").length){
+                    applySelectTwo('standardcfieldmappingwith');
+                }
+                $('.all_fields_mapped_checkbox').prop("checked", false);
+                $('.each_field_mapped_checkbox').prop("checked", false);
+                swal("Saved!", 'Standard fields mapping updated successfully.', "success");
+            }else{
+                $(".standard-fields-error").show();
+                $(".standard-fields-error").html('Something Went Wrong.');
+                setTimeout(function()
+                {
+                    $('.standard-fields-error').fadeOut("slow");
+                    $('.standard_fields_mapping_btn').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+    }
+    setTimeout(function()
+    {
+        $('.standard-fields-error').fadeOut("slow");
+    }, 3000);
 }

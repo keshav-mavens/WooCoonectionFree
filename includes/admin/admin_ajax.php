@@ -149,6 +149,8 @@ function wc_load_import_export_tab_main_content(){
 			$latestHtml = createExportProductsHtml();
 		}else if ($_POST['target_tab_id'] == '#table_match_products') {
 			$latestHtml = createMatchProductsHtml();
+		}else if ($_POST['target_tab_id'] == '#table_standard_fields_mapping') {
+			$latestHtml = createStandardFieldsMappingHtml();
 		}
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestHtml'=>$latestHtml));
 	}
@@ -840,6 +842,54 @@ function wc_update_groupcfields_order()
 			}
 		}
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
+
+//Custom fields Tab : wordpress hook is call apply sortable event on custom fields.....
+add_action( 'wp_ajax_wc_update_standard_cfields_mapping', 'wc_update_standard_cfields_mapping');
+//Function Definiation : wc_update_standard_cfields_mapping
+function wc_update_standard_cfields_mapping()
+{
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		global $table_prefix, $wpdb;
+		//define table names....
+		$standard_cfield_table_name = 'wooconnection_standard_custom_field_mapping';
+    	$standard_cfield_table_name = $table_prefix . "$standard_cfield_table_name";
+		if(isset($_POST['wc_fields_mapping']) && !empty($_POST['wc_fields_mapping'])){
+	      	$mappedFieldName = '';
+	      	$mappedFieldType = '';
+	      	foreach ($_POST['wc_fields_mapping'] as $key => $value) {
+	      		if(!empty($value)){//check id value is not empty...
+	      			//check any associated product is selected along with imported product request....
+	      			if(isset($_POST['standard_cfield_mapping_'.$value]) && !empty($_POST['standard_cfield_mapping_'.$value])){
+	      				$mappedField = $_POST['standard_cfield_mapping_'.$value];
+	      				if($mappedField == 'donotmap'){
+	      					$mappedFieldName = '';
+	      					$mappedFieldType = CUSTOM_FIELD_FORM_TYPE_CONTACT;
+	      				}
+	      				if (strpos($mappedField, 'FormType:'.CUSTOM_FIELD_FORM_TYPE_CONTACT.':') !== false)
+					    {
+					       $fieldname=explode("FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":", $mappedField);
+					       $mappedFieldName = $fieldname[1];
+					       $mappedFieldType = CUSTOM_FIELD_FORM_TYPE_CONTACT;	
+					    }
+					    else if (strpos($mappedField, 'FormType:'.CUSTOM_FIELD_FORM_TYPE_ORDER.':') !== false)
+					    {
+					        $fieldname=explode("FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":", $mappedField);
+					    	$mappedFieldName = $fieldname[1];
+					    	$mappedFieldType = CUSTOM_FIELD_FORM_TYPE_ORDER;	
+					    }
+	      			}
+	      			//update relationship between woocommerce standard field and infusionsoft/keap custom fields...
+	      			$standardCfieldUpdateResult = $wpdb->update($standard_cfield_table_name, array('wc_standardcf_mapped' => $mappedFieldName,'wc_standardcf_mapped_field_type'=>$mappedFieldType),array('id' => $value));
+	      		}
+	      	}
+	    }
+	    //then call the "createStandardFieldsMappingHtml" function to get the latest html...
+		$latestMappedStandardFieldsHtml = createStandardFieldsMappingHtml();
+      	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestMappedStandardFieldsHtml'=>$latestMappedStandardFieldsHtml));
 	}
 	die();
 }

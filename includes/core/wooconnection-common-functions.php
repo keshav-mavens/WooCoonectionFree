@@ -1734,4 +1734,128 @@ function updateOrderCustomFields($access_token,$job_id,$ordercFieldsData){
     curl_close($ch);
     return true;
 }
+
+//Main function is used to generate the standard checkout fields mapping html.....
+function createStandardFieldsMappingHtml(){
+  //Define variables.....
+  $standard_fields_mapping_html = "";
+  
+  //Get the application type and set the lable on the basis of it....
+  $configurationType = applicationType();
+  $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;//Default....
+  if(isset($configurationType) && !empty($configurationType)){
+    if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+      $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+    }else if ($configurationType == APPLICATION_TYPE_KEAP) {
+      $type = APPLICATION_TYPE_KEAP_LABEL;
+    }
+  }
+  
+  //Set the application label on the basis of type...
+  $applicationLabel = applicationLabel($type);
+  
+  //call the function to get the list of standard checkout fields....
+  $wooStandardCheckoutFields = listStandardCheckoutFields();
+
+  //Get the export products table html and append to table
+  if(empty($wooStandardCheckoutFields)){
+    $standard_fields_mapping_html = '<p class="heading-text" style="text-align:center">No standard custom fields mapping exist.</p>';
+  }else{
+    $standard_fields_mapping_html .= '<form action="" method="post" id="wc_standard_fields_mapping_form" onsubmit="return false">
+        <table class="table table-striped standard_fields_listing_class" id="standard_fields_listing">
+          <thead>
+            <tr>
+              <th>
+                <input type="checkbox" id="match_fields_all" name="match_fields_all" class="all_fields_mapped_checkbox" value="allfieldsmapped">
+              </th>
+              <th>WooCommerce Standard Field</th>
+              <th>'.$applicationLabel.' Field</th>
+            </tr>
+          </thead>
+          <tbody>'.$wooStandardCheckoutFields.'</tbody>
+        </table>
+        <div class="form-group col-md-12 text-center m-t-60">
+          <div class="fieldsMapping" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Update Standard Fields Mapping......</div>
+          <div class="alert-error-message standard-fields-error" style="display: none;"></div>
+          <div class="alert-sucess-message standard-fields-success" style="display: none;">Products export successfully.</div>
+          <input type="button" value="Update Fields Mapping" class="btn btn-primary btn-radius btn-theme standard_fields_mapping_btn" onclick="wcStandardFieldsMapping()">
+        </div>
+    </form>';  
+  }
+  
+  
+
+  //return the html...
+  return $standard_fields_mapping_html;
+}
+
+
+//get the list of standard checkout fields and its mapped fields...
+function listStandardCheckoutFields(){
+  global $wpdb,$table_prefix;
+  $table_name = 'wooconnection_standard_custom_field_mapping';
+  $wooconnection_standard_custom_field_mapping = $table_prefix . "$table_name";
+  $checkoutStandardFields = $wpdb->get_results("SELECT * FROM ".$wooconnection_standard_custom_field_mapping."");
+  $wccheckoutStandardFieldsHtml = '';
+  if(isset($checkoutStandardFields) && !empty($checkoutStandardFields)){
+    foreach ($checkoutStandardFields as $key => $value) {
+        $field_id = $value->id;
+        $field_name = $value->wc_standard_custom_field_name;
+        $field_mapping = $value->wc_standardcf_mapped;
+        $mapped_field_type = $value->wc_standardcf_mapped_field_type; 
+
+        if(isset($field_mapping) && !empty($field_mapping)){
+          $fieldsDropDown = createMappedFieldSelect($mapped_field_type,$field_mapping);
+        }else{
+          $fieldsDropDown = createMappedFieldSelect($mapped_field_type,'');
+        }
+        $wccheckoutStandardFieldsHtml.='<tr>
+                                <td><input type="checkbox" class="each_field_mapped_checkbox" name="wc_fields_mapping[]" value="'.$field_id.'" id="'.$field_id.'"></td>
+                                <td>'.$field_name.'</td>
+                                <td><select name="standard_cfield_mapping_'.$field_id.'" class="standardcfieldmappingwith"><option value="donotmap">Do not mapped</option>'.$fieldsDropDown.'</select></td>
+                              </tr>';
+    }
+  }
+  return $wccheckoutStandardFieldsHtml;
+}
+
+//create infusionsoft/keap fields options html on the basis of mapping...
+function createMappedFieldSelect($field_type,$mappedWith=""){
+  $preDefinedCustomFields = getPredefindCustomfields();
+  $cfieldOptionsHtml = "";
+  foreach($preDefinedCustomFields as $key => $value) {
+    $cfieldOptionsHtml .= "<optgroup label=\"$key\">";
+    foreach($value as $key1 => $value1) {
+      $cfieldoptionSelected = "";
+      if(!empty($mappedWith)){
+        if($key1 == 'FormType:'.$field_type.':'.$mappedWith){
+          $cfieldoptionSelected = "selected";
+        }
+      }
+      $cfieldOptionsHtml .= '<option value="'.$key1.'"'.$cfieldoptionSelected.'>'.$value1.'</option>';
+    }
+    $cfieldOptionsHtml .= "</optgroup>";
+  }
+  return $cfieldOptionsHtml;
+}
+
+
+//get the list of standard checkout fields and its mapped fields...
+function listAlreadyUsedFields(){
+  global $wpdb,$table_prefix;
+  $table_name = 'wooconnection_standard_custom_field_mapping';
+  $wooconnection_standard_custom_field_mapping = $table_prefix . "$table_name";
+  $checkoutStandardFields = $wpdb->get_results("SELECT * FROM ".$wooconnection_standard_custom_field_mapping."");
+  $wccheckoutStandardFieldsHtml = array();
+  if(isset($checkoutStandardFields) && !empty($checkoutStandardFields)){
+    foreach ($checkoutStandardFields as $key => $value) {
+        $field_id = $value->id;
+        $field_mapping = $value->wc_standardcf_mapped;
+        $mapped_field_type = $value->wc_standardcf_mapped_field_type; 
+        $wccheckoutStandardFieldsHtml[] = 'FormType:'.$mapped_field_type.':'.$field_mapping;
+    }
+  }
+  return $wccheckoutStandardFieldsHtml;
+}
+
 ?>
