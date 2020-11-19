@@ -809,84 +809,6 @@ function addNewCompany($newCompanyName,$access_token){
     return $companyId;
 }
 
-
-
-//update contact to infusionsoft/keap account..
-function updateContact($contactId,$woocommerce_order_data,$access_token){
-    $contactLatestInformation = array();
-    if(!empty($contactId) && !empty($woocommerce_order_data) && !empty($access_token)){
-        if(isset($woocommerce_order_data['billing']['country']) && !empty($woocommerce_order_data['billing']['country'])){
-            $countryCode = get_country_code($woocommerce_order_data['billing']['country']);
-            $contactLatestInformation['country_code'] = $countryCode;
-        }
-        $contactLatestInformation['field'] = "BILLING";
-        if(isset($woocommerce_order_data['billing']['address_1']) && !empty($woocommerce_order_data['billing']['address_1'])){
-            $contactLatestInformation['line1'] = trim($woocommerce_order_data['billing']['address_1']);
-        }
-        if(isset($woocommerce_order_data['billing']['address_2']) && !empty($woocommerce_order_data['billing']['address_2']))
-        {
-            $contactLatestInformation['line2'] = $woocommerce_order_data['billing']['address_2'];
-        }
-        if(isset($woocommerce_order_data['billing']['postcode']) && !empty($woocommerce_order_data['billing']['postcode'])){
-            $contactLatestInformation['postal_code'] = $woocommerce_order_data['billing']['postcode'];
-        }
-        if(isset($woocommerce_order_data['billing']['city']) && !empty($woocommerce_order_data['billing']['city'])){
-            $contactLatestInformation['locality'] = $woocommerce_order_data['billing']['city'];
-        }
-        if(isset($woocommerce_order_data['billing']['state']) && !empty($woocommerce_order_data['billing']['state'])){
-            $states = WC()->countries->get_states($woocommerce_order_data['billing']['country']);
-            $state = !empty($states[$woocommerce_order_data['billing']['state']]) ? $states[$woocommerce_order_data['billing']['state']] : '';
-            $contactLatestInformation['region'] = $state;
-        }
-        $companyId = '';
-        if(isset($woocommerce_order_data['billing']['company']) && !empty($woocommerce_order_data['billing']['company'])){
-            $company = stripslashes($woocommerce_order_data['billing']['company']);
-            $companyId = checkAddCompany($company,$access_token);
-        }
-        $firstName = '';
-        if(isset($woocommerce_order_data['billing']['first_name']) && !empty($woocommerce_order_data['billing']['first_name'])){
-            $firstName = trim($woocommerce_order_data['billing']['first_name']);
-        }
-        $phone1 = '';
-        if(isset($woocommerce_order_data['billing']['phone']) && !empty($woocommerce_order_data['billing']['phone'])){
-            $phone1 = $woocommerce_order_data['billing']['phone'];
-        }
-        $jsonAddressedArray = json_encode($contactLatestInformation);
-        $jsonArray = '{"addresses": ['.$jsonAddressedArray.'],"company": {"id": '.$companyId.'},"phone_numbers": 
-          [{"field": "PHONE1","number": "'.$phone1.'"}],"given_name": "'.$firstName.'"}';
-        $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts/'.$contactId;
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-            'Accept: application/json',
-            'Content-Type: application/json',
-            'Authorization: Bearer '. $access_token
-        );
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
-        $response = curl_exec($ch);
-        $err = curl_error($ch);
-        if($err){
-          $errorMessage = 'Trying to update contact('.$contactId.')';
-          $errorMessage .= $errorMessage ." is failed due to ". $err; 
-          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-        }else{
-          $sucessData = json_decode($response,true);
-          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
-            $errorMessage = 'Trying to update contact('.$contactId.')';
-            $errorMessage = $errorMessage ." is failed";
-            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
-              $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
-            }
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          }
-        }
-        curl_close($ch);
-    }
-    return true;
-}
-
 //get country code on the basis of code...
 function get_country_code($code){
   global $wpdb,$table_prefix;
@@ -1356,7 +1278,7 @@ function getPredefindCustomfields(){
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Suffix'] = "Contact Suffix";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':SpouseName'] = "Contact Spouse Name";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ContactNotes'] = "Contact Notes";
-  
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Company'] = "Contact Company";
   //Infusionsoft/keap application access token check....
   if($access_token){
     //Infusionsoft/keap : Get Infusionsoft/Keap Contact Custom Fields

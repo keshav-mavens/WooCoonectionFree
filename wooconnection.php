@@ -222,7 +222,8 @@ class WooConnectionPro {
                 ('City','billing_city','City','-1'),
                 ('State','billing_state','State','-1'),
                 ('Country','billing_country','Country','-1'),
-                ('PostalCode','billing_postcode','PostalCode','-1')");
+                ('PostalCode','billing_postcode','PostalCode','-1'),
+                ('Company name','billing_company','Company','-1')");
         }
     }
 }

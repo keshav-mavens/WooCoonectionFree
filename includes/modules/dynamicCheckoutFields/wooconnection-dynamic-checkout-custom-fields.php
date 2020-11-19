@@ -330,6 +330,27 @@ function wc_custom_field_update_data($orderId)
 			$cfields_table_name = 'wooconnection_custom_fields';
 			$cfields_table_name = $table_prefix . "$cfields_table_name";
 			
+			// Create instance of our wooconnection logger class to use off the whole things.
+		    $wooconnectionLogger = new WC_Logger();
+		    
+		    //Concate a error message to store the logs...
+		    $callback_purpose = 'Wooconnection Checkout Custom Fields : Process of update custom field values of contact';
+		    
+		    $applicationAuthenticationDetails = getAuthenticationDetails();
+
+		    //Stop the below process if not authentication done with infusionsoft/keap application..
+		    if(empty($applicationAuthenticationDetails) || empty($applicationAuthenticationDetails[0]->user_access_token))
+		    {
+		        $addLogs = addLogsAuthentication($callback_purpose);
+		        return false;
+		    }
+
+		    //get the access token....
+		    $access_token = '';
+		    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+		        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+		    }
+
 			$cFieldContactRelated = array();
 			$cFieldOrderRelated = array();
 			if(!empty($_POST['wc-checkout-field-ids'])){
@@ -376,6 +397,10 @@ function wc_custom_field_update_data($orderId)
 									$states = WC()->countries->get_states($_POST['billing_country']);
 									$state = !empty($states[$_POST['billing_state']]) ? $states[$_POST['billing_state']] : '';
 									$fieldValue = $state;
+								}else if ($field_name == 'billing_country') {
+									$company = stripslashes($_POST['billing_country']);
+									$companyId = checkAddCompany($company,$access_token);
+									$fieldValue = $companyId;
 								}
 								else{
 									$fieldValue = $_POST[$field_name];
@@ -389,28 +414,7 @@ function wc_custom_field_update_data($orderId)
 			    }
 			}
 
-			// Create instance of our wooconnection logger class to use off the whole things.
-		    $wooconnectionLogger = new WC_Logger();
-		    
-		    //Concate a error message to store the logs...
-		    $callback_purpose = 'Wooconnection Checkout Custom Fields : Process of update custom field values of contact';
-		    
-		    $applicationAuthenticationDetails = getAuthenticationDetails();
-
-		    //Stop the below process if not authentication done with infusionsoft/keap application..
-		    if(empty($applicationAuthenticationDetails) || empty($applicationAuthenticationDetails[0]->user_access_token))
-		    {
-		        $addLogs = addLogsAuthentication($callback_purpose);
-		        return false;
-		    }
-
-		    //get the access token....
-		    $access_token = '';
-		    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
-		        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-		    }
-
-		   	$order = wc_get_order( $orderId );	
+			$order = wc_get_order( $orderId );	
 			$order_email = $order->get_billing_email();
 			// Validate email is in valid format or not 
 		    validate_email($order_email,$callback_purpose,$wooconnectionLogger);
