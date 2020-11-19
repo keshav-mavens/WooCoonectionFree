@@ -218,7 +218,7 @@ class WooConnectionPro {
                 ('Last Name','billing_last_name','LastName','-1'),
                 ('Email','billing_email','EmailAddress2','-1'),
                 ('Phone','billing_phone','Phone1','-1'),
-                ('Address','billing_address_1','Address2Street1','-1'),
+                ('Address','billing_address_1','StreetAddress1','-1'),
                 ('City','billing_city','City','-1'),
                 ('State','billing_state','State','-1'),
                 ('Country','billing_country','Country','-1'),
