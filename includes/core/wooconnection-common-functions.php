@@ -647,9 +647,9 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
             $leadsourceId = $_COOKIE["leadsourceId"];
         }else{
           //the check urm parameters value exist......
-          if(isset($_COOKIE["lscategory"]) && isset($_COOKIE["lscategory"]) && isset($_COOKIE["lsvendor"]) && isset($_COOKIE["lsmessage"])){
+          if(isset($_COOKIE["lscategory"]) && isset($_COOKIE["lsmedium"]) && isset($_COOKIE["lsvendor"]) && isset($_COOKIE["lsmessage"])){
               //call the function to check or add leadsource on the basis of utm parameters.....
-              $leadsourceId = checkAddLeadSource($access_token,$_COOKIE["lscategory"],$_COOKIE["lscategory"],$_COOKIE["lsvendor"],$_COOKIE["lsmessage"]);
+              $leadsourceId = checkAddLeadSource($access_token,$_COOKIE["lscategory"],$_COOKIE["lsmedium"],$_COOKIE["lsvendor"],$_COOKIE["lsmessage"]);
           }
         }
         // Create instance of our wooconnection logger class to use off the whole things.
@@ -684,6 +684,21 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
           }
           if(!empty($sucessData['id'])){
             $appContactId = $sucessData['id'];
+            if (isset($_COOKIE['leadsourceId'])){
+                setcookie( 'leadsourceId', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lscategory'])){
+              setcookie( 'lscategory', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lsmedium'])){
+              setcookie( 'lsmedium', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lsvendor'])){
+              setcookie( 'lsvendor', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lsmessage'])){
+              setcookie( 'lsmessage', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
           }
           return $appContactId;
         }

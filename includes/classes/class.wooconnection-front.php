@@ -30,7 +30,7 @@ class WooConnection_Front {
 			if (!headers_sent()) {
 				$cookieName = "leadsourceId";
 				$cookieValue = $lsId;
-				setcookie($cookieName, $cookieValue, time() + (86400 * 30), "/");
+				setcookie($cookieName, $cookieValue, time() + 3600, "/", $_SERVER['SERVER_NAME']);
 			}
 		}else{//then check if utm parameters exist in query string...
 			//define empty variables....
@@ -69,10 +69,10 @@ class WooConnection_Front {
 
 			//set utm parameters in cookie.....
 			if (!headers_sent()) {
-				setcookie('lscategory', $lscategory, time() + (86400 * 30), "/"); 
-				setcookie('lsmedium', $lsmedium, time() + (86400 * 30), "/"); 
-				setcookie('lsvendor', $lsvendor, time() + (86400 * 30), "/"); 
-				setcookie('lsmessage', $lsmessage, time() + (86400 * 30), "/"); 
+				setcookie('lscategory', $lscategory, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
+				setcookie('lsmedium', $lsmedium, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
+				setcookie('lsvendor', $lsvendor, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
+				setcookie('lsmessage', $lsmessage, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
 			}
 		} 
 	}
