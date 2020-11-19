@@ -356,6 +356,28 @@ function wc_custom_field_update_data($orderId)
 				}
 			}
 			
+			//code is used to update the update the standard custom fields data in infusionsoft/keap application........
+			$standardcf_table_name = 'wooconnection_standard_custom_field_mapping';
+  			$wooconnection_standard_custom_field_mapping = $table_prefix . "$standardcf_table_name";
+			$standardcFieldData = $wpdb->get_results("SELECT * FROM ".$wooconnection_standard_custom_field_mapping);
+			if(isset($standardcFieldData) && !empty($standardcFieldData)){
+				foreach ($standardcFieldData as $key => $value) {
+					$field_name = $value->wc_standardcf_name;
+			        $field_mapping = $value->wc_standardcf_mapped;
+			       	$mapped_field_type = $value->wc_standardcf_mapped_field_type; 
+			        if(isset($field_mapping) && !empty($field_mapping)){
+			        	if(isset($_POST[$field_name]) && !empty($_POST[$field_name])){
+				        	$standardcFieldMappedWith = $field_mapping;
+				        	if(!empty($mapped_field_type) && $mapped_field_type == CUSTOM_FIELD_FORM_TYPE_CONTACT){
+								$cFieldContactRelated[$standardcFieldMappedWith] = trim($_POST[$field_name]);
+							}else if (!empty($mapped_field_type) && $mapped_field_type == CUSTOM_FIELD_FORM_TYPE_ORDER) {
+								$cFieldOrderRelated[$standardcFieldMappedWith] = trim($_POST[$field_name]);
+							}
+				        }
+			        }
+			    }
+			}
+
 			// Create instance of our wooconnection logger class to use off the whole things.
 		    $wooconnectionLogger = new WC_Logger();
 		    

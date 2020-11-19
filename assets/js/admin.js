@@ -1325,8 +1325,8 @@ function wcStandardFieldsMapping(){
             if(responsedata.status == "1") {
                 $('.standard_fields_mapping_btn').removeClass("disable_anchor");
                 if(responsedata.latestMappedStandardFieldsHtml != ""){
-                     $('.standard_fields_listing_class').html();
-                     $('.standard_fields_listing_class').html(responsedata.latestMappedStandardFieldsHtml);
+                     $('.table_standard_fields_mapping_listing').html();
+                     $('.table_standard_fields_mapping_listing').html(responsedata.latestMappedStandardFieldsHtml);
                 }
                 
                 //add select 2 for woocommerce products field

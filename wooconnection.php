@@ -195,7 +195,8 @@ class WooConnectionPro {
         {
             $sqlStandard = "CREATE TABLE `". $wp_standard_custom_fields_mapping_table_name . "` ( ";
             $sqlStandard .= "  `id`  int(11) NOT NULL auto_increment, ";
-            $sqlStandard .= "  `wc_standard_custom_field_name` varchar(255) NOT NULL, ";
+            $sqlStandard .= "  `wc_standardcf_label` varchar(255) NOT NULL, ";
+            $sqlStandard .= "  `wc_standardcf_name` varchar(255) NOT NULL, ";
             $sqlStandard .= "  `wc_standardcf_mapped` text DEFAULT NULL, ";
             $sqlStandard .= "  `wc_standardcf_mapped_field_type` tinyint(4) DEFAULT -1 COMMENT '-1-contact,-9-order', ";
             $sqlStandard .= "  `created`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
@@ -211,16 +212,17 @@ class WooConnectionPro {
         $checkTableRecords = $wpdb->get_results('SELECT * FROM '.$wp_standard_custom_fields_mapping_table_name.'');
         if(empty($checkTableRecords)){
             $wpdb->query("INSERT INTO ".$wp_standard_custom_fields_mapping_table_name."
-                (`wc_standard_custom_field_name`,`wc_standardcf_mapped`,`wc_standardcf_mapped_field_type`)
+                (`wc_standardcf_label`,`wc_standardcf_name`,`wc_standardcf_mapped`,`wc_standardcf_mapped_field_type`)
                 VALUES
-                ('First Name','FirstName','-1'),
-                ('Last Name','LastName','-1'),
-                ('Email','EmailAddress2','-1'),
-                ('Phone','Phone1','-1'),
-                ('Address','Address2Street1','-1'),
-                ('City','City','-1'),
-                ('State','State','-1'),
-                ('PostalCode','PostalCode','-1')");
+                ('First Name','billing_first_name','FirstName','-1'),
+                ('Last Name','billing_last_name','LastName','-1'),
+                ('Email','billing_email','EmailAddress2','-1'),
+                ('Phone','billing_phone','Phone1','-1'),
+                ('Address','billing_address_1','Address2Street1','-1'),
+                ('City','billing_city','City','-1'),
+                ('State','billing_state','State','-1'),
+                ('Country','billing_country','Country','-1'),
+                ('PostalCode','billing_postcode','PostalCode','-1')");
         }
     }
 }

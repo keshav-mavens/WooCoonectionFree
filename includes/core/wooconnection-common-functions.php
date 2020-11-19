@@ -1800,7 +1800,7 @@ function listStandardCheckoutFields(){
   if(isset($checkoutStandardFields) && !empty($checkoutStandardFields)){
     foreach ($checkoutStandardFields as $key => $value) {
         $field_id = $value->id;
-        $field_name = $value->wc_standard_custom_field_name;
+        $field_name = $value->wc_standardcf_label;
         $field_mapping = $value->wc_standardcf_mapped;
         $mapped_field_type = $value->wc_standardcf_mapped_field_type; 
 
