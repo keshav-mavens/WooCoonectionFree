@@ -391,17 +391,21 @@ function wc_custom_field_update_data($orderId)
 				        	$standardcFieldMappedWith = $field_mapping;
 				        	if(!empty($mapped_field_type) && $mapped_field_type == CUSTOM_FIELD_FORM_TYPE_CONTACT){
 								if($field_name == 'billing_country'){
-									$countryName = get_country_name($_POST[$field_name]);
+									$countryName = getCountryName($_POST[$field_name]);
 									$fieldValue = $countryName;
-									//$standardcFieldMappedWith = 'country_code';
 								}else if ($field_name == 'billing_state') {
 									$states = WC()->countries->get_states($_POST['billing_country']);
 									$state = !empty($states[$_POST['billing_state']]) ? $states[$_POST['billing_state']] : '';
 									$fieldValue = $state;
-								}else if ($field_name == 'billing_country') {
-									$company = stripslashes($_POST['billing_country']);
+								}else if ($field_name == 'billing_company') {
+									$company = stripslashes($_POST['billing_company']);
 									$companyId = checkAddCompany($company,$access_token);
-									$fieldValue = $companyId;
+									if($standardcFieldMappedWith == 'CompanyID'){
+										$fieldValue = $companyId;
+										$cFieldContactRelated['Company'] = $company;
+									}else{
+										$fieldValue = $company;
+									}
 								}
 								else{
 									$fieldValue = $_POST[$field_name];

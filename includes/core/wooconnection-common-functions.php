@@ -810,7 +810,7 @@ function addNewCompany($newCompanyName,$access_token){
 }
 
 //get country code on the basis of code...
-function get_country_name($code){
+function getCountryName($code){
   global $wpdb,$table_prefix;
   $table_name = 'wp_wooconnection_countries';
   $countryDetails = $wpdb->get_results("SELECT * FROM ".$table_name." WHERE code = '".$code."'");
@@ -1279,7 +1279,7 @@ function getPredefindCustomfields(){
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Suffix'] = "Contact Suffix";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':SpouseName'] = "Contact Spouse Name";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ContactNotes'] = "Contact Notes";
-  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Company'] = "Contact Company";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':CompanyID'] = "Contact Company";
   //Infusionsoft/keap application access token check....
   if($access_token){
     //Infusionsoft/keap : Get Infusionsoft/Keap Contact Custom Fields
