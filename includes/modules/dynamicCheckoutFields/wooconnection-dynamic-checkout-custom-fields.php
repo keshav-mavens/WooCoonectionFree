@@ -400,11 +400,9 @@ function wc_custom_field_update_data($orderId)
 								}else if ($field_name == 'billing_company') {
 									$company = stripslashes($_POST['billing_company']);
 									$companyId = checkAddCompany($company,$access_token);
-									if($standardcFieldMappedWith == 'CompanyID'){
-										$fieldValue = $companyId;
-										$cFieldContactRelated['Company'] = $company;
-									}else{
-										$fieldValue = $company;
+									if($standardcFieldMappedWith == 'Company'){
+										$cFieldContactRelated['CompanyID'] = $companyId;
+										$fieldValue = $_POST['billing_company'];
 									}
 								}
 								else{
@@ -429,6 +427,9 @@ function wc_custom_field_update_data($orderId)
 
 			//update contact related custom field values.....
 			if(isset($cFieldContactRelated) && !empty($cFieldContactRelated)){
+		        echo "<pre>";
+		        print_r($cFieldContactRelated);
+		        die();
 		        if(!empty($orderContactId)){
 		        	$responseCheck = updateContactCustomFields($access_token, $orderContactId, $cFieldContactRelated);
 		        }
