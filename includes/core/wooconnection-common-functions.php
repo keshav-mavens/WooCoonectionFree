@@ -1272,7 +1272,7 @@ function getPredefindCustomfields(){
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Suffix'] = "Contact Suffix";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':SpouseName'] = "Contact Spouse Name";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ContactNotes'] = "Contact Notes";
-  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':CompanyID'] = "Contact Company";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Company'] = "Contact Company";
   //Infusionsoft/keap application access token check....
   if($access_token){
     //Infusionsoft/keap : Get Infusionsoft/Keap Contact Custom Fields
@@ -1713,22 +1713,18 @@ function listStandardCheckoutFields(){
   $wooconnection_standard_custom_field_mapping = $table_prefix . "$table_name";
   $checkoutStandardFields = $wpdb->get_results("SELECT * FROM ".$wooconnection_standard_custom_field_mapping."");
   $wccheckoutStandardFieldsHtml = '';
+  $fieldsDropDown = createMappedFieldSelect();
   if(isset($checkoutStandardFields) && !empty($checkoutStandardFields)){
     foreach ($checkoutStandardFields as $key => $value) {
         $field_id = $value->id;
         $field_name = $value->wc_standardcf_label;
         $field_mapping = $value->wc_standardcf_mapped;
         $mapped_field_type = $value->wc_standardcf_mapped_field_type; 
-
-        if(isset($field_mapping) && !empty($field_mapping)){
-          $fieldsDropDown = createMappedFieldSelect($mapped_field_type,$field_mapping);
-        }else{
-          $fieldsDropDown = createMappedFieldSelect($mapped_field_type,'');
-        }
-        $wccheckoutStandardFieldsHtml.='<tr>
+        $mappedFieldName = 'FormType:'.$mapped_field_type.':'.$field_mapping;
+        $wccheckoutStandardFieldsHtml.='<tr class="standardcfrows" id="'.$field_id.'" data-id="'.$mappedFieldName.'">
                                 <td><input type="checkbox" class="each_field_mapped_checkbox" name="wc_fields_mapping[]" value="'.$field_id.'" id="'.$field_id.'"></td>
                                 <td>'.$field_name.'</td>
-                                <td><select name="standard_cfield_mapping_'.$field_id.'" class="standardcfieldmappingwith"><option value="donotmap">Do not mapped</option>'.$fieldsDropDown.'</select></td>
+                                <td><select name="standard_cfield_mapping_'.$field_id.'" id="standard_cfield_mapping_'.$field_id.'" class="standardcfieldmappingwith"><option value="donotmap">Do not mapped</option>'.$fieldsDropDown.'</select></td>
                               </tr>';
     }
   }
@@ -1736,18 +1732,14 @@ function listStandardCheckoutFields(){
 }
 
 //create infusionsoft/keap fields options html on the basis of mapping...
-function createMappedFieldSelect($field_type,$mappedWith=""){
+function createMappedFieldSelect(){
+  //get the array of application custom fields.....
   $preDefinedCustomFields = getPredefindCustomfields();
-  $cfieldOptionsHtml = "";
+  $cfieldOptionsHtml = '';
   foreach($preDefinedCustomFields as $key => $value) {
     $cfieldOptionsHtml .= "<optgroup label=\"$key\">";
     foreach($value as $key1 => $value1) {
       $cfieldoptionSelected = "";
-      if(!empty($mappedWith)){
-        if($key1 == 'FormType:'.$field_type.':'.$mappedWith){
-          $cfieldoptionSelected = "selected";
-        }
-      }
       $cfieldOptionsHtml .= '<option value="'.$key1.'"'.$cfieldoptionSelected.'>'.$value1.'</option>';
     }
     $cfieldOptionsHtml .= "</optgroup>";
@@ -1773,5 +1765,4 @@ function listAlreadyUsedFields(){
   }
   return $wccheckoutStandardFieldsHtml;
 }
-
 ?>

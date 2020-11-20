@@ -9,10 +9,11 @@ span.closeCfModel {
 }
 </style>
 <?php 
-	$preDefinedCustomFields = getPredefindCustomfields();
 	//check the application authentication status if authorized then give access to configure campaign goals....
 	$checkAuthenticationStatus = applicationAuthenticationStatus();
-	//already mapped..
+	//get the array of application custom fields.....
+	$preDefinedCustomFields = getPredefindCustomfields();
+	//already fields mapped in standard fields..
 	$alreadtMappedFields = listAlreadyUsedFields();
 ?>
 <div class="info-header" style="position:relative;">
@@ -146,20 +147,19 @@ span.closeCfModel {
 									<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom  Field Mapped</label>
 									<div class="col-lg-10 col-md-9 col-sm-12 col-12">
 										<select name="cfieldmapping" id="cfieldmapping" class="cfieldmappingwith">
-											<option value=""></option>
 											<?php 
-												$fieldOptions = "";
-												foreach($preDefinedCustomFields as $key => $value) {
-													$fieldOptions .= "<optgroup label=\"$key\">";
-													foreach($value as $key1 => $value1) {
-														if (!in_array($key1, $alreadtMappedFields)) {	
-															$optionSelected = "";
-															$fieldOptions .= '<option value="'.$key1.'"'.$optionSelected.'>'.$value1.'</option>';
-														}
-													}
-													$fieldOptions .= "</optgroup>";
-												}
-												echo $fieldOptions;
+											    $fieldOptions = "";
+											    foreach($preDefinedCustomFields as $key => $value) {
+											        $fieldOptions .= "<optgroup label=\"$key\">";
+											        foreach($value as $key1 => $value1) {
+											            if (!in_array($key1, $alreadtMappedFields)) {   
+											                $optionSelected = "";
+											                $fieldOptions .= '<option value="'.$key1.'"'.$optionSelected.'>'.$value1.'</option>';
+											            }
+											        }
+											        $fieldOptions .= "</optgroup>";
+											    }
+											    echo $fieldOptions;
 											?>
 										</select>
 										<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry</div>
@@ -243,8 +243,8 @@ span.closeCfModel {
 				<div class="form-group row">
 					<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom field tab</label>
 					<div class="col-lg-10 col-md-9 col-sm-12 col-12">
-						<select name="cfieldtabapp" id="cfieldtabapp" class="">
-							<?php echo cfRelatedTabs(); ?>
+						<select name="cfieldtabapp" id="cfieldtabapp" class="cfieldtabapp">
+							<option value="">Select Tab</option>
 						</select>
 						<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
 					</div>
@@ -252,8 +252,8 @@ span.closeCfModel {
 				<div class="form-group row cfield_header">
 					<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom field header</label>
 					<div class="col-lg-10 col-md-9 col-sm-12 col-12">
-						<select name="cfieldheaderapp" id="cfieldheaderapp" class="">
-							<?php echo cfRelatedHeaders(); ?>
+						<select name="cfieldheaderapp" id="cfieldheaderapp" class="cfieldheaderapp">
+							<option value="">Select Header</option>
 						</select>
 						<div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
 					</div>

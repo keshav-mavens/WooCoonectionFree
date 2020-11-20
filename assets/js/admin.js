@@ -230,7 +230,25 @@
                                     if($(".standardcfieldmappingwith").length){
                                         applySelectTwo('standardcfieldmappingwith');
                                     }
+
+                                    //code is used to set the infusionsoft/keap field selected from dropdown....
+                                    $(".standardcfrows").each(function() {
+                                        var standardcfId = $(this).attr('id');//get the standard field id....
+                                        var standardcdmapp = $(this).attr("data-id");//get the standard field mapped with....
+                                        if(standardcfId != ''){
+                                            if(standardcdmapp != ""){
+                                                //set field selected....
+                                                $('#standard_cfield_mapping_'+standardcfId).val(standardcdmapp);
+                                                $('#standard_cfield_mapping_'+standardcfId).select2().trigger('change');
+                                            }
+                                        }
+                                    });
+
                                 }    
+                            }
+                            else{
+                                $('.custom_fields_main_html').show();//toggle the form and show listing....
+                                $('.hide').hide();//hide the form whether it is custom field group form or custom field form....
                             }
                         }
                     });
@@ -1230,6 +1248,12 @@ function loadingCustomFields(){
                         }       
                     }
                 });
+                if($('.cfieldtabapp').length){
+                    loadApplicationCFTabs();
+                }
+                if($('.cfieldheaderapp').length){
+                    loadApplicationCFHeader();
+                }
             }else{
                 $(".main-group").html('');
                 $(".default_message").html('');
@@ -1351,4 +1375,30 @@ function wcStandardFieldsMapping(){
     {
         $('.standard-fields-error').fadeOut("slow");
     }, 3000);
+}
+
+//Custom fields Tab : This function is used to get the application custom field tabs.....
+function loadApplicationCFTabs(){
+    jQuery.post( ajax_object.ajax_url + "?action=wc_load_app_cfield_tabs",{}, function(data) {
+        var responsedata = JSON.parse(data);
+        if(responsedata.status == "1") {
+            if(responsedata.cfRelatedTabs != "") {
+                $(".cfieldtabapp").html('');
+                $(".cfieldtabapp").html(responsedata.cfRelatedTabs);
+            }
+        }
+    });
+}
+
+//Custom fields Tab : This function is used to get the application custom field tabs.....
+function loadApplicationCFHeader(){
+    jQuery.post( ajax_object.ajax_url + "?action=wc_load_app_cfield_headers",{}, function(data) {
+        var responsedata = JSON.parse(data);
+        if(responsedata.status == "1") {
+            if(responsedata.cfRelatedHeaders != "") {
+                $(".cfieldheaderapp").html('');
+                $(".cfieldheaderapp").html(responsedata.cfRelatedHeaders);
+            }
+        }
+    });
 }
