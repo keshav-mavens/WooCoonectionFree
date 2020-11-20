@@ -1258,9 +1258,11 @@ function loadingCustomFields(){
                         }       
                     }
                 });
+                //get application custom fields related tabs.....
                 if($('.cfieldtabapp').length){
                     loadApplicationCFTabs();
                 }
+                //get application custom fields related header.....
                 if($('.cfieldheaderapp').length){
                     loadApplicationCFHeader();
                 }
@@ -1363,7 +1365,7 @@ function wcStandardFieldsMapping(){
                      $('.table_standard_fields_mapping_listing').html(responsedata.latestMappedStandardFieldsHtml);
                 }
                 
-                //add select 2 for woocommerce products field
+                //add select 2 for infusionsoft/keap pre defined custom and basic fields....
                 if($(".standardcfieldmappingwith").length){
                     applySelectTwo('standardcfieldmappingwith');
                 }

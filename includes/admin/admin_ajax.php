@@ -896,33 +896,7 @@ function wc_update_standard_cfields_mapping()
 	die();
 }
 
-//Custom fields Tab : this is used to get the list of application custom fields....
-add_action( 'wp_ajax_wc_load_app_cfields', 'wc_load_app_cfields');
-//Function Definiation : wc_load_app_cfields
-function wc_load_app_cfields()
-{
-	//get the array of application custom fields.....
-	$preDefinedCustomFields = getPredefindCustomfields();
-	//already fields mapped in standard fields..
-	$alreadtMappedFields = listAlreadyUsedFields();
-	$appcfieldOptions = '<option value="donotmap">Do not mapped</option>';
-	if(isset($preDefinedCustomFields) && !empty($preDefinedCustomFields)){
-		foreach($preDefinedCustomFields as $key => $value) {
-	        $appcfieldOptions .= "<optgroup label=\"$key\">";
-	        foreach($value as $key1 => $value1) {
-	            if (!in_array($key1, $alreadtMappedFields)) {   
-	                $optionSelected = "";
-	                $appcfieldOptions .= '<option value="'.$key1.'"'.$optionSelected.'>'.$value1.'</option>';
-	            }
-	        }
-	        $appcfieldOptions .= "</optgroup>";
-	    }
-	}
-	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'appcfieldOptions'=>$appcfieldOptions));
-	die();
-}
-
-//Custom fields Tab : this is used to get the list of application custom fields....
+//Custom fields Tab : this is used to get the list of application custom fields tabs....
 add_action( 'wp_ajax_wc_load_app_cfield_tabs', 'wc_load_app_cfield_tabs');
 //Function Definiation : wc_load_app_cfield_tabs
 function wc_load_app_cfield_tabs()
@@ -932,7 +906,7 @@ function wc_load_app_cfield_tabs()
 	die();
 }
 
-//Custom fields Tab : this is used to get the list of application custom fields....
+//Custom fields Tab : this is used to get the list of application custom fields headers....
 add_action( 'wp_ajax_wc_load_app_cfield_headers', 'wc_load_app_cfield_headers');
 //Function Definiation : wc_load_app_cfield_headers
 function wc_load_app_cfield_headers()
