@@ -320,9 +320,13 @@
                 //if custom field type exist e.g contact, order then send ajax to get the tabs related to custom field type....
                 if(cfieldFormType != "" && cfieldFormType !== null){
                     $(".cfield_header").hide();
+                    jQuery(".customfieldsModal").addClass('overlay');
+                    jQuery(".ajax_loader_custom_fields_related").show();
                     jQuery("#cfieldtabapp").html('<option value="">Select Tab</option>');//set default html....
                     jQuery.post( ajax_object.ajax_url + "?action=wc_cfield_app_tabs",{cfieldFormType:cfieldFormType}, function(data) {
                         var responsedata = JSON.parse(data);
+                        jQuery(".customfieldsModal").removeClass('overlay');
+                        jQuery(".ajax_loader_custom_fields_related").hide();
                         if(responsedata.status == "1") {
                             $("#cfieldtabapp").html(responsedata.cfieldtabsHtml);//change the html of custom field tab.......
                         }
@@ -338,9 +342,13 @@
                 var cfieldFormTab = $(this).children("option:selected").val();
                 //if custom field tab exist then send ajax to the get headers related to custom field tab....
                 if(cfieldFormTab != "" && cfieldFormTab !== null){
+                    jQuery(".customfieldsModal").addClass('overlay');
+                    jQuery(".ajax_loader_custom_fields_related").show();
                     jQuery("#cfieldheaderapp").html('<option value="">Select Header</option>');//set default html....
                     jQuery.post( ajax_object.ajax_url + "?action=wc_cfield_app_headers",{cfieldFormTab:cfieldFormTab}, function(data) {
                         var responsedata = JSON.parse(data);
+                        jQuery(".customfieldsModal").removeClass('overlay');
+                        jQuery(".ajax_loader_custom_fields_related").hide();
                         if(responsedata.status == "1") {
                             $("#cfieldheaderapp").html(responsedata.cfieldheaderHtml);//change the html of custom field header.......
                         }
@@ -658,9 +666,6 @@
                     var name = option['text'];//get text.....
                     //check value...
                     if(name !="" && name !== null){
-                        //reset form values and validation rules....
-                        $("#addcfieldapp")[0].reset();
-                        $("#addcfieldapp").validate().resetForm();
                         $("#cfieldnameapp").val(name);//set value....
                         $("#cfieldmodelapp").show();
                         $("#cfieldtabapp").val('');
@@ -953,6 +958,11 @@ function getQueryParameter(qspar){
 function hideCustomModel(modelId){
     if(modelId != ""){
         $("#"+modelId).hide();
+        //reset form values and validation rules....
+        if($("#addcfieldapp").length){
+            $("#addcfieldapp")[0].reset();
+            $("#addcfieldapp").validate().resetForm();
+        }
     }
 }
 

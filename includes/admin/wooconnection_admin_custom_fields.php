@@ -198,7 +198,8 @@ span.closeCfModel {
 	      	<h2>Add Custom Field</h2>
 	    	<span class="closeCfModel" onclick="hideCustomModel('cfieldmodelapp')">&times;</span>
         </div>
-	    <div class="modal-body" style="height:600px; overflow:auto;">
+	    <div class="modal-body customfieldsModal" style="height:600px; overflow:auto;">
+	    	<span class="ajax_loader_custom_fields_related" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span>
 	      	<form method="POST" accept-charset="utf-8" id="addcfieldapp">
 	      		<div class="form-group row">
 					<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom field for</label>

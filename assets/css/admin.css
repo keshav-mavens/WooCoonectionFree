@@ -291,6 +291,17 @@ a.active-sub-menu{
     height: 30px;
     width: 30px;
 }
+.ajax_loader_custom_fields_related {
+    position: relative;
+    margin: 0px auto;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+.ajax_loader_custom_fields_related img{
+    height: 30px;
+    width: 30px;
+}
 .overlay {
     opacity:0.5;
     background:rgba(255,255,255,0.8);
