@@ -391,9 +391,9 @@ function wc_custom_field_update_data($orderId)
 				        	$standardcFieldMappedWith = $field_mapping;
 				        	if(!empty($mapped_field_type) && $mapped_field_type == CUSTOM_FIELD_FORM_TYPE_CONTACT){
 								if($field_name == 'billing_country'){
-									$countryCode = get_country_code($_POST[$field_name]);
-									$fieldValue = $countryCode;
-									$standardcFieldMappedWith = 'country_code';
+									$countryName = get_country_name($_POST[$field_name]);
+									$fieldValue = $countryName;
+									//$standardcFieldMappedWith = 'country_code';
 								}else if ($field_name == 'billing_state') {
 									$states = WC()->countries->get_states($_POST['billing_country']);
 									$state = !empty($states[$_POST['billing_state']]) ? $states[$_POST['billing_state']] : '';

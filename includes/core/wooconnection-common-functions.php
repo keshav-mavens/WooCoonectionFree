@@ -810,15 +810,15 @@ function addNewCompany($newCompanyName,$access_token){
 }
 
 //get country code on the basis of code...
-function get_country_code($code){
+function get_country_name($code){
   global $wpdb,$table_prefix;
   $table_name = 'wp_wooconnection_countries';
   $countryDetails = $wpdb->get_results("SELECT * FROM ".$table_name." WHERE code = '".$code."'");
-  $countryCode = "";
-  if(!empty($countryDetails[0]->countrycode)){
-    $countryCode =$countryDetails[0]->countrycode;
+  $countryname = "";
+  if(!empty($countryDetails[0]->countryname)){
+    $countryname =$countryDetails[0]->countryname;
   }
-  return $countryCode;
+  return $countryname;
 }
 
 //Create order in infusionsoft/keap application at the time checkout......
