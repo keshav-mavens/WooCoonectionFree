@@ -393,6 +393,7 @@ function wc_custom_field_update_data($orderId)
 								if($field_name == 'billing_country'){
 									$countryCode = get_country_code($_POST[$field_name]);
 									$fieldValue = $countryCode;
+									$standardcFieldMappedWith = 'country_code';
 								}else if ($field_name == 'billing_state') {
 									$states = WC()->countries->get_states($_POST['billing_country']);
 									$state = !empty($states[$_POST['billing_state']]) ? $states[$_POST['billing_state']] : '';
