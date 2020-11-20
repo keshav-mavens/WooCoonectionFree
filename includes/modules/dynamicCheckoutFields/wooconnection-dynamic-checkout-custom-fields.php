@@ -427,10 +427,7 @@ function wc_custom_field_update_data($orderId)
 
 			//update contact related custom field values.....
 			if(isset($cFieldContactRelated) && !empty($cFieldContactRelated)){
-		        echo "<pre>";
-		        print_r($cFieldContactRelated);
-		        die();
-		        if(!empty($orderContactId)){
+		       	if(!empty($orderContactId)){
 		        	$responseCheck = updateContactCustomFields($access_token, $orderContactId, $cFieldContactRelated);
 		        }
 		    }
