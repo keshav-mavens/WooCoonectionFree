@@ -351,24 +351,30 @@ function wc_custom_field_update_data($orderId)
 		        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
 		    }
 
+		    //define empty arrays......
 			$cFieldContactRelated = array();
 			$cFieldOrderRelated = array();
-			if(!empty($_POST['wc-checkout-field-ids'])){
-				if(!empty($_POST['wc-checkout-field-ids'])){
-					foreach ($_POST['wc-checkout-field-ids'] as $key => $value) {
-						if(!empty($value)){
-							$cFieldData = $wpdb->get_results("SELECT * FROM ".$cfields_table_name." WHERE id = ".$value);
-							if(isset($cFieldData) && !empty($cFieldData)){
-								$cFieldKey = trim($cFieldData[0]->wc_cf_name);
-								if(!empty($_POST['wc_checkout_field_'.$value])){
-									update_post_meta( $orderId, $cFieldKey, trim($_POST['wc_checkout_field_'.$value]));
-									if(!empty($cFieldData[0]->wc_cf_mapped)){
-										$cFieldMappedWith = $cFieldData[0]->wc_cf_mapped;
-										if(!empty($cFieldData[0]->wc_cf_mapped_field_type) && $cFieldData[0]->wc_cf_mapped_field_type == CUSTOM_FIELD_FORM_TYPE_CONTACT){
-											$cFieldContactRelated[$cFieldMappedWith] = trim($_POST['wc_checkout_field_'.$value]);
-										}else if (!empty($cFieldData[0]->wc_cf_mapped_field_type) && $cFieldData[0]->wc_cf_mapped_field_type == CUSTOM_FIELD_FORM_TYPE_ORDER) {
-											$cFieldOrderRelated[$cFieldMappedWith] = trim($_POST['wc_checkout_field_'.$value]);
-										}
+			//check custom field ids exist in post data or not......
+			if(isset($_POST['wc-checkout-field-ids']) && !empty($_POST['wc-checkout-field-ids'])){
+				foreach ($_POST['wc-checkout-field-ids'] as $key => $value) {
+					//get the custom field id....
+					if(!empty($value)){
+						//get the custom field details on the basis of custom field id......
+						$cFieldData = $wpdb->get_results("SELECT * FROM ".$cfields_table_name." WHERE id = ".$value);
+						//check custom field data is exist......
+						if(isset($cFieldData) && !empty($cFieldData)){
+							$cFieldKey = trim($cFieldData[0]->wc_cf_name);//get custom field nam.....
+							if(!empty($_POST['wc_checkout_field_'.$value])){//get custom field value from post data....
+								//update custom field data for order
+								update_post_meta( $orderId, $cFieldKey, trim($_POST['wc_checkout_field_'.$value]));
+								//if custom field mapping exist then proceed next....
+								if(!empty($cFieldData[0]->wc_cf_mapped)){
+									$cFieldMappedWith = $cFieldData[0]->wc_cf_mapped;//set mapping field name....
+									//check custom field mapping type e.g contact,order....
+									if(!empty($cFieldData[0]->wc_cf_mapped_field_type) && $cFieldData[0]->wc_cf_mapped_field_type == CUSTOM_FIELD_FORM_TYPE_CONTACT){//if custom field mapping type is contact then set key value in array...
+										$cFieldContactRelated[$cFieldMappedWith] = trim($_POST['wc_checkout_field_'.$value]);
+									}else if (!empty($cFieldData[0]->wc_cf_mapped_field_type) && $cFieldData[0]->wc_cf_mapped_field_type == CUSTOM_FIELD_FORM_TYPE_ORDER) {//if custom field mapping type is order then set key value in array...
+										$cFieldOrderRelated[$cFieldMappedWith] = trim($_POST['wc_checkout_field_'.$value]);
 									}
 								}
 							}
@@ -377,18 +383,25 @@ function wc_custom_field_update_data($orderId)
 				}
 			}
 			
+			
 			//code is used to update the update the standard custom fields data in infusionsoft/keap application........
 			$standardcf_table_name = 'wooconnection_standard_custom_field_mapping';
   			$wooconnection_standard_custom_field_mapping = $table_prefix . "$standardcf_table_name";
+  			//get the list of standard standard custom fields mapping....
 			$standardcFieldData = $wpdb->get_results("SELECT * FROM ".$wooconnection_standard_custom_field_mapping);
+			//check data is not empty....
 			if(isset($standardcFieldData) && !empty($standardcFieldData)){
+				//execute loop.....
 				foreach ($standardcFieldData as $key => $value) {
-					$field_name = $value->wc_standardcf_name;
-			        $field_mapping = $value->wc_standardcf_mapped;
-			       	$mapped_field_type = $value->wc_standardcf_mapped_field_type; 
+					$field_name = $value->wc_standardcf_name;//custom field name....that is equal to woocommerce form field name.....
+			        $field_mapping = $value->wc_standardcf_mapped;//get custom field mapped field.....
+			       	$mapped_field_type = $value->wc_standardcf_mapped_field_type;//mapped field type e.g contact,order....
+			        //check field is mapping with any of the field or not....
 			        if(isset($field_mapping) && !empty($field_mapping)){
+			        	//check field value is exist or not.....
 			        	if(isset($_POST[$field_name]) && !empty($_POST[$field_name])){
 				        	$standardcFieldMappedWith = $field_mapping;
+				        	//check if field type is mapping or not.....
 				        	if(!empty($mapped_field_type) && $mapped_field_type == CUSTOM_FIELD_FORM_TYPE_CONTACT){
 								if($field_name == 'billing_country'){
 									$countryName = getCountryName($_POST[$field_name]);
@@ -408,8 +421,10 @@ function wc_custom_field_update_data($orderId)
 								else{
 									$fieldValue = $_POST[$field_name];
 								}
+								//contact related standard custom fields.....
 								$cFieldContactRelated[$standardcFieldMappedWith] = trim($fieldValue);
 							}else if (!empty($mapped_field_type) && $mapped_field_type == CUSTOM_FIELD_FORM_TYPE_ORDER) {
+								//order related standard custom fields.....
 								$cFieldOrderRelated[$standardcFieldMappedWith] = trim($_POST[$field_name]);
 							}
 				        }
@@ -417,6 +432,7 @@ function wc_custom_field_update_data($orderId)
 			    }
 			}
 
+			//get the order details....
 			$order = wc_get_order( $orderId );	
 			$order_email = $order->get_billing_email();
 			// Validate email is in valid format or not 
@@ -427,7 +443,7 @@ function wc_custom_field_update_data($orderId)
 
 			//update contact related custom field values.....
 			if(isset($cFieldContactRelated) && !empty($cFieldContactRelated)){
-		       	if(!empty($orderContactId)){
+		       	if(!empty($orderContactId) && !empty($access_token)){
 		        	$responseCheck = updateContactCustomFields($access_token, $orderContactId, $cFieldContactRelated);
 		        }
 		    }

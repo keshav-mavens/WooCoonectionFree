@@ -147,6 +147,7 @@ span.closeCfModel {
 									<label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom  Field Mapped</label>
 									<div class="col-lg-10 col-md-9 col-sm-12 col-12">
 										<select name="cfieldmapping" id="cfieldmapping" class="cfieldmappingwith">
+											<option value="donotmap">Do not mapped</option>
 											<?php 
 											    $fieldOptions = "";
 											    foreach($preDefinedCustomFields as $key => $value) {
