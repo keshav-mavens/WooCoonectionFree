@@ -641,10 +641,21 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
     //check if appUseremail is exist then get the current user id from infusionsoft/keap application on the basis of appUseremail 
     $appContactId = "";
     if(isset($appUseremail) && !empty($appUseremail)){
+        $leadsourceId = '';//define empty variable....
+        //first check "leadsourceId" exist in cookie....
+        if( isset($_COOKIE["leadsourceId"])){
+            $leadsourceId = $_COOKIE["leadsourceId"];
+        }else{
+          //the check urm parameters value exist......
+          if(isset($_COOKIE["lscategory"]) && isset($_COOKIE["lsmedium"]) && isset($_COOKIE["lsvendor"]) && isset($_COOKIE["lsmessage"])){
+              //call the function to check or add leadsource on the basis of utm parameters.....
+              $leadsourceId = checkAddLeadSource($access_token,$_COOKIE["lscategory"],$_COOKIE["lsmedium"],$_COOKIE["lsvendor"],$_COOKIE["lsmessage"]);
+          }
+        }
         // Create instance of our wooconnection logger class to use off the whole things.
         $wooconnectionLogger = new WC_Logger();
         //create json array to push ocde in infusionsoft...
-        $jsonData ='{"duplicate_option": "Email","email_addresses":[{"email": "'.$appUseremail.'","field": "EMAIL1"}],"opt_in_reason": "Customer opted-in through '.SITE_URL.'"}';
+        $jsonData ='{"duplicate_option": "Email","email_addresses":[{"email": "'.$appUseremail.'","field": "EMAIL1"}],"opt_in_reason": "Customer opted-in through '.SITE_URL.'","lead_source_id": "'.$leadsourceId.'"}';
         $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts';
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -673,6 +684,21 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
           }
           if(!empty($sucessData['id'])){
             $appContactId = $sucessData['id'];
+            if (isset($_COOKIE['leadsourceId'])){
+                setcookie( 'leadsourceId', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lscategory'])){
+              setcookie( 'lscategory', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lsmedium'])){
+              setcookie( 'lsmedium', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lsvendor'])){
+              setcookie( 'lsvendor', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lsmessage'])){
+              setcookie( 'lsmessage', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
           }
           return $appContactId;
         }
@@ -1764,5 +1790,168 @@ function listAlreadyUsedFields(){
     }
   }
   return $wccheckoutStandardFieldsHtml;
+}
+
+
+//Below function is used to get the lead source id....
+function checkAddLeadSource($access_token,$category,$meduim,$vendor,$content){
+  $leadsourceId = '';//define empty variables....
+  if(!empty($category) && !empty($access_token)){
+    //call the function to get the category id....
+    $categoryId = checkAddCategory($access_token,$category);
+    if(!empty($categoryId)){
+      $leadsourceId = getAddLeadSource($access_token,$categoryId,$meduim,$vendor,$content);
+    }
+  }
+  return $leadsourceId;//return lead source id....
+}
+
+//With below function first check "lead source category" exist by name....
+function checkAddCategory($access_token,$categoryname){
+  $categoryId = '';//define empty variables....
+  if(!empty($categoryname) && !empty($access_token)){
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        //Create xml to hit the curl request for get category id by category name.....
+        $xmlData = "<methodCall><methodName>DataService.findByField</methodName><params><param>
+                        <value></value></param><param><value><string>LeadSourceCategory</string></value></param><param><value><int>100</int></value></param><param><value><int>0</int></value></param><param><value><string>Name</string></value></param><param><value><string>".$categoryname."</string></value></param><param><value><array><data><value><string>Id</string></value></data></array></value></param></params></methodCall>";
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $responsedata = xmlrpc_decode($response);
+          if(isset($responsedata) && !empty($responsedata)){
+              if(!empty($responsedata[0]['Id'])){
+                  $categoryId = $responsedata[0]['Id'];
+              } 
+          }
+          //check if category exist..
+          if(!empty($categoryId)){
+            return $categoryId;
+          }else{//else call the "addNewLsCategory" to add new category.....
+            $categoryId = addNewLsCategory($access_token,$categoryname);
+            return $categoryId;
+          } 
+        }
+        curl_close($ch);  
+  }
+  return $categoryId;//return lead source category id....
+}
+
+//Below function is add new lead source category.....
+function addNewLsCategory($access_token,$category){
+  $newCatId = '';//define empty variables....
+  if(!empty($category) && !empty($access_token)){
+      $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: text/xml',
+        'Content-Type: text/xml',
+        'Authorization: Bearer '. $access_token
+      );
+      //Create xml to hit the curl request to add new lead source category.....
+      $xmlData = "<methodCall><methodName>DataService.add</methodName><params><param><value></value></param><param><value><string>LeadSourceCategory</string></value></param><param><value><struct><member><name>Name</name><value><string>".$category."</string></value></member></struct></value></param></params></methodCall>";
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      if($err){
+      }else{
+        $responsedata = xmlrpc_decode($response);
+        if(!empty($responsedata) && is_int($responsedata)){
+          $newCatId = $responsedata;
+        }
+        return $newCatId;  
+      }
+      curl_close($ch); 
+  } 
+  return $newCatId;//return lead source category id....
+}
+
+//get the lead source id on the basis of utm parameters....
+function getAddLeadSource($access_token,$categoryId,$meduim,$vendor,$content){
+  $leadId = '';//define empty variables....
+  if( !empty($access_token) && !empty($categoryId) && !empty($meduim) && !empty($vendor) && !empty($content) ){
+      $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: text/xml',
+        'Content-Type: text/xml',
+        'Authorization: Bearer '. $access_token
+      );
+      //Create xml to hit the curl request to get lead source id.....
+      $xmlData = "<methodCall><methodName>DataService.query</methodName><params><param><value></value></param><param><value><string>LeadSource</string></value></param><param><value><int>1</int></value></param><param><value><int>0</int></value></param><param><value><struct><member><name>LeadSourceCategoryId</name><value><string>".$categoryId."</string></value></member><member><name>Medium</name><value><string>".$meduim."</string></value></member><member><name>Message</name><value><string>".$content."</string></value></member><member><name>Vendor</name><value><string>".$vendor."</string></value></member></struct></value></param><param><value><array><data><value><string>Id</string></value></data></array></value></param></params></methodCall>";
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      if($err){
+      }else{
+        //Covert/Decode response to xml.....
+        $responsedata = xmlrpc_decode($response);
+        if(isset($responsedata) && !empty($responsedata)){
+            if(!empty($responsedata[0]['Id'])){
+                $leadId = $responsedata[0]['Id'];
+            } 
+        }
+        //check if lead source exist....
+        if(!empty($leadId)){
+          return $leadId;
+        }else{//else call the function "addNewLs" to add new lead source....
+          $leadId = addNewLs($access_token,$categoryId,$meduim,$vendor,$content);
+          return $leadId;
+        } 
+      }
+      curl_close($ch);  
+  }
+  return $leadId;//return lead source id....
+}
+
+//Below function is add new lead source .....
+function addNewLs($access_token,$categoryId,$meduim,$vendor,$content){
+  $newLsId = '';//define empty variables....
+  if( !empty($access_token) && !empty($categoryId) && !empty($meduim) && !empty($vendor) && !empty($content) ){
+      $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: text/xml',
+        'Content-Type: text/xml',
+        'Authorization: Bearer '. $access_token
+      );
+      //Create xml to hit the curl request for add new lead source....
+      $xmlData = "<methodCall><methodName>DataService.add</methodName><params><param>
+                        <value></value></param><param><value><string>LeadSource</string></value></param><param><value><struct><member><name>LeadSourceCategoryId</name><value><string>".$categoryId."</string></value></member><member><name>Medium</name><value><string>".$meduim."</string></value></member><member><name>Vendor</name><value><string>".$vendor."</string></value></member>
+                          <member><name>Name</name><value><string>".$vendor."</string></value></member><member><name>Message</name><value><string>".$content."</string></value></member><member><name>Status</name><value><string>Active</string></value></member></struct></value></param></params></methodCall>";
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      if($err){
+      }else{
+        //Covert/Decode response to xml.....
+        $responsedata = xmlrpc_decode($response);
+        if(!empty($responsedata) && is_int($responsedata)){
+          $newLsId = $responsedata;
+        }
+        return $newLsId;  
+      }
+      curl_close($ch); 
+  }
+  return $newLsId;//return newly created lead source id....
 }
 ?>

@@ -83,6 +83,7 @@ if(empty($checkAuthenticationStatus)){
 				</a>
 	            <ul class="sub-menu advanced_options">
 	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs advanced_options_active" id="custom_fields">Custom Fields</a></li>
+	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs advanced_options_active" id="lead_sources">Lead Sources</a></li>
 	            </ul>
 	        </li>
 
