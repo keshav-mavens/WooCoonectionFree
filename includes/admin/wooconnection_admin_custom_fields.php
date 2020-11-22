@@ -192,6 +192,7 @@ span.closeCfModel {
   	</div>
 </div>
 
+<!--Below is modal to add custom field to infusionsoft/keap application-->
 <div id="cfieldmodelapp" class="modal" role="dialog">
  <div class="modal-dialog modal-lg">
 	<div class="modal-content">
@@ -275,13 +276,14 @@ span.closeCfModel {
   	</div>
 </div>
 <script type="text/javascript">
+	//below 6 is the custom fields type entity......
 	var CF_FIELD_TYPE_TEXT = '<?php echo CF_FIELD_TYPE_TEXT ?>';
 	var CF_FIELD_TYPE_TEXTAREA = '<?php echo CF_FIELD_TYPE_TEXTAREA ?>';
 	var CF_FIELD_TYPE_DROPDOWN = '<?php echo CF_FIELD_TYPE_DROPDOWN ?>';
 	var CF_FIELD_TYPE_RADIO = '<?php echo CF_FIELD_TYPE_RADIO ?>';
 	var CF_FIELD_TYPE_CHECKBOX = '<?php echo CF_FIELD_TYPE_CHECKBOX ?>';
 	var CF_FIELD_TYPE_DATE = '<?php echo CF_FIELD_TYPE_DATE ?>';
-
+	//below 2 is the custom fields shoiw/hide feature entity......
 	var CF_FIELD_ACTION_SHOW = '<?php echo CF_FIELD_ACTION_SHOW ?>';
 	var CF_FIELD_ACTION_HIDE = '<?php echo CF_FIELD_ACTION_HIDE ?>';
 </script>
