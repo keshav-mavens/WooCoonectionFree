@@ -84,6 +84,7 @@ if(empty($checkAuthenticationStatus)){
 	            <ul class="sub-menu advanced_options">
 	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs advanced_options_active" id="custom_fields">Custom Fields</a></li>
 	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs advanced_options_active" id="lead_sources">Lead Sources</a></li>
+					<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="dynamic_thank_you_page">Dynamic Thank You Pages</a></li>
 	            </ul>
 	        </li>
 

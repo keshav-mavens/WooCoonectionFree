@@ -124,6 +124,51 @@
                             applyCollapseRules('collapseLeadSource');
 
                         }
+
+                        //add select 2 for wordpress posts field on thankyou page.....
+                        if($(".redirectpostsselect").length){
+                            applySelectTwo('redirectpostsselect');
+                        }
+
+                        //add select 2 for wordpress pages field on thankyou page.....
+                        if($(".redirectpagesselect").length){
+                            applySelectTwo('redirectpagesselect');
+                        }
+
+                        //add select 2 for cart products field on thankyou page.....
+                        if($(".redirectcartproductsselect").length){
+                            applySelectTwo('redirectcartproductsselect');
+                        }
+
+                        //add select 2 for cart categories field on thankyou page.....
+                        if($(".redirectcartcategoriesselect").length){
+                            applySelectTwo('redirectcartcategoriesselect');
+                        }
+
+                        //validate a "thank_default_form" form of thankyou page........
+                        if($('#thank_default_form').length){
+                            validateForms('thank_default_form');
+                        }
+
+                        //validate a "thank_override_form_product" form of thankyou page at the time of add thankyou rule on the basis of product........
+                        if($('#thank_override_form_product').length){
+                            validateForms('thank_override_form_product');
+                        }
+
+                        //validate a "thank_override_form_product_cat" form of thankyou page at the time of add thankyou rule on the basis of product categories........
+                        if($('#thank_override_form_product_cat').length){
+                            validateForms('thank_override_form_product_cat');
+                        }
+
+                        //apply sortable rule on the thankyou overrides of product rule.....
+                        if($(".override_product_rule").length){
+                            sortabledivs('override_product_rule');
+                        }
+
+                        //apply sortable rule on the thankyou overrides of product category rule.....
+                        if($(".override_product_category_rule").length){
+                            sortabledivs('override_product_category_rule');
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -709,6 +754,195 @@
                 }
             });
 
+            //on change of override redirect condition show hide the corresponding fields on default thankyou page....
+            $document.on("change","#overrideredirecturltype",function(event) {
+                event.stopPropagation();
+                var selectedCondition = $(this).val();
+                if (selectedCondition == DEFAULT_WORDPRESS_POST) {
+                    $(".redirect-type-common").hide();
+                    $("#redirect-type-post").show();
+                    $("#redirectwordpresspost").val("").trigger("change");
+                }else if (selectedCondition == DEFAULT_WORDPRESS_PAGE) {
+                    $(".redirect-type-common").hide();
+                    $("#redirect-type-page").show();
+                    $("#redirectwordpresspage").val("").trigger("change");
+                }else if(selectedCondition == DEFAULT_WORDPRESS_CUSTOM_URL){
+                    $(".redirect-type-common").hide();
+                    $("#redirect-type-custom-url").show();
+                }
+            });
+            
+
+            //on click of edit icon of default thankyou override show the edit default thankyou override form.....
+            $document.on("click",".controls .edit_default_thankpage_override",function(event) {
+                event.stopPropagation();
+                $(".thankyou_default_title").html('Edit Default Thankyou Page');
+                jQuery.post( ajax_object.ajax_url + "?action=wc_get_thankyou_default_override",{option:'default_thankyou_details'}, function(data) {
+                    var responsedata = JSON.parse(data);
+                    if(responsedata.status == "1") {
+                        if(responsedata.redirectType != "" && responsedata.redirectType !== null){
+                            jQuery("#overrideredirecturltype").val(responsedata.redirectType);
+                            $("#overrideredirecturltype").trigger("change");
+                            if(responsedata.redirectType == DEFAULT_WORDPRESS_PAGE){
+                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
+                                    jQuery("#redirectwordpresspage").val(responsedata.redirectValue).trigger('change');
+                                }
+                            }
+                            else if (responsedata.redirectType == DEFAULT_WORDPRESS_POST)
+                            {
+                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
+                                    jQuery('#redirectwordpresspost').val(responsedata.redirectValue).trigger('change');
+                                }
+                            }
+                            else{
+                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
+                                    jQuery("#customurl").val(responsedata.redirectValue);
+                                }
+                            }   
+                        }
+                    }
+                });
+                $('.defaultoverride,.main_rendered_thank_overrides').toggle();
+            });
+        
+            //on click of "+" icon of thankyou product override show the form to add product thankyou override.....
+            $document.on("click",".add_product_rules",function(event) {
+                event.stopPropagation();
+                jQuery("#productoverrideid").val('');
+                $("#thank_override_form_product")[0].reset();
+                $("#thank_override_form_product").validate().resetForm();
+                $(".redirectcartproductsselect").val("").trigger("change");
+                $('.productoverride,.main_rendered_thank_overrides').toggle();
+            });
+
+            //on click of "+" icon of thankyou product override show the form to add product category thankyou override.....
+            $document.on("click",".add_product_category_rules",function(event) {
+                event.stopPropagation();
+                jQuery("#productcatoverrideid").val('');
+                $("#thank_override_form_product_cat")[0].reset();
+                $("#thank_override_form_product_cat").validate().resetForm();
+                $(".redirectcartcategoriesselect").val("").trigger("change");
+                $('.productcatoverride,.main_rendered_thank_overrides').toggle();
+            });
+
+            //on click of cancel button from add/edit forms then show the initial listing of overrides...
+            $document.on("click",".restore_overrides",function(event) {
+                event.stopPropagation();
+                var current_override_id = $(this).data('id');//get the override id...
+                if(current_override_id !== '' && current_override_id !== null){
+                    $("#"+current_override_id)[0].reset();
+                    $("#"+current_override_id).validate().resetForm();
+                }
+                $('.main_rendered_thank_overrides').toggle();
+                $('.hide').hide();
+            });
+
+            //on click of edit icon of thankyou product override show the form to edit product thankyou override.....
+            $document.on("click",".edit_product_rule_override",function(event) {
+                event.stopPropagation();
+                var currrent_override_id = $(this).data("id");//get the override id...
+                //check form id then send ajax to get the details of if and then show the form.......
+                if(currrent_override_id > 0){
+                    jQuery("#productoverrideid").val(currrent_override_id);
+                    $(".thankyou_override_title_product").html('Edit Product Thankyou Page Override');
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_thankyou_override",{overrideid:currrent_override_id}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            if(responsedata.overridename != "" && responsedata.overridename !== null){
+                                jQuery("#procductoverridename").val(responsedata.overridename);
+                            }
+                            if(responsedata.overrideurl != "" && responsedata.overrideurl !== null){
+                                jQuery("#productrediecturl").val(responsedata.overrideurl);
+                            }
+                            if(responsedata.products != "" && responsedata.products !== null){
+                                var blockstrPro = $.map(responsedata.products, function(val,index) {
+                                     var str = val;
+                                     return str;
+                                }).join(",");
+                                var selectedPro = blockstrPro.split(',');
+                                $('#redirectcartproducts').val(selectedPro).trigger('change');
+                            }else{
+                                $('#redirectcartproducts').val('').trigger('change');
+                            }
+                        }
+                    });
+                }
+                //use toggle event to show hide the form and override listing.....
+                $('.productoverride,.main_rendered_thank_overrides').toggle();
+            });
+
+            //on click of edit icon of thankyou product override show the form to edit product category thankyou override.....
+            $document.on("click",".edit_product_category_rule_override",function(event) {
+                event.stopPropagation();
+                var currrent_override_id = $(this).data("id");//get the override id...
+                //check form id then send ajax to get the details of if and then show the form.......
+                if(currrent_override_id > 0){
+                    jQuery("#productcatoverrideid").val(currrent_override_id);
+                    $(".thankyou_override_title_product_cat").html('Edit Product Category Thankyou Page Override');
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_cat_thankyou_override",{overrideid:currrent_override_id}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            if(responsedata.overridename != "" && responsedata.overridename !== null){
+                                jQuery("#productcatoverridename").val(responsedata.overridename);
+                            }
+                            if(responsedata.overrideurl != "" && responsedata.overrideurl !== null){
+                                jQuery("#productcatrediecturl").val(responsedata.overrideurl);
+                            }
+                            if(responsedata.categories != "" && responsedata.categories !== null){
+                                var blockstrPro = $.map(responsedata.categories, function(val,index) {
+                                     var str = val;
+                                     return str;
+                                }).join(",");
+                                var selectedPro = blockstrPro.split(',');
+                                $('#redirectcartcategories').val(selectedPro).trigger('change');
+                            }else{
+                                $('#redirectcartcategories').val('').trigger('change');
+                            }
+                        }
+                    });
+                }
+                //use toggle event to show hide the form and override listing.....
+                $('.productcatoverride,.main_rendered_thank_overrides').toggle();
+            });
+
+            //on click of "*" icon of override delete the current override whethe its a product thankyou override or product thankyou override
+            $document.on("click",".delete_current_override_product",function(event) {
+                event.stopPropagation();
+                var current_override_id = $(this).data('id');//get the override id...
+                var current_override_type = $(this).data('type');//get the override type whether its a product or product category...
+                //first check the override id is accurate then get the confirmation from user and then send ajax and mark override as a deleted...
+                if(current_override_id > 0 ){
+                    swal({
+                        title: "Are you sure to delete this override?",
+                        text: "You will not be able to recover!",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Yes",
+                        cancelButtonText: "cancel",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            jQuery(".tab_related_content").addClass('overlay');
+                            jQuery.post(ajax_object.ajax_url + "?action=wc_delete_thankyou_override&jsoncallback=x", {overrideid: current_override_id,overridetype:current_override_type}, function(data) {
+                                jQuery(".tab_related_content").removeClass('overlay');
+                                var responsedata = JSON.parse(data);
+                                if(responsedata.status == "1") {
+                                    if(current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
+                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
+                                        swal("Saved!", 'Product Thankyou page override deleted Successfully.', "success");
+                                    }else if (current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
+                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
+                                        swal("Saved!", 'Product Category Thankyou page override deleted Successfully.', "success");
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
         });
 }(jQuery));
 
@@ -811,6 +1045,99 @@ function validateForms(form){
                     cfieldname: {
                         required: 'Please enter custom field name!'
                     }
+                }
+            }); 
+        }
+
+        //check form is "thank_default_form" then validate it.......
+        if(form == "thank_default_form"){
+            
+            //code is used to validate a url is in valid format e.g with http,https....
+            jQuery.validator.addMethod("checkurl", function(value, element) {
+                return this.optional(element) || /^(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(value);
+            });
+            $("#"+form).validate({
+                rules:{
+                      redirectwordpresspost: "required",
+                      redirectwordpresspage: "required",
+                      customurl: {
+                        required: true,
+                        checkurl : true,
+                      },
+                    },
+                messages:{
+                    redirectwordpresspost: {
+                        required: 'Please select the post for redirection!'
+                    },
+                    redirectwordpresspage: {
+                        required: 'Please select the page for redirection!',
+                    },
+                    customurl: {
+                        required: 'Please enter the custom url for redirection',
+                        checkurl: 'Please enter the valid redirect url',
+                    },
+                }
+            }); 
+        }
+
+        //check form is "thank_override_form_product" then validate it.......
+        if(form == "thank_override_form_product"){
+            
+            //code is used to validate a url is in valid format e.g with http,https....
+            jQuery.validator.addMethod("checkurl", function(value, element) {
+                return this.optional(element) || /^(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(value);
+            });
+            $("#"+form).validate({
+                rules:{
+                      procductoverridename: "required",
+                      productrediecturl: {
+                            required: true,
+                            checkurl : true,
+                      },
+                      "redirectcartproducts[]": "required",
+                    },
+                messages:{
+                    procductoverridename: {
+                        required: 'Please enter the name of override'
+                    },
+                    productrediecturl: {
+                        required: 'Please enter the redirect url for redirection',
+                        checkurl: 'Please enter the valid redirect url',
+                    },
+                    "redirectcartproducts[]": {
+                        required: 'Please select the cart products!'
+                    },
+                }
+            }); 
+        }
+        //check form is "thank_override_form_product_cat" then validate it........
+        if(form == "thank_override_form_product_cat"){
+            
+            //code is used to validate a url is in valid format e.g with http,https....
+            jQuery.validator.addMethod("checkurl", function(value, element) {
+                return this.optional(element) || /^(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(value);
+            });
+
+            $("#"+form).validate({
+                rules:{
+                      productcatoverridename: "required",
+                      productcatrediecturl:{
+                         required : true,
+                         checkurl : true,
+                      },
+                      "redirectcartcategories[]": "required",
+                    },
+                messages:{
+                    productcatoverridename: {
+                        required: 'Please enter the name of override'
+                    },
+                    productcatrediecturl: {
+                        required: 'Please enter the redirect url for redirection',
+                        checkurl: 'Please enter the valid redirect url',
+                    },
+                    "redirectcartcategories[]": {
+                        required: 'Please select the cart categories!'
+                    },
                 }
             }); 
         }
@@ -1055,7 +1382,32 @@ function applySelectTwo(element){
                 placeholder: 'Select Mapped Application Field',
             }); 
         }
-        
+        //add select 2 for wordpress posts field on thankyou page.....
+        if(element == 'redirectpostsselect'){
+            $("."+element).select2({
+                placeholder: 'Select Post',
+            });    
+        }
+        //add select 2 for wordpress pages field on thankyou page.....
+        if(element == 'redirectpagesselect'){
+            $("."+element).select2({
+                placeholder: 'Select Page',
+            });    
+        } 
+        //add select 2 for cart products field on thankyou page.....
+        if(element == 'redirectcartproductsselect'){
+            $("."+element).select2({
+                placeholder: 'Select Cart Products',
+                multiple : true,
+            });    
+        }
+        //add select 2 for cart categories field on thankyou page.....
+        if(element == 'redirectcartcategoriesselect'){
+            $("."+element).select2({
+                placeholder: 'Select Cart Categories',
+                multiple : true,
+            });    
+        }
     }
 }
 
@@ -1352,6 +1704,33 @@ function sortabledivs(element){
                }
             });
         }
+    
+        if(element == 'override_product_rule'){
+            jQuery( "."+element ).sortable({
+               update: function( event, ui ) {
+                    jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_rule").sortable('toArray')}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
+                        }
+                    });
+                }
+            });    
+        }
+        //apply sortable rule on the thankyou overrides of product category rule.....
+        else if(element == 'override_product_category_rule'){
+            jQuery( "."+element ).sortable({
+               update: function( event, ui ) {
+                    jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_category_rule").sortable('toArray')}, function(data) {
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
+                        }
+                    });
+                }
+            });   
+        }
+
     }
 }
 
@@ -1421,6 +1800,131 @@ function loadApplicationCFHeader(){
             if(responsedata.cfRelatedHeaders != "") {
                 $(".cfieldheaderapp").html('');
                 $(".cfieldheaderapp").html(responsedata.cfRelatedHeaders);
+            }
+        }
+    });
+}
+
+//on click of save button of default thankyou override call the  function "saveThanksDefaultOverride" to update the default thankyou override....
+function saveThanksDefaultOverride(){
+    if($('#thank_default_form').valid()){
+        if($(".override-error").is(":visible") || $(".override-success").is(":visible")){
+            $(".override-error").hide();
+            $(".override-success").hide();
+            $(".savingDefaultOverrideDetails").show();
+        }else{
+            $(".savingDefaultOverrideDetails").show();    
+        }
+        $('.save_thank_you_default_override').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_default_override",$('#thank_default_form').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".savingDefaultOverrideDetails").hide();
+            if(responsedata.status == "1") {
+                $('.defaultoverride,.main_rendered_thank_overrides').toggle();
+                $('.save_thank_you_default_override').removeClass("disable_anchor");
+                swal("Saved!", 'Default Thankyou page override details updated Successfully.', "success");
+            }else{
+                $(".override-error").show();
+                $(".override-error").html('Something Went Wrong');
+                setTimeout(function()
+                {
+                    $('.override-error').fadeOut("slow");
+                    $('.save_thank_you_default_override').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+    }  
+}
+
+
+//on click of save button of product thankyou override call the function "saveThanksProductOverride" to add/update the product thankyou override....
+function saveThanksProductOverride(){
+    if($('#thank_override_form_product').valid()){
+        if($(".override-error").is(":visible") || $(".override-success").is(":visible")){
+            $(".override-error").hide();
+            $(".override-success").hide();
+            $(".savingProductOverrideDetails").show();
+        }else{
+            $(".savingProductOverrideDetails").show();    
+        }
+        $('.save_thank_you_product_override').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_override",$('#thank_override_form_product').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".savingProductOverrideDetails").hide();
+            if(responsedata.status == "1") {
+                $('.productoverride,.main_rendered_thank_overrides').toggle();
+                $('.save_thank_you_product_override').removeClass("disable_anchor");
+                swal("Saved!", 'Product Thankyou override details updated Successfully.', "success");
+                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
+            }else{
+                $(".override-error").show();
+                $(".override-error").html('Something Went Wrong');
+                setTimeout(function()
+                {
+                    $('.override-error').fadeOut("slow");
+                    $('.save_thank_you_product_override').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+    }  
+}
+
+//on click of save button of product category thankyou override call the function "saveThanksProductCatOverride" to add/update the product thankyou override....
+function saveThanksProductCatOverride(){
+    if($('#thank_override_form_product_cat').valid()){
+        if($(".override-error").is(":visible") || $(".override-success").is(":visible")){
+            $(".override-error").hide();
+            $(".override-success").hide();
+            $(".savingProductCatOverrideDetails").show();
+        }else{
+            $(".savingProductCatOverrideDetails").show();    
+        }
+        $('.save_thank_you_product_cat_override').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_category_override",$('#thank_override_form_product_cat').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".savingProductCatOverrideDetails").hide();
+            if(responsedata.status == "1") {
+                $('.productcatoverride,.main_rendered_thank_overrides').toggle();
+                $('.save_thank_you_product_cat_override').removeClass("disable_anchor");
+                swal("Saved!", 'Product Category Thankyou override details updated Successfully.', "success");
+                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
+            }else{
+                $(".override-error").show();
+                $(".override-error").html('Something Went Wrong');
+                setTimeout(function()
+                {
+                    $('.override-error').fadeOut("slow");
+                    $('.save_thank_you_product_cat_override').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+    }  
+}
+
+
+//This function is used to load the latest thanks override after add/edit/delete override.....
+function loading_thanks_overrides($type){
+    jQuery(".tab_related_content").addClass('overlay');
+    jQuery.post(ajax_object.ajax_url+"?action=loading_thanks_overrides&jsoncallback=x", {overridesType:$type}, function(data) {
+        var responsedata = JSON.parse(data);
+        jQuery(".tab_related_content").removeClass('overlay');
+        if(responsedata.status == "1") {
+            if(responsedata.thankyouOverridesListing != ""){
+                if($type == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
+                    $("#product_thank_overrides").html('');
+                    $("#product_thank_overrides").html(responsedata.thankyouOverridesListing);
+                    //apply sortable rule on the thankyou overrides of product rule.....
+                    if($(".override_product_rule").length){
+                        sortabledivs('override_product_rule');
+                    }
+                }else if($type == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES){
+                    $("#product_cat_thank_overrides").html('');
+                    $("#product_cat_thank_overrides").html(responsedata.thankyouOverridesListing);
+                    //apply sortable rule on the thankyou overrides of product category rule.....
+                    if($(".override_product_category_rule").length){
+                        sortabledivs('override_product_category_rule');
+                    }
+                }
             }
         }
     });

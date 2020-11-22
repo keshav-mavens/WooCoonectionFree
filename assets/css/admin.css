@@ -42,7 +42,7 @@ body { background-color: #f1f1f1 !important; font-family: 'Roboto'; color: #303A
 .m-t-70 { margin-top: 70px; }
 .m-t-80 { margin-top: 80px; }
 .m-b-40 { margin-bottom: 40px; }
-.group-list .group-name, .iw_ty_ov_li .iw_ty_ov_name {
+.group-list .group-name, .iw_ty_ov_li .iw_ty_ov_name , .iw_ty_ov_li .group-name{
     background-color: #e4effb;
     color: black;
     display: inline-block;
@@ -56,11 +56,11 @@ body { background-color: #f1f1f1 !important; font-family: 'Roboto'; color: #303A
     font-weight: 500;
 }
 .group-list .group-field { border: 1px solid #d8d8d8 !important; display: block; margin-top: 10px; cursor: move; border-radius: 5px; height: 41px; line-height: 40px; font-size: 15px; color: #000; background-color: #fff; padding-left: 16px; padding-right: 10px; margin-left: 4%; margin-right: 4%; }
-.group-list .group-name .controls, .group-list .group-field .controls, .iw_ty_ov_li .iw_ty_ov_name .controls { display: inline-block; float: right; }
+.group-list .group-name .controls, .group-list .group-field .controls, .iw_ty_ov_li .iw_ty_ov_name .controls, .iw_ty_ov_li .group-name .controls { display: inline-block; float: right; }
 ul.group-fields { padding-bottom: 10px; padding-top: 5px; }
 span.controls i { background: #ffffff; /* padding: 6px; */
 color: #364699; border-radius: 50%; height: 25px; width: 25px; text-align: center; line-height: 26px; position: relative; top: -2px; font-size: 12px; cursor: pointer; }
-li.group-list { border: 1px solid #eae7e7; border-radius: 5px; margin-bottom: 21px; }
+li.group-list,li.iw_ty_ov_li { border: 1px solid #eae7e7; border-radius: 5px; margin-bottom: 21px; }
 .white-box { background: #fff; margin-bottom: 15px; margin-top: 15px; padding: 15px 0px; }
 .btn-theme { padding: 5px 20px !important; background-color: #364699 !important; color: #fff !important; font-size: 16px !important; text-align: center !important; border-radius: 50px !important; font-family: 'Roboto' !important; transition: all .5s !important; border-color: #364699 !important; }
 .top_logo_row { border-bottom: 1px solid #dedede; padding: 0px 10px 15px 10px; }
@@ -648,6 +648,12 @@ input[type=radio] {
 input[type=radio]:checked::before {
     background-color: #364698;
 }
+.no_override_exist{
+    text-align: center;
+    padding: 21px 20px 10px;
+    font-size: 17px; 
+}
+.iw_ty_ov_li .group-field { border: 1px solid #d8d8d8 !important; display: block; margin-top: 10px; cursor: move; border-radius: 5px; font-size: 15px; color: #000; background-color: #fff; margin-left: 4%; margin-right: 4%; }
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;

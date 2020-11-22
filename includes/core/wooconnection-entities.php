@@ -55,6 +55,7 @@
 	define("ITEM_TAX_NOTES", "Order Tax");
 	//Note for order item discount......
 	define("ITEM_DISCOUNT_NOTES", "Order Discount");
+
 	//custom field form type entitiy.....
 	define('CUSTOM_FIELD_FORM_TYPE_CONTACT', -1);
 	define('CUSTOM_FIELD_FORM_TYPE_ORDER', -9);
@@ -74,6 +75,18 @@
 	//custom field actions entity.....
 	define('CF_FIELD_ACTION_SHOW', 'show');
 	define('CF_FIELD_ACTION_HIDE', 'hide');
+
+	//Below 3 entities is related to default thanks override....
+	define('DEFAULT_WORDPRESS_POST', 1);
+	define('DEFAULT_WORDPRESS_PAGE', 2);
+	define('DEFAULT_WORDPRESS_CUSTOM_URL', 3);
+	//Below 7 entities is related to redirect thanks override....
+	define('REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS', 1);
+	define('REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES', 2);
+	
+	//override link yes no...
+	define('REDIRECT_OVERRIDE_TRUE', 1);
+	define('REDIRECT_OVERRIDE_FALSE', 0);
 ?>
 
 

@@ -1954,4 +1954,160 @@ function addNewLs($access_token,$categoryId,$meduim,$vendor,$content){
   }
   return $newLsId;//return newly created lead source id....
 }
+
+//Dynamic Thankyou Override : Function is used to get the list all publish wordpress posts for default thankyou override....
+function get_wp_posts(){
+    $wp_posts_options_html = '';//Define the empty variable.....
+    $wpPostsListing = get_posts(array('post_type'=> 'post','orderby' => 'ID','post_status' => 'publish','order' => 'DESC','posts_per_page' => -1));
+    //check array is not empty then execute a loop to create the list of options....
+    if(!empty($wpPostsListing)){
+      foreach ($wpPostsListing as $key => $value) {
+          $wpPostName = $value->post_title;
+          $wp_posts_options_html.= '<option value="'.$value->ID.'">'.$wpPostName.'</option>';
+      }
+    }else{
+      $wp_posts_options_html = '<option>No Wordpress Posts Exist!</option>';
+    }
+    return $wp_posts_options_html;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list all publish wordpress pages for default thankyou override....
+function get_wp_pages(){
+    $wp_page_options_html = '';//Define the empty variable.....
+    $wpPagesListing = get_posts(array('post_type'=> 'page','orderby' => 'ID','post_status' => 'publish','order' => 'DESC','posts_per_page' => -1));
+    //check array is not empty then execute a loop to create the list of options....
+    if(!empty($wpPagesListing)){
+      foreach ($wpPagesListing as $key => $value) {
+          $wpPageName = $value->post_title;
+          $wp_page_options_html.= '<option value="'.$value->ID.'">'.$wpPageName.'</option>';
+      }
+    }else{
+      $wp_page_options_html = '<option>No Wordpress Pages Exist!</option>';
+    }
+    return $wp_page_options_html;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list all publish wordpress products for product thankyou override....
+function get_products_options(){
+  $productLisingWithOptions = "";//Define the empty variable.....
+  $products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  //check array is not empty then execute a loop to create the list of options....
+  if(isset($products_listing) && !empty($products_listing))
+  {
+      foreach ($products_listing as $key => $value)
+      {
+        $productLisingWithOptions.= '<option value="'.$value->ID.'">'.$value->post_title.'</option>';
+      }
+  }else{
+    $productLisingWithOptions.= '<option value="">No Products Exist!</option>';
+  }
+  return $productLisingWithOptions;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list all publish wordpress products for product category thankyou override....
+function get_category_options(){
+  $categoriesLisingWithOptions = "";//Define the empty variable.....
+  $category_args = array('orderby' => 'name','order' => 'asc','hide_empty' => false,);
+  $product_categories = get_terms( 'product_cat', $category_args );
+  //check array is not empty then execute a loop to create the list of options....
+  if(isset($product_categories) && !empty($product_categories)){
+    foreach ($product_categories as $key => $value) {
+      $categoriesLisingWithOptions.= '<option value="'.$value->term_id.'">'.$value->name.'</option>';
+    }
+  }else{
+    $categoriesLisingWithOptions.= '<option value="">No Categories Exist</option>';
+  }
+  return $categoriesLisingWithOptions;//return html....
+}
+
+
+//Dynamic Thankyou Override : Function is used to get the list all active product thankyou overrides....
+function loading_product_thanks_overrides(){
+  global $wpdb,$table_prefix;
+  //override main table...
+  $override_table_name = 'wooconnection_thankyou_overrides';
+  $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
+  $thankyouOverrides = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE wc_override_status=".STATUS_ACTIVE." and wc_override_redirect_condition = ".REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS." ORDER BY wc_override_sort_order ASC");
+  $thankyouOverridesListing = "";//Define the empty variable.....
+  //check array is not empty then execute a loop to create the list of product thankyou overrides....
+  if(isset($thankyouOverrides) && !empty($thankyouOverrides)){
+    $thankyouOverridesListing = '<ul class="group-fields override_product_rule">';
+    foreach ($thankyouOverrides as $key => $value) {
+        if(!empty($value->id)){
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="iw_ty_ov_name">'.$value->wc_override_name.'<span class="controls"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$value->id.'"></i></span></span></li>';
+        }
+    }
+    $thankyouOverridesListing .= '</ul>';
+  }else{
+    $thankyouOverridesListing = "<p class='no_override_exist'>We don't have any product based overrides</p>";
+  }
+  return $thankyouOverridesListing;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list all active product category thankyou overrides....
+function loading_product_cat_thanks_overrides(){
+  global $wpdb,$table_prefix;
+  //override main table...
+  $override_table_name = 'wooconnection_thankyou_overrides';
+  $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
+  $thankyouOverrides = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE wc_override_status=".STATUS_ACTIVE." and wc_override_redirect_condition = ".REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES." ORDER BY wc_override_sort_order ASC");
+  $thankyouOverridesListing = "";//Define the empty variable.....
+  //check array is not empty then execute a loop to create the list of product category thankyou overrides....
+  if(isset($thankyouOverrides) && !empty($thankyouOverrides)){
+    $thankyouOverridesListing = '<ul class="group-fields override_product_category_rule">';
+    foreach ($thankyouOverrides as $key => $value) {
+        if(!empty($value->id)){
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="iw_ty_ov_name">'.$value->wc_override_name.'<span class="controls"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$value->id.'"></i></span></span></li>';
+        }
+    }
+    $thankyouOverridesListing .= '</ul>';
+  }else{
+    $thankyouOverridesListing = "<p class='no_override_exist'>We don't have any product category based overrides</p>";
+  }
+  return $thankyouOverridesListing;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list of override related products....
+function get_override_related_products($overrideid){
+    global $table_prefix, $wpdb;
+    //override products table name....
+    $override_product_table_name = 'wooconnection_thankyou_override_related_products';
+    $wp_thankyou_override_related_products = $table_prefix . "$override_product_table_name";
+    $thankyouOverrideProductsArray = array();//Define the empty array.....
+    //check the override exist is not empty if exist then execute a query to get the list of products.....
+    if(!empty($overrideid)){
+      $thankyouOverrideProducts = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_related_products." WHERE override_id=".$overrideid." and wc_override_product_status =".STATUS_ACTIVE);
+      //if related products array is not empty then excuate a loop......
+      if(isset($thankyouOverrideProducts) && !empty($thankyouOverrideProducts)){
+        foreach ($thankyouOverrideProducts as $key => $value) {
+          if(!empty($value->override_product_id)){
+            $thankyouOverrideProductsArray[] = $value->override_product_id;
+          }
+        }
+      }
+    }
+    return $thankyouOverrideProductsArray;//return products array....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list of override related categories....
+function get_override_related_cat($overrideid){
+    global $table_prefix, $wpdb;
+    //override cat table name....
+    $override_cat_table_name = 'wooconnection_thankyou_override_related_categories';
+    $wp_thankyou_override_related_categories = $table_prefix . "$override_cat_table_name";
+    $thankyouOverrideCatArray = array();//Define the empty array.....
+    //check the override exist is not empty if exist then execute a query to get the list of products.....
+    if(!empty($overrideid)){
+      $thankyouOverrideCat = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_related_categories." WHERE override_id=".$overrideid." and wc_override_cat_status =".STATUS_ACTIVE);
+      //if related products array is not empty then excuate a loop...... 
+      if(isset($thankyouOverrideCat) && !empty($thankyouOverrideCat)){
+        foreach ($thankyouOverrideCat as $key => $value) {
+          if(!empty($value->override_cat_id)){
+            $thankyouOverrideCatArray[] = $value->override_cat_id;
+          }
+        }
+      }
+    }
+    return $thankyouOverrideCatArray;//return products array....
+}
 ?>
