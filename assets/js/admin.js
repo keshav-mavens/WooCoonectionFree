@@ -93,6 +93,10 @@
                         if($("#collapseReferralPartner").length){
                             applyCollapseRules('collapseReferralPartner');
                         }
+
+                        if($("#productsAffiliateLinks").length){
+                            loadProductsListing();
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -665,4 +669,36 @@ function applyCollapseRules(div_id){
            $("#icon_"+div_id).addClass('fa-caret-down').removeClass('fa-caret-up');
         });    
     }
+}
+
+//This function is used to perform the copy clipboard content action........
+function copyContent(elementid) {
+  var elementDetails = document.getElementById(elementid);
+  if(window.getSelection) {
+    var selectWindow = window.getSelection();
+    var eleTextRange = document.createRange();
+    eleTextRange.selectNodeContents(elementDetails);
+    selectWindow.removeAllRanges();
+    selectWindow.addRange(eleTextRange);
+    document.execCommand("Copy");
+    var executeCommand = document.execCommand('copy',true);
+  }else if(document.body.createTextRange) {
+    var eleTextRange = document.body.createTextRange();
+    eleTextRange.moveToElementText(elementDetails);
+    eleTextRange.select();
+    var executeCommand = document.execCommand('copy',true);
+  }
+}
+
+//This function is used to get the woocommerce products listing with their affiliate links........
+function loadProductsListing(){
+    jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{}, function(data) {
+        var responsedata = JSON.parse(data);
+        if(responsedata.status == "1") {
+            if(responsedata.productLisingWithAffiliateLinks != "") {
+                $("#productsAffiliateLinks").html('');
+                $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
+            }
+        }
+    });
 }

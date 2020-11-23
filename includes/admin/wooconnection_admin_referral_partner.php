@@ -25,24 +25,38 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
 			</div>
           	<nav>
             	<div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
-	              	<a class="nav-item nav-link active" id="nav-profile-tab" data-toggle="tab" href="#tab-5" role="tab" aria-controls="nav-profile" aria-selected="false">Products Listing With Affiliate Links</a>
-				 	<a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#tab-6" role="tab" aria-controls="nav-profile" aria-selected="false">Tracking Link</a>
+	              	<a class="nav-item nav-link active" id="nav-profile-tab" data-toggle="tab" href="#tab-5" role="tab" aria-controls="nav-profile" aria-selected="false">Affiliate Tracking Links</a>
+				 	<a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#tab-6" role="tab" aria-controls="nav-profile" aria-selected="false">Custom Tracking Link</a>
 			 	</div>
           	</nav>
             <div class="tab-content" id="nav-tabContent">
 			  	<div class="tab-pane fade show active" id="tab-5" role="tabpanel" aria-labelledby="nav-profile-tab">
                   	<p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
-				  	<h4>Products Listing With Affiliate Links</h4>
+				  	<h4>Pages Listing With Affiliate Links</h4>
 				  	<div class="table-responsive">
 					  	<table class="table table-striped">
 						    <thead>
 						      <tr>
-						        <th>Product Name</th>
-						        <th>Product Affiliate Link</th>
+						        <th>Page Name</th>
+						        <th>Page Affiliate Link</th>
 								<th>Action</th>
 						      </tr>
 						    </thead>
-						    	<!-- <?php //echo products_listing_with_affiliate_links(); ?> -->
+						    	<?php echo wc_standard_pages_listing(); ?>
+						    <tbody>
+						    </tbody>
+					  	</table>
+					</div>
+					<h4>Products Categories Listing</h4>
+				  	<div class="table-responsive">
+					  	<table class="table table-striped">
+						    <thead>
+						      <tr>
+						        <th>Category Name</th>
+						        <th>Action</th>
+						      </tr>
+						    </thead>
+						    	<?php echo wc_standard_categories_listing(); ?>
 						    <tbody>
 						    </tbody>
 					  	</table>
@@ -58,4 +72,32 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
         </div>
     </div>
 </div>
- <!--REFERRAL PARTNER SETUP END-->
+
+<!--Below model is used to show the list of products with their affiliate tracking link with copy feature-->
+<div class="modal" role="dialog" id="productsWithAffiliateLInks">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Products Listing With Affiliate Links</h4>
+        <button type="button" class="close" onclick="hideCustomModel('productsWithAffiliateLInks')">&times;</button>
+      </div>
+      <div class="modal-body">
+      	<div class="table-responsive">
+			<table class="table table-striped">
+			    <thead>
+			      <tr>
+			        <th>Product Name</th>
+			        <th>Affiliate Link</th>
+			        <th>Action</th>
+			      </tr>
+			    </thead>
+			    <tbody id="productsAffiliateLinks">
+			    	
+			    </tbody>
+			</table>
+      	</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--REFERRAL PARTNER SETUP END-->

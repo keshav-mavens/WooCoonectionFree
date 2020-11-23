@@ -1303,4 +1303,104 @@ function getApplicationProductDetails($access_token,$productId){
     }
     return $productName;
 }
+
+// //get the list of products with their affiliate link...
+// function products_listing_with_affiliate_links(){
+//   $productLisingWithAffiliate = "";
+//   $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+//   if(isset($woo_products_listing) && !empty($woo_products_listing)){
+//     foreach ($woo_products_listing as $key => $value)
+//     {
+//         $currentProductPermalink = get_the_permalink($value->ID);
+//         $application_details = get_application_settings();
+//         $copyLink = "";
+//         if(!empty($application_details['applicationname'])){
+//             $applicationname = $application_details['applicationname'];
+//             $currentProductPermalink = 'http://'.$applicationname.'.infusionsoft.com/aff.html?to='.$currentProductPermalink;
+//             $copyLink = '<i class="fa fa-copy" style="cursor:pointer" 
+//                                       onclick="copySkuCouponCode(\'product_'.$value->ID.'_sku\')">
+//                                       </i>';
+//         }else{
+//           $currentProductPermalink = '--';
+//           $copyLink = '--';
+//         }
+//         $productLisingWithAffiliate .= '<tr><td>'.$value->post_title.'</td><td id="product_'.$value->ID.'_sku">'.$currentProductPermalink.'</td><td>'.$copyLink.'
+//                                   </td>
+//                               </tr>';
+//     }
+//   }else{
+//     $productLisingWithAffiliate .= '<tr><td colspan="3" style="text-align:center">No Products Exist!</td></tr>';
+//   }
+//   return $productLisingWithAffiliate;
+// }
+function wc_standard_pages_listing(){
+  //get the authenticate application details first.....
+  $authenticateAppdetails = getAuthenticationDetails();
+  //define empty variables.....
+  $authenticate_application_name = "";
+  $pageAffiliateLink = '';
+  //check authenticate details....
+  if(isset($authenticateAppdetails) && !empty($authenticateAppdetails)){
+    //check authenticate  name is exist......
+    if(isset($authenticateAppdetails[0]->user_authorize_application)){
+        $authenticate_application_name = $authenticateAppdetails[0]->user_authorize_application;
+        $pageAffiliateLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
+    } 
+  }
+
+  $pagesLisingWithAffiliateLinks = "";
+  
+  if(!empty($authenticate_application_name)){
+      $shopPageUrl = $pageAffiliateLink.wc_get_page_permalink('shop');
+      $cartPageUrl = $pageAffiliateLink.wc_get_page_permalink('cart');
+      $checkoutPageUrl = $pageAffiliateLink.wc_get_page_permalink('checkout');
+      $myaccountPageUrl = $pageAffiliateLink.wc_get_page_permalink('myaccount');
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Shop Page</td><td id="product_shop_page_link">'.$shopPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_shop_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Cart Page</td><td id="product_cart_page_link">'.$cartPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_cart_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Checkout Page</td><td id="product_checkout_page_link">'.$checkoutPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_checkout_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Login Page</td><td id="product_login_page_link">'.$myaccountPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_login_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Create Account Page</td><td id="product_create_account_page_link">'.$myaccountPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_create_account_page_link\')"></i></td></tr>';
+  }else{
+     $pagesLisingWithAffiliateLinks .='<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No affiliate tracking links available</td></tr>';
+  }
+  
+  return $pagesLisingWithAffiliateLinks;
+}
+
+function wc_standard_categories_listing(){
+    //get the authenticate application details first.....
+    $authenticateAppdetails = getAuthenticationDetails();
+    //define empty variables.....
+    $authenticate_application_name = "";
+    $pageAffiliateLink = '';
+    //check authenticate details....
+    if(isset($authenticateAppdetails) && !empty($authenticateAppdetails)){
+      //check authenticate  name is exist......
+      if(isset($authenticateAppdetails[0]->user_authorize_application)){
+          $authenticate_application_name = $authenticateAppdetails[0]->user_authorize_application;
+          $pageAffiliateLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
+      } 
+    }
+
+    $orderby = 'name';
+    $order = 'asc';
+    $cat_args = array(
+        'orderby'    => $orderby,
+        'order'      => $order
+    );
+     
+    $product_categories = get_terms( 'product_cat', $cat_args );
+    $categoriesLising = '';
+    if(isset($product_categories) && !empty($product_categories)){
+      foreach ($product_categories as $key => $value) {
+        $categoriesLising .= '<tr><td>'.$value->name.'</td><td><a href="javascript:void(0);" data-toggle="modal" data-target="#productsWithAffiliateLInks">View Products</a></td></tr>';
+      }
+    }
+    return $categoriesLising;
+}
+
 ?>
