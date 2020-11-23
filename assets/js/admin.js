@@ -88,6 +88,11 @@
                         if($("#collapseCampaignGoals").length){
                             applyCollapseRules('collapseCampaignGoals');
                         }
+
+                        //apply change icon rule on referral partner "How this works" button..
+                        if($("#collapseReferralPartner").length){
+                            applyCollapseRules('collapseReferralPartner');
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -650,7 +655,7 @@ function checkSelectedProducts($class,$except){
     return checkProducts;
 }
 
-//on collapse div change the icon of button done.....
+//on collapse div change the icon of "How This Works" button done.....
 function applyCollapseRules(div_id){
     if(div_id != ""){
         $('#'+div_id).on('shown.bs.collapse', function() {

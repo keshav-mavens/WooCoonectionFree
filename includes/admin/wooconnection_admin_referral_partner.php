@@ -12,12 +12,12 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
         <div class="col-md-12 ">
 			<?php if(empty($checkAuthenticationStatus)){?>
 			<p class="text-right">
-				<a class="btn btn-primary btn-theme" data-toggle="collapse" href="#collapseRp" role="button" aria-expanded="false" aria-controls="collapseRp">
-				How is Works
-				<i class="fa fa-caret-down" id="icon_collapseRp" aria-hidden="true"></i>
+				<a class="btn btn-primary btn-theme" data-toggle="collapse" href="#collapseReferralPartner" role="button" aria-expanded="false" aria-controls="collapseReferralPartner">
+				How This Works
+				<i class="fa fa-caret-down" id="icon_collapseReferralPartner" aria-hidden="true"></i>
 				</a>
 			</p>
-			<div class="collapse" id="collapseRp">
+			<div class="collapse" id="collapseReferralPartner">
 			  	<div class="card card-body col-md-12 m-b-40">
 			    	<p class="heading-text text-center m-t-30">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
 					<iframe class="m-t-30" src="https://player.vimeo.com/video/60771693" width="100%" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
