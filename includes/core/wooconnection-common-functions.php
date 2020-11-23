@@ -1303,6 +1303,4 @@ function getApplicationProductDetails($access_token,$productId){
     }
     return $productName;
 }
-
-
 ?>

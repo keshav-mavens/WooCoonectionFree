@@ -99,6 +99,7 @@ class WooConnection_Admin {
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-common-functions.php');
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
+        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
     }
 
     //Function Definition : includeCssJs
