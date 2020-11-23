@@ -943,6 +943,16 @@
                     });
                 }
             });
+
+            //Below code is used to check whether a application type is infusionsoft/keap, if keap then hide some feature menus like leadsource,refferal partner..
+            if($(".configurationType").attr('id') != ""){
+                var configurationType =  $(".configurationType").attr('id');
+                if(configurationType == 'Infusionsoft'){//if application type is infusionsoft.......
+                    $("#lead_sources").show();
+                }else if (configurationType == 'Keap'){//if application type is keap.....
+                    $("#lead_sources").hide();
+                }
+            }
         });
 }(jQuery));
 

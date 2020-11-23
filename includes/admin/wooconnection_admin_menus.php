@@ -52,7 +52,7 @@ if(empty($checkAuthenticationStatus)){
 				<ul class="sub-menu getting_started" style="<?php echo $getStartedUlStatus; ?>">
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs <?php echo $getStartedSubmenuClass; ?>" id="guided_setup">Guided Setup</a></li>
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="plugin_activation">Activation</a></li>
-	                <li class="sub-menu-expand common_disable_class <?php echo $leftMenuClass; ?>"><a href="javascript:void(0);" class="nav-tabs" id="application_settings"><span class="applicationtype" id="<?php echo $configurationType; ?>"><?php echo $applicationLabel; ?></span> Settings</a></li>
+	                <li class="sub-menu-expand common_disable_class <?php echo $leftMenuClass; ?>"><a href="javascript:void(0);" class="nav-tabs" id="application_settings"><span class="configurationType" id="<?php echo $type; ?>"><?php echo $applicationLabel; ?></span> Settings</a></li>
 	            </ul>
 	        </li>
 			
