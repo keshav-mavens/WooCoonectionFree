@@ -36,6 +36,7 @@ class WooConnection_Front {
             }   
         }
 
+        //check authenticate application edition is infusionsoft, if yes then proceed next to process the lead source feature....
     	if($authenticate_application_edition == APPLICATION_TYPE_INFUSIONSOFT){
     		//first check lead source id exit in query string.....
 	    	if(!empty($_GET['ls'])) {
