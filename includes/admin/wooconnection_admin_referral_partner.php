@@ -2,6 +2,7 @@
 <?php 
 //check the application authentication status if authorized then give access to configure campaign goals....
 $checkAuthenticationStatus = applicationAuthenticationStatus();
+$pageSlug = affiliatePageSlug();
 ?>
 <div class="info-header">
   <p>REFERRAL PARTNERS</p>
@@ -64,6 +65,28 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
 				</div>
 				<div class="tab-pane fade" id="tab-6" role="tabpanel" aria-labelledby="nav-home-tab">
                   	<p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
+					<form action="" method="post" id="referral_tracking_link" onsubmit="return false">
+	                  	<div class="form-group row">
+							<label class="col-lg-4 col-md-3 col-sm-12 col-12 col-form-label">Redirect Slug</label>
+							<div class="col-lg-8 col-md-9 col-sm-12 col-12">
+								<input class="form-control" type="text" placeholder="Enter Affiliate Redirect Slug" name="affiliateredirectslug" id="affiliateredirectslug"  value="<?php echo $pageSlug; ?>">
+								<div class="note-bottom">Help article link for customize referral tracking url : <a href="https://help.infusionsoft.com/help/customize-a-referral-tracking-link-url" target="_blank">Click here</a></div>
+							</div>
+						</div>
+						<div class="form-group row">
+							<label class="col-lg-4 col-md-3 col-sm-12 col-12 col-form-label" style="padding-top: 0px;">Custom Referral Partner link URL</label>
+							<div class="col-lg-8 col-md-9 col-sm-12 col-12">
+								<span id="customize_referral_partner_url"><?php //echo $customize_referral_partner_url; ?></span>
+								<span><i class="fa fa-copy" style="cursor:pointer;padding-left: 10px;" onclick="copyContent('customize_referral_partner_url')"></i></span>
+							</div>
+						</div>
+						<div class="form-group col-md-12 text-right m-t-60">
+							<div class="buttonloading redirectUrl" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Saving....</div>
+							<div class="alert-error-message referral-redirect-error" style="display: none;"></div>
+							<div class="alert-sucess-message referral-redirect-success" style="display: none;">Referral rediect slug saved successfully.</div>
+							<input type="button" value="Save" class="btn btn-primary btn-radius btn-theme referral_redirect_btn" onclick="saveRedirectUrl()">
+						</div>
+					</form>
 				</div>
 			</div>
 			<?php }else{

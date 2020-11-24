@@ -342,4 +342,33 @@ function wc_load_products()
 	}
 	die();
 }
+
+
+//Referral Partner Tab : wordpress hook is triggered to add custom page for affiliate tracking purpose....
+add_action( 'wp_ajax_wc_add_affiliate_page', 'wc_add_affiliate_page');
+//Function Definiation : wc_add_affiliate_page
+function wc_add_affiliate_page()
+{
+	global $wpdb;
+    //check affiliate page is already exist or not if exist then get the id of this else add new page...
+    $checkAffiliatePageExist = $wpdb->get_results("SELECT *  FROM `wp_posts` WHERE `post_title` LIKE 'Affiliate Redirect' AND `post_status` LIKE 'publish' AND `post_type` LIKE 'page'");
+    $affiliateRedirectPageID = "";
+    //if page already exist then get the id of this.....
+    if (isset($checkAffiliatePageExist) && !empty($checkAffiliatePageExist)) {
+        if(!empty($checkAffiliatePageExist[0]->ID)){
+            $affiliateRedirectPageID = $checkAffiliatePageExist[0]->ID;
+        }
+    }else{//else add new page.....
+        $affiliate_page_details  = array('post_title'=>'Affiliate Redirect','post_type'=> 'page','post_name'=>'referral','post_content'=> 'This page is used to handle the affiliate rediection process.','post_status'=>'publish','comment_status'=>'closed','ping_status'=>'closed','post_author'=>1,'menu_order'=>0);
+
+        $affiliateRedirectPageID = wp_insert_post( $affiliate_page_details, FALSE );
+    }
+    //if page id not empty then update option "affiliate_redirect_page_id" to handle the affiliate redirection processs....
+    if(!empty($affiliateRedirectPageID)){
+	    update_option('affiliate_redirect_page_id',$affiliateRedirectPageID);
+	}
+	//return response with affiliate page id....
+    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'affiliate_redirect_page_id'=>$affiliateRedirectPageID));
+    die();
+}
 ?>

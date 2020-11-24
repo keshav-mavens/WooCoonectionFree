@@ -208,6 +208,12 @@
             var checkResponse = getQueryParameter('response');
             if(checkResponse != "" && checkResponse == "1"){
                 swal("Authorization!", 'Application authentication done successfully.', "success");
+                //get input hidden value to stop the duplication of page creation.....
+                var affiliateReferralPageId = $("#affiliate_referral_page_id").val();
+                //if value of input hidden is empty so we need to add new page....
+                if(affiliateReferralPageId == ''){
+                    addNewPageAffiliate();//call the function....
+                }
             }
 
             //Match Products Tab : check all products checkbox rule....
@@ -703,4 +709,18 @@ function showProductsByCat($catId){
             }
         });  
     }
+}
+
+//Referral Partner Tab : On application authentication send ajax request to add new page to website......
+function addNewPageAffiliate(){
+    jQuery.post( ajax_object.ajax_url + "?action=wc_add_affiliate_page",{}, function(data) {
+        var responsedata = JSON.parse(data);
+        //check response....
+        if(responsedata.status == "1") {
+            //check affiliate page id exist in response if yes then update the value of hidden field...
+            if(responsedata.affiliate_redirect_page_id != '' && responsedata.affiliate_redirect_page_id !== null ){
+                $("#affiliate_referral_page_id").val(responsedata.affiliate_redirect_page_id);
+            }
+        }
+    });
 }

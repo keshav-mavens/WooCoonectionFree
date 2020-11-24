@@ -1378,4 +1378,16 @@ function wc_standard_categories_listing(){
     return $categoriesLising;//returm html....
 }
 
+//Referral Partner Tab : This function is used to get the affiliate page slug by page id.....
+function affiliatePageSlug(){
+  $affiliatePageSlug = "";
+  $affiliatePageId = get_option('affiliate_redirect_page_id');
+  if(isset($affiliatePageId) && !empty($affiliatePageId)){
+    $affiliatePageDetails = get_post($affiliatePageId);
+    if($affiliatePageDetails->post_status == 'publish'){
+      $affiliatePageSlug = $affiliatePageDetails->post_name;  
+    }
+  }
+  return $affiliatePageSlug;
+}
 ?>
