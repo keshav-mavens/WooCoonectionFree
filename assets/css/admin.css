@@ -56,7 +56,7 @@ body { background-color: #f1f1f1 !important; font-family: 'Roboto'; color: #303A
     font-weight: 500;
     word-break:break-all;
 }
-.group-list .group-field { border: 1px solid #d8d8d8 !important; display: block; margin-top: 10px; cursor: move; border-radius: 5px; height: 41px; line-height: 40px; font-size: 15px; color: #000; background-color: #fff; padding-left: 16px; padding-right: 10px; margin-left: 4%; margin-right: 4%; }
+.group-list .group-field { border: 1px solid #d8d8d8 !important; display: flow-root !important; margin-top: 10px; cursor: move; border-radius: 5px; height: 41px; line-height: 40px; font-size: 15px; color: #000; background-color: #fff; padding-left: 16px; padding-right: 10px; margin-left: 2%; margin-right: 2%; word-break:break-all; }
 .group-list .group-name .controls, .group-list .group-field .controls, .iw_ty_ov_li .iw_ty_ov_name .controls, .iw_ty_ov_li .group-name .controls { display: inline-block; float: right; }
 ul.group-fields { padding-bottom: 10px; padding-top: 5px; }
 span.controls i { background: #ffffff; /* padding: 6px; */
@@ -844,6 +844,7 @@ p.tag-line { padding-top: 10px; }
 .tab-content {
     padding: 30px 5px !important;
 }
+.group-list .group-field {height: 83px;}
 }
  @media screen and (max-width: 782px) {
 .auto-fold #wpcontent { padding-left: 0px; }
