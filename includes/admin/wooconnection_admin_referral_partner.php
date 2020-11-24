@@ -2,7 +2,15 @@
 <?php 
 //check the application authentication status if authorized then give access to configure campaign goals....
 $checkAuthenticationStatus = applicationAuthenticationStatus();
-$pageSlug = affiliatePageSlug();
+$pageDetails = affiliatePageDetails();
+$pageSlug = '';
+$pageUrl = '';
+if(isset($pageDetails['affiliatePageSlug']) && !empty($pageDetails['affiliatePageSlug'])){
+	$pageSlug = $pageDetails['affiliatePageSlug'];
+}
+if(isset($pageDetails['pageUrl']) && !empty($pageDetails['pageUrl'])){
+	$pageUrl = $pageDetails['pageUrl'];
+}
 ?>
 <div class="info-header">
   <p>REFERRAL PARTNERS</p>
@@ -65,7 +73,7 @@ $pageSlug = affiliatePageSlug();
 				</div>
 				<div class="tab-pane fade" id="tab-6" role="tabpanel" aria-labelledby="nav-home-tab">
                   	<p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
-					<form action="" method="post" id="referral_tracking_link" onsubmit="return false">
+					<form action="" method="post" id="affiliate_redirect_form" onsubmit="return false">
 	                  	<div class="form-group row">
 							<label class="col-lg-4 col-md-3 col-sm-12 col-12 col-form-label">Redirect Slug</label>
 							<div class="col-lg-8 col-md-9 col-sm-12 col-12">
@@ -76,15 +84,15 @@ $pageSlug = affiliatePageSlug();
 						<div class="form-group row">
 							<label class="col-lg-4 col-md-3 col-sm-12 col-12 col-form-label" style="padding-top: 0px;">Custom Referral Partner link URL</label>
 							<div class="col-lg-8 col-md-9 col-sm-12 col-12">
-								<span id="customize_referral_partner_url"><?php //echo $customize_referral_partner_url; ?></span>
-								<span><i class="fa fa-copy" style="cursor:pointer;padding-left: 10px;" onclick="copyContent('customize_referral_partner_url')"></i></span>
+								<span id="custom_affiliate_redirect_url"><?php echo $pageUrl; ?></span>
+								<span><i class="fa fa-copy" style="cursor:pointer;padding-left: 10px;" onclick="copyContent('custom_affiliate_redirect_url')"></i></span>
 							</div>
 						</div>
 						<div class="form-group col-md-12 text-right m-t-60">
-							<div class="buttonloading redirectUrl" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Saving....</div>
-							<div class="alert-error-message referral-redirect-error" style="display: none;"></div>
-							<div class="alert-sucess-message referral-redirect-success" style="display: none;">Referral rediect slug saved successfully.</div>
-							<input type="button" value="Save" class="btn btn-primary btn-radius btn-theme referral_redirect_btn" onclick="saveRedirectUrl()">
+							<div class="buttonloading affiliateRedirectUrl" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Saving....</div>
+							<div class="alert-error-message affiliate-redirect-error" style="display: none;"></div>
+							<div class="alert-sucess-message affiliate-redirect-success" style="display: none;">Affiliate rediect slug updated successfully.</div>
+							<input type="button" value="Save" class="btn btn-primary btn-radius btn-theme affiliate_redirect_btn" onclick="saveAffiliateRedirectSlug()">
 						</div>
 					</form>
 				</div>

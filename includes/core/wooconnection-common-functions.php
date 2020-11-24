@@ -1379,15 +1379,33 @@ function wc_standard_categories_listing(){
 }
 
 //Referral Partner Tab : This function is used to get the affiliate page slug by page id.....
-function affiliatePageSlug(){
-  $affiliatePageSlug = "";
+function affiliatePageDetails(){
+  $affiliatePageData = array();
   $affiliatePageId = get_option('affiliate_redirect_page_id');
   if(isset($affiliatePageId) && !empty($affiliatePageId)){
     $affiliatePageDetails = get_post($affiliatePageId);
     if($affiliatePageDetails->post_status == 'publish'){
-      $affiliatePageSlug = $affiliatePageDetails->post_name;  
+      $affiliatePageData['affiliatePageSlug'] = $affiliatePageDetails->post_name;  
     }
+    $url = get_permalink($affiliatePageId);//get page url by page id......
+    $affiliatePageData['pageUrl'] = $url;  
   }
-  return $affiliatePageSlug;
+  return $affiliatePageData;
+}
+
+//Function is used to create the slug of page......
+function createAffiliatePageSlug($pageslug)
+{ 
+    $latestSlug = '';
+    if(isset($pageslug) && !empty($pageslug)){
+      $latestSlug = preg_replace('~[^\\pL\d]+~u', '-', $pageslug);
+      $latestSlug = trim($latestSlug, '-');
+      if(function_exists('iconv')){
+        $latestSlug = iconv('utf-8', 'us-ascii//TRANSLIT', $latestSlug);
+      }
+      $latestSlug = strtolower($latestSlug);
+      $latestSlug = preg_replace('~[^-\w]+~', '', $latestSlug);  
+    }
+    return $latestSlug;
 }
 ?>

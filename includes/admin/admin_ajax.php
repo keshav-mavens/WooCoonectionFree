@@ -371,4 +371,25 @@ function wc_add_affiliate_page()
     echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'affiliate_redirect_page_id'=>$affiliateRedirectPageID));
     die();
 }
+
+//Wordpress hook : This action is triggered when user try to customize the referral rediect slug......
+add_action( 'wp_ajax_wc_save_affiliate_redirect_slug', 'wc_save_affiliate_redirect_slug');
+//Function Definiation : wc_save_affiliate_redirect_slug
+function wc_save_affiliate_redirect_slug()
+{
+	if(isset($_POST) && !empty($_POST)){
+		if(isset($_POST['affiliateredirectslug']) && !empty($_POST['affiliateredirectslug'])){
+			$affiliateredirectslug = createAffiliatePageSlug($_POST['affiliateredirectslug']);
+			$affiliate_redirect_page_id = get_option('affiliate_redirect_page_id');
+			if(!empty($affiliate_redirect_page_id)){
+				$pageData = array('ID'=> $affiliate_redirect_page_id,'post_name'   => $affiliateredirectslug);
+			 	//Update the post into the database
+			  	wp_update_post( $pageData );
+			}
+			$latest_affiliate_redirect_url = get_permalink($affiliate_redirect_page_id);//get page url by page id......
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latest_affiliate_redirect_url'=>$latest_affiliate_redirect_url,'affiliateredirectslug'=>$affiliateredirectslug));
+	}
+	die();
+}
 ?>
