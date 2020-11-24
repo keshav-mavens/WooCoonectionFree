@@ -215,8 +215,9 @@
                 swal("Authorization!", 'Application authentication done successfully.', "success");
                 //get input hidden value to stop the duplication of page creation.....
                 var affiliateReferralPageId = $("#affiliate_referral_page_id").val();
+                var configurationType =  $(".configurationType").attr('id');
                 //if value of input hidden is empty so we need to add new page....
-                if(affiliateReferralPageId == ''){
+                if(affiliateReferralPageId == '' && configurationType == 'Infusionsoft'){
                     addNewPageAffiliate();//call the function....
                 }
             }
