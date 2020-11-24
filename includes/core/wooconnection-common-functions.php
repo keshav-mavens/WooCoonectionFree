@@ -1353,21 +1353,21 @@ function wc_standard_pages_listing(){
 function wc_standard_categories_listing(){
     
     //set category arguments....
-    $orderby = 'name';
-    $order = 'asc';
-    $cat_args = array(
-        'orderby'    => $orderby,
-        'order'      => $order
+    $catorderby = 'name';
+    $catorder = 'asc';
+    $categoryArguments = array(
+        'orderby'    => $catorderby,
+        'order'      => $catorder
     );
     
     //get categories.. 
-    $product_categories = get_terms( 'product_cat', $cat_args );
+    $categories = get_terms( 'product_cat', $categoryArguments );
     //define empty variable.....
     $categoriesLising = '';
     //check category listing....
-    if(isset($product_categories) && !empty($product_categories)){
+    if(isset($categories) && !empty($categories)){
       //execute loop and create html.....
-      foreach ($product_categories as $key => $value) {
+      foreach ($categories as $key => $value) {
         $categoryId = $value->term_id;
         $categoriesLising .= '<tr><td>'.$value->name.'</td><td><a href="javascript:void(0);" onclick="showProductsByCat('.$categoryId.')">View Products</a></td></tr>';
       }
