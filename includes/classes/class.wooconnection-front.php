@@ -25,59 +25,72 @@ class WooConnection_Front {
 
     //Function Definition : wooconnection_leadsource_handling is used to handle the leadsource funtionality.....
     public function wooconnection_leadsource_handling(){
-    	//first check lead source id exit in query string.....
-    	if(!empty($_GET['ls'])) {
-			$lsId = $_GET['ls'];//get or set the lead source id....
-			//set cookie....
-			if (!headers_sent()) {
-				$cookieName = "leadsourceId";
-				$cookieValue = $lsId;
-				setcookie($cookieName, $cookieValue, time() + 3600, "/", $_SERVER['SERVER_NAME']);
-			}
-		}else{//then check if utm parameters exist in query string...
-			//define empty variables....
-			$lscategory = '';
-			$lsmedium ='';
-			$lsvendor = '';
-			$lsmessage = '';
+    	$authenticateAppdetails = getAuthenticationDetails();
+        //define empty variables.....
+        $authenticate_application_edition = "";
+        //check authenticate details....
+        if(isset($authenticateAppdetails) && !empty($authenticateAppdetails)){
+            //check authenticate edition is exist......
+            if(isset($authenticateAppdetails[0]->user_application_edition)){
+                $authenticate_application_edition = $authenticateAppdetails[0]->user_application_edition;
+            }   
+        }
 
-			//check "utm_source" exist in query string.....
-			if(!empty($_GET['utm_source'])) {
-				$lscategory = $_GET['utm_source'];				
-			}else if (!empty($_COOKIE['lscategory'])) {
-				$lscategory = $_COOKIE['lscategory'];
-			}
+    	if($authenticate_application_edition == APPLICATION_TYPE_INFUSIONSOFT){
+    		//first check lead source id exit in query string.....
+	    	if(!empty($_GET['ls'])) {
+				$lsId = $_GET['ls'];//get or set the lead source id....
+				//set cookie....
+				if (!headers_sent()) {
+					$cookieName = "leadsourceId";
+					$cookieValue = $lsId;
+					setcookie($cookieName, $cookieValue, time() + 3600, "/", $_SERVER['SERVER_NAME']);
+				}
+			}else{//then check if utm parameters exist in query string...
+				//define empty variables....
+				$lscategory = '';
+				$lsmedium ='';
+				$lsvendor = '';
+				$lsmessage = '';
 
-			//check "utm_medium" exist in query string.....
-			if(!empty($_GET['utm_medium'])) {
-				$lsmedium = $_GET['utm_medium'];
-			}else if (!empty($_COOKIE['lsmedium'])) {
-				$lsmedium = $_COOKIE['lsmedium'];
-			}
+				//check "utm_source" exist in query string.....
+				if(!empty($_GET['utm_source'])) {
+					$lscategory = $_GET['utm_source'];				
+				}else if (!empty($_COOKIE['lscategory'])) {
+					$lscategory = $_COOKIE['lscategory'];
+				}
 
-			//check "utm_campaign" exist in query string.....
-			if(!empty($_GET['utm_campaign'])) {
-				$lsvendor = $_GET['utm_campaign'];
-			}else if (!empty($_COOKIE['lsvendor'])) {
-				$lsvendor = $_COOKIE['lsvendor'];
-			}
+				//check "utm_medium" exist in query string.....
+				if(!empty($_GET['utm_medium'])) {
+					$lsmedium = $_GET['utm_medium'];
+				}else if (!empty($_COOKIE['lsmedium'])) {
+					$lsmedium = $_COOKIE['lsmedium'];
+				}
 
-			//check "utm_content" exist in query string.....
-			if(!empty($_GET['utm_content'])) {
-				$lsmessage = $_GET['utm_content'];
-			}else if (!empty($_COOKIE['lsmessage'])) {
-				$lsmessage = $_COOKIE['lsmessage'];
-			}
+				//check "utm_campaign" exist in query string.....
+				if(!empty($_GET['utm_campaign'])) {
+					$lsvendor = $_GET['utm_campaign'];
+				}else if (!empty($_COOKIE['lsvendor'])) {
+					$lsvendor = $_COOKIE['lsvendor'];
+				}
 
-			//set utm parameters in cookie.....
-			if (!headers_sent()) {
-				setcookie('lscategory', $lscategory, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
-				setcookie('lsmedium', $lsmedium, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
-				setcookie('lsvendor', $lsvendor, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
-				setcookie('lsmessage', $lsmessage, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
+				//check "utm_content" exist in query string.....
+				if(!empty($_GET['utm_content'])) {
+					$lsmessage = $_GET['utm_content'];
+				}else if (!empty($_COOKIE['lsmessage'])) {
+					$lsmessage = $_COOKIE['lsmessage'];
+				}
+
+				//set utm parameters in cookie.....
+				if (!headers_sent()) {
+					setcookie('lscategory', $lscategory, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
+					setcookie('lsmedium', $lsmedium, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
+					setcookie('lsvendor', $lsvendor, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
+					setcookie('lsmessage', $lsmessage, time() + 3600, "/", $_SERVER['SERVER_NAME']); 
+				}
 			}
-		} 
-	}
+    	}
+    }
 }
 	
 // Create global so you can use this variable beyond initial creation.
