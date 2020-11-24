@@ -92,7 +92,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
 			      </tr>
 			    </thead>
 			    <tbody id="productsAffiliateLinks">
-			    	
+			    	<tr><td colspan="3" style="text-align: center; vertical-align: middle;">Loading Products.....</td></tr>
 			    </tbody>
 			</table>
       	</div>

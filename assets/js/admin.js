@@ -94,9 +94,6 @@
                             applyCollapseRules('collapseReferralPartner');
                         }
 
-                        if($("#productsAffiliateLinks").length){
-                            loadProductsListing();
-                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -144,7 +141,7 @@
                 }
             });
 
-             //Export Tab : check all products checkbox rule....
+            //Export Tab : check all products checkbox rule....
             $document.on("click",".all_products_checkbox_export",function(event) {
                 if ($(this).is(":checked"))
                 {
@@ -690,15 +687,20 @@ function copyContent(elementid) {
   }
 }
 
-//This function is used to get the woocommerce products listing with their affiliate links........
-function loadProductsListing(){
-    jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{}, function(data) {
-        var responsedata = JSON.parse(data);
-        if(responsedata.status == "1") {
-            if(responsedata.productLisingWithAffiliateLinks != "") {
-                $("#productsAffiliateLinks").html('');
-                $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
+//Referral Partner Tab : On click on view products link show the popup and send the ajax request to get the products listing by category id.....
+function showProductsByCat($catId){
+    if($catId != ""){
+        $("#productsAffiliateLinks").html('');
+        $("#productsAffiliateLinks").html('<tr><td colspan="3" style="text-align: center; vertical-align: middle;">Loading Products.....</td></tr>');
+        $("#productsWithAffiliateLInks").show();
+        jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{categoryId:$catId}, function(data) {
+            var responsedata = JSON.parse(data);
+            if(responsedata.status == "1") {
+                if(responsedata.productLisingWithAffiliateLinks != "") {
+                    $("#productsAffiliateLinks").html('');
+                    $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
+                }
             }
-        }
-    });
+        });  
+    }
 }
