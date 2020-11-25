@@ -822,19 +822,19 @@ function get_country_code($code){
 }
 
 //Create order in infusionsoft/keap application at the time checkout......
-function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
+function createOrder($orderid,$contactId,$jsonOrderItems,$access_token,$lead_affiliate_id){
     $newOrderId = "";
     if(!empty($contactId) && !empty($orderid) && !empty($access_token)){
         $orderTitle = "New Order Generated where order number is #" . $orderid . " and generated from " . site_url();
         $url = "https://api.infusionsoft.com/crm/rest/v1/orders";
         $current_time = date("Y-m-d")."T".date("H:i:s")."Z"; 
-        $jsonArray = '{
-                        "contact_id": '.$contactId.',
-                        "order_items": '.$jsonOrderItems.',
-                        "order_date": "'.$current_time.'",
-                        "order_title": "'.$orderTitle.'",
-                        "order_type": "Offline"
-                      }';
+        if(empty($lead_affiliate_id)){
+          $jsonArray = '{"contact_id": '.$contactId.',"order_items": '.$jsonOrderItems.',"order_date": "'.$current_time.'",
+                        "order_title": "'.$orderTitle.'","order_type": "Offline"}';
+        }else{
+          $jsonArray = '{"contact_id": '.$contactId.',"lead_affiliate_id":'.$lead_affiliate_id.',"order_items": '.$jsonOrderItems.',"order_date": "'.$current_time.'",
+                        "order_title": "'.$orderTitle.'","order_type": "Offline"}';
+        }
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array(
@@ -860,7 +860,6 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
         curl_close($ch);  
     }
     return $newOrderId;
-    
 }
 
 //add product to infusionsoft/keap account..
@@ -1330,4 +1329,88 @@ function createAffiliatePageSlug($pageslug)
     }
     return $latestSlug;
 }
+
+//Referral Partner Tab : Function is used to get affiliate code by affiliate id.....
+function getAffiliateDetails($access_token,$referralAffiliateId){
+    $affiliateCode = '';
+    if(!empty($access_token) && !empty($referralAffiliateId))
+    {
+        $url = "https://api.infusionsoft.com/crm/rest/v1/affiliates/".$referralAffiliateId;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url); //using the setopt function to send request to the url
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+        $response = curl_exec($ch); //executing request
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+          }else{
+            if(!empty($sucessData['code'])){
+                $affiliateCode = $sucessData['code'];
+            }
+          }
+          return $affiliateCode;
+        }
+        curl_close($ch);  
+    }
+    return $affiliateCode;
+}
+
+
+//Checkout Custom fields : Code is used to update contact custom fields with contact id...  
+function updateContactCustomFields($access_token,$contact_id,$customFieldsData){
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
+    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $header = array(
+      'Accept: text/xml',
+      'Content-Type: text/xml',
+      'Authorization: Bearer '. $access_token
+    );
+    
+    //create xml html by executing loop...
+    $customFieldHtml = '';
+    foreach ($customFieldsData as $key => $value) {
+        $keyname = str_replace(" ", "", $key);
+        $customFieldHtml .= '<member><name>'.$keyname.'</name><value><string>'.$value.'</string></value></member>';
+    }
+
+
+    //Create xml to hit the curl request for add order item.....
+    $xmlData = "<methodCall><methodName>ContactService.update</methodName><params><param><value><string>privateKey</string></value></param><param><value><int>".$contact_id."</int></value></param><param><value><struct>".$customFieldHtml."</struct></value></param></params></methodCall>";
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    //check if error occur due to any reason and then save the logs...
+    if($err){
+        $errorMessage = "Update contact custom field values is failed due to ". $err; 
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+    }else{
+      //Covert/Decode response to xml.....
+      $responsedata = xmlrpc_decode($response);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+          if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+              $errorMessage = "Update contact custom field values is failed due to ". $responsedata['faultString']; 
+              $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+      }else{
+        return true;
+      }
+    }
+    curl_close($ch);
+    return true;
+}
+
 ?>

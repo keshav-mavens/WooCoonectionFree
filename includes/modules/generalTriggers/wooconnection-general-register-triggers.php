@@ -93,6 +93,24 @@ function wooconnection_general_user_registration_trigger($userid,$generalRegistr
 
         //check if contact id is exist then hit the trigger....
         if(isset($registerContactId) && !empty($registerContactId)) {
+            //define empty variable....
+            $referralAffiliateId = '';
+            $affiliateCode = '';
+            $customField = array();
+            //first check "affiliateId" exist in cookie....
+            if(isset($_COOKIE["affiliateId"])){
+                $referralAffiliateId = $_COOKIE["affiliateId"];
+            }
+
+            if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
+                $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
+            }
+            
+            if(isset($affiliateCode) && !empty($affiliateCode)){
+                $customField['ReferralCode'] = $affiliateCode;
+                updateContactCustomFields($access_token,$registerContactId,$customField);
+            }
+
             // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
             if(!empty($generalRegistrationNewUserIntegrationName) && !empty($generalRegistrationNewUserCallName))
             {
