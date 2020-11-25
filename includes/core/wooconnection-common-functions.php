@@ -154,7 +154,7 @@ function createExportProductsHtml(){
       $table_export_products_html = '<p class="heading-text" style="text-align:center">No products exist in woocommerce for export to '.$applicationLabel.' application.</p>';
   }else{
       //Compare woocommerce publish products with application products
-      $exportProductsData = compareWooProductsWithAppProducts($woocommerceProducts,$applicationProductsArray,$applicationLabel);
+      $exportProductsData = exportProductsListingApplication($woocommerceProducts,$applicationProductsArray,$applicationLabel);
       if(isset($exportProductsData) && !empty($exportProductsData)){
           //Get the export products table html and append to table
           if(!empty($exportProductsData['exportTableHtml'])){
@@ -186,19 +186,6 @@ function listExistingDatabaseWooProducts(){
     return $existProductsDetails;
 }
 
-//compare products of infusionsoft/keap with existing woocommerce products....
-function compareWooProductsWithAppProducts($wooCommerceProducts,$applicationProductsArray,$applicationType)
-{
-    //Define array...
-    $productsData = array();
-    //First check if wooproducts exist...
-    if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
-      $productsData = exportProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType);
-    }
-    //Return array... 
-    return $productsData;
-}
-
 //create products listing if infusionsoft/keap products are exist...
 function exportProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
     $exportTableHtml  = '';//Define variable..
@@ -223,6 +210,7 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
         $productSelectHtml = '';
         foreach ($wooCommerceProducts as $key => $value) {
             if(!empty($value->ID)){
+                $matchProductId = '';
                 $wc_product_id = $value->ID;//Define product id...             
                 $wcproduct = wc_get_product($value->ID);//Get product details..
                 $wcproductPrice = $wcproduct->get_regular_price();//Get product price....
@@ -250,12 +238,7 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
                     if(isset($productExistId) && !empty($productExistId)){
-                      $productName = getApplicationProductDetails($access_token,$productExistId);
-                      if(!empty($productName)){
-                          $productsDropDown = '<input type="hidden" value="'.$productExistId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productName;
-                      }else{
-                        $productsDropDown = 'Mapped Product Not Exist In App!';
-                      }
+                      $matchProductId = $productExistId;
                     }else if (!empty($wcproductSku)) {//Then check product sku,If product sku exist then check product in application with same sku is exist ot not....
                       $checkSkuMatchWithIskpProducts = checkProductMapping($wcproductSku,$applicationProductsArray); 
                       //if product/multiple products with same sku is exist then get the last matched product id.... 
@@ -263,18 +246,23 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                           $matchId =  end($checkSkuMatchWithIskpProducts);
                           //On the basis of match product id set the product selected and create html.....
                           if(!empty($matchId)){
-                            $productName = getApplicationProductDetails($access_token,$matchId);
-                            if(!empty($productName)){
-                                $productsDropDown = '<input type="hidden" value="'.$matchId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productName;
-                            }else{
-                              $productsDropDown = 'Mapped Product Not Exist In App!';
-                            }
+                            $matchProductId = $matchId;
                           }
-                      }else{//If product with same sku is not exist, then create select without any product selected...
-                        $productsDropDown = 'No mapping exist!';
                       }
-                    }else{//If relation is not exist with product then create select without any product selected...
-                      $productsDropDown = 'No mapping exist!';
+                    }
+                    //check matchproduct id is exist or not if exist then get the product name from application products array......
+                    if(!empty($matchProductId)){
+                      $key = array_search($matchProductId, array_column($applicationProductsArray['products'], 'id'));
+                      if (!empty($key) || $key === 0) {
+                        $productDetails = $applicationProductsArray['products'][$key];
+                        if(!empty($productDetails['product_name'])){
+                          $productsDropDown = '<input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails['product_name'];
+                        }
+                      }else{
+                        $productsDropDown = 'Mapped Product Not Exist In App!';
+                      }
+                    }else{
+                      $productsDropDown = 'No mapping exist!'; 
                     }
                     //Create final select html.....
                     $productSelectHtml = $productsDropDown;
@@ -474,7 +462,7 @@ function createMatchProductsHtml(){
     $table_match_products_html = '<p class="heading-text" style="text-align:center">No products mapping exist.</p>';
   }else{
       //Compare woocommerce publish products application products....
-      $matchProductsData = compareMatchProductsWithAppProducts($wooCommerceProducts,$applicationProductsArray,$applicationLabel);
+      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel);
       //Check export products data....
       if(isset($matchProductsData) && !empty($matchProductsData)){
           //Get the match products table html and append to table
@@ -495,19 +483,6 @@ function createMatchProductsHtml(){
   }
   //return the html...
   return $table_match_products_html;
-}
-
-//compare products of infusionsoft/keap with existing woocommerce products....
-function compareMatchProductsWithAppProducts($wooCommerceProducts,$applicationProductsArray,$applicationLabel)
-{
-    //Define array...
-    $productsData = array();
-    //First check if wooproducts exist...
-    if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
-        $productsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel);
-    }
-    //Return array... 
-    return $productsData;
 }
 
 //Create the match products table listing....
@@ -1303,6 +1278,4 @@ function getApplicationProductDetails($access_token,$productId){
     }
     return $productName;
 }
-
-
 ?>
