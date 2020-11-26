@@ -52,8 +52,8 @@
     </ul>
   </div>
   <span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span>
-	<p class="heading-text text-center m-t-30">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
-	<iframe class="m-t-30" src="https://player.vimeo.com/video/60771693" width="100%" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+	<p class="heading-text text-center m-t-30">Thanks for installing WooConnection. The video below will walk you through how to setup the plugin and how it works with your Keap or Infusionsoft account.</p>
+    <iframe class="m-t-30" src="https://player.vimeo.com/video/477453672" width="100%" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
 
 </div>
 <!--GUIDED SETUP END-->

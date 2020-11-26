@@ -19,35 +19,66 @@
                   $(this).next('ul.sub-menu').slideToggle();
                 }
                 var menu_heading = $(this).attr('id');
-                if(menu_heading != "" && menu_heading == "import_products"){
-                    jQuery(".ajax_loader").show();
-                    jQuery(".tab_related_content").addClass('overlay');
-                    var tab_id = 'import_products';
-                    if(tab_id != ""){
-                        jQuery.post( ajax_object.ajax_url + "?action=wc_load_tab_main_content",{tab_id:tab_id}, function(data) {
-                            jQuery(".ajax_loader").hide();
-                            if(!$('.tab_related_content').is(':visible')){
-                               $(".tab_related_content").show(); 
-                            }
-                            $(".tab_related_content").html('');
-                            $(".tab_related_content").html(data);
-                            jQuery(".tab_related_content").removeClass('overlay');
-                            if(jQuery("#import_products_listing").length){
-                                applyDatables("import_products_listing");
-                            }
-                            //add select 2 for woocommerce products field
-                            if($(".wc_import_products_dropdown").length){
-                                applySelectTwo('wc_import_products_dropdown');
-                            }
-                        });
+                if(menu_heading != ""){
+                    var howManyMenus = $('.'+menu_heading+' li').length; 
+                    if(howManyMenus == '1'){
+                        //code to trigger the click event when only one submenu exist in main menu....
+                        $('.'+menu_heading+'_active').trigger('click');
                     }
-                    //Check if "response" done....
-                    var checkResponse = getQueryParameter('response');
-                    if(checkResponse != ""){
-                        var uri = window.location.toString();
-                        if (uri.indexOf("&") > 0) {
-                            var clean_uri = uri.substring(0, uri.indexOf("&"));
-                            window.history.replaceState({}, document.title, clean_uri);
+                    if(menu_heading == "import_products"){
+                        jQuery(".ajax_loader").show();
+                        jQuery(".tab_related_content").addClass('overlay');
+                        var tab_id = 'import_products';
+                        if(tab_id != ""){
+                            jQuery.post( ajax_object.ajax_url + "?action=wc_load_tab_main_content",{tab_id:tab_id}, function(data) {
+                                jQuery(".ajax_loader").hide();
+                                if(!$('.tab_related_content').is(':visible')){
+                                   $(".tab_related_content").show(); 
+                                }
+                                $(".tab_related_content").html('');
+                                $(".tab_related_content").html(data);
+                                jQuery(".tab_related_content").removeClass('overlay');
+                                if(jQuery("#export_products_listing").length){
+                                    applyDatables("export_products_listing");
+                                }
+                                //add select 2 for woocommerce products field
+                                if($(".wc_iskp_products_dropdown").length){
+                                    applySelectTwo('wc_iskp_products_dropdown');
+                                }
+                                //add select 2 for woocommerce products field in import products tab...
+                                if($(".wc_import_products_dropdown").length){
+                                    applySelectTwo('wc_import_products_dropdown');
+                                }
+                                //apply datatable on import products listing
+                                if(jQuery("#import_products_listing").length){
+                                    applyDatables("import_products_listing");
+                                }
+
+                                //code is used to set the woocommerce product selected from dropdown....
+                                if(jQuery(".wcProductsDropdown").length){
+                                    applyProductSelected();
+                                }
+                                // $(".wcProductsDropdown").each(function() {
+                                //     var appProductId = $(this).attr('data-target');//get the standard field id....
+                                //     var wcProductId = $(this).attr("data-id");//get the standard field mapped with....
+                                //     if(appProductId != ''){
+                                //         if(wcProductId != ""){
+                                //             //set field selected....
+                                //             $('[name="wc_product_import_with_'+appProductId+'"]').val(wcProductId);
+                                //             $('[name="wc_product_import_with_'+appProductId+'"]').select2().trigger('change');
+                                //         }
+                                //     }
+                                // });
+                            });
+                        }
+                        //Check if "response" done....
+                        var checkResponse = getQueryParameter('response');
+                        if(checkResponse != ""){
+                            var uri = window.location.toString();
+                            if (uri.indexOf("&") > 0) {
+                                var clean_uri = uri.substring(0, uri.indexOf("&"));
+                                window.history.replaceState({}, document.title, clean_uri);
+                            }
                         }
                     }
                 }
@@ -75,6 +106,11 @@
                         //validate a activation_setup_form form.....
                         if($('#activation_setup_form').length){
                             validateForms('activation_setup_form');
+                        }
+
+                        //apply change icon rule on campaign goals "How this works" button..
+                        if($("#collapseCampaignGoals").length){
+                            applyCollapseRules('collapseCampaignGoals');
                         }
                     });
                     //Check if "response" done....
@@ -157,18 +193,7 @@
                             jQuery(".ajax_loader").hide();
                             jQuery(".tab_related_content").removeClass('overlay');
                             if(responsedata.latestHtml != ""){
-                                if (target_tab_id == '#table_import_products') {
-                                    $(target_tab_id+"_listing").html('');
-                                    $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    //apply datatable on export products listing
-                                    if(jQuery("#import_products_listing").length){
-                                        applyDatables("import_products_listing");
-                                    }
-                                    //add select 2 for woocommerce products field
-                                    if($(".wc_import_products_dropdown").length){
-                                        applySelectTwo('wc_import_products_dropdown');
-                                    }
-                                }else if (target_tab_id == '#table_export_products') {
+                                if (target_tab_id == '#table_export_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     //apply datatable on export products listing
@@ -189,6 +214,21 @@
                                     //add select 2 for woocommerce products field
                                     if($(".application_match_products_dropdown").length){
                                         applySelectTwo('application_match_products_dropdown');
+                                    }
+                                }else if (target_tab_id == '#table_import_products') {
+                                    $(target_tab_id+"_listing").html('');
+                                    $(target_tab_id+"_listing").html(responsedata.latestHtml);
+                                    //apply datatable on import products listing
+                                    if(jQuery("#import_products_listing").length){
+                                        applyDatables("import_products_listing");
+                                    }
+                                    //add select 2 for woocommerce products field in import products tab...
+                                    if($(".wc_import_products_dropdown").length){
+                                        applySelectTwo('wc_import_products_dropdown');
+                                    }
+                                    //code is used to set the woocommerce product selected from dropdown....
+                                    if(jQuery(".wcProductsDropdown").length){
+                                        applyProductSelected();
                                     }
                                 }    
                             }
@@ -222,6 +262,59 @@
                     $('.all_products_checkbox_match').prop("checked", false);
                 }
             });
+
+            //apply change icon rule on campaign goals "How this works" button..
+            if($("#collapseCampaignGoals").length){
+                applyCollapseRules('collapseCampaignGoals');
+            }
+
+            //this code is used to control the activate button enable and disable process on the basis of email value...
+            $document.on("keyup","#pluginactivationemail",function(event) {
+                var emailValue = $(this).val();
+                var existingEmailValue = $("#activationEmail").val();
+                if(existingEmailValue != "" && emailValue != ""){
+                    if(emailValue == existingEmailValue){
+                        $(".plugin_activation_btn").addClass('disable_anchor');
+                    }else{
+                        $(".plugin_activation_btn").removeClass('disable_anchor');
+                    }
+                }
+            });
+            
+            //this code is used to control the activate button enable and disable process on the basis of plugin key value...
+            $document.on("keyup","#pluginactivationkey",function(event) {
+                var keyValue = $(this).val();
+                var existingKeyValue = $("#activationKey").val();
+                if(existingKeyValue != "" && keyValue != ""){
+                    if(keyValue == existingKeyValue){
+                        $(".plugin_activation_btn").addClass('disable_anchor');
+                    }else{
+                        $(".plugin_activation_btn").removeClass('disable_anchor');
+                    }
+                }
+            });
+
+            //Import Products Tab : check all products checkbox rule....
+            $document.on("click",".all_products_checkbox_import",function(event) {
+                if ($(this).is(":checked"))
+                {
+                    $('.each_product_checkbox_import').prop("checked", true);
+                }
+                else
+                {
+                    $('.each_product_checkbox_import').prop("checked", false);
+                }
+            });
+            
+            //Import Products Tab : on change of select box of woocommerce products mark checkbox checked or unchecked on the basis of select value.....
+            $document.on("click",".each_product_checkbox_import",function(event) {
+                if ($('.all_products_checkbox_import').is(":checked"))
+                {
+                    $('.all_products_checkbox_import').prop("checked", false);
+                }
+            });
+
+
         });
 }(jQuery));
 
@@ -270,7 +363,7 @@ function validateForms(form){
                         alphanumeric: 'Only alphanumeric characters are allowed in trigger integration name!',
                     },
                     callname: {
-                        required: 'Please enter trigger integration name!',
+                        required: 'Please enter trigger call name!',
                         alphanumeric: 'Only alphanumeric characters are allowed in trigger call name!',
                     }
                 }
@@ -284,7 +377,7 @@ function saveApplicationSettings(){
     var activationEmail = $("#activationEmail").val();
     var activationKey = $("#activationKey").val();siteUrl
     var currentSiteUrl = $("#siteUrl").val();
-    var connectionType = $("#applicationtype").val();
+    var connectionType = $('input[name=applicationtype]:checked', '#application_settings_form').val();
     var formData = {userEmail:activationEmail,userPluginKey:activationKey,requestWebUrl:currentSiteUrl,connectionType:connectionType}; //Array 
     $.ajax({
         url : ADMIN_REMOTE_URL+"authentication.php",
@@ -324,8 +417,17 @@ function activateWcPlugin(){
                 }else{
                     $(".activation-details-success").show();
                 }
+                if(responsedata.licence_email != "" && responsedata.licence_email !== null){
+                    $("#activationEmail").val('');
+                    $("#activationEmail").val(responsedata.licence_email);
+                }
+                if(responsedata.licence_key != "" && responsedata.licence_key !== null){
+                    $("#activationKey").val('');
+                    $("#activationKey").val(responsedata.licence_key);
+                }
             }else{
                 $(".activation-details-error").show();
+                $(".common_disable_class").addClass('leftMenusDisable');
                 if(responsedata.errormessage != "" && responsedata.errormessage !== null){
                     $(".activation-details-error").html('');
                     $(".activation-details-error").html(responsedata.errormessage);
@@ -353,7 +455,7 @@ function popupEditDetails(triggerid){
                 jQuery("#edittriggerid").val(triggerid);
                 if(responsedata.triggerGoalName != ""){
                     jQuery(".trigger_goal_name").html('');
-                    jQuery(".trigger_goal_name").html(responsedata.triggerGoalName);
+                    jQuery(".trigger_goal_name").html('Edit ' + responsedata.triggerGoalName + ' Trigger');
                 }
                 if(responsedata.triggerIntegrationName != ""){
                     jQuery("#integrationname").val(responsedata.triggerIntegrationName);
@@ -428,25 +530,8 @@ function hideCustomModel(modelId){
 //comon function is used to apply a datatables by table id.....
 function applyDatables(tabel_id){
     if(tabel_id != ""){
-        if (tabel_id == 'import_products_listing') {
-            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-            {
-                $('#'+tabel_id).DataTable({
-                    "pagingType": "simple_numbers",
-                    "pageLength": 10,
-                    "searching": false,
-                    "bLengthChange" : false,
-                    "bInfo":false,
-                    "scrollX": false,
-                    "ordering": false,
-                    drawCallback: function(dt) {
-                      applySelectTwo('wc_import_products_dropdown');
-                    }
-                });
-            }
-        }
         //Export Tab: apply datatables on products listing..
-        else if (tabel_id == 'export_products_listing') {
+        if (tabel_id == 'export_products_listing') {
             if(!$.fn.DataTable.isDataTable('#'+tabel_id))
             {
                 $('#'+tabel_id).DataTable({
@@ -458,7 +543,11 @@ function applyDatables(tabel_id){
                     "scrollX": false,
                     "ordering": false,
                     drawCallback: function(dt) {
-                      applySelectTwo('wc_iskp_products_dropdown');
+                        if ($('.all_products_checkbox_export').is(":checked"))
+                        {
+                            $('.all_products_checkbox_export').prop("checked", false);
+                        }
+                        $('.each_product_checkbox_export').prop("checked", false);
                     }
                 });
             }
@@ -477,6 +566,41 @@ function applyDatables(tabel_id){
                     "ordering": false,
                     drawCallback: function(dt) {
                       applySelectTwo('application_match_products_dropdown');
+                        if ($('.all_products_checkbox_match').is(":checked"))
+                        {
+                            $('.all_products_checkbox_match').prop("checked", false);
+                        }
+                        $('.each_product_checkbox_match').prop("checked", false);
+                    }
+                });
+            }
+        }
+        //Import Tab: apply datatables on products listing..
+        else if (tabel_id == 'import_products_listing') {
+            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
+            {
+                $('#'+tabel_id).DataTable({
+                    "pagingType": "simple_numbers",
+                    "pageLength": 10,
+                    "searching": false,
+                    "bLengthChange" : false,
+                    "bInfo":false,
+                    "scrollX": false,
+                    "ordering": false,
+                    drawCallback: function(dt) {
+                        //add select 2 for woocommerce products field in import products tab...
+                        if($(".wc_import_products_dropdown").length){
+                            applySelectTwo('wc_import_products_dropdown');
+                        }
+                        //code is used to set the woocommerce product selected from dropdown....
+                        if($(".wcProductsDropdown").length){
+                            applyProductSelected();
+                        }
+                        if ($('.all_products_checkbox_import').is(":checked"))
+                        {
+                            $('.all_products_checkbox_import').prop("checked", false);
+                        }
+                        $('.each_product_checkbox_import').prop("checked", false);
                     }
                 });
             }
@@ -488,17 +612,17 @@ function applyDatables(tabel_id){
 function applySelectTwo(element){
     if(element != ""){
         //Export Tab: apply select 2 on infusionsoft products tab..
-        if(element == 'wc_import_products_dropdown'){
-            $("."+element).select2({
-            });    
-        }
-        //Export Tab: apply select 2 on infusionsoft products tab..
         if(element == 'wc_iskp_products_dropdown'){
             $("."+element).select2({
             });    
         }
         //Match Products Tab: apply select 2 on infusionsoft products tab..
         if(element == 'application_match_products_dropdown'){
+            $("."+element).select2({
+            });    
+        }
+        //Import Tab: apply select 2 on import products tab..
+        if(element == 'wc_import_products_dropdown'){
             $("."+element).select2({
             });    
         } 
@@ -508,18 +632,14 @@ function applySelectTwo(element){
 
 //On click of export products button send ajax to export products and on sucess update the html....
 function wcProductsExport(){
-    var checkProducts = $(".export_products_listing_class input:checkbox:checked").map(function(){
-      if($(this).val() != 'allproductsexport'){ return $(this).val(); }
-    }).get();
-    if(checkProducts.length > 0)
-    {
-        if($(".export-products-error").is(":visible") || $(".export-products-success").is(":visible")){
-            $(".export-products-error").hide();
-            $(".export-products-success").hide();
-            $(".exportProducts").show();
-        }else{
-            $(".exportProducts").show();    
-        }
+    var checkProducts = checkSelectedProducts('export_products_listing_class','allproductsexport');
+    var checkSelectedProductsCount = checkProducts.length;//console.log(checkProducts);
+    if(checkSelectedProductsCount == 0){
+        $(".export-products-error").html('You need to select atleast one product to export.');
+        $(".export-products-error").show();
+    }else{
+        $(".export-products-error").hide();
+        $(".exportProducts").show();
         $('.export_products_btn').addClass("disable_anchor");
         jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize(), function(data) {
             var responsedata = JSON.parse(data);
@@ -550,30 +670,23 @@ function wcProductsExport(){
                 }, 3000);
             }
         });
-    }else{
-        $(".export-products-error").html();
-        $(".export-products-error").html('You need to select atleast one product to export.');
-        $(".export-products-error").show();
-        setTimeout(function() {
-            $('.export-products-error').fadeOut("slow");
-        }, 3000);
     }
+    setTimeout(function()
+    {
+        $('.export-products-error').fadeOut("slow");
+    }, 3000);
 }
 
 //On click of update products mapping button send ajax to update mapping of products and on sucess update the html....
 function wcProductsMapping(){
-    var checkProducts = $(".match_products_listing_class input:checkbox:checked").map(function(){
-      if($(this).val() != 'allproductsmatch'){ return $(this).val(); }
-    }).get();
-    if(checkProducts.length > 0)
-    {
-        if($(".match-products-error").is(":visible") || $(".match-products-success").is(":visible")){
-            $(".match-products-error").hide();
-            $(".match-products-success").hide();
-            $(".matchProducts").show();
-        }else{
-            $(".matchProducts").show();    
-        }
+    var checkProducts = checkSelectedProducts('match_products_listing_class','allproductsmatch');
+    var checkSelectedProductsCount = checkProducts.length;//console.log(checkProducts);
+    if(checkSelectedProductsCount == 0){
+        $(".match-products-error").html('You need to select atleast one product to update mapping.');
+        $(".match-products-error").show();
+    }else{
+        $(".match-products-error").hide();
+        $(".matchProducts").show();
         $('.match_products_btn').addClass("disable_anchor");
         jQuery.post( ajax_object.ajax_url + "?action=wc_update_products_mapping",$('#wc_match_products_form').serialize(), function(data) {
             var responsedata = JSON.parse(data);
@@ -607,40 +720,52 @@ function wcProductsMapping(){
                 }, 3000);
             }
         });
-    }else{
-        $(".match-products-error").html();
-        $(".match-products-error").html('You need to select atleast one product to update mapping.');
-        $(".match-products-error").show();
-        setTimeout(function() {
-            $('.match-products-error').fadeOut("slow");
-        }, 3000);
+    }
+    setTimeout(function()
+    {
+        $('.match-products-error').fadeOut("slow");
+    }, 3000);
+}
+
+//This is a common function used to check whether the product is selected or not for import,export,mapping....
+function checkSelectedProducts($class,$except){
+    var checkProducts = $("."+$class+" input:checkbox:checked").map(function(){
+                            if($(this).val() != $except){ return $(this).val(); }
+                        }).get();
+    return checkProducts;
+}
+
+//on collapse div change the icon of button done.....
+function applyCollapseRules(div_id){
+    if(div_id != ""){
+        $('#'+div_id).on('shown.bs.collapse', function() {
+            $("#icon_"+div_id).addClass('fa-caret-up').removeClass('fa-caret-down');
+        });
+        $('#'+div_id).on('hidden.bs.collapse', function() {
+           $("#icon_"+div_id).addClass('fa-caret-down').removeClass('fa-caret-up');
+        });    
     }
 }
 
-
 //On click of import products button send ajax to import products and on sucess update the html....
 function infusionKeapProductsImport(){
-    var checkProducts = $(".import_products_listing_class input:checkbox:checked").map(function(){
-      if($(this).val() != 'allproductsimport'){ return $(this).val(); }
-    }).get();
-    if(checkProducts.length > 0)
-    {
-        if($(".import-products-error").is(":visible") || $(".import-products-success").is(":visible")){
-            $(".import-products-error").hide();
-            $(".import-products-success").hide();
-            $(".importProducts").show();
-        }else{
-            $(".importProducts").show();    
-        }
+    var checkImportProducts = checkSelectedProducts('import_products_listing_class','allproductsimport');
+    var checkSelectedImportProductsCount = checkImportProducts.length;
+    if(checkSelectedImportProductsCount == 0){
+        $(".import-products-error").html('You need to select atleast one product to import.');
+        $(".import-products-error").show();
+    }else{
+        $(".import-products-error").hide();
+        $(".importProducts").show();
         $('.import_products_btn').addClass("disable_anchor");
-        jQuery.post( ajax_object.ajax_url + "?action=wc_import_iskp_products",$('#wc_import_products_form').serialize(), function(data) {
+        jQuery.post( ajax_object.ajax_url + "?action=wc_import_application_products",$('#wc_import_products_form').serialize(), function(data) {
             var responsedata = JSON.parse(data);
             $(".importProducts").hide();
             if(responsedata.status == "1") {
                 $('.import_products_btn').removeClass("disable_anchor");
-                if(responsedata.latestExportProductsHtml != ""){
+                if(responsedata.latestImportProductsHtml != ""){
                      $('.import_products_listing_class').html();
-                     $('.import_products_listing_class').html(responsedata.latestExportProductsHtml);
+                     $('.import_products_listing_class').html(responsedata.latestImportProductsHtml);
                 }
                 //apply datatable on export products listing
                 if(jQuery("#import_products_listing").length){
@@ -650,6 +775,10 @@ function infusionKeapProductsImport(){
                 //add select 2 for woocommerce products field
                 if($(".wc_import_products_dropdown").length){
                     applySelectTwo('wc_import_products_dropdown');
+                }
+                //code is used to set the woocommerce product selected from dropdown....
+                if($(".wcProductsDropdown").length){
+                    applyProductSelected();
                 }
                 $('.all_products_checkbox_import').prop("checked", false);
                 $('.each_product_checkbox_import').prop("checked", false);
@@ -664,12 +793,24 @@ function infusionKeapProductsImport(){
                 }, 3000);
             }
         });
-    }else{
-        $(".import-products-error").html();
-        $(".import-products-error").html('You need to select atleast one product to import.');
-        $(".import-products-error").show();
-        setTimeout(function() {
-            $('.import-products-error').fadeOut("slow");
-        }, 3000);
     }
+    setTimeout(function()
+    {
+        $('.import-products-error').fadeOut("slow");
+    }, 3000);
+}
+
+//Import/Export Tab : code is used to set the woocommerce product selected from dropdown....
+function applyProductSelected(){
+    $(".wcProductsDropdown").each(function() {
+        var appProductId = $(this).attr('data-target');//get the standard field id....
+        var wcProductId = $(this).attr("data-id");//get the standard field mapped with....
+        if(appProductId != ''){
+            if(wcProductId != ""){
+                //set field selected....
+                $('[name="wc_product_import_with_'+appProductId+'"]').val(wcProductId);
+                $('[name="wc_product_import_with_'+appProductId+'"]').select2().trigger('change');
+            }
+        }
+    }); 
 }

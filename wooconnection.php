@@ -4,8 +4,8 @@
  * Description: Automatically sync your WooCommerce orders with your Infusionsoft or Keap account.
  * Version: 16
  * Author: Fullstackmarketing.co
- * Author URI: http://www.informationstreet.com
- * Plugin URI: https://www.fullstackmarketing.co
+ * Author URI: http://www.fullstackmarketing.co
+ * Plugin URI: https://www.wooconnection.com
  */
 class WooConnectionPro {
 
@@ -90,7 +90,7 @@ class WooConnectionPro {
         $table_name = 'wooconnection_campaign_goals';
         $wp_table_name = $table_prefix . "$table_name";
         //Check Table Records : First need to check whether the table records is exist or not if not exist then create new table records..
-        $checkTableRecords = $wpdb->get_results('SELECT * FROM '.$wp_table_name.'');
+        $checkTableRecords = $wpdb->get_results('SELECT * FROM '.$wp_table_name.' WHERE wc_trigger_verison=1');
         if(empty($checkTableRecords)){
             $wpdb->query("INSERT INTO ".$wp_table_name."
                 (`wc_goal_name`,`wc_integration_name`,`wc_call_name`,`wc_trigger_type`,`wc_trigger_verison`)

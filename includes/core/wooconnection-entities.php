@@ -55,7 +55,7 @@
 	//Note for order item tax.....
 	define("ITEM_TAX_NOTES", "Order Tax");
 	//Note for order item discount......
-	define("ITEM_DISCOUNT_NOTES", "Order Discount")
+	define("ITEM_DISCOUNT_NOTES", "Order Discount");
 
 ?>
 

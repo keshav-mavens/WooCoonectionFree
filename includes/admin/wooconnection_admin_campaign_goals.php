@@ -18,26 +18,26 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   <p>Configure Campaign Goals</p>
 </div>
 <div class="righttextInner">
-<span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span> 
+  <span class="ajax_loader" style="display: none;"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>/assets/images/loader.gif"></span> 
   <div class="row">
     <div class="col-md-12 ">
        <?php if(empty($checkAuthenticationStatus)){?>
-       <p class="text-right"><a class="btn btn-primary btn-theme" data-toggle="collapse" href="#collapseCampaignGoals" role="button" aria-expanded="false" aria-controls="collapseCampaignGoals">How is Works <i class="fa fa-caret-down" id="icon_collapseCampaignGoals" aria-hidden="true"></i></a></p>
+       <p class="text-right"><a class="btn btn-primary btn-theme" data-toggle="collapse" href="#collapseCampaignGoals" role="button" aria-expanded="false" aria-controls="collapseCampaignGoals">How This Works <i class="fa fa-caret-down" id="icon_collapseCampaignGoals" aria-hidden="true"></i></a></p>
         <div class="collapse" id="collapseCampaignGoals">
           <div class="card card-body col-md-12 m-b-40">
-            <p class="heading-text text-center m-t-30">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
-                <iframe class="m-t-30" src="https://player.vimeo.com/video/60771693" width="100%" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+            <p class="heading-text text-center m-t-30"></p>
+                <iframe class="m-t-30" src="https://player.vimeo.com/video/477455059" width="100%" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
           </div>
           </div>
-          <p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
-          <h4>Woocommerce General Triggers</h4>
+          <p class="heading-text">WooConnection is set up to use the API Goals feature in your <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> account. API Goals require two different pieces of information when you are configuring them - the Integration Name and the Call Name. The list of available Campaign Triggers are below. You can edit the default Integration and Call Name for each trigger by clicking the pencil icon in the Action column for each Trigger.</p>
+          <h4>General Triggers</h4>
           <div class="table-responsive">
               <table class="table table-striped table-overflow">
                 <thead>
                   <tr>
-                    <th style="width:30%">Trigger Goal Name</th>
-                    <th style="width:30%">Trigger Integration Name</th>
-                    <th style="width:40%">Trigger Call Name</th>
+                    <th style="width:30%">Trigger Name</th>
+                    <th style="width:30%">Integration Name</th>
+                    <th style="width:40%">Call Name</th>
                     <th style="width:40%">Action</th>
                   </tr>
                 </thead>
@@ -65,18 +65,18 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
         <form action="" method="post" id="trigger_details_form" onsubmit="return false">
           <input type="hidden" name="edittriggerid" id="edittriggerid" value="">
           <div class="form-group row">
-            <label class="col-lg-3 col-md-3 col-sm-12 col-12 col-form-label">Trigger Integration Name</label>
+            <label class="col-lg-3 col-md-3 col-sm-12 col-12 col-form-label">Integration Name</label>
             <div class="col-lg-9 col-md-9 col-sm-12 col-12">
               <input class="form-control" type="text" name="integrationname" id="integrationname" placeholder="Integration Name" value="" maxlength="20">
-              <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book..</div>
+              <div class="note-bottom">No special characters or spaces are allowed here. Only use letters and numbers. When setting up the API Goal in your <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> account, the Integration must match exactly what you have entered here.</div>
             </div>
           </div>
           
           <div class="form-group row">
-            <label class="col-lg-3 col-md-3 col-sm-12 col-12 col-form-label">Trigger Call Name</label>
+            <label class="col-lg-3 col-md-3 col-sm-12 col-12 col-form-label">Call Name</label>
             <div class="col-lg-9 col-md-9 col-sm-12 col-12">
               <input class="form-control" type="text" name="callname" id="callname" value=""  maxlength="40" placeholder="Call Name">
-              <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</div>
+              <div class="note-bottom">No special characters or spaces are allowed here. Only use letters and numbers. When setting up the API Goal in your <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> account, the CAll Name must match exactly what you have entered here.</div>
             </div>
           </div>
           
@@ -92,4 +92,4 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   </div>
 </div>
 
-<!--Campaign Goals SETUP END
+<!--Campaign Goals SETUP END-->
