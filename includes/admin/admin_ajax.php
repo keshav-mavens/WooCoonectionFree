@@ -323,32 +323,40 @@ function wc_import_application_products()
 	      			}else{
 	      				$needUpdateExistingProduct = '';
 	      			}
-	      			//get infusionsoft/keap application product details on the basis of infusionsoft/keap product id...
 	      			//define array to store the infusionsoft/keap product detail......
 	      			$product_extra_data_array = array();
-	      			$infusionKeapProduct = getApplicationProductDetail($value,$access_token);
-	      			if(isset($infusionKeapProduct) && !empty($infusionKeapProduct)){
+	      			//$infusionKeapProduct = getApplicationProductDetail($value,$access_token);
+	      			if(isset($_POST['plan_id_'.$value]) && !empty($_POST['plan_id_'.$value])){
+	      				$infusionKeapProduct = $_POST['plan_id_'.$value];
+
 	      				$pContent = '';
-		      			if(!empty($infusionKeapProduct['product_desc'])){
-		      				$pContent = trim($infusionKeapProduct['product_desc']);	
-		      			}else if ($infusionKeapProduct[0]['product_short_desc']) {
-		      				$pContent = trim($infusionKeapProduct[0]['product_short_desc']);
-		      			}else if ($infusionKeapProduct['product_name']) {
-		      				$pContent = trim($infusionKeapProduct['product_name']);
+		      			if(!empty($infusionKeapProduct['description'])){
+		      				$pContent = trim($infusionKeapProduct['description']);	
+		      			}else if ($infusionKeapProduct['shortdescription']) {
+		      				$pContent = trim($infusionKeapProduct['shortdescription']);
+		      			}else if ($infusionKeapProduct['name']) {
+		      				$pContent = trim($infusionKeapProduct['name']);
 		      			}
-		      			$product_extra_data_array['_regular_price'] = $infusionKeapProduct['product_price'];
-		      			$product_extra_data_array['_price'] = $infusionKeapProduct['product_price'];
+		      			
+		      			//set and get the product short description.....
+		      			$pshortContent = '';
+		      			if(!empty($infusionKeapProduct['shortdescription'])){
+		      				$pshortContent = trim($infusionKeapProduct['shortdescription']);
+		      			}
+		      			
+		      			$productName = '';	
+		      			if(!empty($infusionKeapProduct['name'])){
+		      				$productName = $infusionKeapProduct['name'];
+		      			}
+
+		      			$product_extra_data_array['_regular_price'] = $infusionKeapProduct['price'];
+		      			$product_extra_data_array['_price'] = $infusionKeapProduct['price'];
 		      			if(!empty($infusionKeapProduct['sku'])){
 		      				$product_extra_data_array['_sku'] = $infusionKeapProduct['sku'];
 		      			}
-
 		      			//if product is not associated along with imported product request then need create new product..
 		      			if(empty($needUpdateExistingProduct)){
-		      				if(!empty($infusionKeapProduct['product_name'])){
-			      				$productName = $infusionKeapProduct['product_name'];
-			      			}
-		      				$postData = array('post_content' => $pContent,'post_status' => "publish",'post_title' => $productName,'post_type' => "product",
-							);
+		      				$postData = array('post_content' => $pContent,'post_status' => "publish",'post_title' => $productName,'post_type' => "product",'post_excerpt'=>$pshortContent);
 							$new_post_id = wp_insert_post($postData);
 							//check if product imported done then need to check the image associated with product if yes then need to update....
 							if($new_post_id){
@@ -373,7 +381,12 @@ function wc_import_application_products()
 						}
 		      			//if product is associated along with imported product request then need to update the values of exitsing product.........
 		      			else{
-		      				$product_extra_data_array['is_kp_product_id'] = $value;
+		      				//create latest product details array....
+		      				$latestPostData = array('ID'=>$needUpdateExistingProduct,'post_content'=>$pContent,
+							      'post_excerpt'=>$pshortContent,'post_title'=>$productName);
+							//update the product details with latest data..
+							$update_post_id = wp_update_post($latestPostData);
+							$product_extra_data_array['is_kp_product_id'] = $value;
 	      					if(empty($product_extra_data_array['_sku'])){
 								$product = get_post($new_post_id); 
 								$slug = $product->post_name;

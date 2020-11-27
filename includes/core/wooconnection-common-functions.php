@@ -1372,7 +1372,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                   $appProductSku = "--";
                 }
                 //Create final html.......
-                $importTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td>'.$appProductName.'</td><td>'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
+                $importTableHtml .= '<tr><input type="hidden" name="plan_id_'.$value['id'].'[price]" value="'.$value['product_price'].'"><input type="hidden" name="plan_id_'.$value['id'].'[name]" value="'.$value['product_name'].'"><input type="hidden" name="plan_id_'.$value['id'].'[description]" value="'.$value['product_desc'].'"><input type="hidden" name="plan_id_'.$value['id'].'[shortdescription]" value="'.$value['product_short_desc'].'"><input type="hidden" name="plan_id_'.$value['id'].'[sku]" value="'.$value['sku'].'"><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
 
             }
 
