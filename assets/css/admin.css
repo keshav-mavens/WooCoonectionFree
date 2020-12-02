@@ -637,6 +637,18 @@ input[type=radio] {
 input[type=radio]:checked::before {
     background-color: #364698;
 }
+span.custom-icons {
+    position: absolute;
+    top: 21px;
+    right: 17px;
+}
+span.custom-icons i {
+    color: green;
+    cursor: pointer;
+}
+input.btn.btn-lg.btn-primary.btn-radius.btn-theme.save_application_settings {
+    padding: .7rem 1.9rem !important;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;
