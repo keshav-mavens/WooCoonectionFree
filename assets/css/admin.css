@@ -644,7 +644,6 @@ span.custom-icons {
 }
 span.custom-icons i {
     color: green;
-    cursor: pointer;
 }
 input.btn.btn-lg.btn-primary.btn-radius.btn-theme.save_application_settings {
     padding: .7rem 1.9rem !important;
