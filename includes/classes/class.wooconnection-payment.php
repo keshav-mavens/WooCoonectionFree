@@ -1,3 +1,67 @@
+<style type="text/css">
+	/* The switch - the box around the slider */
+	label[for="woocommerce_infusionsoft_keap_enabled"],label[for="woocommerce_infusionsoft_keap_testmode"],label[for="woocommerce_infusionsoft_keap_process_credit_card"],label[for="woocommerce_infusionsoft_keap_wc_subscriptions"] {
+	  position: relative !important;
+	  display: inline-block  !important;
+	  width: 60px  !important;
+	  height: 34px  !important;
+	}
+
+	/* Hide default HTML checkbox */
+	input.methodEnable,input.testmodeEnable,input.processCreditCardEnable,input.subscriptionEnable {
+	  opacity: 0;
+	  width: 0;
+	  height: 0;
+	}
+
+	/* The slider */
+	.slider {
+	  position: absolute;
+	  cursor: pointer;
+	  top: 0;
+	  left: 0;
+	  right: 0;
+	  bottom: 0;
+	  background-color: #ccc !important;
+	  -webkit-transition: .4s;
+	  transition: .4s;
+	}
+
+	.slider:before {
+	  position: absolute;
+	  content: "";
+	  height: 26px;
+	  width: 26px;
+	  left: 4px;
+	  bottom: 4px;
+	  background-color: white;
+	  -webkit-transition: .4s;
+	  transition: .4s;
+	}
+
+	input:checked + .slider {
+	  background-color: #2196F3 !important;
+	}
+
+	input:focus + .slider {
+	  box-shadow: 0 0 1px #2196F3 !important;
+	}
+
+	input:checked + .slider:before {
+	  -webkit-transform: translateX(26px);
+	  -ms-transform: translateX(26px);
+	  transform: translateX(26px);
+	}
+	
+	/* Rounded sliders */
+	.slider.round {
+	  border-radius: 34px !important;
+	}
+
+	.slider.round:before {
+	  border-radius: 50% !important;
+	}
+</style>
 <?php
 	function add_your_gateway_class( $methods ) {
 	    $methods[] = 'WC_Gateway_Infusionsoft'; 
@@ -69,6 +133,7 @@
 					'description' => __( "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s", 'woocommerce-gateway-infusionsoft-keap' ),
 					'default'     => 'yes',
 					'desc_tip'    => false,
+					'class' 	  => 'testmodeEnable',
 				),
 				'is_merchant_id' => array(
 	                'title' 	  => __('Infusionsoft Merchant ID', 'woocommerce-gateway-infusionsoft-keap'),
@@ -98,77 +163,9 @@
 		
 		public function includeCustomCssJs(){
 			?>
-	            <style type="text/css">
-	            	/* The switch - the box around the slider */
-					.switch {
-					  position: relative;
-					  display: inline-block;
-					  width: 60px;
-					  height: 34px;
-					}
-
-					/* Hide default HTML checkbox */
-					.switch input {
-					  opacity: 0;
-					  width: 0;
-					  height: 0;
-					}
-
-					/* The slider */
-					.slider {
-					  position: absolute;
-					  cursor: pointer;
-					  top: 0;
-					  left: 0;
-					  right: 0;
-					  bottom: 0;
-					  background-color: #ccc;
-					  -webkit-transition: .4s;
-					  transition: .4s;
-					}
-
-					.slider:before {
-					  position: absolute;
-					  content: "";
-					  height: 26px;
-					  width: 26px;
-					  left: 4px;
-					  bottom: 4px;
-					  background-color: white;
-					  -webkit-transition: .4s;
-					  transition: .4s;
-					}
-
-					input:checked + .slider {
-					  background-color: #2196F3;
-					}
-
-					input:focus + .slider {
-					  box-shadow: 0 0 1px #2196F3;
-					}
-
-					input:checked + .slider:before {
-					  -webkit-transform: translateX(26px);
-					  -ms-transform: translateX(26px);
-					  transform: translateX(26px);
-					}
-					
-					/* Rounded sliders */
-					.slider.round {
-					  border-radius: 34px;
-					}
-
-					.slider.round:before {
-					  border-radius: 50%;
-					}
-	            </style>
 	            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
 	            <script type="text/javascript">
 	                $( document ).ready(function() {
-	                    $("label[for='woocommerce_infusionsoft_keap_enabled']").addClass('switch');
-	                    $("label[for='woocommerce_infusionsoft_keap_testmode']").addClass('switch');
-	                    $("label[for='woocommerce_infusionsoft_keap_process_credit_card']").addClass('switch');
-	                    $("label[for='woocommerce_infusionsoft_keap_wc_subscriptions']").addClass('switch');
 	                    //check if option is enable or not on the basis of that show/hide the merchant id field....
 	                    if($(".methodEnable").prop('checked') == true){
 						    $(".merchantClass").closest("tr").show();
