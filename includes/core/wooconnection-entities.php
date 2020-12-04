@@ -5,12 +5,10 @@
 	define("WOOCONNECTION_TRIGGER_TYPE_CART", 2);
 	//Trigger type entity : ORDER
 	define("WOOCONNECTION_TRIGGER_TYPE_ORDER", 3);
-
 	//Trigger version type : FREE
 	define("TRIGGER_VERISON_FREE", 1);
 	//Trigger version type : PRO
 	define("TRIGGER_VERISON_PRO", 2);
-
 	//Application type entity : infusionsoft
 	define("APPLICATION_TYPE_INFUSIONSOFT", 1);
 	//Application type entity : keap
@@ -55,7 +53,3 @@
 	define("ITEM_TAX_NOTES", "Order Tax");
 	//Note for order item discount......
 	define("ITEM_DISCOUNT_NOTES", "Order Discount");
-
-?>
-
-
