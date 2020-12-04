@@ -268,7 +268,7 @@ function wc_export_wc_products()
 }
 
 
-//Wordpress hook : This action is triggered when user try to export products.....
+//Wordpress hook : This action is triggered when user try to update  products mapping.....
 add_action( 'wp_ajax_wc_update_products_mapping', 'wc_update_products_mapping');
 //Function Definiation : wc_update_products_mapping
 function wc_update_products_mapping()
@@ -276,23 +276,34 @@ function wc_update_products_mapping()
 	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		//check select products exist in post data to import.....
-		if(isset($_POST['wc_products_match']) && !empty($_POST['wc_products_match'])){
-	      	foreach ($_POST['wc_products_match'] as $key => $value) {
-	      		if(!empty($value)){//check id value is not empty...
-	      			//check any associated product is selected along with imported product request....
-	      			if(isset($_POST['wc_product_match_with_'.$value]) && !empty($_POST['wc_product_match_with_'.$value])){
-	      				$needUpdateExistingProduct = $_POST['wc_product_match_with_'.$value];
-	      			}
+		if(isset($_POST['wcProductId']) && !empty($_POST['wcProductId'])){
+	      	if(isset($_POST['applicationProductId'])){
 	      			//update relationship between woocommerce product and infusionsoft/keap product...
-	      			update_post_meta($value, 'is_kp_product_id', $needUpdateExistingProduct);
-	      		}
+	      			update_post_meta($_POST['wcProductId'], 'is_kp_product_id', $_POST['applicationProductId']);
 	      	}
-	    }
-	    //then call the "createMatchProductsHtml" function to get the latest html...
-		$latestMatchProductsHtml = createMatchProductsHtml();
-      	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestMatchProductsHtml'=>$latestMatchProductsHtml));
+	   	}
+	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	}
 	die();
 }
+
+// //Wordpress hook : This action is triggered to show the variations of specific product.....
+// add_action( 'wp_ajax_wc_get_product_variation', 'wc_get_product_variation');
+// //Function Definiation : wc_get_product_variation
+// function wc_get_product_variation()
+// {
+// 	//first check post data is not empty
+// 	if(isset($_POST) && !empty($_POST)){
+// 		//check select products exist in post data to import.....
+// 		if(isset($_POST['productId']) && !empty($_POST['productId'])){
+// 	      	$available_variations = $product->get_available_variations();
+// 	  		echo "<pre>";
+// 	  		print_r($available_variations);
+// 	  		die();
+// 	   	}
+// 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+// 	}
+// 	die();
+// }
 
 ?>
