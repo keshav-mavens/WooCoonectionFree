@@ -648,6 +648,22 @@ span.custom-icons i {
 input.btn.btn-lg.btn-primary.btn-radius.btn-theme.save_application_settings {
     padding: .7rem 1.9rem !important;
 }
+div#table_match_products_listing {
+    position: relative;
+}
+.ajax_loader_match_products_related {
+    position: absolute;
+    margin: 0px auto;
+    display: block;
+    width: 100%;
+    text-align: center;
+    top: 10%;
+    z-index: 1;
+}
+.ajax_loader_match_products_related img{
+    height: 30px;
+    width: 30px;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;

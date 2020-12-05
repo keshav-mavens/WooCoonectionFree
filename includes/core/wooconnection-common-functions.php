@@ -35,7 +35,7 @@ function checkImportExportStatus(){
   $meta = $wpdb->get_results("SELECT * FROM `".$wpdb->postmeta."` WHERE meta_key='is_kp_product_id'");
   if (isset($meta) && !empty($meta) && isset($meta[0])) {
     $importExportProductId = $meta[0]->meta_value;
-    if(isset($importExportProductId) && !empty($importExportProductId)){
+    if(isset($importExportProductId)){
       return true;
     }else{
         return false;
@@ -237,7 +237,7 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                     //Check product relation is exist....
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
-                    if(isset($productExistId) && !empty($productExistId)){
+                    if(isset($productExistId)){
                       $matchProductId = $productExistId;
                     }else if (!empty($wcproductSku)) {//Then check product sku,If product sku exist then check product in application with same sku is exist ot not....
                       $checkSkuMatchWithIskpProducts = checkProductMapping($wcproductSku,$applicationProductsArray); 
@@ -467,17 +467,10 @@ function createMatchProductsHtml(){
       if(isset($matchProductsData) && !empty($matchProductsData)){
           //Get the match products table html and append to table
           if(!empty($matchProductsData['matchTableHtml'])){
-            $table_match_products_html .= '<form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
+            $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
               <table class="table table-striped match_products_listing_class" id="match_products_listing">
                 '.$matchProductsData['matchTableHtml'].'
-              </table>
-              <div class="form-group col-md-12 text-center m-t-60">
-                <div class="matchProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Update Mapping....</div>
-                <div class="alert-error-message match-products-error" style="display: none;"></div>
-                <div class="alert-sucess-message match-products-success" style="display: none;">Products mapping update successfully.</div>
-                <input type="button" value="Update Mapping" class="btn btn-primary btn-radius btn-theme match_products_btn" onclick="wcProductsMapping()">
-              </div>
-            </form>';
+              </table></form>';
           }
       }
   }
@@ -494,7 +487,6 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
         //Create first table....
         $matchTableHtml .= '<thead>';
         $matchTableHtml .= '<tr>
-                        <th style="text-align: center;"><input type="checkbox" id="match_products_all" name="match_products_all" class="all_products_checkbox_match" value="allproductsexport"></th>
                         <th>WooCommerce Product Name</th>
                         <th>WooCommerce Product SKU</th>
                         <th>WooCommerce Product Price</th>
@@ -549,7 +541,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                   $wcproductSku = "--";
                 }
                 //Create final html.......
-                $matchTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_match" name="wc_products_match[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+                $matchTableHtml .= '<tr><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
 
             }
 
