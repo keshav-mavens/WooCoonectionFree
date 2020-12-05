@@ -256,7 +256,7 @@
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
             }
 
-            //Custom fields Tab : below code used to get the custom fields tab on change custom field type e.g contact, order at the time of custom field creation....
+            //Match Products Tab : below code used to update the mapping of products........
             $document.on("change",".application_match_products_dropdown", function(event)
             {
                 event.stopPropagation();
@@ -277,28 +277,31 @@
                     });
                 } 
             });
-
-            //On click of import tabs change the content of corresponding tab.......
-            // $document.on("click",".exploder",function(event) {
-            //     var productId = $(this).attr('id');
-            //     if(productId != ''){
-            //         $(this).toggleClass("btn-success btn-danger");
-            //         $(this).find('i').toggleClass('fa-plus fa-minus');
-            //         $("#table_row_"+productId).after('<tr><td colspan="5" style="text-align: center; vertical-align: middle;">Loading Variations......</td></tr>');   
-            //         jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_variation",{productId: productId}, function(data) {
-            //             /*var responsedata = JSON.parse(data);
-            //             $(".savingTriggerDetails").hide();*/
-            //         });
-            //     }
-                
-            //     // $(this).closest("tr").next("tr").toggleClass("hide");
-            //     // if($(this).closest("tr").next("tr").hasClass("hide")){
-            //     //   $(this).closest("tr").next("tr").children("td").slideUp();
-            //     // }
-            //     // else{
-            //     //   $(this).closest("tr").next("tr").children("td").slideDown(350);
-            //     // }
-            // });
+            
+            //On click of "+" icon show the current product corresponding variations....
+            $document.on("click",".exploder",function(event) {
+                var productId = $(this).attr('id');
+                if(productId != ''){
+                    $(this).toggleClass("btn-success btn-danger");
+                    $(this).find('i').toggleClass('fa-plus fa-minus');
+                    var action = $(this).find('i').hasClass("fa-plus");
+                    if(action){
+                       $(".customvariations_"+productId).remove();
+                    }else{
+                        $("#table_row_"+productId).after('<tr id="variation_loader_'+productId+'"><td colspan="5" style="text-align: center; vertical-align: middle;">Loading Variations......</td></tr>');   
+                        jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_variation",{productId: productId}, function(data) {
+                            var responsedata = JSON.parse(data);
+                            $("#variation_loader_"+productId).remove();
+                            if(responsedata.status == "1") {
+                                if(responsedata.variationsHtml != ""){
+                                    $("#table_row_"+productId).after(responsedata.variationsHtml);
+                                    applySelectTwo('application_match_products_dropdown');
+                                }
+                            }
+                        });
+                    }
+                }
+            });
         });
 }(jQuery));
 

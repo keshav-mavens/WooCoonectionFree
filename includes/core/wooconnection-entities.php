@@ -53,3 +53,8 @@
 	define("ITEM_TAX_NOTES", "Order Tax");
 	//Note for order item discount......
 	define("ITEM_DISCOUNT_NOTES", "Order Discount");
+
+	//database custom entries status....
+	define('STATUS_ACTIVE', 1);
+	define('STATUS_INACTIVE', 2);
+	define('STATUS_DELETED', 3);

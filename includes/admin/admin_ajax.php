@@ -287,23 +287,56 @@ function wc_update_products_mapping()
 	die();
 }
 
-// //Wordpress hook : This action is triggered to show the variations of specific product.....
-// add_action( 'wp_ajax_wc_get_product_variation', 'wc_get_product_variation');
-// //Function Definiation : wc_get_product_variation
-// function wc_get_product_variation()
-// {
-// 	//first check post data is not empty
-// 	if(isset($_POST) && !empty($_POST)){
-// 		//check select products exist in post data to import.....
-// 		if(isset($_POST['productId']) && !empty($_POST['productId'])){
-// 	      	$available_variations = $product->get_available_variations();
-// 	  		echo "<pre>";
-// 	  		print_r($available_variations);
-// 	  		die();
-// 	   	}
-// 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-// 	}
-// 	die();
-// }
+//Wordpress hook : This action is triggered to show the variations of specific product.....
+add_action( 'wp_ajax_wc_get_product_variation', 'wc_get_product_variation');
+//Function Definiation : wc_get_product_variation
+function wc_get_product_variation()
+{
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		$variationsHtml = '';
+		//check select products exist in post data to get the variations.....
+		if(isset($_POST['productId']) && !empty($_POST['productId'])){
+	      	$wcProductId = $_POST['productId'];
+	      	$wcProductDetails = wc_get_product($wcProductId);//Get product details..
+	      	$wcProductName = $wcProductDetails->get_name();//get product name....
+	      	$available_variations = $wcProductDetails->get_available_variations();
+	      	//Get the list of active products from authenticate application....
+  			$applicationProductsArray = getApplicationProducts();
+  			//$productsDropDown = createMatchProductsSelect($applicationProductsArray);
+  			//Set the application label on the basis of type...
+  			$applicationLabel = applicationLabel($type);
+  			$currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
+	  		if(isset($available_variations) && !empty($available_variations)){
+	  			foreach ($available_variations as $key => $value) {
+	  				if($value['variation_is_active'] == STATUS_ACTIVE){
+	  					//Check variation relation is exist....
+	                    $variationExistId = get_post_meta($value['variation_id'], 'is_kp_product_id', true);
+	                    //If variation relation exist then create select deopdown and set associative product selected....
+	                    if(isset($variationExistId) && !empty($variationExistId)){
+	                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId);
+	                    }else{
+	                      $productsDropDown = createMatchProductsSelect($applicationProductsArray);
+	                    }
+	  					$variationName = $value['attributes'];
+	  					$keys = array_keys($variationName);
+						$variationVersion = $variationName[$keys[0]];
+	  					$variationPrice = $currencySign.number_format($value['display_regular_price'],2);
+	  					$variationSku = $value['sku'];
+	  					//Check and set the product sku to display.....
+		                if(!empty($variationSku)){
+		                  $variationSku = $variationSku;
+		                }else{
+		                  $variationSku = "--";
+		                }
+	  					$variationsHtml .= '<tr id="table_row_'.$value['variation_id'].'" class="customvariations_'.$wcProductId.'"><td></td><td>'.$wcProductName.'('.$variationVersion.')</td><td  class="skucss">'.$variationSku.'</td><td>'.$variationPrice.'</td><td><select class="application_match_products_dropdown" name="wc_product_match_with_'.$value['variation_id'].'" data-id="'.$value['variation_id'].'"><option value="0">Select '.$applicationLabel.' product</option>'.$productsDropDown.'</select></td></tr>';
+	  				}
+	  			}
+	  		}	
+	   	}
+	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'variationsHtml'=>$variationsHtml));
+	}
+	die();
+}
 
 ?>

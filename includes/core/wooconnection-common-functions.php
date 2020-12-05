@@ -470,8 +470,7 @@ function createMatchProductsHtml(){
             $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
               <table class="table table-striped match_products_listing_class" id="match_products_listing">
                 '.$matchProductsData['matchTableHtml'].'
-              </table>
-            </form>';
+              </table></form>';
           }
       }
   }
@@ -488,12 +487,12 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
         //Create first table....
         $matchTableHtml .= '<thead>';
         $matchTableHtml .= '<tr>
-                              <th>Action</th>
-                              <th>WooCommerce Product Name</th>
-                              <th>WooCommerce Product SKU</th>
-                              <th>WooCommerce Product Price</th>
-                              <th>'.$applicationType.' Product</th>
-                            </tr>';
+                        <th>Action</th>
+                        <th>WooCommerce Product Name</th>
+                        <th>WooCommerce Product SKU</th>
+                        <th>WooCommerce Product Price</th>
+                        <th>'.$applicationType.' Product</th>
+                      </tr>';
         $matchTableHtml .= '</thead>';
         $matchTableHtml .= '<tbody>';
         $productExistId = '';
@@ -542,10 +541,13 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                 }else{
                   $wcproductSku = "--";
                 }
+                $actionHtml = '';
+                if($wcproduct->is_type('variable')){
+                    $actionHtml  = '<button type="button" class="btn btn-success exploder" id="'.$wc_product_id.'"><i class="fa fa-plus" title="Expand variations of this product."></i></button>';
+                }
 
                 //Create final html.......
-                $matchTableHtml .= '<tr id="table_row_'.$wc_product_id.'"><td><button type="button" class="btn btn-success exploder" id="'.$wc_product_id.'"><i class="fa fa-plus" title="Expand variations of this product."></i>
-    </button></td><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.' </td><td>'.$productSelectHtml.'</td></tr>';
+                $matchTableHtml .= '<tr id="table_row_'.$wc_product_id.'"><td>'.$actionHtml.'</td><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
 
             }
 
@@ -554,7 +556,6 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
     }
     return $matchProductsData;//Return data....
 }
-
 
 //create the infusionsoft products dropdown for mapping..........
 function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_compare=''){
