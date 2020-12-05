@@ -487,7 +487,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
         //Create first table....
         $matchTableHtml .= '<thead>';
         $matchTableHtml .= '<tr>
-                        <th>Action</th>
+                        <th></th>
                         <th>WooCommerce Product Name</th>
                         <th>WooCommerce Product SKU</th>
                         <th>WooCommerce Product Price</th>
@@ -543,7 +543,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                 }
                 $actionHtml = '';
                 if($wcproduct->is_type('variable')){
-                    $actionHtml  = '<button type="button" class="btn btn-success exploder" id="'.$wc_product_id.'"><i class="fa fa-plus" title="Expand variations of this product."></i></button>';
+                    $actionHtml  = '<button type="button" title="Expand variations of this product." class="btn btn-success exploder" id="'.$wc_product_id.'"><i class="fa fa-plus"></i></button>';
                 }
 
                 //Create final html.......
@@ -1275,12 +1275,4 @@ function getApplicationProductDetails($access_token,$productId){
     }
     return $productName;
 }
-
-function getProductVariations($product){
-  $available_variations = $product->get_available_variations();
-  echo "<pre>";
-  print_r($available_variations);
-  die();
-}
-
 ?>

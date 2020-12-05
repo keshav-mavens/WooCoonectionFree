@@ -288,6 +288,7 @@
                     if(action){
                        $(".customvariations_"+productId).remove();
                     }else{
+                        $(".customvariations_"+productId).remove();
                         $("#table_row_"+productId).after('<tr id="variation_loader_'+productId+'"><td colspan="5" style="text-align: center; vertical-align: middle;">Loading Variations......</td></tr>');   
                         jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_variation",{productId: productId}, function(data) {
                             var responsedata = JSON.parse(data);
