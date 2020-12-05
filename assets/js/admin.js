@@ -281,6 +281,7 @@
             //On click of "+" icon show the current product corresponding variations....
             $document.on("click",".exploder",function(event) {
                 var productId = $(this).attr('id');
+                var matchProductId = $(this).data('id');
                 if(productId != ''){
                     $(this).toggleClass("btn-success btn-danger");
                     $(this).find('i').toggleClass('fa-plus fa-minus');
@@ -290,7 +291,7 @@
                     }else{
                         $(".customvariations_"+productId).remove();
                         $("#table_row_"+productId).after('<tr id="variation_loader_'+productId+'"><td colspan="5" style="text-align: center; vertical-align: middle;">Loading Variations......</td></tr>');   
-                        jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_variation",{productId: productId}, function(data) {
+                        jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_variation",{productId: productId,matchProductId:matchProductId}, function(data) {
                             var responsedata = JSON.parse(data);
                             $("#variation_loader_"+productId).remove();
                             if(responsedata.status == "1") {

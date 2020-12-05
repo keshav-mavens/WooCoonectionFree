@@ -303,21 +303,32 @@ function wc_get_product_variation()
 	      	$available_variations = $wcProductDetails->get_available_variations();
 	      	//Get the list of active products from authenticate application....
   			$applicationProductsArray = getApplicationProducts();
-  			//$productsDropDown = createMatchProductsSelect($applicationProductsArray);
   			//Set the application label on the basis of type...
   			$applicationLabel = applicationLabel($type);
   			$currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
 	  		if(isset($available_variations) && !empty($available_variations)){
 	  			foreach ($available_variations as $key => $value) {
 	  				if($value['variation_is_active'] == STATUS_ACTIVE){
-	  					//Check variation relation is exist....
-	                    $variationExistId = get_post_meta($value['variation_id'], 'is_kp_product_id', true);
-	                    //If variation relation exist then create select deopdown and set associative product selected....
-	                    if(isset($variationExistId) && !empty($variationExistId)){
-	                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId);
-	                    }else{
-	                      $productsDropDown = createMatchProductsSelect($applicationProductsArray);
-	                    }
+	  					$mappedProductHtml = '';
+	  					$productsDropDown = '';
+	  					if(!empty($applicationProductsArray)){
+	  						//Check variation relation is exist....
+		                    $variationExistId = get_post_meta($value['variation_id'], 'is_kp_product_id', true);
+		                    //If variation relation exist then create select deopdown and set associative product selected....
+		                    if(isset($variationExistId) && !empty($variationExistId)){
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId);
+		                    }else if($variationExistId === '0'){
+		                    	$productsDropDown = createMatchProductsSelect($applicationProductsArray);
+		                    }
+		                    else if(isset($_POST['matchProductId']) && !empty($_POST['matchProductId'])){
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$_POST['matchProductId']);
+		                    }
+		                    $mappedProductHtml = '<select class="application_match_products_dropdown" name="wc_product_match_with_'.$value['variation_id'].'" data-id="'.$value['variation_id'].'"><option value="0">Select '.$applicationLabel.' product</option>'.$productsDropDown.'</select>';
+	  					}else{
+	  						//Set the html of select if no products exist in application....
+                 			 $mappedProductHtml = 'No '.$applicationLabel.' Products Exist!';
+	  					}
+	  					
 	  					$variationName = $value['attributes'];
 	  					$keys = array_keys($variationName);
 						$variationVersion = $variationName[$keys[0]];
@@ -329,7 +340,7 @@ function wc_get_product_variation()
 		                }else{
 		                  $variationSku = "--";
 		                }
-	  					$variationsHtml .= '<tr id="table_row_'.$value['variation_id'].'" class="customvariations_'.$wcProductId.'"><td></td><td>'.$wcProductName.'('.$variationVersion.')</td><td  class="skucss">'.$variationSku.'</td><td>'.$variationPrice.'</td><td><select class="application_match_products_dropdown" name="wc_product_match_with_'.$value['variation_id'].'" data-id="'.$value['variation_id'].'"><option value="0">Select '.$applicationLabel.' product</option>'.$productsDropDown.'</select></td></tr>';
+	  					$variationsHtml .= '<tr id="table_row_'.$value['variation_id'].'" class="customvariations_'.$wcProductId.'"><td></td><td>'.$wcProductName.'('.$variationVersion.')</td><td  class="skucss">'.$variationSku.'</td><td>'.$variationPrice.'</td><td>'.$mappedProductHtml.'</td></tr>';
 	  				}
 	  			}
 	  		}	

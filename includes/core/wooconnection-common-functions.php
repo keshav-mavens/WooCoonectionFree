@@ -543,7 +543,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                 }
                 $actionHtml = '';
                 if($wcproduct->is_type('variable')){
-                    $actionHtml  = '<button type="button" title="Expand variations of this product." class="btn btn-success exploder" id="'.$wc_product_id.'"><i class="fa fa-plus"></i></button>';
+                    $actionHtml  = '<button type="button" title="Expand variations of this product." class="btn btn-success exploder" id="'.$wc_product_id.'" data-id="'.$productExistId.'"><i class="fa fa-plus"></i></button>';
                 }
 
                 //Create final html.......
