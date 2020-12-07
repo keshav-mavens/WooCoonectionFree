@@ -952,13 +952,13 @@ function checkAddProductIsKp($access_token,$item){
           }
           if(empty($currentProductID)){
               //if "-" is exist in product sku then replace with "_".....
-              if (strpos($wcproductSlug, '-') !== false)
+              if (strpos($wcproductSku, '-') !== false)
               {
-                  $wcproductSku=str_replace("-", "_", $wcproductSlug);
+                  $wcproductSku=str_replace("-", "_", $wcproductSku);
               }
               else
               {
-                  $wcproductSku=$wcproductSlug;
+                  $wcproductSku=$wcproductSku;
               }
               $productDetailsArray['sku'] = $wcproductSku;
               $jsonData = json_encode($productDetailsArray);
