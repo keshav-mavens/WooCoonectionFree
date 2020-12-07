@@ -328,9 +328,10 @@ function wc_get_product_variation()
 	  						//Set the html of select if no products exist in application....
                  			 $mappedProductHtml = 'No '.$applicationLabel.' Products Exist!';
 	  					}
-	  					
+	  					//get variation attributes........
 	  					$variationName = $value['attributes'];
 	  					$keys = array_keys($variationName);
+	  					//get variation version like in sizes small,medium,large and in colors red,green,blue etc....
 						$variationVersion = $variationName[$keys[0]];
 	  					$variationPrice = $currencySign.number_format($value['display_regular_price'],2);
 	  					$variationSku = $value['sku'];

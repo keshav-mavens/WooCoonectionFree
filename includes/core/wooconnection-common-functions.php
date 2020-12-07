@@ -914,11 +914,23 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
 }
 
 //add product to infusionsoft/keap account..
-function checkAddProductIsKp($access_token,$item){
+function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
+    //define empty variables......
     $currentProductID = '';
+    $checkAlreadyExist = '';
+    //get product id...
     $productId = $item->get_id();
+    //check product id on the basis of main product id.....
     $checkAlreadyExist = get_post_meta($productId, 'is_kp_product_id', true);
+    if(empty($checkAlreadyExist) && $checkAlreadyExist !== '0'){
+      //check if parent product id is exist it means product is a variation product....
+      if(!empty($parent_product_id)){
+          //then get the relation as same set for parent product....
+          $checkAlreadyExist = get_post_meta($parent_product_id, 'is_kp_product_id', true);
+      }
+    }
     $wooconnectionLogger = new WC_Logger();
+    //check product mapping exist else create new product and return the id newly created product.....
     if(isset($checkAlreadyExist) && !empty($checkAlreadyExist)){
        $currentProductID = $checkAlreadyExist; 
     }else{
@@ -957,13 +969,13 @@ function checkAddProductIsKp($access_token,$item){
           }
           if(empty($currentProductID)){
               //if "-" is exist in product sku then replace with "_".....
-              if (strpos($wcproductSlug, '-') !== false)
+              if (strpos($wcproductSku, '-') !== false)
               {
-                  $wcproductSku=str_replace("-", "_", $wcproductSlug);
+                  $wcproductSku=str_replace("-", "_", $wcproductSku);
               }
               else
               {
-                  $wcproductSku=$wcproductSlug;
+                  $wcproductSku=$wcproductSku;
               }
               $productDetailsArray['sku'] = $wcproductSku;
               $jsonData = json_encode($productDetailsArray);

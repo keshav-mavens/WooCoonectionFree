@@ -281,7 +281,7 @@
             //On click of "+" icon show the current product corresponding variations....
             $document.on("click",".exploder",function(event) {
                 var productId = $(this).attr('id');
-                var matchProductId = $(this).data('id');
+                var matchProductId = $('select[name=wc_product_match_with_'+productId+'] option').filter(':selected').val();
                 if(productId != ''){
                     $(this).toggleClass("btn-success btn-danger");
                     $(this).find('i').toggleClass('fa-plus fa-minus');
