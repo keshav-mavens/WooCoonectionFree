@@ -657,7 +657,7 @@ div#table_match_products_listing {
     display: block;
     width: 100%;
     text-align: center;
-    top: 10%;
+    top: 16%;
     z-index: 1;
 }
 .ajax_loader_match_products_related img{
@@ -666,6 +666,19 @@ div#table_match_products_listing {
 }
 #wpbody-content {
     padding-bottom: 35px !important;
+}
+.custom_tr {
+    background: #e8e8e8 !important;
+}
+.btn.exploder.btn-success,.btn.exploder.btn-danger {
+    padding: 0px;
+    border-radius: 50%;
+    line-height: 17px;
+    font-size: 10px;
+    height: 20px;
+    width: 20px;
+    text-align: center;
+    border: 2px solid #fff;
 }
 @media(min-width:992px) {
   .nav-tabs.wizard li {
