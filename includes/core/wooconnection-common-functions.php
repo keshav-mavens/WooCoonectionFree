@@ -1369,8 +1369,8 @@ function misha_plugin_info( $res, $action, $args ){
     $res->version = $remote->version;
     $res->tested = $remote->tested;
     $res->requires = $remote->requires;
-    $res->author = '<a href="https://rudrastyh.com">Misha Rudrastyh</a>';
-    $res->author_profile = 'https://profiles.wordpress.org/rudrastyh';
+    $res->author = '<a href="http://www.fullstackmarketing.co">Fullstackmarketing.co</a>';
+    $res->author_profile = 'http://www.fullstackmarketing.co';
     $res->download_link = $remote->download_url;
     $res->trunk = $remote->download_url;
     $res->requires_php = '5.3';
