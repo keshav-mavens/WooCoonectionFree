@@ -6,7 +6,7 @@
 		        <a href="javascript:void(0)"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/main_logo.jpg" alt=""></a>
 		    </div>
     		<div class="col-xl-8 col-lg-7 col-md-7 col-12">
-    		    <p class="tag-line">The Easiest Way to Connect Your WooCommerce Site to Infusionsoft and Keap</p>
+    		    <p class="tag-line">The Easiest latest code Way to Connect Your WooCommerce Site to Infusionsoft and Keap</p>
     		</div>
 		    <div class="col-xl-2 col-lg-2 col-md-2 col-12 text-right">
           <a href="https://www.wooconnection.com/support" target="_blank" class="btn btn-primary btn-radius btn-theme">Help</a>
