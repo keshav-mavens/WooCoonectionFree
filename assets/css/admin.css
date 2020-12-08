@@ -664,6 +664,9 @@ div#table_match_products_listing {
     height: 30px;
     width: 30px;
 }
+#wpbody-content {
+    padding-bottom: 35px !important;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;
