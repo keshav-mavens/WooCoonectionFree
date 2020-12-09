@@ -87,4 +87,14 @@
 	  }
 	  return false;
 	}
+
+	//Wordpress hook : This action is when wooconnection plugin update process is trigger then clera the cache by deleting the transient......
+	add_action( 'upgrader_process_complete', 'wooconnection_after_update', 10, 2 );
+ 	//Function Definiation : wooconnection_after_update
+	function wooconnection_after_update( $upgrader_object, $options ) {
+		if ( $options['action'] == 'update' && $options['type'] === 'plugin' )  {
+			// just clean the cache when new plugin version is installed
+			delete_transient( 'plugin_upgrade_wooconnection' );
+		}
+	}
 ?>
