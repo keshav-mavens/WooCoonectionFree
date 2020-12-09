@@ -25,8 +25,8 @@
 		 	//check remote details and compare the verison of it.....
 		 	if( $remoteDetails && version_compare( WOOCONNECTION_VERSION, $remoteDetails->version, '<' ) ) {
 		      $res = new stdClass();
-		      $res->slug = 'wooconnection';
-		      $res->plugin = 'wooconnection/wooconnection.php';
+		      $res->slug = 'wooconnection-WPplugin-i8cwye';
+		      $res->plugin = 'wooconnection-WPplugin-i8cwye/wooconnection.php';
 		      $res->new_version = $remoteDetails->version;
 		      $res->tested = $remoteDetails->tested;
 		      $res->package = $remoteDetails->download_url;
@@ -43,7 +43,7 @@
 	function wooconnection_plugin_info( $result, $trigger_action, $arguments ){
 	 
 	  //define plugin slug to compare...
-	  $wc_plugin_slug = 'wooconnection'; 
+	  $wc_plugin_slug = 'wooconnection-WPplugin-i8cwye'; 
 
 	  //stop process if trigger_action is not for plugin information.....
 	  if('plugin_information' !== $trigger_action) {return false;}
@@ -52,10 +52,10 @@
 	  if( $wc_plugin_slug !== $arguments->slug ) {return false;}
 	 
 	  //compare the plugin by transient......
-	  if( false == $remoteData = get_transient( 'wc_update_' . $wc_plugin_slug ) ) {
+	  if( false == $remoteData = get_transient( 'plugin_upgrade_wooconnection_' . $wc_plugin_slug ) ) {
 	 	$remoteData = wp_remote_get( ADMIN_REMOTE_URL.'remote_plugin_information.json', array('timeout' => 10,'headers' => array('Accept' => 'application/json')));
 	 	if ( ! is_wp_error( $remoteData ) && isset( $remoteData['response']['code'] ) && $remoteData['response']['code'] == 200 && ! empty( $remoteData['body'] ) ) {
-	      set_transient( 'wc_update_' . $wc_plugin_slug, $remoteData, 43200 ); // 12 hours cache
+	      set_transient( 'plugin_upgrade_wooconnection_' . $wc_plugin_slug, $remoteData, 43200 ); // 12 hours cache
 	    }
 	  }
 	 
@@ -95,6 +95,8 @@
 		if ( $options['action'] == 'update' && $options['type'] === 'plugin' )  {
 			// just clean the cache when new plugin version is installed
 			delete_transient( 'plugin_upgrade_wooconnection' );
+			// just clean the cache when new plugin version is installed
+			delete_transient( 'plugin_upgrade_wooconnection_wooconnection-WPplugin-i8cwye' );
 		}
 	}
 ?>
