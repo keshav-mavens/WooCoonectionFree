@@ -10,7 +10,7 @@
 	 
 		//compare the plugin by transient......
 		if( false == $remoteDetails = get_transient( 'plugin_upgrade_wooconnection' ) ) {
-		 	$remoteDetails = wp_remote_get( ADMIN_REMOTE_URL.'remote_plugin_info.json', array(
+		 	$remoteDetails = wp_remote_get( ADMIN_REMOTE_URL.'remote_plugin_information.json', array(
 		      'timeout' => 10,'headers' => array('Accept' => 'application/json')));
 		 	if ( !is_wp_error( $remoteDetails ) && isset( $remoteDetails['response']['code'] ) && $remoteDetails['response']['code'] == 200 && !empty( $remoteDetails['body'] ) ) {
 		      set_transient( 'plugin_upgrade_wooconnection', $remoteDetails, 43200 ); // 12 hours cache
@@ -53,7 +53,7 @@
 	 
 	  //compare the plugin by transient......
 	  if( false == $remoteData = get_transient( 'wc_update_' . $wc_plugin_slug ) ) {
-	 	$remoteData = wp_remote_get( ADMIN_REMOTE_URL.'remote_plugin_info.json', array('timeout' => 10,'headers' => array('Accept' => 'application/json')));
+	 	$remoteData = wp_remote_get( ADMIN_REMOTE_URL.'remote_plugin_information.json', array('timeout' => 10,'headers' => array('Accept' => 'application/json')));
 	 	if ( ! is_wp_error( $remoteData ) && isset( $remoteData['response']['code'] ) && $remoteData['response']['code'] == 200 && ! empty( $remoteData['body'] ) ) {
 	      set_transient( 'wc_update_' . $wc_plugin_slug, $remoteData, 43200 ); // 12 hours cache
 	    }
