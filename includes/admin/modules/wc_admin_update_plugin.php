@@ -80,8 +80,8 @@
 	      'changelog' => $remoteData->sections->changelog
 	    );
 	 	$result->banners = array(
-	      'low' => 'https://ps.w.org/woocommerce/assets/banner-772x250.jpg',
-	      'high' => 'https://ps.w.org/woocommerce/assets/banner-1544x500.png'
+	      'low' => 'https://wooconnection.com/wp-content/uploads/woo_c1.jpg',
+	      'high' => 'https://wooconnection.com/wp-content/uploads/woo_c2.jpg'
 	    );
 	    return $result;
 	  }
