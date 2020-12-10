@@ -5,12 +5,10 @@
 	define("WOOCONNECTION_TRIGGER_TYPE_CART", 2);
 	//Trigger type entity : ORDER
 	define("WOOCONNECTION_TRIGGER_TYPE_ORDER", 3);
-
 	//Trigger version type : FREE
 	define("TRIGGER_VERISON_FREE", 1);
 	//Trigger version type : PRO
 	define("TRIGGER_VERISON_PRO", 2);
-
 	//Application type entity : infusionsoft
 	define("APPLICATION_TYPE_INFUSIONSOFT", 1);
 	//Application type entity : keap
@@ -55,14 +53,13 @@
 	define("ITEM_TAX_NOTES", "Order Tax");
 	//Note for order item discount......
 	define("ITEM_DISCOUNT_NOTES", "Order Discount");
-
-	//custom field form type entitiy.....
-	define('CUSTOM_FIELD_FORM_TYPE_CONTACT', -1);
-	define('CUSTOM_FIELD_FORM_TYPE_ORDER', -9);
 	//database custom entries status....
 	define('STATUS_ACTIVE', 1);
 	define('STATUS_INACTIVE', 2);
 	define('STATUS_DELETED', 3);
+	//custom field form type entitiy.....
+	define('CUSTOM_FIELD_FORM_TYPE_CONTACT', -1);
+	define('CUSTOM_FIELD_FORM_TYPE_ORDER', -9);
 	//custom field input type entities........
 	define('CF_FIELD_TYPE_TEXT', 1);
 	define('CF_FIELD_TYPE_TEXTAREA', 2);
@@ -75,7 +72,6 @@
 	//custom field actions entity.....
 	define('CF_FIELD_ACTION_SHOW', 'show');
 	define('CF_FIELD_ACTION_HIDE', 'hide');
-
 	//Below 3 entities is related to default thanks override....
 	define('DEFAULT_WORDPRESS_POST', 1);
 	define('DEFAULT_WORDPRESS_PAGE', 2);
@@ -83,10 +79,6 @@
 	//Below 7 entities is related to redirect thanks override....
 	define('REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS', 1);
 	define('REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES', 2);
-	
 	//override link yes no...
 	define('REDIRECT_OVERRIDE_TRUE', 1);
 	define('REDIRECT_OVERRIDE_FALSE', 0);
-?>
-
-

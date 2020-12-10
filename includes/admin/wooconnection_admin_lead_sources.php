@@ -15,7 +15,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
 			    <div class="collapse" id="collapseLeadSource">
 			        <div class="card card-body col-md-12 m-b-40">
 			            <p class="heading-text text-center m-t-30">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
-			        		<iframe class="m-t-30" src="https://player.vimeo.com/video/60771693" width="100%" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+			        		<iframe class="m-t-30" src="https://player.vimeo.com/video/477453672" width="100%" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
 			        </div>
 			    </div>
 	        	<p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
