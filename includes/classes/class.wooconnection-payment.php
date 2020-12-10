@@ -12,7 +12,7 @@
 		public function __construct() {
  			global $woocommerce;
  			$this->id = 'infusionsoft_keap';
-	        $this->icon = apply_filters('woocommerce_is_kp_icon', ''.WOOCONNECTION_PLUGIN_URL.'assets/images/infusion.jpg');
+	        $this->icon = apply_filters('woocommerce_is_kp_icon', ''.WOOCONNECTION_PLUGIN_URL.'assets/images/infusion-payment.jpg');
 	        $this->has_fields = true;
 	        $this->method_title = __('Infusionsoft', 'woocommerce-gateway-infusionsoft-keap');
 	        $this->method_description = "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s";
@@ -98,7 +98,47 @@
 			);
 		}
 
-		//Function Definition : includeCustomCss
+		//Function Definition : payment_fields
+ 		public function payment_fields() {
+           	wp_enqueue_script( 'wc-credit-card-form' );
+
+            // ok, let's display some description before the payment form
+			if ( $this->description ) {
+				// you can instructions for test mode, I mean test card numbers etc.
+				if ( $this->testmode ) {
+					$this->description .= ' TEST MODE ENABLED. In test mode, you can use the card number 4242424242424242 with any CVC and a valid expiration date.';
+					$this->description  = trim( $this->description );
+				}
+				// display the description with <p> tags etc.
+				echo wpautop( wp_kses_post( $this->description ) );
+			}
+		 
+			// I will echo() the form, but you can close PHP tags and print it directly in HTML
+			echo '<fieldset id="wc-' . esc_attr( $this->id ) . '-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">';
+		 
+			// Add this action hook if you want your custom payment gateway to support it
+			do_action( 'woocommerce_credit_card_form_start', $this->id );
+		 
+			// I recommend to use inique IDs, because other gateways could already use #ccNo, #expdate, #cvc
+			echo '<div class="form-row form-row-wide"><label>Card Number <span class="required">*</span></label>
+				<input class="wc-credit-card-form-card-number" id="' . esc_attr( $this->id ) . '_cnumber" name="' . esc_attr( $this->id ) . '_cnumber" type="tel" maxlength="19" placeholder="**** **** **** ****">
+				</div>
+				<div class="form-row form-row-first">
+					<label>Expiry Date <span class="required">*</span></label>
+					<input class="wc-credit-card-form-card-expiry" id="' . esc_attr( $this->id ) . '_expdate" name="' . esc_attr( $this->id ) . '_expdate" maxlength="7" type="tel" placeholder="MM / YY">
+				</div>
+				<div class="form-row form-row-last">
+					<label>Card Code (CVC) <span class="required">*</span></label>
+					<input class="wc-credit-card-form-card-cvc" id="' . esc_attr( $this->id ) . '_cvv" name="' . esc_attr( $this->id ) . '_cvv" type="tel" placeholder="CVC">
+				</div>
+				<div class="clear"></div>';
+		 
+			do_action( 'woocommerce_credit_card_form_end', $this->id );
+		 
+			echo '<div class="clear"></div></fieldset>';
+		}
+
+    	//Function Definition : includeCustomCss
 	    public function includeCustomCss(){
 	        if(isset($_GET['page']) && $_GET['page'] == 'wc-settings'){
 			ob_start();
