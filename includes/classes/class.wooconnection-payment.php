@@ -138,6 +138,14 @@
 			echo '<div class="clear"></div></fieldset>';
 		}
 
+
+		//Function Definition : validate_fields
+        public function validate_fields(){
+           	if(isset($_POST) && !empty($_POST)){
+
+           	}
+        }
+
     	//Function Definition : includeCustomCss
 	    public function includeCustomCss(){
 	        if(isset($_GET['page']) && $_GET['page'] == 'wc-settings'){
