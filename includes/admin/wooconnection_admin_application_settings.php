@@ -50,7 +50,7 @@
 			</div>
 		</div>
 		
-		<div class="form-group col-md-12 text-right m-t-60">
+		<div class="form-group col-md-12 m-t-60" style="padding-left: 0px;">
 			<div class="buttonloading savingDetails" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Authorize....</div>
 			<div class="alert-error-message application-details-error" style="display: none;"></div>
 			<div class="alert-sucess-message application-details-success" style="display: none;">Application settings saved successfully.</div>

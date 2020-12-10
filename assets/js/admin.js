@@ -62,13 +62,13 @@
 
             //code to change the main content on click of submenu of menus
             $('.sub-menu > li.sub-menu-expand > a').on('click', function(e) {
-                jQuery(".ajax_loader").show();
-                jQuery(".tab_related_content").addClass('overlay');
-                $("li.sub-menu-expand a").removeClass("active-sub-menu");
-                
-                $(this).addClass("active-sub-menu");
                 var tab_id = $(this).attr('id');
-                if(tab_id != ""){
+                if(tab_id != "" && typeof tab_id != "undefined"){
+                    jQuery(".ajax_loader").show();
+                    jQuery(".tab_related_content").addClass('overlay');
+                    $("li.sub-menu-expand a").removeClass("active-sub-menu");
+                    
+                    $(this).addClass("active-sub-menu");
                     jQuery.post( ajax_object.ajax_url + "?action=wc_load_tab_main_content",{tab_id:tab_id}, function(data) {
                         jQuery(".ajax_loader").hide();
                         $(".import_tab_content").hide();
@@ -201,7 +201,18 @@
             //Check if "response" done....
             var checkResponse = getQueryParameter('response');
             if(checkResponse != "" && checkResponse == "1"){
-                swal("Authorization!", 'Application authentication done successfully.', "success");
+                $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
+                swal({
+                  title: "Authorization!",
+                  text: "Application authentication done successfully.",
+                  type: "success",
+                  confirmButtonText: "OK"
+                },
+                function(isConfirm){
+                  if (isConfirm) {
+                    $('#import_products').trigger('click');
+                  }
+                });
             }
 
             //Match Products Tab : check all products checkbox rule....
@@ -255,7 +266,15 @@
                 }
             });
 
+            //this code is used to check whether the plugin is activated or not if activated then add "tick" icon in next of activation menu......
+            if ($(".activated").length ) {
+                $("#plugin_activation").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
+            }
 
+            //this code is used to check whether the plugin authentication is done or not if done then add "tick" icon in next of infusionsoft/keap setting menu......
+            if ($(".authdone").length ) {
+                $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
+            }
         });
 }(jQuery));
 
@@ -366,6 +385,8 @@ function activateWcPlugin(){
                     $("#activationKey").val('');
                     $("#activationKey").val(responsedata.licence_key);
                 }
+                $("#plugin_activation").after('<span class="custom-icons" onclick="showMarkRelatedData(\'application_settings\')"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
+                $('#application_settings').trigger('click');
             }else{
                 $(".activation-details-error").show();
                 $(".common_disable_class").addClass('leftMenusDisable');
