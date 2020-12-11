@@ -38,7 +38,6 @@ class WooConnectionPro {
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-entities.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
-        require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-payment.php' );
     }
 
     //Function Definition : woocommerce_plugin_necessary

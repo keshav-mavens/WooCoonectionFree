@@ -1,25 +1,41 @@
 <?php 
-	//Wordpress hook : This action is triggered to add new payment method......
-	add_filter( 'woocommerce_payment_gateways', 'add_payment_gateway_class' );
-	
-	//Function Definiation : add_payment_gateway_class
-	function add_payment_gateway_class( $methods ) {
-	    $methods[] = 'WC_Gateway_Infusionsoft'; 
-	    return $methods;
+	$checkAuthenticationStatus = applicationAuthenticationStatus();
+	if(empty($checkAuthenticationStatus)){
+		//Wordpress hook : This action is triggered to add new payment method......
+		add_filter( 'woocommerce_payment_gateways', 'add_payment_gateway_class' );
+		//Function Definiation : add_payment_gateway_class
+		function add_payment_gateway_class( $methods ) {
+		    $methods[] = 'WC_Gateway_Infusionsoft'; 
+		    return $methods;
+		}
 	}
-
+	
 	class WC_Gateway_Infusionsoft extends WC_Payment_Gateway {
+		
 		public function __construct() {
  			global $woocommerce;
- 			$this->id = 'infusionsoft_keap';
+ 			//Get the application type so that application type selected from dropdown.....
+			$configurationType = applicationType();
+			$type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+			if(isset($configurationType) && !empty($configurationType)){
+				if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+					$type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+				}else if ($configurationType == APPLICATION_TYPE_KEAP) {
+					$type = APPLICATION_TYPE_KEAP_LABEL;
+				}
+			}
+
+			//Get the application lable to display.....
+			$applicationLabel = applicationLabel($type);
+			$this->id = 'infusionsoft_keap';
 	        $this->icon = apply_filters('woocommerce_is_kp_icon', ''.WOOCONNECTION_PLUGIN_URL.'assets/images/infusion-payment.jpg');
 	        $this->has_fields = true;
-	        $this->method_title = __('Infusionsoft', 'woocommerce-gateway-infusionsoft-keap');
+	        $this->method_title = __($applicationLabel, 'woocommerce-gateway-infusionsoft-keap');
 	        $this->method_description = "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s";
 	      	$this->supports = array( 'subscriptions', 'products' );        
 	        
 	        // Load the infusionsoft/keap form fields.
-	        $this->init_form_fields(); 
+	        $this->initPaymentFormFields($type,$applicationLabel); 
 	        // Load the infusionsoft/keap settings.
 	        $this->init_settings();
 
@@ -31,7 +47,6 @@
 			$this->is_merchant_id 		= $this->get_option('is_merchant_id'); //defaults to empty
 			$this->process_credit_card  = 'no' === $this->get_option( 'process_credit_card' );
 			$this->wc_subscriptions  	= 'no' === $this->get_option( 'wc_subscriptions' );
-
 			//include custom css and js for another pages of wp-admin.....
             $this->includeCustomCss();
 			
@@ -40,7 +55,7 @@
  		}
 
  		//Function Definition : init_form_fields
- 		public function init_form_fields(){
+ 		public function initPaymentFormFields($type,$applicationLabel){
 			$this->form_fields = array(
 				'enabled' 	=> array(
 					'title'       => __( 'Enable/Disable', 'woocommerce-gateway-infusionsoft-keap' ),
@@ -54,7 +69,7 @@
 					'title'       => __( 'Title', 'woocommerce-gateway-infusionsoft-keap' ),
 					'type'        => 'text',
 					'description' => __( "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s", 'woocommerce-gateway-infusionsoft-keap' ),
-					'default'     => __( 'Credit Card (Infusionsoft)', 'woocommerce-gateway-infusionsoft-keap' ),
+					'default'     => __( 'Credit Card ('.$applicationLabel.')', 'woocommerce-gateway-infusionsoft-keap' ),
 					'desc_tip'    => false,
 				),
 				'description' => array(
@@ -73,7 +88,7 @@
 					'class' 	  => 'testmodeEnable',
 				),
 				'is_merchant_id' => array(
-	                'title' 	  => __('Infusionsoft Merchant ID', 'woocommerce-gateway-infusionsoft-keap'),
+	                'title' 	  => __($applicationLabel.' Merchant ID', 'woocommerce-gateway-infusionsoft-keap'),
 	                'type' 		  => 'text',
 	                'description' => __('Merchant Account ID <a target="_blank" href="https://help.infusionsoft.com/help/how-to-locate-your-merchant-account-id">Click here to get your merchant account ID.</a>', 'woocommerce-gateway-infusionsoft-keap'),
 	                'default' 	  => '',
@@ -87,15 +102,23 @@
 					'default'     => 'no',
 					'class' 	  => 'processCreditCardEnable',
 				),
-				'wc_subscriptions' => array(
-					'title' 	   => __('Woocommerce Subscriptions', 'woocommerce-gateway-infusionsoft-keap'),
-					'label' 	   => __( '<span class="slider round"></span>', 'woocommerce-gateway-infusionsoft-keap' ),
-					'type'  	   => 'checkbox',
-					'description' => __("Lorem Ipsum has been the industry's standard dummy text ever since the 1500s", 'woocommerce-gateway-infusionsoft-keap'),
-					'default'      => 'no',
-					'class' 	   => 'subscriptionEnable',
-				)
 			);
+			
+			//define empty array......
+			$subArray = array();
+			//check if application type is infusionsoft.....
+			if($type == APPLICATION_TYPE_INFUSIONSOFT_LABEL){
+				$subArray['wc_subscriptions'] = array(
+													'title' 	   => __('Woocommerce Subscriptions', 'woocommerce-gateway-infusionsoft-keap'),
+													'label' 	   => __( '<span class="slider round"></span>', 'woocommerce-gateway-infusionsoft-keap' ),
+													'type'  	   => 'checkbox',
+													'description' => __("Lorem Ipsum has been the industry's standard dummy text ever since the 1500s", 'woocommerce-gateway-infusionsoft-keap'),
+													'default'      => 'no',
+													'class' 	   => 'subscriptionEnable',
+												);
+			}
+			//merge subscription array element to form fields array.....
+			$this->form_fields = array_merge($this->form_fields, $subArray);
 		}
 
 		//Function Definition : payment_fields
