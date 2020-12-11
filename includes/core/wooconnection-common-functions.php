@@ -1287,4 +1287,75 @@ function getApplicationProductDetails($access_token,$productId){
     }
     return $productName;
 }
+
+//Function is used to vaidate a credit card on the basis of card details.....
+function validateCreditCard($access_token,$cardDetails){
+    //First needs to check access token and order is exist or not.....
+    if(!empty($access_token) && !empty($cardDetails)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        //Create xml to hit the curl request for add order item.....
+        $xmlData = "<methodCall>
+                         <methodName>InvoiceService.validateCreditCard</methodName>
+                          <params>
+                            <param>
+                              <value><string></string></value>
+                            </param>
+                            <param>
+                              <value><struct>
+                                <member><name>CardType</name>
+                                  <value><string>".$cardDetails['CardType']."</string></value>
+                                </member>
+                                <member><name>ContactId</name>
+                                  <value><int>".$cardDetails['ContactId']."</int></value>
+                                </member>
+                                <member><name>CardNumber</name>
+                                  <value><string>".$cardDetails['CardNumber']."</string></value>
+                                </member>
+                                <member><name>ExpirationMonth</name>
+                                  <value><string>".$cardDetails['ExpirationMonth']."</string></value>
+                                </member>
+                                <member><name>ExpirationYear</name>
+                                  <value><string>".$cardDetails['ExpirationYear']."</string></value>
+                                </member>
+                                <member><name>CVV2</name>
+                                  <value><string>".$cardDetails['CVV2']."</string></value>
+                                </member>
+                              </struct></value>
+                            </param>
+                          </params>
+                        </methodCall>";
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($err){
+            // $errorMessage = "Add order item to order #".$orderid." is failed due to ". $err; 
+            // $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          return $responsedata = xmlrpc_decode($response);
+          //check if any error occur like invalid access token,then save logs....
+          // if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+          //     if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+          //         $errorMessage = "Add order item to order #".$orderid." is failed due to ". $responsedata['faultString']; 
+          //         $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          //     }
+          // }else{
+          //   return true;
+          // }
+        }
+        curl_close($ch);
+    }
+}
 ?>

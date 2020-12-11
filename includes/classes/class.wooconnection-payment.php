@@ -17,18 +17,21 @@
  			//Get the application type so that application type selected from dropdown.....
 			$configurationType = applicationType();
 			$type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+			$gatewayImage = 'infusion-payment.jpg';
 			if(isset($configurationType) && !empty($configurationType)){
 				if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
 					$type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+					$gatewayImage = 'infusion-payment.jpg';
 				}else if ($configurationType == APPLICATION_TYPE_KEAP) {
 					$type = APPLICATION_TYPE_KEAP_LABEL;
+					$gatewayImage = 'keap-payment.jpg';
 				}
 			}
 
 			//Get the application lable to display.....
 			$applicationLabel = applicationLabel($type);
 			$this->id = 'infusionsoft_keap';
-	        $this->icon = apply_filters('woocommerce_is_kp_icon', ''.WOOCONNECTION_PLUGIN_URL.'assets/images/infusion-payment.jpg');
+	        $this->icon = apply_filters('woocommerce_is_kp_icon', ''.WOOCONNECTION_PLUGIN_URL.'assets/images/'.$gatewayImage);
 	        $this->has_fields = true;
 	        $this->method_title = __($applicationLabel, 'woocommerce-gateway-infusionsoft-keap');
 	        $this->method_description = "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s";
@@ -108,14 +111,7 @@
 			$subArray = array();
 			//check if application type is infusionsoft.....
 			if($type == APPLICATION_TYPE_INFUSIONSOFT_LABEL){
-				$subArray['wc_subscriptions'] = array(
-													'title' 	   => __('Woocommerce Subscriptions', 'woocommerce-gateway-infusionsoft-keap'),
-													'label' 	   => __( '<span class="slider round"></span>', 'woocommerce-gateway-infusionsoft-keap' ),
-													'type'  	   => 'checkbox',
-													'description' => __("Lorem Ipsum has been the industry's standard dummy text ever since the 1500s", 'woocommerce-gateway-infusionsoft-keap'),
-													'default'      => 'no',
-													'class' 	   => 'subscriptionEnable',
-												);
+				$subArray['wc_subscriptions'] = array('title'=>__('Woocommerce Subscriptions', 'woocommerce-gateway-infusionsoft-keap'),'label'=>__( '<span class="slider round"></span>', 'woocommerce-gateway-infusionsoft-keap'),'type'=>'checkbox','description'=>__("Lorem Ipsum has been the industry's standard dummy text ever since the 1500s", 'woocommerce-gateway-infusionsoft-keap'),'default'=>'no','class'=>'subscriptionEnable');
 			}
 			//merge subscription array element to form fields array.....
 			$this->form_fields = array_merge($this->form_fields, $subArray);
@@ -123,50 +119,146 @@
 
 		//Function Definition : payment_fields
  		public function payment_fields() {
+           	//enqueue the statndard woocommerce script to auto set form fields as a woocommerce payment gateway fields.....
            	wp_enqueue_script( 'wc-credit-card-form' );
-
-            // ok, let's display some description before the payment form
+			//check payment method description is exist from backend then proceed next.....
 			if ( $this->description ) {
-				// you can instructions for test mode, I mean test card numbers etc.
+				//check test mode enable.....
 				if ( $this->testmode ) {
+					//if enable the append static text in description.......
 					$this->description .= ' TEST MODE ENABLED. In test mode, you can use the card number 4242424242424242 with any CVC and a valid expiration date.';
 					$this->description  = trim( $this->description );
 				}
 				// display the description with <p> tags etc.
 				echo wpautop( wp_kses_post( $this->description ) );
 			}
-		 
-			// I will echo() the form, but you can close PHP tags and print it directly in HTML
+		 	//start html of payment fields form...
 			echo '<fieldset id="wc-' . esc_attr( $this->id ) . '-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">';
-		 
-			// Add this action hook if you want your custom payment gateway to support it
+		 	//call the hook to start the custom payment gateway......
 			do_action( 'woocommerce_credit_card_form_start', $this->id );
-		 
-			// I recommend to use inique IDs, because other gateways could already use #ccNo, #expdate, #cvc
+		 	//create the html of basic credit card fields.....
 			echo '<div class="form-row form-row-wide"><label>Card Number <span class="required">*</span></label>
-				<input class="wc-credit-card-form-card-number" id="' . esc_attr( $this->id ) . '_cnumber" name="' . esc_attr( $this->id ) . '_cnumber" type="tel" maxlength="19" placeholder="**** **** **** ****">
-				</div>
-				<div class="form-row form-row-first">
-					<label>Expiry Date <span class="required">*</span></label>
-					<input class="wc-credit-card-form-card-expiry" id="' . esc_attr( $this->id ) . '_expdate" name="' . esc_attr( $this->id ) . '_expdate" maxlength="7" type="tel" placeholder="MM / YY">
-				</div>
-				<div class="form-row form-row-last">
-					<label>Card Code (CVC) <span class="required">*</span></label>
-					<input class="wc-credit-card-form-card-cvc" id="' . esc_attr( $this->id ) . '_cvv" name="' . esc_attr( $this->id ) . '_cvv" type="tel" placeholder="CVC">
-				</div>
-				<div class="clear"></div>';
-		 
+				<input class="wc-credit-card-form-card-number" id="' . esc_attr( $this->id ) . '_cnumber" name="' . esc_attr( $this->id ) . '_cnumber" type="tel" maxlength="19" placeholder="**** **** **** ****"></div><div class="form-row form-row-first"><label>Expiry Date <span class="required">*</span></label><input class="wc-credit-card-form-card-expiry" id="' . esc_attr( $this->id ) . '_exppdate" name="' . esc_attr( $this->id ) . '_exppdate" maxlength="7" type="tel" placeholder="MM / YY"></div><div class="form-row form-row-last"><label>Card Code (CVC) <span class="required">*</span></label><input class="wc-credit-card-form-card-cvc" id="' . esc_attr( $this->id ) . '_cardcvv" name="' . esc_attr( $this->id ) . '_cardcvv" type="tel" placeholder="CVC"></div><div class="clear"></div>';
+		 	//call the hook to end the custom payment gateway......
 			do_action( 'woocommerce_credit_card_form_end', $this->id );
-		 
-			echo '<div class="clear"></div></fieldset>';
+			//end html of payment fields form...
+		 	echo '<div class="clear"></div></fieldset>';
 		}
 
 
 		//Function Definition : validate_fields
         public function validate_fields(){
-           	if(isset($_POST) && !empty($_POST)){
+            
+            //define empty variables and empty array........
+            $credit_card_number = '';
+            $credit_card_cvv = '';
+            $expiry_date_array = array('','');
+            $expiry_date_month = '';
+            $expiry_date_year = '';
+            
+            //check and set card number......
+            if(isset($_POST['infusionsoft_keap_cnumber']) && !empty($_POST['infusionsoft_keap_cnumber'])){
+            	$credit_card_number = str_replace( array(' ', '-' ), '', $_POST['infusionsoft_keap_cnumber']); 
+            }
+		    
+		    //check and set expiry date......
+            if(isset($_POST['infusionsoft_keap_exppdate']) && !empty($_POST['infusionsoft_keap_exppdate'])){
+            	$expiry_date_array = explode ("/", $_POST['infusionsoft_keap_exppdate']);
+            	$expiry_date_month =  str_replace( array(' ', '-' ), '', $expiry_date_array[0]); 
+		    	$expiry_date_year =  str_replace( array(' ', '-' ), '', $expiry_date_array[1]); 
+            }
 
-           	}
+		    //check and set card cvv......
+            if(isset($_POST['infusionsoft_keap_cardcvv']) && !empty($_POST['infusionsoft_keap_cardcvv'])){
+            	$credit_card_cvv = $_POST ['infusionsoft_keap_cardcvv']; 
+            }
+		    
+		    // Check card number exist or not....
+		    if(empty($credit_card_number) || !ctype_digit($credit_card_number)) { 
+		        wc_add_notice('Card number is required.', 'error'); 
+		        return false; 
+		    }
+		    //check card number length.....
+		    else if(strlen($credit_card_number) < 15 || strlen($credit_card_number) > 16){
+		    	wc_add_notice("Card number length does not match.", 'error');
+		        return false; 
+		    }
+		    //check card number type.....
+		    else{
+		    	switch($credit_card_number) {
+		            case(preg_match ('/^4/', $credit_card_number) >= 1):
+		                $creditCardType = 'Visa';
+		                break;
+		            case(preg_match ('/^5[1-5]/', $credit_card_number) >= 1):
+		                $creditCardType = 'MasterCard';
+		            	break;
+		            case(preg_match ('/^3[47]/', $credit_card_number) >= 1):
+		                $creditCardType = 'American Express';
+		            	break;
+		            case(preg_match ('/^6(?:011|5)/', $credit_card_number) >= 1):
+		                $creditCardType = 'Discover';
+		            	break;
+		            default:
+		               wc_add_notice("Could not determine the credit card type.", 'error');
+		               return false; 
+		        }
+		    }
+
+		    //check if complete expiry date is empty.....
+		    if(empty($expiry_date_month) && empty($expiry_date_month)) {
+		    	wc_add_notice('Card expiration date is required.', 'error'); 
+		        return false; 
+		    }
+			
+			//check expiry month is not empty and then validate it....
+			if(empty($expiry_date_month)) { 
+		        wc_add_notice('Card expiration month is required.', 'error'); 
+		        return false; 
+		    }else{ 
+		        if((int)$expiry_date_month>12 || (int)$expiry_date_month<1) { 
+		            wc_add_notice('Card expiration month is invalid.', 'error'); 
+		            return false; 
+		        } 
+		    } 
+		 	
+		 	//check expiry year is not empty and then validate it....
+		 	if(empty($card_exp_year)) { 
+		        wc_add_notice('Card expiration year is required.', 'error'); 
+		        return false; 
+		    }else{ 
+		        if(strlen($card_exp_year)==1 ||strlen($card_exp_year)==3||strlen($card_exp_year)>4) { 
+		            wc_add_notice('Card expiration year is invalid.', 'error'); 
+		            return false; 
+		        } 
+		 		if(strlen($card_exp_year)==2) { 
+		            if((int)$card_exp_year < (int)substr(date('Y'), -2)) { 
+		                wc_add_notice('Card expiration year is invalid.', 'error'); 
+		                return false; 
+		            } 
+		        } 
+		 
+		        if(strlen($card_exp_year)==4) { 
+		            if((int)$card_exp_year < (int)date('Y')) { 
+		                wc_add_notice('Card expiration year is invalid.', 'error'); 
+		                return false; 
+		            } 
+		        } 
+		    }
+		 	
+		 	//Check and set card security code.....
+		    if(empty($credit_card_cvv)) { 
+		        wc_add_notice('Card security code is required.', 'error'); 
+		        return false; 
+		    }
+		    if(!ctype_digit($credit_card_cvv)) { 
+		        wc_add_notice('Card security code is invalid (only digits are allowed).', 'error'); 
+		        return false; 
+		    } 
+		    if(strlen($credit_card_cvv) <3) { 
+		        wc_add_notice('Card security code, invalid length.', 'error'); 
+		        return false; 
+		    }
+		    return true; 
         }
 
     	//Function Definition : includeCustomCss
