@@ -1687,26 +1687,7 @@ function createStandardFieldsMappingHtml(){
   if(empty($wooStandardCheckoutFields)){
     $standard_fields_mapping_html = '<p class="heading-text" style="text-align:center">No standard custom fields mapping exist.</p>';
   }else{
-    $standard_fields_mapping_html .= '<form action="" method="post" id="wc_standard_fields_mapping_form" onsubmit="return false">
-        <table class="table table-striped standard_fields_listing_class" id="standard_fields_listing">
-          <thead>
-            <tr>
-              <th>
-                <input type="checkbox" id="match_fields_all" name="match_fields_all" class="all_fields_mapped_checkbox" value="allfieldsmapped">
-              </th>
-              <th>WooCommerce Standard Field</th>
-              <th>'.$applicationLabel.' Field</th>
-            </tr>
-          </thead>
-          <tbody>'.$wooStandardCheckoutFields.'</tbody>
-        </table>
-        <div class="form-group col-md-12 text-center m-t-60">
-          <div class="fieldsMapping" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Update Standard Fields Mapping......</div>
-          <div class="alert-error-message standard-fields-error" style="display: none;"></div>
-          <div class="alert-sucess-message standard-fields-success" style="display: none;">Products export successfully.</div>
-          <input type="button" value="Update Fields Mapping" class="btn btn-primary btn-radius btn-theme standard_fields_mapping_btn" onclick="wcStandardFieldsMapping()">
-        </div>
-    </form>';  
+    $standard_fields_mapping_html .= '<span class="ajax_loader_standard_fields_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_standard_fields_mapping_form" onsubmit="return false"><table class="table table-striped standard_fields_listing_class" id="standard_fields_listing"><thead><tr><th>WooCommerce Standard Field</th><th>'.$applicationLabel.' Field</th></tr></thead><tbody>'.$wooStandardCheckoutFields.'</tbody></table></form>';  
   }
   
   
@@ -1731,11 +1712,7 @@ function listStandardCheckoutFields(){
         $field_mapping = $value->wc_standardcf_mapped;
         $mapped_field_type = $value->wc_standardcf_mapped_field_type; 
         $mappedFieldName = 'FormType:'.$mapped_field_type.':'.$field_mapping;
-        $wccheckoutStandardFieldsHtml.='<tr class="standardcfrows" id="'.$field_id.'" data-id="'.$mappedFieldName.'">
-                                <td><input type="checkbox" class="each_field_mapped_checkbox" name="wc_fields_mapping[]" value="'.$field_id.'" id="'.$field_id.'"></td>
-                                <td>'.$field_name.'</td>
-                                <td><select name="standard_cfield_mapping_'.$field_id.'" id="standard_cfield_mapping_'.$field_id.'" class="standardcfieldmappingwith"><option value="donotmap">Do not mapped</option>'.$fieldsDropDown.'</select></td>
-                              </tr>';
+        $wccheckoutStandardFieldsHtml.='<tr class="standardcfrows" id="'.$field_id.'" data-id="'.$mappedFieldName.'"><td>'.$field_name.'</td><td><select name="standard_cfield_mapping_'.$field_id.'" id="standard_cfield_mapping_'.$field_id.'" data-id="'.$field_id.'" class="standardcfieldmappingwith"><option value="donotmap">Do not mapped</option>'.$fieldsDropDown.'</select></td></tr>';
     }
   }
   return $wccheckoutStandardFieldsHtml;
@@ -2018,7 +1995,7 @@ function loading_product_thanks_overrides(){
     $thankyouOverridesListing = '<ul class="group-fields override_product_rule">';
     foreach ($thankyouOverrides as $key => $value) {
         if(!empty($value->id)){
-          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="iw_ty_ov_name">'.$value->wc_override_name.'<span class="controls"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$value->id.'"></i></span></span></li>';
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="wc_thankyou_override_name">'.$value->wc_override_name.'<span class="listing-operators"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$value->id.'"></i></span></span></li>';
         }
     }
     $thankyouOverridesListing .= '</ul>';
@@ -2041,7 +2018,7 @@ function loading_product_cat_thanks_overrides(){
     $thankyouOverridesListing = '<ul class="group-fields override_product_category_rule">';
     foreach ($thankyouOverrides as $key => $value) {
         if(!empty($value->id)){
-          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="iw_ty_ov_name">'.$value->wc_override_name.'<span class="controls"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$value->id.'"></i></span></span></li>';
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="wc_thankyou_override_name">'.$value->wc_override_name.'<span class="listing-operators"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$value->id.'"></i></span></span></li>';
         }
     }
     $thankyouOverridesListing .= '</ul>';

@@ -181,7 +181,7 @@ span.closeCfModel {
 	        	</div>
 	        	<div class="tab-pane fade" id="table_standard_fields_mapping" role="tabpanel" aria-labelledby="nav-home-tab">
 	        	 	<p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
-	        	 	<div class="table-responsive" id="table_standard_fields_mapping_listing">
+	        	 	<div class="table-responsive position-relative" id="table_standard_fields_mapping_listing">
 					</div>
 	        	</div>
 	        </div>

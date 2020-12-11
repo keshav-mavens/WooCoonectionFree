@@ -876,7 +876,7 @@ function get_cfields_groups(){
         		$showhidehtml = '<i class="fa fa-eye-slash showhidecfieldgroup" title="Show custom field group with its custom fields" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
         	}
         	//concate a html inside loop....
-        	$customFieldsListing .=  '<li class="group-list" id="'.$value->id.'"><span class="group-name">'.$value->wc_custom_field_group_name.'<span class="controls"><i class="fa fa-plus addgroupcfield" title="Add custom field to this group" data-id="'.$value->id.'"></i>
+        	$customFieldsListing .=  '<li class="group-list" id="'.$value->id.'"><span class="group-name">'.$value->wc_custom_field_group_name.'<span class="listing-operators"><i class="fa fa-plus addgroupcfield" title="Add custom field to this group" data-id="'.$value->id.'"></i>
         		<i class="fa fa-pencil editcfieldgroup" title="Edit custom field group details" data-id="'.$value->id.'">
         		</i>'.$showhidehtml.'<i class="fa fa-times deletecfieldgroup" title="Delete custom field group" data-id="'.$value->id.'"></i></span></span>'.$custom_fields_html.'</li>';
         }
@@ -907,7 +907,7 @@ function get_cfields($groupid){
 	        		$showhidehtml = '<i class="fa fa-eye-slash showhidecfield" title="Show custom field" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
 	        	}
 				//concate a html inside loop....
-				$customFieldsHtml .= '<li class="group-field" id="'.$value->id.'">'.$value->wc_cf_name.'<span class="controls"><i class="fa fa-pencil editcfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i>'.$showhidehtml.'<i class="fa fa-times deletecfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i></span></li>';
+				$customFieldsHtml .= '<li class="group-field" id="'.$value->id.'">'.$value->wc_cf_name.'<span class="listing-operators"><i class="fa fa-pencil editcfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i>'.$showhidehtml.'<i class="fa fa-times deletecfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i></span></li>';
 			}
 			$customFieldsHtml .= '</ul>';
 		}
@@ -1282,39 +1282,33 @@ function wc_update_standard_cfields_mapping()
 		//define table names....
 		$standard_cfield_table_name = 'wooconnection_standard_custom_field_mapping';
     	$standard_cfield_table_name = $table_prefix . "$standard_cfield_table_name";
-		if(isset($_POST['wc_fields_mapping']) && !empty($_POST['wc_fields_mapping'])){
-	      	$mappedFieldName = '';
-	      	$mappedFieldType = '';
-	      	foreach ($_POST['wc_fields_mapping'] as $key => $value) {
-	      		if(!empty($value)){//check id value is not empty...
-	      			//check any associated product is selected along with imported product request....
-	      			if(isset($_POST['standard_cfield_mapping_'.$value]) && !empty($_POST['standard_cfield_mapping_'.$value])){
-	      				$mappedField = $_POST['standard_cfield_mapping_'.$value];
-	      				if($mappedField == 'donotmap'){
-	      					$mappedFieldName = '';
-	      					$mappedFieldType = CUSTOM_FIELD_FORM_TYPE_CONTACT;
-	      				}
-	      				if (strpos($mappedField, 'FormType:'.CUSTOM_FIELD_FORM_TYPE_CONTACT.':') !== false)
-					    {
-					       $fieldname=explode("FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":", $mappedField);
-					       $mappedFieldName = $fieldname[1];
-					       $mappedFieldType = CUSTOM_FIELD_FORM_TYPE_CONTACT;	
-					    }
-					    else if (strpos($mappedField, 'FormType:'.CUSTOM_FIELD_FORM_TYPE_ORDER.':') !== false)
-					    {
-					        $fieldname=explode("FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":", $mappedField);
-					    	$mappedFieldName = $fieldname[1];
-					    	$mappedFieldType = CUSTOM_FIELD_FORM_TYPE_ORDER;	
-					    }
-	      			}
-	      			//update relationship between woocommerce standard field and infusionsoft/keap custom fields...
-	      			$standardCfieldUpdateResult = $wpdb->update($standard_cfield_table_name, array('wc_standardcf_mapped' => $mappedFieldName,'wc_standardcf_mapped_field_type'=>$mappedFieldType),array('id' => $value));
-	      		}
-	      	}
+		if(isset($_POST['wcCustomFieldId']) && !empty($_POST['wcCustomFieldId'])){
+      		$mappedFieldName = '';
+      		$mappedFieldType = '';
+  			//check any associated product is selected along with imported product request....
+  			if(isset($_POST['applicationCustomField']) && !empty($_POST['applicationCustomField'])){
+  				$mappedField = $_POST['applicationCustomField'];
+  				if($mappedField == 'donotmap'){
+  					$mappedFieldName = '';
+  					$mappedFieldType = CUSTOM_FIELD_FORM_TYPE_CONTACT;
+  				}
+  				if (strpos($mappedField, 'FormType:'.CUSTOM_FIELD_FORM_TYPE_CONTACT.':') !== false)
+			    {
+			       $fieldname=explode("FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":", $mappedField);
+			       $mappedFieldName = $fieldname[1];
+			       $mappedFieldType = CUSTOM_FIELD_FORM_TYPE_CONTACT;	
+			    }
+			    else if (strpos($mappedField, 'FormType:'.CUSTOM_FIELD_FORM_TYPE_ORDER.':') !== false)
+			    {
+			        $fieldname=explode("FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":", $mappedField);
+			    	$mappedFieldName = $fieldname[1];
+			    	$mappedFieldType = CUSTOM_FIELD_FORM_TYPE_ORDER;	
+			    }
+  			}
+  			//update relationship between woocommerce standard field and infusionsoft/keap custom fields...
+  			$standardCfieldUpdateResult = $wpdb->update($standard_cfield_table_name, array('wc_standardcf_mapped' => $mappedFieldName,'wc_standardcf_mapped_field_type'=>$mappedFieldType),array('id' => $_POST['wcCustomFieldId']));
 	    }
-	    //then call the "createStandardFieldsMappingHtml" function to get the latest html...
-		$latestMappedStandardFieldsHtml = createStandardFieldsMappingHtml();
-      	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestMappedStandardFieldsHtml'=>$latestMappedStandardFieldsHtml));
+	   	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	}
 	die();
 }

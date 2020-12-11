@@ -64,7 +64,7 @@ if(empty($leftMenuClass)){
 	                </li>
 	                <li class="sub-menu-expand common_disable_class <?php echo $leftMenuClass; ?> <?php echo $pluginAuthStatus; ?>">
 	                	<a href="javascript:void(0);" class="nav-tabs" id="application_settings">
-	                		<span class="applicationtype" id="<?php echo $configurationType; ?>"><?php echo $applicationLabel; ?></span> Settings</a>
+	                		<span class="configurationType" id="<?php echo $configurationType; ?>"><?php echo $applicationLabel; ?></span> Settings</a>
 	                </li>
 				</ul>
 	        </li>

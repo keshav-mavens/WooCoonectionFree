@@ -19,28 +19,28 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
           </p>
           <div class="main_rendered_thank_overrides">
               <ul class="main-override">
-                  <li class="iw_ty_ov_li">
-                    <span class="iw_ty_ov_name">Default Thank You Page
-                        <span class="controls">
+                  <li class="wc_thankyou_override">
+                    <span class="wc_thankyou_override_name">Default Thank You Page
+                        <span class="listing-operators">
                             <i class="fa fa-pencil edit_default_thankpage_override" title="Edit default thankyou page override"></i>
                         </span>
                     </span>
                   </li>
-                  <li class="iw_ty_ov_li">
-                    <span class="iw_ty_ov_name">Thank You Page Product Based Overrides
-                        <span class="controls">
+                  <li class="wc_thankyou_override">
+                    <span class="wc_thankyou_override_name">Thank You Page Product Based Overrides
+                        <span class="listing-operators">
                             <i class="fa fa-plus add_product_rules" title="Add New Thank You Page Override Product Rules"></i>
                         </span>
                     </span>
-                    <div id="product_thank_overrides"><?php echo loading_product_thanks_overrides(); ?></div>
+                    <div class="thanksOverride" id="product_thank_overrides"><?php echo loading_product_thanks_overrides(); ?></div>
                   </li>
-                  <li class="iw_ty_ov_li">
-                    <span class="iw_ty_ov_name">Thank You Page Product Category Based Overrides
-                        <span class="controls">
+                  <li class="wc_thankyou_override">
+                    <span class="wc_thankyou_override_name">Thank You Page Product Category Based Overrides
+                        <span class="listing-operators">
                             <i class="fa fa-plus add_product_category_rules" title="Add New Thank You Page Override Product Category Rules"></i>
                         </span>
                     </span>
-                    <div id="product_cat_thank_overrides"><?php echo loading_product_cat_thanks_overrides(); ?></div>
+                    <div class="thanksOverride" id="product_cat_thank_overrides"><?php echo loading_product_cat_thanks_overrides(); ?></div>
                   </li>
               </ul>
           </div>

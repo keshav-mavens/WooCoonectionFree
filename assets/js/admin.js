@@ -289,8 +289,7 @@
                                         if(standardcfId != ''){
                                             if(standardcdmapp != ""){
                                                 //set field selected....
-                                                $('#standard_cfield_mapping_'+standardcfId).val(standardcdmapp);
-                                                $('#standard_cfield_mapping_'+standardcfId).select2().trigger('change');
+                                                $('#standard_cfield_mapping_'+standardcfId).val(standardcdmapp).trigger('change.select2');
                                             }
                                         }
                                     });
@@ -790,26 +789,6 @@
                 }
             });
 
-            //Match Products Tab : check all products checkbox rule....
-            $document.on("click",".all_fields_mapped_checkbox",function(event) {
-                if ($(this).is(":checked"))
-                {
-                    $('.each_field_mapped_checkbox').prop("checked", true);
-                }
-                else
-                {
-                    $('.each_field_mapped_checkbox').prop("checked", false);
-                }
-            });
-            
-            //Match Products Tab : on change of select box of woocommerce products mark checkbox checked or unchecked on the basis of select value.....
-            $document.on("click",".each_field_mapped_checkbox",function(event) {
-                if ($('.all_fields_mapped_checkbox').is(":checked"))
-                {
-                    $('.all_fields_mapped_checkbox').prop("checked", false);
-                }
-            });
-
             //on change of override redirect condition show hide the corresponding fields on default thankyou page....
             $document.on("change","#overrideredirecturltype",function(event) {
                 event.stopPropagation();
@@ -1003,12 +982,35 @@
             //Below code is used to check whether a application type is infusionsoft/keap, if keap then hide some feature menus like leadsource,refferal partner..
             if($(".configurationType").attr('id') != ""){
                 var configurationType =  $(".configurationType").attr('id');
-                if(configurationType == 'Infusionsoft'){//if application type is infusionsoft.......
+                if(configurationType == '1'){//if application type is infusionsoft.......
                     $("#lead_sources").show();
-                }else if (configurationType == 'Keap'){//if application type is keap.....
+                }else if (configurationType == '2'){//if application type is keap.....
                     $("#lead_sources").hide();
                 }
             }
+
+
+            //Custom Fields Tab : On change of application custom field from dropdown send ajax to update mapping of standard custom field............
+            $document.on("change",".standardcfieldmappingwith", function(event)
+            {
+                event.stopPropagation();
+                //get woocommerce custom field id....
+                var wcCustomFieldId = $(this).data('id');
+                //get application product id with woocommerce product mapping set.........
+                var applicationCustomField = $(this).val();
+                if(wcCustomFieldId != "" && typeof wcCustomFieldId  !== "undefined"){
+                    jQuery(".standard_fields_listing_class").addClass('overlay');
+                    jQuery(".ajax_loader_standard_fields_related").show();
+                    jQuery.post(ajax_object.ajax_url + "?action=wc_update_standard_cfields_mapping&jsoncallback=x", {wcCustomFieldId: wcCustomFieldId,applicationCustomField:applicationCustomField}, function(data) {
+                        jQuery(".standard_fields_listing_class").removeClass('overlay');
+                        jQuery(".ajax_loader_standard_fields_related").hide();
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == "1") {
+                            swal("Saved!", 'Standard field mapping updated successfully.', "success");
+                        }
+                    });
+                } 
+            });
         });
 }(jQuery));
 
@@ -1442,7 +1444,7 @@ function applySelectTwo(element){
         //add select 2 for woocommerce products field
         if(element == 'standardcfieldmappingwith'){
             $("."+element).select2({
-                placeholder: 'Select Mapped Application Field',
+                placeholder: 'Select Application Field',
             }); 
         }
         //add select 2 for wordpress posts field on thankyou page.....
@@ -1745,51 +1747,6 @@ function sortabledivs(element){
         }
 
     }
-}
-
-//On click of update products mapping button send ajax to update mapping of products and on sucess update the html....
-function wcStandardFieldsMapping(){
-    var checkFields = checkSelectedProducts('standard_fields_listing_class','allfieldsmapped');
-    var checkSelectedFieldsCount = checkFields.length;//console.log(checkProducts);
-    if(checkSelectedFieldsCount == 0){
-        $(".standard-fields-error").html('You need to select atleast one standard field to update mapping.');
-        $(".standard-fields-error").show();
-    }else{
-        $(".standard-fields-error").hide();
-        $(".fieldsMapping").show();
-        $('.standard_fields_mapping_btn').addClass("disable_anchor");
-        jQuery.post( ajax_object.ajax_url + "?action=wc_update_standard_cfields_mapping",$('#wc_standard_fields_mapping_form').serialize(), function(data) {
-            var responsedata = JSON.parse(data);
-            $(".fieldsMapping").hide();
-            if(responsedata.status == "1") {
-                $('.standard_fields_mapping_btn').removeClass("disable_anchor");
-                if(responsedata.latestMappedStandardFieldsHtml != ""){
-                     $('.table_standard_fields_mapping_listing').html();
-                     $('.table_standard_fields_mapping_listing').html(responsedata.latestMappedStandardFieldsHtml);
-                }
-                
-                //add select 2 for infusionsoft/keap pre defined custom and basic fields....
-                if($(".standardcfieldmappingwith").length){
-                    applySelectTwo('standardcfieldmappingwith');
-                }
-                $('.all_fields_mapped_checkbox').prop("checked", false);
-                $('.each_field_mapped_checkbox').prop("checked", false);
-                swal("Saved!", 'Standard fields mapping updated successfully.', "success");
-            }else{
-                $(".standard-fields-error").show();
-                $(".standard-fields-error").html('Something Went Wrong.');
-                setTimeout(function()
-                {
-                    $('.standard-fields-error').fadeOut("slow");
-                    $('.standard_fields_mapping_btn').removeClass("disable_anchor");
-                }, 3000);
-            }
-        });
-    }
-    setTimeout(function()
-    {
-        $('.standard-fields-error').fadeOut("slow");
-    }, 3000);
 }
 
 //Custom fields Tab : This function is used to get the application custom field tabs.....
