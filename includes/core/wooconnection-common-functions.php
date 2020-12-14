@@ -1290,7 +1290,8 @@ function getApplicationProductDetails($access_token,$productId){
 
 //Function is used to vaidate a credit card on the basis of card details.....
 function validateCreditCard($access_token,$cardDetails){
-    //First needs to check access token and order is exist or not.....
+    $cardResponseData = '';
+    //First needs to check access token is exist or not.....
     if(!empty($access_token) && !empty($cardDetails)){
         // Create instance of our wooconnection logger class to use off the whole things.
         $wooconnectionLogger = new WC_Logger();
@@ -1340,22 +1341,214 @@ function validateCreditCard($access_token,$cardDetails){
         $err = curl_error($ch);
         //check if error occur due to any reason and then save the logs...
         if($err){
-            // $errorMessage = "Add order item to order #".$orderid." is failed due to ". $err; 
-            // $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
         }else{
           //Covert/Decode response to xml.....
-          return $responsedata = xmlrpc_decode($response);
+          $cardResponseData = xmlrpc_decode($response);
           //check if any error occur like invalid access token,then save logs....
-          // if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
-          //     if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
-          //         $errorMessage = "Add order item to order #".$orderid." is failed due to ". $responsedata['faultString']; 
-          //         $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          //     }
-          // }else{
-          //   return true;
-          // }
+          if (is_array($cardResponseData) && xmlrpc_is_fault($cardResponseData)) {
+              if(isset($cardResponseData['faultString']) && !empty($cardResponseData['faultString'])){
+                  $errorMessage = "Validate contact credit card is failed due to ". $cardResponseData['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+              }
+          }else{
+            return $cardResponseData;
+          }
         }
         curl_close($ch);
     }
+    return $cardResponseData;
 }
+
+//Function is used to vaidate a credit card on the basis of card details.....
+function checkContactCardExist($access_token,$conatctId,$cardNumber){
+    $contactCardResponseData = '';
+    //First needs to check access token is exist or not.....
+    if(!empty($access_token) && !empty($conatctId) && !empty($cardNumber)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        
+        //Create xml to hit the curl request for add order item.....
+        $xmlData = "<methodCall><methodName>InvoiceService.locateExistingCard</methodName><params><param><value><string></string></value></param><param><value><int>".$conatctId."</int></value></param><param><value><string>".$cardNumber."</string></value></param></params></methodCall>";
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($err){
+            $errorMessage = "Check contact credit card is failed due to ". $err; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $contactCardResponseData = xmlrpc_decode($response);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($contactCardResponseData) && xmlrpc_is_fault($contactCardResponseData)) {
+              if(isset($contactCardResponseData['faultString']) && !empty($contactCardResponseData['faultString'])){
+                  $errorMessage = "Check contact credit card is failed due to ". $contactCardResponseData['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+              }
+          }else{
+            return $contactCardResponseData;
+          }
+        }
+        curl_close($ch);
+    }
+    return $contactCardResponseData;
+}
+
+
+//Function is used to update the existing credit card details....
+function updateExistingCreditCard($access_token,$cardId,$cardFields){
+    $updateCardResponseData = '';
+    //First needs to check access token is exist or not.....
+    if(!empty($access_token) && !empty($cardId) && !empty($cardFields)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        
+        //create xml html by executing loop...
+        $cardFieldsHtml = '';
+        foreach ($cardFields as $key => $value) {
+            $cardFieldsHtml .= '<member><name>'.$key.'</name><value><string>'.$value.'</string></value></member>';
+        }
+
+        //Create xml to hit the curl request for add order item.....
+        $xmlData = "<methodCall><methodName>DataService.update</methodName><params><param><value></value></param><param><value><string>CreditCard</string></value></param><param><value><int>".$cardId."</int></value></param><param><value><struct>".$cardFieldsHtml."</struct></value></param></params></methodCall>";
+        
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($err){
+            $errorMessage = "Update existing credit card details is failed due to ". $err; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $updateCardResponseData = xmlrpc_decode($response);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($updateCardResponseData) && xmlrpc_is_fault($updateCardResponseData)) {
+              if(isset($updateCardResponseData['faultString']) && !empty($updateCardResponseData['faultString'])){
+                  $errorMessage = "Update existing credit card details is failed due to ". $updateCardResponseData['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+              }
+          }else{
+            return $updateCardResponseData;
+          }
+        }
+        curl_close($ch);
+    }
+    return $updateCardResponseData;
+}
+
+
+//Function is used to add the new credit card details....
+function addNewCreditCard($access_token,$creditCardFields){
+    $addCardResponseData = '';
+    //First needs to check access token is exist or not.....
+    if(!empty($access_token) && !empty($creditCardFields)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        
+        //create xml html by executing loop...
+        $addCardFieldsHtml = '';
+        foreach ($creditCardFields as $key => $value) {
+            $addCardFieldsHtml .= '<member><name>'.$key.'</name><value><string>'.$value.'</string></value></member>';
+        }
+
+        //Create xml to hit the curl request for add order item.....
+        $xmlData = "<methodCall><methodName>DataService.add</methodName><params><param><value></value></param><param><value><string>CreditCard</string></value></param><param><value><struct>".$addCardFieldsHtml."</struct></value></param></params></methodCall>";
+        
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($err){
+            $errorMessage = "Add new credit card is failed due to ". $err; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $addCardResponseData = xmlrpc_decode($response);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($addCardResponseData) && xmlrpc_is_fault($addCardResponseData)) {
+              if(isset($addCardResponseData['faultString']) && !empty($addCardResponseData['faultString'])){
+                  $errorMessage = "Add new credit card is failed due to ". $addCardResponseData['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+              }
+          }else{
+            return $addCardResponseData;
+          }
+        }
+        curl_close($ch);
+    }
+    return $addCardResponseData;
+}
+
+/*//Create order payment in infusionsoft/keap application at the time checkout......
+function createOrderPayment($orderid,$contactId,$jsonOrderItems,$access_token){
+    $newOrderId = "";
+    if(!empty($contactId) && !empty($orderid) && !empty($access_token)){
+        $orderTitle = "New Order Payment Generated where order number is #" . $orderid . " and generated from " . site_url();
+        $url = "https://api.infusionsoft.com/crm/rest/v1/orders";
+        $current_time = date("Y-m-d")."T".date("H:i:s")."Z"; 
+        $jsonArray = '{
+                        "contact_id": '.$contactId.',
+                        "order_items": '.$jsonOrderItems.',
+                        "order_date": "'.$current_time.'",
+                        "order_title": "'.$orderTitle.'",
+                        "order_type": "Offline"
+                      }';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(!empty($sucessData)){
+              if(!empty($sucessData['id'])){
+                $newOrderId = $sucessData['id'];
+                return $newOrderId;
+              } 
+          }
+        }
+        curl_close($ch);  
+    }
+    return $newOrderId;
+    
+}*/
 ?>

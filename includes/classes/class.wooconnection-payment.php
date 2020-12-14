@@ -155,6 +155,8 @@
             $expiry_date_array = array('','');
             $expiry_date_month = '';
             $expiry_date_year = '';
+            $cardFirstName = '';
+			$cardLastName = '';
             
             //check and set card number......
             if(isset($_POST['infusionsoft_keap_cnumber']) && !empty($_POST['infusionsoft_keap_cnumber'])){
@@ -222,23 +224,23 @@
 		    } 
 		 	
 		 	//check expiry year is not empty and then validate it....
-		 	if(empty($card_exp_year)) { 
+		 	if(empty($expiry_date_year)) { 
 		        wc_add_notice('Card expiration year is required.', 'error'); 
 		        return false; 
 		    }else{ 
-		        if(strlen($card_exp_year)==1 ||strlen($card_exp_year)==3||strlen($card_exp_year)>4) { 
+		        if(strlen($expiry_date_year)==1 ||strlen($expiry_date_year)==3||strlen($expiry_date_year)>4) { 
 		            wc_add_notice('Card expiration year is invalid.', 'error'); 
 		            return false; 
 		        } 
-		 		if(strlen($card_exp_year)==2) { 
-		            if((int)$card_exp_year < (int)substr(date('Y'), -2)) { 
+		 		if(strlen($expiry_date_year)==2) { 
+		            if((int)$expiry_date_year < (int)substr(date('Y'), -2)) { 
 		                wc_add_notice('Card expiration year is invalid.', 'error'); 
 		                return false; 
 		            } 
 		        } 
 		 
-		        if(strlen($card_exp_year)==4) { 
-		            if((int)$card_exp_year < (int)date('Y')) { 
+		        if(strlen($expiry_date_year)==4) { 
+		            if((int)$expiry_date_year < (int)date('Y')) { 
 		                wc_add_notice('Card expiration year is invalid.', 'error'); 
 		                return false; 
 		            } 
@@ -251,15 +253,199 @@
 		        return false; 
 		    }
 		    if(!ctype_digit($credit_card_cvv)) { 
-		        wc_add_notice('Card security code is invalid (only digits are allowed).', 'error'); 
+		        wc_add_notice('Card security code is invalid.', 'error'); 
 		        return false; 
 		    } 
 		    if(strlen($credit_card_cvv) <3) { 
 		        wc_add_notice('Card security code, invalid length.', 'error'); 
 		        return false; 
 		    }
+
+		    if(isset($_POST['billing_email']) && !empty($_POST['billing_email'])){
+		    	// Create instance of our wooconnection logger class to use off the whole things.
+			    $wcLogger = new WC_Logger();
+			    
+			    //Concate a error message to store the logs...
+			    $callbackPurpose = 'Infusionsoft/Keap Process Payment : Process infusionsoft/keap payment add contact';
+
+		    	//get the application authentication details ......
+			    $applicationAuthenticationDetails = getAuthenticationDetails();
+
+			    //Stop the below process if not authentication done with infusionsoft/keap application..
+			    if(empty($applicationAuthenticationDetails) || empty($applicationAuthenticationDetails[0]->user_access_token))
+			    {
+			        $addLogs = addLogsAuthentication($callback_purpose);
+			        return false;
+			    }
+
+			    //get the access token....
+			    $access_token = '';
+			    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+			        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+			    }
+
+		    	$payment_email = $_POST['billing_email'];
+
+		    	// Validate email is in valid format or not 
+			    validate_email($payment_email,$callbackPurpose,$wcLogger);
+
+			    //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
+			    $paymentContactId = checkAddContactApp($access_token,$payment_email,$callbackPurpose);
+		    
+			    //get last four digits of credit card.....
+			    $last_four_digits = substr($credit_card_number,-4);
+
+			    //check contact id exist or not.....
+			    if(isset($paymentContactId) && !empty($paymentContactId)){
+			    	//define empty array.....
+			    	$cardDetails = array();
+			    	//assign values to array....
+			    	$cardDetails['CardType'] = $creditCardType;
+			    	$cardDetails['ContactId'] = $paymentContactId;
+			    	$cardDetails['CardNumber'] = $credit_card_number;
+			    	$cardDetails['ExpirationMonth'] = $expiry_date_month;
+			    	$cardDetails['ExpirationYear'] = $expiry_date_year;
+			    	$cardDetails['CVV2'] = $credit_card_cvv;
+			    	
+			    	//Validate the credit card first.......
+			        $creditCardResult = validateCreditCard($access_token,$cardDetails);
+			        
+			        //If the credit card details is invalid then stop the process to proceed next.......
+			        if (!empty($creditCardResult) && $creditCardResult['Valid'] == 'false') {
+			            $failurereason = 'Cedit Card Details are not valid';
+			            wc_add_notice('Process payment failed due to '.$failurereason, 'error'); 
+		        		return false; 
+			        }else{
+		        		//then first check mercent id exist in custom payment gateway settings.....
+		        		if (empty($this->is_merchant_id)) {
+			                wc_add_notice("To process payment with ".$this->title." is failed because Merchant ID is not set in settings. Please do it first.", 'error'); 
+	        			 	return false; 
+			         	}
+
+			         	$responseContactCc = checkContactCardExist($access_token,$paymentContactId,$last_four_digits);
+			        	//check and set card first name......
+			            if(isset($_POST['billing_first_name']) && !empty($_POST['billing_first_name'])){
+			            	$cardFirstName = trim($_POST['billing_first_name']); 
+			            }
+			            //check and set card last name......
+			            if(isset($_POST['billing_last_name']) && !empty($_POST['billing_last_name'])){
+			            	$cardLastName = trim($_POST['billing_last_name']); 
+			            }
+			            //set the addtional values in 
+			        	$cardDetails['NameOnCard'] = ucfirst($cardFirstName) . " " . ucfirst($cardLastName);
+			         	$cardDetails['FirstName'] = $cardFirstName;
+			         	$cardDetails['LastName'] = $cardLastName;
+			         	$cardDetails['BillAddress1'] = isset($_POST['billing_address_1']) ? $_POST['billing_address_1'] : '';
+			         	$cardDetails['BillAddress2'] = isset($_POST['billing_address_2']) ? $_POST['billing_address_2'] : '';
+			         	$cardDetails['BillCity'] = isset($_POST['billing_city']) ? $_POST['billing_city'] : '';
+			         	$cardDetails['BillState'] = isset($_POST['billing_state']) ? $_POST['billing_state'] : '';
+			         	$cardDetails['BillCountry'] = isset($_POST['billing_country']) ? $_POST['billing_country'] : '';
+			         	$cardDetails['BillZip'] = isset($_POST['billing_postcode']) ? $_POST['billing_postcode'] : '';
+			        	if(!empty($responseContactCc)){
+			        		$appCreditCardId = updateExistingCreditCard($access_token,$responseContactCc,$cardDetails);
+			        		if(isset($appCreditCardId) && !empty($appCreditCardId)){
+			        			$appCreditCardId = $appCreditCardId;
+			        		}else{
+			        			$appCreditCardId = $responseContactCc;
+			        		}
+			        	}else{
+			        		$appCreditCardId = addNewCreditCard($access_token,$cardDetails);
+			        	}
+			        	$_POST['custom_payment_gateway_card_id'] = $appCreditCardId;
+			        	$_POST['custom_payment_gateway_contact_id'] = $paymentContactId;
+			        }
+			    }
+		    }
 		    return true; 
         }
+
+		//Function Definition : process_payment
+        public function process_payment($order_id)
+		{
+		 	global $woocommerce;
+		 	$orderData = new WC_Order($order_id);//get the order details by order id.......
+		 	$contactId = $_POST['custom_payment_gateway_contact_id'];//get the contact id from post data.....
+		 	$creditCardId = $_POST['custom_payment_gateway_card_id'];//get the contact id from post data.....
+			$orderTax = (float) $orderData->get_total_tax();//get the tax for order
+		    $orderDiscountDetails  = (int) $orderData->get_total_discount();//get the discount on order.....
+		    $orderCoupons = $orderData->get_used_coupons();//get the list of used coupons.....
+		    $orderDiscountDesc = "Order Discount";//Set order discount disc....
+		    //Append list of discount coupon codes in string....
+		    if(!empty($orderCoupons)){
+		        $orderDiscountDesc = implode(",", $orderCoupons);
+		        $orderDiscountDesc = "Discount generated from coupons ".$orderDiscountDesc;
+		    }
+
+		    //get the application authentication details ......
+		    $applicationAuthenticationDetails = getAuthenticationDetails();
+
+		    //Stop the below process if not authentication done with infusionsoft/keap application..
+		    if(empty($applicationAuthenticationDetails) || empty($applicationAuthenticationDetails[0]->user_access_token))
+		    {
+		        $addLogs = addLogsAuthentication($callback_purpose);
+		        return false;
+		    }
+
+		    //get the access token....
+		    $access_token = '';
+		    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+		        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+		    }
+
+		    //Get the order items from order then execute loop to create the order items array....
+            if ( sizeof( $orderProductsItems = $orderData->get_items() ) > 0 ) {
+                foreach($orderProductsItems as $itemId => $item)
+                {
+                    $parentProduct = '';
+                    if(!empty($item->get_variation_id())){
+                        $orderProductId = $item->get_variation_id();    
+                        $parentProduct = $item->get_product_id();
+                    }else{
+                        $orderProductId = $item->get_product_id(); 
+                    }
+                    $productData = wc_get_product($orderProductId);//get the prouct details...
+                    $orderProductDesc = $productData->get_description();//product description..
+                    $orderProductPrice = round($productData->get_price(),2);//get product price....
+                    $orderProductQuan = $item['quantity']; // Get the item quantity....
+                    $orderProductIdCheck = checkAddProductIsKp($access_token,$productData,$parentProduct);//get the related  product id on the basis of relation with infusionsoft/keap application product...
+                    $productTitle = $productData->get_title();//get product title..
+                    //push product details into array/......
+                    $itemsDetailsArray[] = array('description'=>$orderProductDesc,'price'=>$orderProductPrice,'product_id'=>$orderProductIdCheck,'quantity'=>$orderProductQuan);
+                }
+                $jsonOrderItemsData = json_encode($itemsDetailsArray);//create order items json....
+                //create order in infusionsoft/keap application.....
+                $applicationorderId = createOrder($order_id,$contactId,$jsonOrderItemsData,$access_token);
+                //update order relation between woocommerce order and infusionsoft/keap application order.....
+                if(!empty($applicationorderId)){
+                    //Update relation .....
+                    update_post_meta($order_id, 'is_kp_order_relation', $applicationorderId);
+                    //Check of tax exist with current order....
+                    if(isset($orderTax) && !empty($orderTax)){
+                        //Call the common function to add order itema as a tax....
+                        addOrderItems($access_token,$applicationorderId, NON_PRODUCT_ID, ITEM_TYPE_TAX, $orderTax, ORDER_ITEM_QUANTITY, 'Order Tax',ITEM_TAX_NOTES);
+                    }
+                    //Check discount on order.....
+                    if(isset($orderDiscountDetails) && !empty($orderDiscountDetails)){
+                        $discountDetected = $orderDiscountDetails;
+                        $discountDetected *= -1;
+                        //Call the common function to add order itema as a discount....
+                        addOrderItems($access_token,$applicationorderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $orderDiscountDesc, ITEM_DISCOUNT_NOTES);
+                    }
+                    //$order->payment_complete();
+                }
+            }
+
+            //check if test mode is enable.....
+            if ($this->testmode == 'yes') {
+		        wc_add_notice('At this point you have passed all forms of verification and your order should have been added to IS with the ID of ' . $applicationorderId . '. Take the IS module out of test mode to make real transactions.', 'error'); 
+		        return false;
+		    }
+		  //   if (!empty($this->is_merchant_id)) {
+				// $results = createOrderPayment($inv_id,"Online Shopping Cart", $creditCardId, $merchant, false);
+		  //   }
+
+			return array('result' => 'success', 'redirect' => $this->get_return_url($orderData));
+		}
 
     	//Function Definition : includeCustomCss
 	    public function includeCustomCss(){
