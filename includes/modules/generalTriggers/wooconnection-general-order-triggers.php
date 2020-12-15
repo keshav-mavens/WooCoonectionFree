@@ -81,11 +81,21 @@ function wooconnection_trigger_status_complete_hook($orderid){
     if(isset($orderContactId) && !empty($orderContactId)) {
         //check relation of current order with infusionsoft/keap application order.....
         $orderRelationId = get_post_meta($orderid, 'is_kp_order_relation', true);
-        if(empty($orderRelationId)){
+        
+        //get the payment gateway value.....
+        $method = get_post_meta($orderid, 'Custom Payment Gateway', true);
+        
+        //check and set gateway value is exist or not....
+        $custom_gateway = '';
+        if(isset($method) && !empty($method)){
+            $custom_gateway = $method;
+        }
+
+        if(empty($orderRelationId) || $custom_gateway == 'infusionsoft_keap'){
             //get order data and update the contact information,,
             $order_data = $order->get_data();
             //Update contact data after getting the contact id.....
-            updateContact($orderContactId,$order_data,$access_token);
+            //updateContact($orderContactId,$order_data,$access_token);
             // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
             if(!empty($generalSuccessfullOrderIntegrationName) && !empty($generalSuccessfullOrderCallName))
             {
@@ -103,59 +113,50 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 }
             }
             
-            //Call the common function to hit the any purchase trigger....
-            $anyPurchaseTrigger = orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger);
-
-            //add goals form specfic coupons...
-            if(!empty($orderAssociatedCoupons)){
-                foreach ($orderAssociatedCoupons as $key => $value) {
-                    if(!empty($value)){
-                        //Call the common function to hit the coupon applied trigger....
-                        $couponName = 'coupon'.substr($value, 0, 34);
-                        $couponApplyTrigger = orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooconnectionLogger);
+            //get the payment method to proceed next........
+            $payment_method = $order->get_payment_method();
+            //check if payment gateway is not equal to infusionsoft or keap then proceed next.....
+            if($payment_method != "infusionsoft_keap") {
+                //Get the order items from order then execute loop to create the order items array....
+                if ( sizeof( $products_items = $order->get_items() ) > 0 ) {
+                    foreach($products_items as $item_id => $item)
+                    {
+                        $parent_product_id = '';
+                        if(!empty($item->get_variation_id())){
+                            $product_id = $item->get_variation_id();    
+                            $parent_product_id = $item->get_product_id();
+                        }else{
+                            $product_id = $item->get_product_id(); 
+                        }
+                        $product = wc_get_product($product_id);//get the prouct details...
+                        $productDesc = $product->get_description();//product description..
+                        $productPrice = round($product->get_price(),2);//get product price....
+                        $productQuan = $item['quantity']; // Get the item quantity....
+                        $productIdCheck = checkAddProductIsKp($access_token,$product,$parent_product_id);//get the related  product id on the basis of relation with infusionsoft/keap application product...
+                        $productTitle = $product->get_title();//get product title..
+                        //push product details into array/......
+                        $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
                     }
-                }
-            }
-            
-            //Get the order items from order then execute loop to create the order items array....
-            if ( sizeof( $products_items = $order->get_items() ) > 0 ) {
-                foreach($products_items as $item_id => $item)
-                {
-                    $parent_product_id = '';
-                    if(!empty($item->get_variation_id())){
-                        $product_id = $item->get_variation_id();    
-                        $parent_product_id = $item->get_product_id();
-                    }else{
-                        $product_id = $item->get_product_id(); 
-                    }
-                    $product = wc_get_product($product_id);//get the prouct details...
-                    $productDesc = $product->get_description();//product description..
-                    $productPrice = round($product->get_price(),2);//get product price....
-                    $productQuan = $item['quantity']; // Get the item quantity....
-                    $productIdCheck = checkAddProductIsKp($access_token,$product,$parent_product_id);//get the related  product id on the basis of relation with infusionsoft/keap application product...
-                    $productTitle = $product->get_title();//get product title..
-                    //push product details into array/......
-                    $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
-                }
-                //create order items json....
-                $jsonOrderItems = json_encode($itemsArray);
-                //create order in infusionsoft/keap application.....
-                $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token);
-                //update order relation between woocommerce order and infusionsoft/keap application order.....
-                if(!empty($iskporderId)){
-                    //Update relation .....
-                    update_post_meta($orderid, 'is_kp_order_relation', $iskporderId);
-                    //Check of tax exist with current order....
-                    if(isset($orderTaxDetails) && !empty($orderTaxDetails)){
-                        //Call the common function to add order itema as a tax....
-                        addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_TAX, $orderTaxDetails, ORDER_ITEM_QUANTITY, 'Order Tax',ITEM_TAX_NOTES);
-                    }
-                    //Check discount on order.....
-                    if(isset($orderDiscountDetails) && !empty($orderDiscountDetails)){
-                        $discountDetected = $orderDiscountDetails;
-                        $discountDetected *= -1;
-                        //Call the common function to add order itema as a discount....
-                        addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
+                    //create order items json....
+                    $jsonOrderItems = json_encode($itemsArray);
+                    //create order in infusionsoft/keap application.....
+                    $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token);
+                    //update order relation between woocommerce order and infusionsoft/keap application order.....
+                    if(!empty($iskporderId)){
+                        //Update relation .....
+                        update_post_meta($orderid, 'is_kp_order_relation', $iskporderId);
+                        //Check of tax exist with current order....
+                        if(isset($orderTaxDetails) && !empty($orderTaxDetails)){
+                            //Call the common function to add order itema as a tax....
+                            addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_TAX, $orderTaxDetails, ORDER_ITEM_QUANTITY, 'Order Tax',ITEM_TAX_NOTES);
+                        }
+                        //Check discount on order.....
+                        if(isset($orderDiscountDetails) && !empty($orderDiscountDetails)){
+                            $discountDetected = $orderDiscountDetails;
+                            $discountDetected *= -1;
+                            //Call the common function to add order itema as a discount....
+                            addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
+                        }
                     }
                 }
             }
