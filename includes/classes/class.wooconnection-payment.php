@@ -1,6 +1,9 @@
 <?php 
+	//get the authentication details first....
 	$checkAuthenticationStatus = applicationAuthenticationStatus();
+	//if empty it means authentication done....
 	if(empty($checkAuthenticationStatus)){
+		//then call the hook to available payment method......
 		//Wordpress hook : This action is triggered to add new payment method......
 		add_filter( 'woocommerce_payment_gateways', 'add_payment_gateway_class' );
 		//Function Definiation : add_payment_gateway_class
@@ -10,6 +13,7 @@
 		}
 	}
 	
+	//Define the class WC_Gateway_Infusionsoft.....
 	class WC_Gateway_Infusionsoft extends WC_Payment_Gateway {
 		
 		public function __construct() {
