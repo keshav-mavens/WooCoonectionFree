@@ -1,6 +1,6 @@
 === WooConnection ===
 Contributors: Fullstackmarketing.co
-Tags: spam
+Tags: wooconnection, infusionsoft, keap, woocommerce, keap pro, keap max, keap max classic, crm, add on, email marketing, infusionsoft wordpress, keap wordpress, keap pro wordpress, keap max wordpress, keap max classic wordpress, infusionsoft subscription, woocommerce subscriptions, subscription, woocommerce subscription, keap pro subscription, infusionsoft coupon, keap coupon, keap pro coupon, infusionsoft api, keap api, keap pro api.
 Donate link: https://www.fullstackmarketing.co/
 
 == Description ==
