@@ -81,7 +81,17 @@ function wooconnection_trigger_status_complete_hook($orderid){
     if(isset($orderContactId) && !empty($orderContactId)) {
         //check relation of current order with infusionsoft/keap application order.....
         $orderRelationId = get_post_meta($orderid, 'is_kp_order_relation', true);
-        if(empty($orderRelationId)){
+        
+        //get the payment gateway value.....
+        $method = get_post_meta($orderid, 'Custom Payment Gateway', true);
+        
+        //check and set gateway value is exist or not....
+        $custom_gateway = '';
+        if(isset($method) && !empty($method)){
+            $custom_gateway = $method;
+        }
+
+        if(empty($orderRelationId) || $custom_gateway == 'infusionsoft_keap'){
             //get order data and update the contact information,,
             $order_data = $order->get_data();
             //Update contact data after getting the contact id.....
@@ -102,8 +112,9 @@ function wooconnection_trigger_status_complete_hook($orderid){
                     }
                 }
             }
-            
+            //get the payment method to proceed next........
             $payment_method = $order->get_payment_method();
+            //check if payment gateway is not equal to infusionsoft or keap then proceed next.....
             if($payment_method != "infusionsoft_keap") {
                 //Get the order items from order then execute loop to create the order items array....
                 if ( sizeof( $products_items = $order->get_items() ) > 0 ) {

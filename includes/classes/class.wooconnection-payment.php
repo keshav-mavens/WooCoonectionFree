@@ -265,7 +265,23 @@
 		        return false; 
 		    }
 
-		    if(isset($_POST['billing_email']) && !empty($_POST['billing_email'])){
+		    $currentYear = date("Y");//get the current year.....
+		    $currentMonth = date("m");//get the current month.....
+
+		    //first check if exp year and exp month exist then ...
+		    if(!empty($expiry_date_year) && !empty($expiry_date_month)){
+		    	//check if exp year is equal to current year......
+		    	if($expiry_date_year == substr($currentYear, -2)){
+		    		//check if exp month is less then current month then show the error.......
+		    		if($expiry_date_month < $currentMonth){
+		    			wc_add_notice('Card expiration date needs to set of future.', 'error'); 
+		        		return false;
+		    		}
+		    	}
+		    }
+		    
+		    //first check billing email is exist or not........
+		   	if(isset($_POST['billing_email']) && !empty($_POST['billing_email'])){
 		    	// Create instance of our wooconnection logger class to use off the whole things.
 			    $wcLogger = new WC_Logger();
 			    
@@ -355,6 +371,7 @@
 			        	}else{
 			        		$appCreditCardId = addNewCreditCard($access_token,$cardDetails);
 			        	}
+			        	//set contact and card id post data.......
 			        	$_POST['custom_payment_gateway_card_id'] = $appCreditCardId;
 			        	$_POST['custom_payment_gateway_contact_id'] = $paymentContactId;
 			        }
@@ -435,19 +452,60 @@
                         //Call the common function to add order itema as a discount....
                         addOrderItems($access_token,$applicationorderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $orderDiscountDesc, ITEM_DISCOUNT_NOTES);
                     }
-                    //$order->payment_complete();
-                }
+               	}
             }
 
             //check if test mode is enable.....
             if ($this->testmode == 'yes') {
-		        wc_add_notice('At this point you have passed all forms of verification and your order should have been added to IS with the ID of ' . $applicationorderId . '. Take the IS module out of test mode to make real transactions.', 'error'); 
+		        wc_add_notice('Your order have been added to authenticate application with the order # ' . $applicationorderId . '. Turn off the test mode to make real transactions.', 'error'); 
 		        return false;
 		    }
-		  //   if (!empty($this->is_merchant_id)) {
-				// $results = createOrderPayment($inv_id,"Online Shopping Cart", $creditCardId, $merchant, false);
-		  //   }
+		  	
+		  	//first check merchant id exist then proceed next....
+		  	if (!empty($this->is_merchant_id)) {
+				$orderPaymentResults = createOrderPayment($access_token,$applicationorderId,$creditCardId,$this->is_merchant_id);
+		 	} else {
+	            wc_add_notice("To process payment with ".$this->title." is failed because Merchant ID is not set in settings. Please do it first.", 'error');
+	            return false;
+	        }
 
+	        //check if order payment results if empty the it means something is miss like application order id , merchant id or access token.....
+		 	if(empty($orderPaymentResults))
+		 	{
+				wc_add_notice("Something Went Wrong To Process Payment", 'error'); 
+	        	return false; 
+			}
+			//if result exist but order is not sucessful then show error with error message return from api........
+			else if($orderPaymentResults['Successful'] != true) {// If we have failed, report the reason.
+         		wc_add_notice("To Process Payment is failed due to ".$orderPaymentResults['Message'], 'error'); 
+	        	return false; 
+         	}
+     	 	
+     	 	//add order notes.......
+     	 	$orderData->add_order_note(__('Payment accepted via '.$orderData->payment_method_title.' gateway - Order Successful', 'woocommerce'));
+         	
+         	//get or set the merchant reference number...
+         	$reference_number = 0;
+         	if(isset($orderPaymentResults['RefNum']) && !empty($orderPaymentResults['RefNum'])){
+         		$reference_number = $orderPaymentResults['RefNum'];	
+         	}
+         	
+         	//update order for future with merchant reference number......
+			update_post_meta($order_id, 'is_kp_order_merchant_reference_number', $reference_number); 
+
+			//get the payment method to proceed next........
+            $payment_method = $orderData->get_payment_method();
+			update_post_meta($order_id, 'Custom Payment Gateway', $payment_method);			 
+			
+			//mark order payment as a complete........
+			$orderData->payment_complete();
+
+			//check if something exist woocommerce cart then empty the cart.......
+         	if($woocommerce->cart) {
+         		$woocommerce->cart->empty_cart();
+         	}
+			
+			//return sucess.....
 			return array('result' => 'success', 'redirect' => $this->get_return_url($orderData));
 		}
 
