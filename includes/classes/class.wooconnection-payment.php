@@ -54,8 +54,9 @@
 			$this->is_merchant_id 		= $this->get_option('is_merchant_id'); //defaults to empty
 			$this->process_credit_card  = 'no' === $this->get_option( 'process_credit_card' );
 			$this->wc_subscriptions  	= 'no' === $this->get_option( 'wc_subscriptions' );
-			//include custom css and js for another pages of wp-admin.....
-            $this->includeCustomCss();
+			
+			//include custom js and css for woocommerce payment settings admin panel.....
+            add_action('admin_enqueue_scripts', array($this,'enqueue_script_payment_admin'));
 			
 			//Wordpress hook : This action is triggered when user try update the infusionsoft/keap payment settings....
 			add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));   
@@ -509,100 +510,22 @@
 			return array('result' => 'success', 'redirect' => $this->get_return_url($orderData));
 		}
 
-    	//Function Definition : includeCustomCss
-	    public function includeCustomCss(){
-	        if(isset($_GET['page']) && $_GET['page'] == 'wc-settings'){
-			ob_start();
-			?>
-	            <style type="text/css">
-	                label[for="woocommerce_infusionsoft_keap_enabled"],label[for="woocommerce_infusionsoft_keap_testmode"],label[for="woocommerce_infusionsoft_keap_process_credit_card"],label[for="woocommerce_infusionsoft_keap_wc_subscriptions"] {
-						  position: relative !important;
-						  display: inline-block  !important;
-						  width: 60px  !important;
-						  height: 34px  !important;
-						}
-						input.methodEnable,input.testmodeEnable,input.processCreditCardEnable,input.subscriptionEnable {
-						  opacity: 0;width: 0;height: 0;
-						}
-						.slider {
-						  position: absolute;cursor: pointer;top: 0;left: 0;right: 0;bottom: 0;background-color: #ccc !important;-webkit-transition: .4s;transition: .4s;
-						}
-						.slider:before {
-						  position: absolute;content: "";height: 26px;width: 26px;left: 4px;bottom: 4px;background-color: white;-webkit-transition: .4s;
-						  transition: .4s;
-						}
-						input:checked + .slider {
-						  background-color: #2196F3 !important;
-						}
-						input:focus + .slider {
-						  box-shadow: 0 0 1px #2196F3 !important;
-						}
-						input:checked + .slider:before {
-						  -webkit-transform: translateX(26px);
-						  -ms-transform: translateX(26px);
-						  transform: translateX(26px);
-						}
-						.slider.round {
-						  border-radius: 34px !important;
-						}
-						.slider.round:before {
-						  border-radius: 50% !important;
-						}
-	            </style>
-	            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-	            <script type="text/javascript">
-					$( document ).ready(function() {
-					    //check if option is enable or not on the basis of that show/hide the merchant id field....
-					    if($(".methodEnable").prop('checked') == true){
-						    $(".merchantClass").closest("tr").show();
-							$(".processCreditCardEnable").closest("tr").show();	
-						}else{
-							$(".merchantClass").closest("tr").hide();
-							$(".processCreditCardEnable").closest("tr").hide();	
-				        	$(".subscriptionEnable").closest("tr").hide();
+    	//Function Definiation : enqueue_script_coupon_admin
+	    public function enqueue_script_payment_admin(){
+	    	// deregisters the default WordPress jQuery  
+    		wp_deregister_script( 'jquery' );
+            //Wooconnection Scripts : Resgister the wooconnection scripts..
+            wp_register_script('jquery', (WOOCONNECTION_PLUGIN_URL.'assets/js/jquery.min.js'),WOOCONNECTION_VERSION, true);
+            //Wooconnection Scripts : Enqueue the wooconnection scripts..
+            wp_enqueue_script('jquery');
 
-				        	$(".subscriptionEnable").prop('checked', false);
-				        	$(".processCreditCardEnable").prop('checked', false);
-						}
-						
-						//on change of enable/disable show hide the merchant id field....
-					    $('.methodEnable').change(function() {
-					        if(this.checked) {
-					            $(".merchantClass").closest("tr").show();
-					            $(".subscriptionEnable").closest("tr").hide();
-					        	$(".processCreditCardEnable").closest("tr").show();	
-					        }else{
-					        	$(".merchantClass").closest("tr").hide();
-					        	
-					        	$(".processCreditCardEnable").closest("tr").hide();	
-					        	$(".subscriptionEnable").closest("tr").hide();
+            //Wooconnection Scripts : Enqueue the wooconnection scripts for payment settings admin screen........
+            wp_enqueue_script( 'custom-gateway-js', WOOCONNECTION_PLUGIN_URL.'assets/js/custom-gateway.js', array('jquery'), WOOCONNECTION_VERSION, true );
 
-					        	$(".subscriptionEnable").prop('checked', false);
-					        	$(".processCreditCardEnable").prop('checked', false);
-					        }
-					    });
-
-					    //check if option to process credit cards option is enable or not on the basis of that show/hide the woocommerce subscription field....
-					    if($(".processCreditCardEnable").prop('checked') == true){
-						    $(".subscriptionEnable").closest("tr").show();
-						}else{
-							$(".subscriptionEnable").closest("tr").hide();
-							$(".subscriptionEnable").prop('checked', false);
-						}
-						
-						//on change of process credit cards option show hide the woocommerce subscription field....
-					    $('.processCreditCardEnable').change(function() {
-					        if(this.checked) {
-					            $(".subscriptionEnable").closest("tr").show();
-					        }else{
-					        	$(".subscriptionEnable").closest("tr").hide();
-					        	$(".subscriptionEnable").prop('checked', false);	
-					        }
-					    });
-					});
-				</script>
-	        <?php
-	    	}
+        	//Wooconnection Styles : Resgister the wooconnection styles..
+            wp_register_style( 'wooconnection_custom_gateway_style', WOOCONNECTION_PLUGIN_URL.'assets/css/custom-gateway.css', array(), WOOCONNECTION_VERSION );
+            //Wooconnection Styles : Enqueue the wooconnection styles..
+            wp_enqueue_style('wooconnection_custom_gateway_style');
 	    }
 	}
 
