@@ -270,7 +270,7 @@ function wc_export_wc_products()
 }
 
 
-//Wordpress hook : This action is triggered when user try to export products.....
+//Wordpress hook : This action is triggered when user try to update  products mapping.....
 add_action( 'wp_ajax_wc_update_products_mapping', 'wc_update_products_mapping');
 //Function Definiation : wc_update_products_mapping
 function wc_update_products_mapping()
@@ -278,23 +278,102 @@ function wc_update_products_mapping()
 	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		//check select products exist in post data to import.....
-		if(isset($_POST['wc_products_match']) && !empty($_POST['wc_products_match'])){
-	      	foreach ($_POST['wc_products_match'] as $key => $value) {
-	      		if(!empty($value)){//check id value is not empty...
-	      			//check any associated product is selected along with imported product request....
-	      			if(isset($_POST['wc_product_match_with_'.$value]) && !empty($_POST['wc_product_match_with_'.$value])){
-	      				$needUpdateExistingProduct = $_POST['wc_product_match_with_'.$value];
-	      			}
+		if(isset($_POST['wcProductId']) && !empty($_POST['wcProductId'])){
+	      	if(isset($_POST['applicationProductId'])){
 	      			//update relationship between woocommerce product and infusionsoft/keap product...
-	      			update_post_meta($value, 'is_kp_product_id', $needUpdateExistingProduct);
-	      		}
+	      			update_post_meta($_POST['wcProductId'], 'is_kp_product_id', $_POST['applicationProductId']);
 	      	}
-	    }
-	    //then call the "createMatchProductsHtml" function to get the latest html...
-		$latestMatchProductsHtml = createMatchProductsHtml();
-      	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestMatchProductsHtml'=>$latestMatchProductsHtml));
+	   	}
+	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	}
 	die();
+}
+
+//Wordpress hook : This action is triggered to show the variations of specific product.....
+add_action( 'wp_ajax_wc_get_product_variation', 'wc_get_product_variation');
+//Function Definiation : wc_get_product_variation
+function wc_get_product_variation()
+{
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		$variationsHtml = '';
+		//check select products exist in post data to get the variations.....
+		if(isset($_POST['productId']) && !empty($_POST['productId'])){
+	      	$wcProductId = $_POST['productId'];
+	      	$wcProductDetails = wc_get_product($wcProductId);//Get product details..
+	      	$wcProductName = $wcProductDetails->get_name();//get product name....
+	      	$available_variations = $wcProductDetails->get_available_variations();
+	      	//Get the list of active products from authenticate application....
+  			$applicationProductsArray = getApplicationProducts();
+  			//Set the application label on the basis of type...
+  			$applicationLabel = applicationLabel($type);
+  			$currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
+	  		if(isset($available_variations) && !empty($available_variations)){
+	  			foreach ($available_variations as $key => $value) {
+	  				if($value['variation_is_active'] == STATUS_ACTIVE){
+	  					$mappedProductHtml = '';
+	  					$productsDropDown = '';
+	  					if(!empty($applicationProductsArray)){
+	  						//Check variation relation is exist....
+		                    $variationExistId = get_post_meta($value['variation_id'], 'is_kp_product_id', true);
+		                    //If variation relation exist then create select deopdown and set associative product selected....
+		                    if(isset($variationExistId) && !empty($variationExistId)){
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId);
+		                    }else if($variationExistId === '0'){
+		                    	$productsDropDown = createMatchProductsSelect($applicationProductsArray);
+		                    }
+		                    else if(isset($_POST['matchProductId']) && !empty($_POST['matchProductId'])){
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$_POST['matchProductId']);
+		                    }
+		                    $mappedProductHtml = '<select class="application_match_products_dropdown" name="wc_product_match_with_'.$value['variation_id'].'" data-id="'.$value['variation_id'].'"><option value="0">Select '.$applicationLabel.' product</option>'.$productsDropDown.'</select>';
+	  					}else{
+	  						//Set the html of select if no products exist in application....
+                 			 $mappedProductHtml = 'No '.$applicationLabel.' Products Exist!';
+	  					}
+	  					//get variation attributes........
+	  					$variationName = $value['attributes'];
+	  					$keys = array_keys($variationName);
+	  					//get variation version like in sizes small,medium,large and in colors red,green,blue etc....
+						$variationVersion = $variationName[$keys[0]];
+	  					$variationPrice = $currencySign.number_format($value['display_regular_price'],2);
+	  					$variationSku = $value['sku'];
+	  					//Check and set the product sku to display.....
+		                if(!empty($variationSku)){
+		                  $variationSku = $variationSku;
+		                }else{
+		                  $variationSku = "--";
+		                }
+	  					$variationsHtml .= '<tr id="table_row_'.$value['variation_id'].'" class="customvariations_'.$wcProductId.' custom_tr" ><td></td><td>'.$wcProductName.'('.$variationVersion.')</td><td  class="skucss">'.$variationSku.'</td><td>'.$variationPrice.'</td><td>'.$mappedProductHtml.'</td></tr>';
+	  				}
+	  			}
+	  		}	
+	   	}
+	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'variationsHtml'=>$variationsHtml));
+	}
+	die();
+}
+
+//Get the list of application products....
+function getApplicationProductDetail($id,$access_token){
+   	$productsListing = array();
+    $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$id;
+    $ch = curl_init($url);
+    $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $access_token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    $matchIdsArray = array();
+    if($err){
+    }else{
+      $sucessData = json_decode($response,true);
+      return $sucessData;
+    }
+    curl_close($ch);
 }
 
 //Custom fields Tab : wordpress hook is call when user click on import products button to import products from insufionsoft/keap application....
@@ -414,29 +493,6 @@ function wc_import_application_products()
  		}
  	}
 	die();
-}
-
-//Get the list of application products....
-function getApplicationProductDetail($id,$access_token){
-   	$productsListing = array();
-    $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$id;
-    $ch = curl_init($url);
-    $header = array(
-        'Accept: application/json',
-        'Content-Type: application/json',
-        'Authorization: Bearer '. $access_token
-    );
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
-    $response = curl_exec($ch);
-    $err = curl_error($ch);
-    $matchIdsArray = array();
-    if($err){
-    }else{
-      $sucessData = json_decode($response,true);
-      return $sucessData;
-    }
-    curl_close($ch);
 }
 
 //This function is used to update the post meta with latest details..
