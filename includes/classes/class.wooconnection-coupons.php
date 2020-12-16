@@ -15,11 +15,11 @@
         	add_action( 'woocommerce_coupon_options', [$this, 'add_custom_discount_type_fields'], 10, 2 );
         	//Wordpress hook : This action is triggered to save custom fields related data...........
         	add_action( 'woocommerce_coupon_options_save', [$this, 'save_custom_discount_coupon_fields'], 10, 2 );  
- 			//include custom css and js coupons admin panel.....
-            $this->includeCssJs();
+ 			//include js coupons admin panel.....
+            add_action('admin_enqueue_scripts', array($this,'enqueue_script_coupon_admin'));
             //Wordpress hook : This action is triggered to save custom fields related data...........
             add_action( 'woocommerce_before_calculate_totals', [$this, 'checkout_calculate_total_after_free_trial'], 10, 1 );
- 		}
+        }
 
  		//Function Definiation : create_custom_discount_type
  		public function create_custom_discount_type($discountTypes){
@@ -52,34 +52,18 @@
 	    	update_post_meta( $post_id, 'custom_free_coupon_trial_period', $_POST['free_coupon_trial_period'] );
 	    }
 
+	    //Function Definiation : enqueue_script_coupon_admin
+	    public function enqueue_script_coupon_admin(){
+    		// deregisters the default WordPress jQuery  
+    		wp_deregister_script( 'jquery' );
+            //Wooconnection Scripts : Resgister the wooconnection scripts..
+            wp_register_script('jquery', (WOOCONNECTION_PLUGIN_URL.'assets/js/jquery.min.js'),WOOCONNECTION_VERSION, true);
+            //Wooconnection Scripts : Enqueue the wooconnection scripts..
+            wp_enqueue_script('jquery');
 
-	    //Function Definition : includeCssJs
-	    public function includeCssJs(){
-	        ob_start();
-			?>
-	            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-	            <script type="text/javascript">
-					$( document ).ready(function() {
-						$('.custom_free_trial_coupon_field').hide();
-					    if($('#discount_type').val() == 'custom_subscription_free_trial'){
-					    	$('.custom_free_trial_coupon_field').show();
-					    }else{
-					    	$('.custom_free_trial_coupon_field').hide();
-					    }
-					    //on change of discount type from coupon code screen show/hide the trial period field ......
-					    $('#discount_type').change(function() {
-					        var selectedDiscountType = $( this ).val();
-					    	if(selectedDiscountType == 'custom_subscription_free_trial'){
-					    		$('.custom_free_trial_coupon_field').show();
-					    	}else{
-					    		$('.custom_free_trial_coupon_field').hide();
-					    	}
-					    });
-					});
-				</script>
-	        <?php
+             //Wooconnection Scripts : Enqueue the wooconnection scripts for coupon admin screen........
+            wp_enqueue_script( 'coupon-js', WOOCONNECTION_PLUGIN_URL.'assets/js/coupon.js', array('jquery'), WOOCONNECTION_VERSION, true );
 	    }
-
 
 	    //Function Definition : checkout_calculate_total_after_free_trial
 	    public function checkout_calculate_total_after_free_trial($cart_object)
