@@ -1265,6 +1265,7 @@ function getPredefindCustomfields(){
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax1'] = "Contact Fax 1";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax2'] = "Contact Fax 2";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Anniversary'] = "Contact Anniversary";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Birthday'] = "Contact Birthday";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':StreetAddress1'] = "Contact Billing Street 1";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':StreetAddress2'] = "Contact Billing Street 2";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address2Street1'] = "Contact Shipping Street 1";

@@ -209,7 +209,7 @@
 			}
 			//check billing country......
 			if(isset($woocommerce_order_data['billing']['country']) && !empty($woocommerce_order_data['billing']['country'])){
-				$countryName = get_country_code($woocommerce_order_data['billing']['country']);
+				$countryName = getCountryName($woocommerce_order_data['billing']['country']);
 				$basicInformation['Country'] = $countryName;
 			}
 			//check billing zipcode......

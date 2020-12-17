@@ -1168,7 +1168,7 @@ function wc_get_cfield()
         		$cfieldtype = $cfieldData[0]->wc_cf_type;
         	}
         	if(!empty($cfieldtype)){
-        		if($cfieldtype == CF_FIELD_TYPE_TEXT || $cfieldtype == CF_FIELD_TYPE_TEXT || $cfieldtype == CF_FIELD_TYPE_DATE){
+        		if($cfieldtype == CF_FIELD_TYPE_TEXT || $cfieldtype == CF_FIELD_TYPE_TEXTAREA || $cfieldtype == CF_FIELD_TYPE_DATE){
         			if(!empty($cfieldData[0]->wc_cf_placeholder)){
 						$cfieldplaceholder = $cfieldData[0]->wc_cf_placeholder;
         			}
@@ -1320,16 +1320,6 @@ function wc_load_app_cfield_tabs()
 {
 	$cfRelatedTabs = cfRelatedTabs();
 	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfRelatedTabs'=>$cfRelatedTabs));
-	die();
-}
-
-//Custom fields Tab : this is used to get the list of application custom fields headers....
-add_action( 'wp_ajax_wc_load_app_cfield_headers', 'wc_load_app_cfield_headers');
-//Function Definiation : wc_load_app_cfield_headers
-function wc_load_app_cfield_headers()
-{
-	$cfRelatedHeaders = cfRelatedHeaders();
-	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfRelatedHeaders'=>$cfRelatedHeaders));
 	die();
 }
 ?>

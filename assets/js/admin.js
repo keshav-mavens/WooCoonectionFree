@@ -430,10 +430,12 @@
                 var cfieldFormType = $(this).children("option:selected").attr('id');
                 //if custom field type exist e.g contact, order then send ajax to get the tabs related to custom field type....
                 if(cfieldFormType != "" && cfieldFormType !== null){
-                    $(".cfield_header").hide();
+                    //$(".cfield_header").hide();
                     jQuery(".customfieldsModal").addClass('overlay');
                     jQuery(".ajax_loader_custom_fields_related").show();
                     jQuery("#cfieldtabapp").html('<option value="">Select Tab</option>');//set default html....
+                    jQuery("#cfieldheaderapp").val('');
+                    jQuery("#cfieldheaderapp").html('<option value="">Select Header</option>');//set default html....
                     jQuery.post( ajax_object.ajax_url + "?action=wc_cfield_app_tabs",{cfieldFormType:cfieldFormType}, function(data) {
                         var responsedata = JSON.parse(data);
                         jQuery(".customfieldsModal").removeClass('overlay');
@@ -441,7 +443,6 @@
                         if(responsedata.status == "1") {
                             $("#cfieldtabapp").html(responsedata.cfieldtabsHtml);//change the html of custom field tab.......
                         }
-                        $(".cfield_header").show();
                     });
                 }
             });
@@ -584,6 +585,7 @@
                 if(cfieldgroupId > 0){
                     jQuery("#cfieldgroupid").val(cfieldgroupId);//set the value of input hidden to proceed the edit process....
                     $(".cfieldgrouptitle").html('Edit Custom Field Group');//change the form title....
+                    $(".add-editform-groups").addClass('overlay');
                     //send ajax to get the custom field group data....
                     jQuery.post( ajax_object.ajax_url + "?action=wc_get_cfield_group",{cfieldgroupId:cfieldgroupId}, function(data) {
                         var responsedata = JSON.parse(data);
@@ -591,6 +593,7 @@
                             if(responsedata.cfieldgroupname != "" && responsedata.cfieldgroupname !== null){
                                 jQuery("#cfieldgroupname").val(responsedata.cfieldgroupname);//then set to appropriate field.....
                             }
+                            $(".add-editform-groups").removeClass('overlay');
                         }
                     });
                 }
@@ -708,6 +711,7 @@
                 {
                     jQuery("#cfieldid").val(cfieldId);//set the value of input hidden to proceed the edit process....
                     $(".cfieldtitle").html('Edit Custom Field');//change the form title....
+                    $(".add-editform-groups").addClass('overlay');
                     //send ajax to get the custom field data....
                     jQuery.post( ajax_object.ajax_url + "?action=wc_get_cfield",{cfieldId:cfieldId}, function(data) {
                         var responsedata = JSON.parse(data);
@@ -760,6 +764,7 @@
                             }else{
                                 $('#cfieldmapping').val('').trigger('change');
                             }
+                            $(".add-editform-groups").removeClass('overlay');
                         }
                     });
                 }
@@ -777,10 +782,16 @@
                     var name = option['text'];//get text.....
                     //check value...
                     if(name !="" && name !== null){
+                        $("#addcfieldapp")[0].reset();
+                        $("#addcfieldapp").validate().resetForm();
                         $("#cfieldnameapp").val(name);//set value....
                         $("#cfieldmodelapp").show();
                         $("#cfieldtabapp").val('');
                         $("#cfieldheaderapp").val('');
+                        //get application custom fields related tabs.....
+                        if($('.cfieldtabapp').length){
+                            loadApplicationCFTabs();
+                        }
                         //validate a custom field application form....
                         if($('#addcfieldapp').length){
                             validateForms('addcfieldapp');
@@ -809,7 +820,7 @@
             
 
             //on click of edit icon of default thankyou override show the edit default thankyou override form.....
-            $document.on("click",".controls .edit_default_thankpage_override",function(event) {
+            $document.on("click",".edit_default_thankpage_override",function(event) {
                 event.stopPropagation();
                 $(".thankyou_default_title").html('Edit Default Thankyou Page');
                 jQuery.post( ajax_object.ajax_url + "?action=wc_get_thankyou_default_override",{option:'default_thankyou_details'}, function(data) {
@@ -1636,14 +1647,6 @@ function loadingCustomFields(){
                         }       
                     }
                 });
-                //get application custom fields related tabs.....
-                if($('.cfieldtabapp').length){
-                    loadApplicationCFTabs();
-                }
-                //get application custom fields related header.....
-                if($('.cfieldheaderapp').length){
-                    loadApplicationCFHeader();
-                }
             }else{
                 $(".main-group").html('');
                 $(".default_message").html('');
@@ -1751,6 +1754,7 @@ function sortabledivs(element){
 
 //Custom fields Tab : This function is used to get the application custom field tabs.....
 function loadApplicationCFTabs(){
+    jQuery(".customfieldsModal").addClass('overlay');
     jQuery.post( ajax_object.ajax_url + "?action=wc_load_app_cfield_tabs",{}, function(data) {
         var responsedata = JSON.parse(data);
         if(responsedata.status == "1") {
@@ -1758,19 +1762,7 @@ function loadApplicationCFTabs(){
                 $(".cfieldtabapp").html('');
                 $(".cfieldtabapp").html(responsedata.cfRelatedTabs);
             }
-        }
-    });
-}
-
-//Custom fields Tab : This function is used to get the application custom field tabs.....
-function loadApplicationCFHeader(){
-    jQuery.post( ajax_object.ajax_url + "?action=wc_load_app_cfield_headers",{}, function(data) {
-        var responsedata = JSON.parse(data);
-        if(responsedata.status == "1") {
-            if(responsedata.cfRelatedHeaders != "") {
-                $(".cfieldheaderapp").html('');
-                $(".cfieldheaderapp").html(responsedata.cfRelatedHeaders);
-            }
+            jQuery(".customfieldsModal").removeClass('overlay');
         }
     });
 }
