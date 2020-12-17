@@ -619,7 +619,7 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
             $leadsourceId = $_COOKIE["leadsourceId"];
         }else{
           //the check urm parameters value exist......
-          if(isset($_COOKIE["lscategory"]) && isset($_COOKIE["lsmedium"]) && isset($_COOKIE["lsvendor"]) && isset($_COOKIE["lsmessage"])){
+          if(isset($_COOKIE["lscategory"]) && isset($_COOKIE["lsmedium"]) && isset($_COOKIE["lsvendor"])){
               //call the function to check or add leadsource on the basis of utm parameters.....
               $leadsourceId = checkAddLeadSource($access_token,$_COOKIE["lscategory"],$_COOKIE["lsmedium"],$_COOKIE["lsvendor"],$_COOKIE["lsmessage"]);
           }
@@ -1756,7 +1756,7 @@ function listAlreadyUsedFields(){
 
 
 //Below function is used to get the lead source id....
-function checkAddLeadSource($access_token,$category,$meduim,$vendor,$content){
+function checkAddLeadSource($access_token,$category,$meduim,$vendor,$content=''){
   $leadsourceId = '';//define empty variables....
   if(!empty($category) && !empty($access_token)){
     //call the function to get the category id....
@@ -1842,9 +1842,9 @@ function addNewLsCategory($access_token,$category){
 }
 
 //get the lead source id on the basis of utm parameters....
-function getAddLeadSource($access_token,$categoryId,$meduim,$vendor,$content){
+function getAddLeadSource($access_token,$categoryId,$meduim,$vendor,$content=''){
   $leadId = '';//define empty variables....
-  if( !empty($access_token) && !empty($categoryId) && !empty($meduim) && !empty($vendor) && !empty($content) ){
+  if(!empty($access_token) && !empty($categoryId) && !empty($meduim) && !empty($vendor)){
       $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
       $ch = curl_init($url);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -1883,9 +1883,9 @@ function getAddLeadSource($access_token,$categoryId,$meduim,$vendor,$content){
 }
 
 //Below function is add new lead source .....
-function addNewLs($access_token,$categoryId,$meduim,$vendor,$content){
+function addNewLs($access_token,$categoryId,$meduim,$vendor,$content=''){
   $newLsId = '';//define empty variables....
-  if( !empty($access_token) && !empty($categoryId) && !empty($meduim) && !empty($vendor) && !empty($content) ){
+  if( !empty($access_token) && !empty($categoryId) && !empty($meduim) && !empty($vendor)){
       $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
       $ch = curl_init($url);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
