@@ -77,6 +77,13 @@
 					  				}
 								}
 							}
+							//If no any product category thankyou override is met....
+					  		if($redirectOverrideCat == REDIRECT_OVERRIDE_FALSE){
+				  				$redirectUrl = getDefaultOverrideUrl();//get the redirect link from default thankyou override.....
+						  		if(!empty($redirectUrl)){//if redirect url is not empty then call the function "redirectUrl"... 
+						  			redirectUrl($redirectUrl,$contactPassInformation);
+						  		}
+							}
 						}
 			  		}
 			  	}
