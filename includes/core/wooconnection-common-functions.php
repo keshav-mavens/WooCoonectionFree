@@ -1996,7 +1996,7 @@ function loading_product_thanks_overrides(){
     $thankyouOverridesListing = '<ul class="group-fields override_product_rule">';
     foreach ($thankyouOverrides as $key => $value) {
         if(!empty($value->id)){
-          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="wc_thankyou_override_name">'.$value->wc_override_name.'<span class="listing-operators"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$value->id.'"></i></span></span></li>';
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="wc_thankyou_override_name override_name_inner">'.$value->wc_override_name.'<span class="listing-operators"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$value->id.'"></i></span></span></li>';
         }
     }
     $thankyouOverridesListing .= '</ul>';
@@ -2019,7 +2019,7 @@ function loading_product_cat_thanks_overrides(){
     $thankyouOverridesListing = '<ul class="group-fields override_product_category_rule">';
     foreach ($thankyouOverrides as $key => $value) {
         if(!empty($value->id)){
-          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="wc_thankyou_override_name">'.$value->wc_override_name.'<span class="listing-operators"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$value->id.'"></i></span></span></li>';
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="wc_thankyou_override_name override_name_inner">'.$value->wc_override_name.'<span class="listing-operators"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$value->id.'"></i></span></span></li>';
         }
     }
     $thankyouOverridesListing .= '</ul>';

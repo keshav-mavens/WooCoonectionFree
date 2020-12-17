@@ -49,7 +49,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
               <form action="" method="post" id="thank_default_form" onsubmit="return false">
                 <input type="hidden" name="defaultoverrideid" id="defaultoverrideid" value="" />
                 <h5 class="text-left thankyou_default_title">Create Thankyou Page Override</h5>
-                  <div class="form-group row">
+                  <div class="form-group row custom_label">
                     <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Redirect Settings</label>
                     <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                         <select name="overrideredirecturltype" id="overrideredirecturltype">
@@ -57,34 +57,34 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                           <option value="<?php echo DEFAULT_WORDPRESS_PAGE; ?>">Wordpress Page</option>
                           <option value="<?php echo DEFAULT_WORDPRESS_CUSTOM_URL; ?>">Custom Url</option>
                         </select>
-                        <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                        <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                     </div>
                   </div>
-                  <div class="form-group row redirect-type-common" id="redirect-type-post">
+                  <div class="form-group row redirect-type-common custom_label" id="redirect-type-post">
                     <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Select Wordpress Post</label>
                     <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                         <select name="redirectwordpresspost" id="redirectwordpresspost" class="redirectpostsselect">
                             <option value="">Select Post</option>
                             <?php echo get_wp_posts(); ?>
                         </select>
-                        <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                        <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                     </div>
                   </div>
-                  <div class="form-group row redirect-type-common" id="redirect-type-page" style="display: none;">
+                  <div class="form-group row redirect-type-common custom_label" id="redirect-type-page" style="display: none;">
                     <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Select Wordpress Page</label>
                     <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                         <select name="redirectwordpresspage" id="redirectwordpresspage" class="redirectpagesselect">
                             <option value="">Select Page</option>
                             <?php echo get_wp_pages(); ?>
                         </select>
-                        <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                        <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                     </div>
                   </div>
-                  <div class="form-group row redirect-type-common" id="redirect-type-custom-url" style="display: none;">
+                  <div class="form-group row redirect-type-common custom_label" id="redirect-type-custom-url" style="display: none;">
                     <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Custom Url</label>
                     <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                         <input class="form-control" name="customurl" id="customurl" type="text" placeholder="Custom Url">
-                        <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                        <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                     </div>
                   </div>
                   <div class="row m-t-40">
@@ -104,27 +104,27 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                 <form action="" method="post" id="thank_override_form_product" onsubmit="return false">
                   <input type="hidden" name="productoverrideid" id="productoverrideid" value="" />
                   <h5 class="text-left thankyou_override_title_product">Create Product Thankyou Page Override</h5>
-                  <div class="form-group row">
+                  <div class="form-group row custom_label">
                       <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Name</label>
                       <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                           <input class="form-control" name="procductoverridename" id="procductoverridename" type="text" placeholder="Name">
-                          <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                          <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                       </div>
                   </div>
-                  <div class="form-group row">
+                  <div class="form-group row custom_label">
                       <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Redirect URL</label>
                       <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                           <input class="form-control" name="productrediecturl" id="productrediecturl" type="text" placeholder="Redirect URL">
-                          <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                          <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                       </div>
                   </div>
-                  <div class="form-group row" id="redirect-condition-cartproducts">
+                  <div class="form-group row custom_label" id="redirect-condition-cartproducts">
                       <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Select Cart Products</label>
                       <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                           <select name="redirectcartproducts[]" id="redirectcartproducts" class="redirectcartproductsselect">
                               <?php echo get_products_options(); ?>
                           </select>
-                          <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                          <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                       </div>
                   </div>
                   <div class="row m-t-40">
@@ -144,27 +144,27 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                       <form action="" method="post" id="thank_override_form_product_cat" onsubmit="return false">
                       <input type="hidden" name="productcatoverrideid" id="productcatoverrideid" value="" />
                       <h5 class="text-left thankyou_override_title_product_cat">Create Product Category Thankyou Page Override</h5>
-                      <div class="form-group row">
+                      <div class="form-group row custom_label">
                           <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Name</label>
                           <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                               <input class="form-control" name="productcatoverridename" id="productcatoverridename" type="text" placeholder="Name">
-                              <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                              <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                           </div>
                       </div>
-                      <div class="form-group row">
+                      <div class="form-group row custom_label">
                           <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Redirect URL</label>
                           <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                               <input class="form-control" name="productcatrediecturl" id="productcatrediecturl" type="text" placeholder="Redirect URL">
-                              <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                              <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                           </div>
                       </div>
-                      <div class="form-group row" id="redirect-condition-cartcategories">
+                      <div class="form-group row custom_label" id="redirect-condition-cartcategories">
                         <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Select Cart Categories</label>
                         <div class="col-lg-10 col-md-9 col-sm-12 col-12">
                             <select name="redirectcartcategories[]" id="redirectcartcategories" class="redirectcartcategoriesselect">
                                 <?php echo get_category_options(); ?>
                             </select>
-                            <div class="note-bottom">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
+                            <div class="note-bottom ov-notes">Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.</div>
                         </div>
                       </div>
                       <div class="row m-t-40">

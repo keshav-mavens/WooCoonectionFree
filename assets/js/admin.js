@@ -822,6 +822,7 @@
             //on click of edit icon of default thankyou override show the edit default thankyou override form.....
             $document.on("click",".edit_default_thankpage_override",function(event) {
                 event.stopPropagation();
+                $(".add-editform-override").addClass('overlay');
                 $(".thankyou_default_title").html('Edit Default Thankyou Page');
                 jQuery.post( ajax_object.ajax_url + "?action=wc_get_thankyou_default_override",{option:'default_thankyou_details'}, function(data) {
                     var responsedata = JSON.parse(data);
@@ -846,6 +847,7 @@
                                 }
                             }   
                         }
+                        $(".add-editform-override").removeClass('overlay');
                     }
                 });
                 $('.defaultoverride,.main_rendered_thank_overrides').toggle();
@@ -891,6 +893,7 @@
                 if(currrent_override_id > 0){
                     jQuery("#productoverrideid").val(currrent_override_id);
                     $(".thankyou_override_title_product").html('Edit Product Thankyou Page Override');
+                    $(".add-editproductrule-override").addClass('overlay');
                     jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_thankyou_override",{overrideid:currrent_override_id}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
@@ -910,6 +913,7 @@
                             }else{
                                 $('#redirectcartproducts').val('').trigger('change');
                             }
+                            $(".add-editproductrule-override").removeClass('overlay');
                         }
                     });
                 }
@@ -925,6 +929,7 @@
                 if(currrent_override_id > 0){
                     jQuery("#productcatoverrideid").val(currrent_override_id);
                     $(".thankyou_override_title_product_cat").html('Edit Product Category Thankyou Page Override');
+                    $(".add-editproductrule-override").addClass('overlay');
                     jQuery.post( ajax_object.ajax_url + "?action=wc_get_product_cat_thankyou_override",{overrideid:currrent_override_id}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
@@ -944,6 +949,7 @@
                             }else{
                                 $('#redirectcartcategories').val('').trigger('change');
                             }
+                            $(".add-editproductrule-override").removeClass('overlay');
                         }
                     });
                 }
@@ -1784,7 +1790,7 @@ function saveThanksDefaultOverride(){
             if(responsedata.status == "1") {
                 $('.defaultoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_default_override').removeClass("disable_anchor");
-                swal("Saved!", 'Default Thankyou page override details updated Successfully.', "success");
+                swal("Saved!", 'Default thankyou page override details updated successfully.', "success");
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');
@@ -1816,7 +1822,7 @@ function saveThanksProductOverride(){
             if(responsedata.status == "1") {
                 $('.productoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_override').removeClass("disable_anchor");
-                swal("Saved!", 'Product Thankyou override details updated Successfully.', "success");
+                swal("Saved!", 'Product thankyou override details updated successfully.', "success");
                 loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
@@ -1848,7 +1854,7 @@ function saveThanksProductCatOverride(){
             if(responsedata.status == "1") {
                 $('.productcatoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_cat_override').removeClass("disable_anchor");
-                swal("Saved!", 'Product Category Thankyou override details updated Successfully.', "success");
+                swal("Saved!", 'Product category thankyou override details updated successfully.', "success");
                 loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
