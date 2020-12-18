@@ -823,39 +823,49 @@ function getCountryName($code){
 function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
     $newOrderId = "";
     if(!empty($contactId) && !empty($orderid) && !empty($access_token)){
-        $orderTitle = "New Order Generated where order number is #" . $orderid . " and generated from " . site_url();
-        $url = "https://api.infusionsoft.com/crm/rest/v1/orders";
-        $current_time = date("Y-m-d")."T".date("H:i:s")."Z"; 
-        $jsonArray = '{
-                        "contact_id": '.$contactId.',
-                        "order_items": '.$jsonOrderItems.',
-                        "order_date": "'.$current_time.'",
-                        "order_title": "'.$orderTitle.'",
-                        "order_type": "Offline"
-                      }';
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-            'Accept: application/json',
-            'Content-Type: application/json',
-            'Authorization: Bearer '. $access_token
-        );
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
-        $response = curl_exec($ch);
-        $err = curl_error($ch);
-        if($err){
-        }else{
-          $sucessData = json_decode($response,true);
-          if(!empty($sucessData)){
-              if(!empty($sucessData['id'])){
-                $newOrderId = $sucessData['id'];
-                return $newOrderId;
-              } 
+      $wooconnectionLogger = new WC_Logger();
+      $orderTitle = "New Order Generated where order number is #" . $orderid . " and generated from " . site_url();
+      $url = "https://api.infusionsoft.com/crm/rest/v1/orders";
+      $current_time = date("Y-m-d")."T".date("H:i:s")."Z"; 
+      $jsonArray = '{
+                      "contact_id": '.$contactId.',
+                      "order_items": '.$jsonOrderItems.',
+                      "order_date": "'.$current_time.'",
+                      "order_title": "'.$orderTitle.'",
+                      "order_type": "Offline"
+                    }';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+      );
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
+      $newOrderResponse = curl_exec($ch);
+      $newOrdererr = curl_error($ch);
+      if($newOrdererr){
+        $newOrderErrorMessage = "Create order for woocommerce order # ".$orderid." is fail due to ".$newOrdererr; 
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($newOrderErrorMessage, true));
+      }else{
+        $newOrderSucessData = json_decode($newOrderResponse,true);
+        if(isset($newOrderSucessData['fault']) && !empty($newOrderSucessData['fault'])){
+          if(isset($newOrderSucessData['fault']['faultstring']) && !empty($newOrderSucessData['fault']['faultstring'])){
+            $newOrderErrorMessage = "Create order for woocommerce order # ".$orderid." is fail due to ".$newOrderSucessData['fault']['faultstring']; 
           }
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($newOrderErrorMessage, true));
         }
-        curl_close($ch);  
+        //check if order id exist.....
+        if(!empty($newOrderSucessData)){
+            if(!empty($newOrderSucessData['id'])){
+              $newOrderId = $newOrderSucessData['id'];
+              return $newOrderId;
+            } 
+        }
+      }
+      curl_close($ch); 
     }
     return $newOrderId;
     
@@ -2071,5 +2081,632 @@ function get_override_related_cat($overrideid){
       }
     }
     return $thankyouOverrideCatArray;//return products array....
+}
+
+//get the list of product purchase triggers...
+function getCartTriggers(){
+  global $wpdb,$table_prefix;
+  $table_name = 'wooconnection_campaign_goals';
+  $wp_table_name = $table_prefix . "$table_name";
+  $trigger_type = WOOCONNECTION_TRIGGER_TYPE_CART;
+  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type);
+  $wcGeneralTriggers = '';
+  if(isset($campaignGoalDetails) && !empty($campaignGoalDetails)){
+    foreach ($campaignGoalDetails as $key => $value) {
+        $trigger_id = $value->id;
+        $trigger_goal_name = $value->wc_goal_name;
+        $trigger_integration_name = $value->wc_integration_name;
+        $trigger_call_name = $value->wc_call_name;
+        if($trigger_goal_name == 'Item Added to Cart'){
+            $call_name = explode('added', $trigger_call_name);
+            $length = 35;
+            $callName = 'added'.'<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$call_name[1].'</a>';
+            $class = 'readonly';
+        }
+        else if($trigger_goal_name == 'Review Left'){
+            $call_name = explode('review', $trigger_call_name);
+            $length = 34;
+            $callName = 'review'.'<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$call_name[1].'</a>';
+            $class = 'readonly';
+        }
+        else{
+            $callName = strtolower($trigger_call_name);
+            $class = '';
+        }
+        $wcGeneralTriggers.='<tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
+                                <td>'.$trigger_goal_name.'</td>
+                                <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
+                                <td id="trigger_call_name_'.$trigger_id.'">'.$callName.'</td>
+                                <td><i class="fa fa-edit" aria-hidden="true" style="cursor:pointer;" onclick="popupEditDetails('.$trigger_id.');"></i>
+                                </td>
+                              </tr>';
+    }
+  }else{
+    $wcGeneralTriggers = '<tr><td colspan="4" style="text-align: center; vertical-align: middle;">No Cart Triggers Exist</td></tr>';
+  }
+  return $wcGeneralTriggers;
+}
+
+//get or set the user email first check user is loged in if not then get email from woocommerce session email...
+function get_set_user_email(){
+    $useremail = "";
+    if(is_user_logged_in()) {
+      $currentLoginUser = wp_get_current_user();
+      if(!empty($currentLoginUser->user_email)){
+        $useremail = $currentLoginUser->user_email;
+      }else{
+        $useremail = get_user_meta($currentLoginUser->ID, 'billing_email', true);
+      }
+    }
+    return $useremail;
+}
+
+//get the list of order triggers...
+function getOrderTriggers(){
+  global $wpdb,$table_prefix;
+  $table_name = 'wooconnection_campaign_goals';
+  $wp_table_name = $table_prefix . "$table_name";
+  $trigger_type = WOOCONNECTION_TRIGGER_TYPE_ORDER;
+  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type);
+  $wcGeneralTriggers = '';
+  if(isset($campaignGoalDetails) && !empty($campaignGoalDetails)){
+    foreach ($campaignGoalDetails as $key => $value) {
+        $trigger_id = $value->id;
+        $trigger_goal_name = $value->wc_goal_name;
+        $trigger_integration_name = $value->wc_integration_name;
+        $trigger_call_name = $value->wc_call_name;
+        if($trigger_goal_name == 'Specific Product'){
+            $length = 40;
+            $callName = '<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$trigger_call_name.'</a>';
+            $class = 'readonly';
+        }
+        else if($trigger_goal_name == 'Coupon Code Applied'){
+            $call_name = explode('coupon', $trigger_call_name);
+            $callName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
+            $class = 'readonly';
+        }
+        else if($trigger_goal_name == 'Referral Partner Order'){
+            $call_name = explode('refferal', $trigger_call_name);
+            $callName = 'refferal'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#refferalListing">'.$call_name[1].'</a>';
+            $class = 'readonly';
+        }
+        else{
+            $callName = strtolower($trigger_call_name);
+            $class = '';
+        }
+        $wcGeneralTriggers.='<tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
+                                <td>'.$trigger_goal_name.'</td>
+                                <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
+                                <td id="trigger_call_name_'.$trigger_id.'">'.$callName.'</td>
+                                <td><i class="fa fa-edit" aria-hidden="true" style="cursor:pointer;" onclick="popupEditDetails('.$trigger_id.');"></i>
+                                </td>
+                              </tr>';
+    }
+  }else{
+    $wcGeneralTriggers = '<tr><td colspan="4" style="text-align: center; vertical-align: middle;">No Order Triggers Exist</td></tr>';
+  }
+  return $wcGeneralTriggers;
+}
+
+//get the list of products with sku...
+function get_products_listing($length){
+  $productLisingWithSku = "";
+  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  if(isset($woo_products_listing) && !empty($woo_products_listing)){
+    foreach ($woo_products_listing as $key => $value)
+    {
+        $currentProductSku = get_set_product_sku($value->ID,$length);
+        $productLisingWithSku .= '<tr><td  class="skucss">'.$value->post_title.'</td><td id="product_'.$value->ID.'_sku"  class="skucss">'.$currentProductSku.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
+                                      onclick="copyContent(\'product_'.$value->ID.'_sku\')">
+                                      </i>
+                                  </td>
+                              </tr>';
+    }
+  }else{
+    $productLisingWithSku .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Products Exist!</td></tr>';
+  }
+  return $productLisingWithSku;
+}
+
+
+//get the list of coupons with coupon code...
+function get_coupons_listing(){
+  $couponsLisingWithCode = "";
+  $woo_coupons_listing = get_posts(array('post_type' => 'shop_coupon','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  if(isset($woo_coupons_listing) && !empty($woo_coupons_listing)){
+    foreach ($woo_coupons_listing as $key => $value)
+    {
+        if(isset($value->post_excerpt) && !empty($value->post_excerpt)){
+            $couponDescriptionLength = strlen($value->post_excerpt);
+            if($couponDescriptionLength > 60){
+                $coupondesc_default = substr($value->post_excerpt, 0, 60);
+                $couponDescription = $coupondesc_default.'....';    
+            }else{
+                $couponDescription = $value->post_excerpt;
+            }
+            
+        }else{
+          $couponDescription = "--";
+        }
+        $couponsLisingWithCode.='<tr><td id="coupon_'.$value->ID.'_code" class="skucss">'.substr($value->post_name, 0, 34).'</td><td class="skucss">'.$couponDescription.'</td><td><i class="fa fa-copy" onclick = "copyContent(\'coupon_'.$value->ID.'_code\')" style="cursor:pointer"></i></td></tr>';
+    }
+  }else{
+    $couponsLisingWithCode .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Coupons Exist!</td></tr>';
+  }
+  return $couponsLisingWithCode;
+}
+
+//get or set the product sku on the basis of product id and set the length of sku on the basis of lenght set in parameter..
+function get_set_product_sku($productId,$length=''){
+    $productSku = "";
+    if(isset($productId) && !empty($productId)){
+      $productSku = get_post_meta($productId, '_sku', true);
+      
+      //check product sku if exist then ok else create productSku from post name...
+      if(empty($productSku)){
+        $currentPostData = get_post($productId);
+        if(isset($currentPostData->post_name) && !empty($currentPostData->post_name)){
+           $productSku =  $currentPostData->post_name;
+        }
+      }else{
+        $productSku = $productSku;  
+      }
+
+      //if "-" is exist in product sku then replace with empty
+      if (strpos($productSku, '-') !== false)
+      {
+          $productSku=str_replace("-", "", $productSku);
+      }
+      else if (strpos($productSku, '_') !== false)
+      {
+          $productSku=str_replace("_", "", $productSku);
+      }
+      else
+      {
+          $productSku=$productSku;
+      }
+      //convert string to lowercase
+      $productSku=strtolower($productSku);  
+      $productSku = substr($productSku, 0, $length);
+    }
+    return $productSku;
+}
+
+//Function is used to apply the any purchase trigger......
+function orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger){
+    if(!empty($orderContactId)){
+        //Concate a error message to store the logs...
+        $callback_purpose = 'Wooconnection Any Purchase : Process of any purchase success order trigger';
+        // //Woocommerce Order trigger : Get the call name and integration name of goal "Any Purchase"... 
+        $purchaseProductTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_ORDER,'Any Purchase');
+
+        //Define variables....
+        $purchaseProductIntegrationName = '';
+        $purchaseProductCallName = '';
+
+        //Check campaign goal details...
+        if(isset($purchaseProductTrigger) && !empty($purchaseProductTrigger)){
+            
+            //Get and set the wooconnection goal integration name
+            if(isset($purchaseProductTrigger[0]->wc_integration_name) && !empty($purchaseProductTrigger[0]->wc_integration_name)){
+                $purchaseProductIntegrationName = $purchaseProductTrigger[0]->wc_integration_name;
+            }
+
+            //Get and set the wooconnection goal call name
+            if(isset($purchaseProductTrigger[0]->wc_call_name) && !empty($purchaseProductTrigger[0]->wc_call_name)){
+                $purchaseProductCallName = $purchaseProductTrigger[0]->wc_call_name;
+            }    
+        }
+
+        // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
+        if(!empty($purchaseProductIntegrationName) && !empty($purchaseProductCallName))
+        {
+            $orderAnyPurchaseTriggerResponse = achieveTriggerGoal($access_token,$purchaseProductIntegrationName,$purchaseProductCallName,$orderContactId,$callback_purpose);
+            if(!empty($orderAnyPurchaseTriggerResponse)){
+                if(empty($orderAnyPurchaseTriggerResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($orderAnyPurchaseTriggerResponse[0]['message']) && !empty($orderAnyPurchaseTriggerResponse[0]['message'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Any Purchase : Process of any purchase success order trigger is failed where contact id is '.$orderContactId.' because '.$orderAnyPurchaseTriggerResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Any Purchase : Process of any purchase success order trigger is failed where contact id is '.$orderContactId.'');
+                    }
+                    
+                }
+            }    
+        }
+    }
+    return true;
+}
+
+//Function is used to apply the specific product purchase trigger......
+function orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,$wooconnectionLogger){
+    if(!empty($orderContactId) && !empty($productSku)){
+        //Concate a error message to store the logs...
+        $callback_purpose = 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger';
+        // //Woocommerce Order trigger : Get the call name and integration name of goal "Specific Product"... 
+        $specificPurchaseProductTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_ORDER,'Specific Product');
+
+        //Define variables....
+        $specificPurchaseProductIntegrationName = '';
+        $specificPurchaseProductCallName = $productSku;
+
+        //Check campaign goal details...
+        if(isset($specificPurchaseProductTrigger) && !empty($specificPurchaseProductTrigger)){
+            
+            //Get and set the wooconnection goal integration name
+            if(isset($specificPurchaseProductTrigger[0]->wc_integration_name) && !empty($specificPurchaseProductTrigger[0]->wc_integration_name)){
+                $specificPurchaseProductIntegrationName = $specificPurchaseProductTrigger[0]->wc_integration_name;
+            }
+        }
+
+        // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
+        if(!empty($specificPurchaseProductIntegrationName) && !empty($specificPurchaseProductCallName))
+        {
+            $orderSpecificPurchaseTriggerResponse = achieveTriggerGoal($access_token,$specificPurchaseProductIntegrationName,$specificPurchaseProductCallName,$orderContactId,$callback_purpose);
+            if(!empty($orderSpecificPurchaseTriggerResponse)){
+                if(empty($orderSpecificPurchaseTriggerResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($orderSpecificPurchaseTriggerResponse[0]['message']) && !empty($orderSpecificPurchaseTriggerResponse[0]['message'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.' because '.$orderSpecificPurchaseTriggerResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.'');
+                    }
+                    
+                }
+            }    
+        }
+    }
+    return true;
+}
+
+
+//Function is used to apply the specific product purchase trigger......
+function orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooconnectionLogger){
+    if(!empty($orderContactId) && !empty($couponName)){
+        //Concate a error message to store the logs...
+        $callback_purpose = 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger';
+        // //Woocommerce Order trigger : Get the call name and integration name of goal "Coupon Code Applied"... 
+        $couponCodeTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_ORDER,'Coupon Code Applied');
+
+        //Define variables....
+        $couponCodeIntegrationName = '';
+        $couponCodeCallName = $couponName;
+
+        //Check campaign goal details...
+        if(isset($couponCodeTrigger) && !empty($couponCodeTrigger)){
+            
+            //Get and set the wooconnection goal integration name
+            if(isset($couponCodeTrigger[0]->wc_integration_name) && !empty($couponCodeTrigger[0]->wc_integration_name)){
+                $couponCodeIntegrationName = $couponCodeTrigger[0]->wc_integration_name;
+            }
+        }
+
+        // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
+        if(!empty($couponCodeIntegrationName) && !empty($couponCodeCallName))
+        {
+            $couponCodeTriggerResponse = achieveTriggerGoal($access_token,$couponCodeIntegrationName,$couponCodeCallName,$orderContactId,$callback_purpose);
+            if(!empty($couponCodeTriggerResponse)){
+                if(empty($couponCodeTriggerResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($couponCodeTriggerResponse[0]['message']) && !empty($couponCodeTriggerResponse[0]['message'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger is failed where contact id is '.$orderContactId.' because '.$couponCodeTriggerResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger is failed where contact id is '.$orderContactId.'');
+                    }
+                    
+                }
+            }    
+        }
+    }
+    return true;
+}
+
+//Get the infusionsoft/keap application order deatils on the basis of order id....
+function getRefferalPartnersListing(){
+  $data = array();
+  //first need to check connection is created or not infusionsoft/keap application then next process need to done..
+  $applicationAuthenticationDetails = getAuthenticationDetails();
+  //get the access token....
+  $access_token = '';
+  if(!empty($applicationAuthenticationDetails)){
+    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+    }
+  }
+  if(!empty($access_token)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/affiliates';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+        //curl_setopt($ch, CURLOPT_POSTFIELDS, $productDetailsArray);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+          $errorMessage = $callback_purpose ." is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+            $errorMessage = $callback_purpose ." is failed ";
+            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+              $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+            }
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+          return $sucessData['affiliates'];
+        }
+        curl_close($ch);
+  }
+  return $data;
+}
+
+//Function is used to get the list of refferal partners....
+function affiliateListing(){
+  $arrayData = getRefferalPartnersListing();  
+  $listing = '';
+  if(isset($arrayData) && !empty($arrayData)){
+    foreach ($arrayData as $key => $value) {
+      $listing .= '<tr>
+                  <td id="refferal_'.$value['id'].'_code">'.$value['id'].'</td>
+                  <td>'.$value['name'].'</td>
+                  <td>'.$value['code'].'</td>
+                  <td><i class="fa fa-copy" onclick = "copyContent(\'refferal_'.$value['id'].'_code\')" style="cursor:pointer"></i></td>
+                  </tr>';
+    }
+  }else{
+    $listing = '<tr><td colspan="4" style="text-align: center; vertical-align: middle;">No Affiliates Exist!</td></tr>';
+  }
+  return $listing;
+}
+
+//Function is used to vaidate a credit card on the basis of card details.....
+function validateCreditCard($accessToken,$cardDetails){
+    $creditCardResponseData = '';
+    //First needs to check access token is exist or not.....
+    if(!empty($accessToken) && !empty($cardDetails)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $accessToken
+        );
+        
+        //Create xml to hit the curl request to validate the credit card.....
+        $creditCardXmlData = "<methodCall><methodName>InvoiceService.validateCreditCard</methodName><params><param><value><string></string></value></param><param><value><struct><member><name>CardType</name><value><string>".$cardDetails['CardType']."</string></value></member><member><name>ContactId</name><value><int>".$cardDetails['ContactId']."</int></value></member><member><name>CardNumber</name><value><string>".$cardDetails['CardNumber']."</string></value></member><member><name>ExpirationMonth</name><value><string>".$cardDetails['ExpirationMonth']."</string></value></member><member><name>ExpirationYear</name><value><string>".$cardDetails['ExpirationYear']."</string></value></member><member><name>CVV2</name><value><string>".$cardDetails['CVV2']."</string></value></member></struct></value></param></params></methodCall>";
+        
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $creditCardXmlData);
+        $creditCardResponse = curl_exec($ch);
+        $creditCardErr = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($creditCardErr){
+            $creditCardErrorMessage = "Validate contact credit card is failed due to ". $creditCardErr; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($creditCardErrorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $creditCardResponseData = xmlrpc_decode($creditCardResponse);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($creditCardResponseData) && xmlrpc_is_fault($creditCardResponseData)) {
+              if(isset($creditCardResponseData['faultString']) && !empty($creditCardResponseData['faultString'])){
+                  $creditCardErrorMessage = "Validate contact credit card is failed due to ". $creditCardResponseData['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($creditCardErrorMessage, true));
+              }
+          }else{
+            return $creditCardResponseData;
+          }
+        }
+        curl_close($ch);
+    }
+    return $creditCardResponseData;
+}
+
+//Function is used to vaidate a credit card on the basis of card details.....
+function checkContactCardExist($access_token,$conatctId,$cardNumber){
+    $contactCardResponseData = '';
+    //First needs to check access token is exist or not.....
+    if(!empty($access_token) && !empty($conatctId) && !empty($cardNumber)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        
+        //Create xml to hit the curl request to check contact credit card already exist or not......
+        $contactCardXmlData = "<methodCall><methodName>InvoiceService.locateExistingCard</methodName><params><param><value><string></string></value></param><param><value><int>".$conatctId."</int></value></param><param><value><string>".$cardNumber."</string></value></param></params></methodCall>";
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $contactCardXmlData);
+        $contactCardResponse = curl_exec($ch);
+        $contactCardErr = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($contactCardErr){
+            $contactCardErrorMessage = "Check contact credit card is failed due to ". $contactCardErr; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($contactCardErrorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $contactCardResponseData = xmlrpc_decode($contactCardResponse);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($contactCardResponseData) && xmlrpc_is_fault($contactCardResponseData)) {
+              if(isset($contactCardResponseData['faultString']) && !empty($contactCardResponseData['faultString'])){
+                  $contactCardErrorMessage = "Check contact credit card is failed due to ". $contactCardResponseData['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($contactCardErrorMessage, true));
+              }
+          }else{
+            return $contactCardResponseData;
+          }
+        }
+        curl_close($ch);
+    }
+    return $contactCardResponseData;
+}
+
+
+//Function is used to update the existing credit card details....
+function updateExistingCreditCard($access_token,$cardId,$cardFields){
+    $updateCardResponseData = '';
+    //First needs to check access token is exist or not.....
+    if(!empty($access_token) && !empty($cardId) && !empty($cardFields)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        
+        //create xml html by executing loop...
+        $cardFieldsHtml = '';
+        foreach ($cardFields as $key => $value) {
+            $cardFieldsHtml .= '<member><name>'.$key.'</name><value><string>'.$value.'</string></value></member>';
+        }
+
+        //Create xml to hit the curl request to update credit card fields.....
+        $updateCardXmlData = "<methodCall><methodName>DataService.update</methodName><params><param><value></value></param><param><value><string>CreditCard</string></value></param><param><value><int>".$cardId."</int></value></param><param><value><struct>".$cardFieldsHtml."</struct></value></param></params></methodCall>";
+        
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $updateCardXmlData);
+        $updateCardResponse = curl_exec($ch);
+        $updateCardErr = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($updateCardErr){
+            $updateCardErrorMessage = "Update existing credit card details is failed due to ". $updateCardErr; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($updateCardErrorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $updateCardResponseData = xmlrpc_decode($updateCardResponse);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($updateCardResponseData) && xmlrpc_is_fault($updateCardResponseData)) {
+              if(isset($updateCardResponseData['faultString']) && !empty($updateCardResponseData['faultString'])){
+                  $updateCardErrorMessage = "Update existing credit card details is failed due to ". $updateCardResponseData['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($updateCardErrorMessage, true));
+              }
+          }else{
+            return $updateCardResponseData;
+          }
+        }
+        curl_close($ch);
+    }
+    return $updateCardResponseData;
+}
+
+
+//Function is used to add the new credit card details....
+function addNewCreditCard($access_token,$creditCardFields){
+    $addCardResponseData = '';
+    //First needs to check access token is exist or not.....
+    if(!empty($access_token) && !empty($creditCardFields)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        
+        //create xml html by executing loop...
+        $addCardFieldsHtml = '';
+        foreach ($creditCardFields as $key => $value) {
+            $addCardFieldsHtml .= '<member><name>'.$key.'</name><value><string>'.$value.'</string></value></member>';
+        }
+
+        //Create xml to hit the curl request for add order item.....
+        $addCardXmlData = "<methodCall><methodName>DataService.add</methodName><params><param><value></value></param><param><value><string>CreditCard</string></value></param><param><value><struct>".$addCardFieldsHtml."</struct></value></param></params></methodCall>";
+        
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $addCardXmlData);
+        $addCardResponse = curl_exec($ch);
+        $addCardErr = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($addCardErr){
+            $addCardErrorMessage = "Add new credit card is failed due to ". $addCardErr; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($addCardErrorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $addCardResponseData = xmlrpc_decode($addCardResponse);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($addCardResponseData) && xmlrpc_is_fault($addCardResponseData)) {
+              if(isset($addCardResponseData['faultString']) && !empty($addCardResponseData['faultString'])){
+                  $addCardErrorMessage = "Add new credit card is failed due to ". $addCardResponseData['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($addCardErrorMessage, true));
+              }
+          }else{
+            return $addCardResponseData;
+          }
+        }
+        curl_close($ch);
+    }
+    return $addCardResponseData;
+}
+
+//Create order payment in infusionsoft/keap application at the time checkout......
+function createOrderPayment($access_token,$orderid,$cardId,$merchId){
+    $orderpaymentResponseData = '';
+    //First needs to check access token is exist or not.....
+    if(!empty($access_token) && !empty($orderid) && !empty($cardId) && !empty($merchId)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+
+        //Create xml to hit the curl request to process the payment.....
+        $orderpaymentXmlData = "<methodCall><methodName>InvoiceService.chargeInvoice</methodName><params><param><value><string></string></value></param><param><value><int>".$orderid."</int></value></param><param><value><string>Online Shopping Cart</string></value></param><param><value><int>".$cardId."</int></value></param><param><value><int>".$merchId."</int></value></param><param><value><boolean>0</boolean></value></param> </params></methodCall>";
+        
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $orderpaymentXmlData);
+        $orderPaymentResponse = curl_exec($ch);
+        $orderPaymentErr = curl_error($ch);
+        //check if error occur due to any reason and then save the logs...
+        if($orderPaymentErr){
+            $orderPaymentErrorMessage = "Process payment for application order # ".$orderid." is fail due to ".$orderPaymentErr; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($orderPaymentErrorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $orderpaymentResponseData = xmlrpc_decode($orderPaymentResponse);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($orderpaymentResponseData) && xmlrpc_is_fault($orderpaymentResponseData)) {
+              if(isset($orderpaymentResponseData['faultString']) && !empty($orderpaymentResponseData['faultString'])){
+                  $orderPaymentErrorMessage = "Validate contact credit card is failed due to ". $orderpaymentResponseData['faultString']; 
+                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($orderPaymentErrorMessage, true));
+              }
+          }else{
+            return $orderpaymentResponseData;
+          }
+        }
+        curl_close($ch);
+    }
+    return $orderpaymentResponseData;
 }
 ?>

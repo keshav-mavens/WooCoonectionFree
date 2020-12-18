@@ -67,7 +67,7 @@ function wooconnection_general_user_registration_trigger($userid,$generalRegistr
     }else{
         $register_user_id = $userid;
     }
-
+    
     //Get user details on the basis of set current user id...
     $registerUserInformation = array();
     if(isset($register_user_id) && !empty($register_user_id)){

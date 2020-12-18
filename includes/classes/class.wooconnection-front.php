@@ -19,6 +19,8 @@ class WooConnection_Front {
     	//Trigger Files : Include the register triggers file...
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/generalTriggers/wooconnection-general-register-triggers.php');
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/generalTriggers/wooconnection-general-order-triggers.php');
+    	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/userCartTriggers/wooconnection-login-usercheckout-triggers.php');
+    	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/userCartTriggers/wooconnection-login-usercart-triggers.php');
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/dynamicCheckoutFields/wooconnection-dynamic-checkout-custom-fields.php');
 		require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/thankyouoverrides/wooconnection-thank-you-overrides.php');
 	}
@@ -91,7 +93,7 @@ class WooConnection_Front {
 				}
 			}
     	}
-    }
+	}
 }
 	
 // Create global so you can use this variable beyond initial creation.

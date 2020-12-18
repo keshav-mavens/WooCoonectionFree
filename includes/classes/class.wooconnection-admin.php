@@ -21,7 +21,7 @@ class WooConnection_Admin {
         $icon_url = WOOCONNECTION_PLUGIN_URL .'assets/images/icon-grey-new.png';
         add_menu_page( 'WooConnection Pro', 'WooConnection Pro', 'manage_options', 'wooconnection-admin', array( $this, 'wooconnection_admin_settings' ), $icon_url, 27 );
     }
-
+    
     //Admin Menu : Fuction is used to call main plugin file..
     public function wooconnection_admin_settings(){
        require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/admin/wooconnection_admin.php' );
@@ -99,6 +99,7 @@ class WooConnection_Admin {
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-common-functions.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
+        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-payment.php');
     }
 
     //Function Definition : includeCssJs
