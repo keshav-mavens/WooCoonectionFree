@@ -1109,7 +1109,9 @@ function createNewProduct($access_token,$productDetailsArray,$callback_purpose,$
 function getApplicationOrderDetails($access_token,$orderRelationId,$callback_purpose){
   $data = array();
   if(!empty($access_token) && !empty($orderRelationId)){
-      $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array(
@@ -1145,15 +1147,23 @@ function getApplicationOrderDetails($access_token,$orderRelationId,$callback_pur
 }
 
 //add notes for contact in infusionsoft/keap application....
-function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
+function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle,$noteType=''){
     if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $logtype = LOG_TYPE_FRONT_END;
         //create json array to push ocde in infusionsoft...
-        if (strpos($noteText, ",") !== false)
-        {
-          $comma_separated = implode(",", $noteText);
+        if(empty($noteType)){
+          if (strpos($noteText, ",") !== false)
+          {
+            $comma_separated = implode(",", $noteText);
+          }else{
+            $comma_separated = $noteText;
+          }  
         }else{
           $comma_separated = $noteText;
         }
+        
         $jsonData ='{"body": "'.$comma_separated.'","title":"'.$itemTitle.'" ,"contact_id":'.$orderContactId.'}';
         $url = 'https://api.infusionsoft.com/crm/rest/v1/notes';
         $ch = curl_init($url);
@@ -1190,7 +1200,9 @@ function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
 function deleteApplicationOrder($access_token,$orderRelationId,$callback_purpose){
   $data = true;
   if(!empty($access_token) && !empty($orderRelationId)){
-      $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array(
@@ -1353,6 +1365,8 @@ function get_set_user_email(){
       }else{
         $useremail = get_user_meta($currentLoginUser->ID, 'billing_email', true);
       }
+    } else if(WC()->session) {
+      $useremail = WC()->session->get('session_email');
     }
     return $useremail;
 }

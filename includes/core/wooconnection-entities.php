@@ -61,3 +61,6 @@
 	define('SKU_LENGHT_SPECIFIC_PRODUCT', 40);
 	define('SKU_LENGHT_REVIEW', 36);
 	define('SKU_LENGHT_CART_ITEM', 35);
+	//contact note type entities....
+	define('NOTE_TYPE_PRODUCT', 1);
+	define('NOTE_TYPE_REVIEW', 2);

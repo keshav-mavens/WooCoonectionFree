@@ -28,7 +28,7 @@ function wooconnection_cart_empty_trigger(){
         $access_token = $applicationAuthenticationDetails[0]->user_access_token;
     }
 
-    //Woocommerce Standard trigger : Get the call name and integration name of goal "Woocommerce Checkout Page"... 
+    //Woocommerce Standard trigger : Get the call name and integration name of goal "Cart Emptied"... 
     $standardEmptiedCartTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_CART,'Cart Emptied');
 
     //Define variables....
@@ -54,6 +54,8 @@ function wooconnection_cart_empty_trigger(){
     $emptiedCartUseremail = get_set_user_email();
     if(empty($emptiedCartUseremail)){
     	$emptiedCartUseremail = "";
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart : Process of wooconnection empty cart trigger is failed because we are unable to get user email or user is not logged in.'); 
+        return false;
     }
 
     // Validate email is in valid format or not 
@@ -134,6 +136,8 @@ function wooconnection_cart_product_add_trigger(){
     $itemAddCartUseremail = get_set_user_email();
     if(empty($itemAddCartUseremail)){
         $itemAddCartUseremail = "";
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Cart Item : Process of wooconnection add item/product to cart trigger is failed because we are unable to get user email or user is not logged in.'); 
+        return false;
     }
 
     // Validate email is in valid format or not 
@@ -238,6 +242,8 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
         $reviewLeftCartUseremail = get_set_user_email();
         if(empty($reviewLeftCartUseremail)){
             $reviewLeftCartUseremail = "";
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Review Item : Process of wooconnection review left for item/product to cart trigger is failed because we are unable to get user email or user is not logged in.');
+            return false;
         }
 
         // Validate email is in valid format or not 
@@ -288,7 +294,7 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
                 $productName = get_the_title($comment_parent_product);//get the product name....
                 $itemTitle = 'Review posted for product '.$productName;//set notes title....
                 //Add note for contact with comment text or product name.....
-                addContactNotes($access_token,$reviewLeftCartContactId,$comment_text,$itemTitle);
+                addContactNotes($access_token,$reviewLeftCartContactId,$comment_text,$itemTitle,NOTE_TYPE_REVIEW);
             }
         }
     }
