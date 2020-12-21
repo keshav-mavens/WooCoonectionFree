@@ -113,6 +113,20 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 }
             }
             
+            //Call the common function to hit the any purchase trigger....
+            $anyPurchaseTrigger = orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger);
+            
+            //add goals form specfic coupons...
+            if(!empty($orderAssociatedCoupons)){
+                foreach ($orderAssociatedCoupons as $key => $value) {
+                    if(!empty($value)){
+                        //Call the common function to hit the coupon applied trigger....
+                        $couponName = 'coupon'.substr($value, 0, 34);
+                        $couponApplyTrigger = orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooconnectionLogger);
+                    }
+                }
+            }
+
             //get the payment method to proceed next........
             $payment_method = $order->get_payment_method();
             //check if payment gateway is not equal to infusionsoft or keap then proceed next.....
@@ -136,6 +150,14 @@ function wooconnection_trigger_status_complete_hook($orderid){
                         $productTitle = $product->get_title();//get product title..
                         //push product details into array/......
                         $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
+
+                        //get product sku..
+                        $length = 40;
+                        $productSku = get_set_product_sku($item['product_id'],$length);
+                        if(isset($productSku) && !empty($productSku)){
+                            //Call the common function to hit the specific product purchase trigger....
+                            $specificPurchaseTrigger = orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,$wooconnectionLogger);
+                        }
                     }
                     //create order items json....
                     $jsonOrderItems = json_encode($itemsArray);
