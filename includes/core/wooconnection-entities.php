@@ -5,12 +5,10 @@
 	define("WOOCONNECTION_TRIGGER_TYPE_CART", 2);
 	//Trigger type entity : ORDER
 	define("WOOCONNECTION_TRIGGER_TYPE_ORDER", 3);
-
 	//Trigger version type : FREE
 	define("TRIGGER_VERISON_FREE", 1);
 	//Trigger version type : PRO
 	define("TRIGGER_VERISON_PRO", 2);
-
 	//Application type entity : infusionsoft
 	define("APPLICATION_TYPE_INFUSIONSOFT", 1);
 	//Application type entity : keap
@@ -54,8 +52,15 @@
 	//Note for order item tax.....
 	define("ITEM_TAX_NOTES", "Order Tax");
 	//Note for order item discount......
-	define("ITEM_DISCOUNT_NOTES", "Order Discount")
-
-?>
-
-
+	define("ITEM_DISCOUNT_NOTES", "Order Discount");
+	//database custom entries status....
+	define('STATUS_ACTIVE', 1);
+	define('STATUS_INACTIVE', 2);
+	define('STATUS_DELETED', 3);
+	//sku on the basis of campaign goals....
+	define('SKU_LENGHT_SPECIFIC_PRODUCT', 40);
+	define('SKU_LENGHT_REVIEW', 36);
+	define('SKU_LENGHT_CART_ITEM', 35);
+	//contact note type entities....
+	define('NOTE_TYPE_PRODUCT', 1);
+	define('NOTE_TYPE_REVIEW', 2);
