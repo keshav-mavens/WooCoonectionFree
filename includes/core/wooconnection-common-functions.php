@@ -1147,7 +1147,7 @@ function getApplicationOrderDetails($access_token,$orderRelationId,$callback_pur
 }
 
 //add notes for contact in infusionsoft/keap application....
-function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle,$noteType=''){
+function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle,$callback_purpose,$noteType=''){
     if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
         // Create instance of our wooconnection logger class to use off the whole things.
         $wooconnectionLogger = new WC_Logger();
