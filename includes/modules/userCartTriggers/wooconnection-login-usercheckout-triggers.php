@@ -54,6 +54,8 @@ function wooconnection_user_arrive_checkout(){
     $reachedUseremail = get_set_user_email();
     if(empty($reachedUseremail)){
         $reachedUseremail = "";
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Reached Checkout : Process of wooconnection reached checkout trigger is failed because we are unable to get user email or user is not logged in.');
+        return false;
     }
 
     // Validate email is in valid format or not 
