@@ -133,7 +133,20 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
         <h4 class="modal-title">Products With Sku</h4>
         <button type="button" class="close" onclick="hideCustomModel('productsListing')">&times;</button>
       </div>
-      <div class="modal-body"><div class="table-responsive" id="products_sku_listing"></div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-striped common-table-class">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Product Sku</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="products_sku_listing">
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -176,4 +189,9 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
     </div>
   </div>
 </div>
+<script type="text/javascript">
+  var SKU_LENGHT_SPECIFIC_PRODUCT = '<?php echo SKU_LENGHT_SPECIFIC_PRODUCT; ?>';
+  var SKU_LENGHT_REVIEW = '<?php echo SKU_LENGHT_REVIEW; ?>'
+  var SKU_LENGHT_CART_ITEM = '<?php echo SKU_LENGHT_CART_ITEM; ?>'
+</script>
 <!--Campaign Goals SETUP END-->

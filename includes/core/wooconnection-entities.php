@@ -57,3 +57,7 @@
 	define('STATUS_ACTIVE', 1);
 	define('STATUS_INACTIVE', 2);
 	define('STATUS_DELETED', 3);
+	//sku on the basis of campaign goals....
+	define('SKU_LENGHT_SPECIFIC_PRODUCT', 40);
+	define('SKU_LENGHT_REVIEW', 36);
+	define('SKU_LENGHT_CART_ITEM', 35);

@@ -586,9 +586,9 @@ function applyDatables(tabel_id){
             }
         }
         //Campaign Goals Tab: apply datatables on products listing with sku..
-        else if(tabel_id == 'products_listing_with_sku_34' 
-                || tabel_id == 'products_listing_with_sku_35' 
-                    || tabel_id == 'products_listing_with_sku_40' 
+        else if(tabel_id == 'products_listing_with_sku_'+SKU_LENGHT_SPECIFIC_PRODUCT 
+                || tabel_id == 'products_listing_with_sku_'+SKU_LENGHT_REVIEW 
+                    || tabel_id == 'products_listing_with_sku_'+SKU_LENGHT_CART_ITEM 
                         || tabel_id == 'coupon_listing_with_sku') {
             if(!$.fn.DataTable.isDataTable('#'+tabel_id))
             {
@@ -712,6 +712,10 @@ function copyContent(elementid) {
 
 //Onlick of products sku get the products listing with listing then show the popup....
 function showProductsListing(length){
+    jQuery("#products_sku_listing").html('');
+    jQuery("#products_sku_listing").html('<tr class="text-center"><td colspan="3">Loading Records...</td></tr>');
+    $("#productsListing").show();
+    $(".common-table-class").attr("id", "products_listing_with_sku_"+length);
     jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length}, function(data) {
         var responsedata = JSON.parse(data);
         if(responsedata.status == "1") {
@@ -719,7 +723,6 @@ function showProductsListing(length){
                 jQuery("#products_sku_listing").html('');
                 jQuery("#products_sku_listing").html(responsedata.productsListing);
             }
-            $("#productsListing").show();
             //apply data tables on products listing with sku...
             if(jQuery("#products_listing_with_sku_"+length).length){
                 applyDatables("products_listing_with_sku_"+length);
