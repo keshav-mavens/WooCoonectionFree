@@ -1497,7 +1497,9 @@ function get_set_product_sku($productId,$length=''){
       }
       //convert string to lowercase
       $productSku=strtolower($productSku);  
-      $productSku = substr($productSku, 0, $length);
+      if(!empty($length)){
+        $productSku = substr($productSku, 0, $length);
+      }
     }
     return $productSku;
 }
