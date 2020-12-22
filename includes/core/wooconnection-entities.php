@@ -64,3 +64,8 @@
 	//contact note type entities....
 	define('NOTE_TYPE_PRODUCT', 1);
 	define('NOTE_TYPE_REVIEW', 2);
+	//follow up related entities....
+	define('FOLLOW_UP_INTEGRATION_NAME', 'wooconnection');
+	define('FOLLOW_UP_CHECKOUT_CALL_NAME', 'reachedcheckoutpage');
+	define('FOLLOW_UP_PURCHASE_CALL_NAME', 'purchaseany');
+	define('FOLLOW_UP_EMPTY_CART_CALL_NAME', 'cartempty');

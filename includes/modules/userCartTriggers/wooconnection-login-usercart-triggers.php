@@ -83,10 +83,8 @@ function wooconnection_cart_empty_trigger(){
         }
         
         //Below code is used to push user in reached checkout page process for cart abandon follow up process.
-        $followUpIntegrationName = 'wooconnection';
-        $followUpCallName = 'woocartempty';
-        $callback_purpose_follow_up = 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user fron follow up sequence';
-        $standardEmptiedCartFollowUpResponse = achieveTriggerGoal($access_token,$followUpIntegrationName,$followUpCallName,$emptiedCartContactId,$callback_purpose_follow_up);
+        $callback_empty_cart_follow_up = 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user fron follow up sequence';
+        $standardEmptiedCartFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_EMPTY_CART_CALL_NAME,$emptiedCartContactId,$callback_empty_cart_follow_up);
         if(!empty($standardEmptiedCartFollowUpResponse)){
             if(empty($standardEmptiedCartFollowUpResponse[0]['success'])){
                 //Campign goal is not exist in infusionsoft/keap application then store the logs..

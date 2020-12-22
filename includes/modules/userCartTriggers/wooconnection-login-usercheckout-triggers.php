@@ -83,10 +83,8 @@ function wooconnection_user_arrive_checkout(){
             }
 
             //Below code is used to push user in reached checkout page process for cart abandon follow up process.
-            $followUpIntegrationName = 'wooconnection';
-            $followUpCallName = 'reachedcheckout';
-            $callback_purpose_follow_up = 'Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up';
-            $standardReachedCheckoutFollowUpResponse = achieveTriggerGoal($access_token,$followUpIntegrationName,$followUpCallName,$reachedContactId,$callback_purpose);
+            $callback_checkout_follow_up = 'Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up';
+            $standardReachedCheckoutFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_CHECKOUT_CALL_NAME,$reachedContactId,$callback_checkout_follow_up);
             if(!empty($standardReachedCheckoutFollowUpResponse)){
                 if(empty($standardReachedCheckoutFollowUpResponse[0]['success'])){
                     //Campign goal is not exist in infusionsoft/keap application then store the logs..
