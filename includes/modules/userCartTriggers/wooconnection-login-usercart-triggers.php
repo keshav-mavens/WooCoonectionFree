@@ -316,5 +316,29 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
     return true;
 }
 
+//Woocommerce hook : This action is triggered when user hits the saved cart link......
+add_action('template_redirect', 'redirect_user_cart');
 
+//Function Definiation : redirect_user_cart
+function redirect_user_cart(){
+    if(is_page( 'cart' ) || is_cart()) {
+        if(isset($_GET['user_email'])){
+            $userDetails = get_user_by('email', $_GET['user_email']);
+            if(isset($userDetails) && !empty($userDetails)){
+                $userId = $userDetails->ID;
+                $userCartDetails = get_user_meta($userId, '_woocommerce_persistent_cart_1', false );
+                if(isset($userCartDetails[0]['cart']) && !empty($userCartDetails[0]['cart'])){
+                  if(!WC()->session->has_session()){
+                    WC()->session->set_customer_session_cookie(true);
+                    WC()->session->set('session_email', $_GET['user_email']);
+                    WC()->session->set('cart', $userCartDetails[0]['cart']);
+                  }
+                }
+                $headTo = wc_get_cart_url();
+                Header("Location: ".$headTo);
+                exit();
+            }
+        }
+    }
+}
 ?>
