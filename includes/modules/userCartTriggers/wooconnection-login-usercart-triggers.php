@@ -321,20 +321,29 @@ add_action('template_redirect', 'redirect_user_cart');
 
 //Function Definiation : redirect_user_cart
 function redirect_user_cart(){
-    if(is_page( 'cart' ) || is_cart()) {
+    //on template redirect first check whether the page is cart or not if cart then proceed next......
+    if(is_page('cart') || is_cart()) {
+        //then check user email parameter exist in query string or not if exist then proceed next....
         if(isset($_GET['user_email'])){
+            //get the user details by email as present in query string.....
             $userDetails = get_user_by('email', $_GET['user_email']);
+            //check user details exist or not....
             if(isset($userDetails) && !empty($userDetails)){
+                //get the user id from user details array.....
                 $userId = $userDetails->ID;
+                //get the user cart details from user meta on the basis of user id....
                 $userCartDetails = get_user_meta($userId, '_woocommerce_persistent_cart_1', false );
+                //get check cart data exist in user meta array, if exist then set cart values in session....
                 if(isset($userCartDetails[0]['cart']) && !empty($userCartDetails[0]['cart'])){
-                  if(!WC()->session->has_session()){
-                    WC()->session->set_customer_session_cookie(true);
-                    WC()->session->set('session_email', $_GET['user_email']);
-                    WC()->session->set('cart', $userCartDetails[0]['cart']);
-                  }
+                    if (isset(WC()->session) && ! WC()->session->has_session() ) {
+                        WC()->session->set_customer_session_cookie(true);
+                        WC()->session->set('cart', $userCartDetails[0]['cart']);
+                        WC()->session->set('session_email', $_GET['user_email']);
+                    }
                 }
+                //get the cart page url...
                 $headTo = wc_get_cart_url();
+                //call the header location function to redirect it on the cart page....
                 Header("Location: ".$headTo);
                 exit();
             }
