@@ -25,6 +25,7 @@ $getStartedUlStatus = "display: block";
 $automationActiveClass = "";
 $automationSubmenuClass = "";
 $automationUlStatus = "";
+$pluginAuthStatus = "";
 
 //if plugin is activated then set the classes for automation tab to show by dafult.....
 if(empty($checkAuthenticationStatus)){
@@ -35,6 +36,13 @@ if(empty($checkAuthenticationStatus)){
 	$automationActiveClass = "active";
 	$automationSubmenuClass = "active-sub-menu";
 	$automationUlStatus = "display: block";
+	$pluginAuthStatus = "authdone";
+}
+
+$pluginActivated = "";
+//check if plugin is activated then add class "activated"....
+if(empty($leftMenuClass)){
+	$pluginActivated = "activated";
 }
 
 ?>
@@ -51,9 +59,14 @@ if(empty($checkAuthenticationStatus)){
 			</a>
 				<ul class="sub-menu getting_started" style="<?php echo $getStartedUlStatus; ?>">
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs <?php echo $getStartedSubmenuClass; ?>" id="guided_setup">Guided Setup</a></li>
-	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="plugin_activation">Activation</a></li>
-	                <li class="sub-menu-expand common_disable_class <?php echo $leftMenuClass; ?>"><a href="javascript:void(0);" class="nav-tabs" id="application_settings"><span class="configurationType" id="<?php echo $type; ?>"><?php echo $applicationLabel; ?></span> Settings</a></li>
-	            </ul>
+	                <li class="sub-menu-expand <?php echo $pluginActivated; ?>">
+	                	<a href="javascript:void(0);" class="nav-tabs" id="plugin_activation">Activation</a>
+	                </li>
+	                <li class="sub-menu-expand common_disable_class <?php echo $leftMenuClass; ?> <?php echo $pluginAuthStatus; ?>">
+	                	<a href="javascript:void(0);" class="nav-tabs" id="application_settings">
+	                		<span class="applicationtype" id="<?php echo $configurationType; ?>"><?php echo $applicationLabel; ?></span> Settings</a>
+	                </li>
+				</ul>
 	        </li>
 			
 	        <li class="expanded  common_disable_class <?php echo $leftMenuClass; ?>">

@@ -637,6 +637,49 @@ input[type=radio] {
 input[type=radio]:checked::before {
     background-color: #364698;
 }
+span.custom-icons {
+    position: absolute;
+    top: 21px;
+    right: 17px;
+}
+span.custom-icons i {
+    color: green;
+}
+input.btn.btn-lg.btn-primary.btn-radius.btn-theme.save_application_settings {
+    padding: .7rem 1.9rem !important;
+}
+div#table_match_products_listing {
+    position: relative;
+}
+.ajax_loader_match_products_related {
+    position: absolute;
+    margin: 0px auto;
+    display: block;
+    width: 100%;
+    text-align: center;
+    top: 16%;
+    z-index: 1;
+}
+.ajax_loader_match_products_related img{
+    height: 30px;
+    width: 30px;
+}
+#wpbody-content {
+    padding-bottom: 35px !important;
+}
+.custom_tr {
+    background: #e8e8e8 !important;
+}
+.btn.exploder.btn-success,.btn.exploder.btn-danger {
+    padding: 0px;
+    border-radius: 50%;
+    line-height: 17px;
+    font-size: 10px;
+    height: 20px;
+    width: 20px;
+    text-align: center;
+    border: 2px solid #fff;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;
