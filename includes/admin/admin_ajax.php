@@ -399,4 +399,102 @@ function wc_get_products_listing()
 	}
 	die();
 }
+
+//Referral Partner Tab : wordpress hook is triggered to get the list of products with their affiliate links on the basis of categorty id.........
+add_action( 'wp_ajax_wc_load_products', 'wc_load_products');
+//Function Definiation : wc_load_products
+function wc_load_products()
+{
+	if(isset($_POST) && !empty($_POST)){
+		//define empty variables.....
+		$productLisingWithAffiliateLinks = "";
+  	
+		//get the authenticate application details first.....
+	  	$authenticateAppdetails = getAuthenticationDetails();
+	  	//define empty variables.....
+	  	$authenticate_application_name = "";
+	  	$productAffiliateLink = '';
+	  	//check authenticate details....
+	  	if(isset($authenticateAppdetails) && !empty($authenticateAppdetails)){
+		    //check authenticate  name is exist......
+		    if(isset($authenticateAppdetails[0]->user_authorize_application)){
+		        $authenticate_application_name = $authenticateAppdetails[0]->user_authorize_application;
+		        $productAffiliateLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
+		    } 
+	  	}
+
+	  	//get the products listing on the basis of category id.......
+	  	$wcProductsListing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999,'tax_query' => array(array('taxonomy'=>'product_cat','field'=>'term_id','terms' => $_POST['categoryId']))));
+
+	  	//check products data exist or not.....
+	  	if(isset($wcProductsListing) && !empty($wcProductsListing)){
+	  		//execute loop and create the html.......
+	  		foreach ($wcProductsListing as $key => $value) {
+	  			$url = get_permalink( $value->ID );//get product url by product id......
+	  			$currentProductAffiliateLink = $productAffiliateLink.$url;
+	  			//concate products listing......
+	  			$productLisingWithAffiliateLinks .= '<tr>
+	  												<td  class="skucss">'.$value->post_title.'</td>
+	  												<td id="product_'.$value->ID.'_affiliate_link"  class="skucss">'.$currentProductAffiliateLink.'</td>
+	  												<td><i class="fa fa-copy" style="cursor:pointer" 
+	                                      onclick="copyContent(\'product_'.$value->ID.'_affiliate_link\')"></td></tr>';
+	  		}
+	  	}else{
+	  		$productLisingWithAffiliateLinks .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No prroducts available</td></tr>';
+	  	}
+	  	//return response with html.....
+	  	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productLisingWithAffiliateLinks'=>$productLisingWithAffiliateLinks));
+	}
+	die();
+}
+
+
+//Referral Partner Tab : wordpress hook is triggered to add custom page for affiliate tracking purpose....
+add_action( 'wp_ajax_wc_add_affiliate_page', 'wc_add_affiliate_page');
+//Function Definiation : wc_add_affiliate_page
+function wc_add_affiliate_page()
+{
+	global $wpdb;
+    //check affiliate page is already exist or not if exist then get the id of this else add new page...
+    $checkAffiliatePageExist = $wpdb->get_results("SELECT *  FROM `wp_posts` WHERE `post_title` LIKE 'Affiliate Redirect' AND `post_status` LIKE 'publish' AND `post_type` LIKE 'page'");
+    $affiliateRedirectPageID = "";
+    //if page already exist then get the id of this.....
+    if (isset($checkAffiliatePageExist) && !empty($checkAffiliatePageExist)) {
+        if(!empty($checkAffiliatePageExist[0]->ID)){
+            $affiliateRedirectPageID = $checkAffiliatePageExist[0]->ID;
+        }
+    }else{//else add new page.....
+        $affiliate_page_details  = array('post_title'=>'Affiliate Redirect','post_type'=> 'page','post_name'=>'referral','post_content'=> 'This page is used to handle the affiliate rediection process.','post_status'=>'publish','comment_status'=>'closed','ping_status'=>'closed','post_author'=>1,'menu_order'=>0);
+
+        $affiliateRedirectPageID = wp_insert_post( $affiliate_page_details, FALSE );
+    }
+    //if page id not empty then update option "affiliate_redirect_page_id" to handle the affiliate redirection processs....
+    if(!empty($affiliateRedirectPageID)){
+	    update_option('affiliate_redirect_page_id',$affiliateRedirectPageID);
+	}
+	//return response with affiliate page id....
+    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'affiliate_redirect_page_id'=>$affiliateRedirectPageID));
+    die();
+}
+
+//Wordpress hook : This action is triggered when user try to customize the referral rediect slug......
+add_action( 'wp_ajax_wc_save_affiliate_redirect_slug', 'wc_save_affiliate_redirect_slug');
+//Function Definiation : wc_save_affiliate_redirect_slug
+function wc_save_affiliate_redirect_slug()
+{
+	if(isset($_POST) && !empty($_POST)){
+		if(isset($_POST['affiliateredirectslug']) && !empty($_POST['affiliateredirectslug'])){
+			$affiliateredirectslug = createAffiliatePageSlug($_POST['affiliateredirectslug']);
+			$affiliate_redirect_page_id = get_option('affiliate_redirect_page_id');
+			if(!empty($affiliate_redirect_page_id)){
+				$pageData = array('ID'=> $affiliate_redirect_page_id,'post_name'   => $affiliateredirectslug);
+			 	//Update the post into the database
+			  	wp_update_post( $pageData );
+			}
+			$latest_affiliate_redirect_url = get_permalink($affiliate_redirect_page_id);//get page url by page id......
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latest_affiliate_redirect_url'=>$latest_affiliate_redirect_url,'affiliateredirectslug'=>$affiliateredirectslug));
+	}
+	die();
+}
 ?>

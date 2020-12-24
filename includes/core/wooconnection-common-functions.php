@@ -872,20 +872,27 @@ function get_country_code($code){
 }
 
 //Create order in infusionsoft/keap application at the time checkout......
-function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
+function createOrder($orderid,$contactId,$jsonOrderItems,$access_token,$lead_affiliate_id){
     $newOrderId = "";
     if(!empty($contactId) && !empty($orderid) && !empty($access_token)){
       $wooconnectionLogger = new WC_Logger();
       $orderTitle = "New Order Generated where order number is #" . $orderid . " and generated from " . site_url();
       $url = "https://api.infusionsoft.com/crm/rest/v1/orders";
       $current_time = date("Y-m-d")."T".date("H:i:s")."Z"; 
-      $jsonArray = '{
-                      "contact_id": '.$contactId.',
-                      "order_items": '.$jsonOrderItems.',
-                      "order_date": "'.$current_time.'",
-                      "order_title": "'.$orderTitle.'",
-                      "order_type": "Offline"
-                    }';
+      // $jsonArray = '{
+      //                 "contact_id": '.$contactId.',
+      //                 "order_items": '.$jsonOrderItems.',
+      //                 "order_date": "'.$current_time.'",
+      //                 "order_title": "'.$orderTitle.'",
+      //                 "order_type": "Offline"
+      //               }';
+      if(empty($lead_affiliate_id)){
+        $jsonArray = '{"contact_id": '.$contactId.',"order_items": '.$jsonOrderItems.',"order_date": "'.$current_time.'",
+                      "order_title": "'.$orderTitle.'","order_type": "Offline"}';
+      }else{
+        $jsonArray = '{"contact_id": '.$contactId.',"lead_affiliate_id":'.$lead_affiliate_id.',"order_items": '.$jsonOrderItems.',"order_date": "'.$current_time.'",
+                      "order_title": "'.$orderTitle.'","order_type": "Offline"}';
+      }
       $ch = curl_init($url);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
       $header = array(
@@ -1940,5 +1947,193 @@ function createOrderPayment($access_token,$orderid,$cardId,$merchId){
         curl_close($ch);
     }
     return $orderpaymentResponseData;
+}
+
+//Referral Partner Tab : This function is used to create the standard pages listing with their affiliate links.....
+function wc_standard_pages_listing(){
+  //get the authenticate application details first.....
+  $authenticateAppdetails = getAuthenticationDetails();
+  //define empty variables.....
+  $authenticate_application_name = "";
+  $pageAffiliateLink = '';
+  //check authenticate details....
+  if(isset($authenticateAppdetails) && !empty($authenticateAppdetails)){
+    //check authenticate  name is exist......
+    if(isset($authenticateAppdetails[0]->user_authorize_application)){
+        $authenticate_application_name = $authenticateAppdetails[0]->user_authorize_application;
+        $pageAffiliateLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
+    } 
+  }
+  //define empty variables.....
+  $pagesLisingWithAffiliateLinks = "";
+  
+  //check application name is exist or not, if exist then proceed next else show the message no authentication...
+  if(!empty($authenticate_application_name)){
+      //get shop page url.....
+      $shopPageUrl = $pageAffiliateLink.wc_get_page_permalink('shop');
+      //get cart page url.....
+      $cartPageUrl = $pageAffiliateLink.wc_get_page_permalink('cart');
+      //get checkout page url.....
+      $checkoutPageUrl = $pageAffiliateLink.wc_get_page_permalink('checkout');
+      //get myaccount page url.....
+      $myaccountPageUrl = $pageAffiliateLink.wc_get_page_permalink('myaccount');
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Shop Page</td><td id="product_shop_page_link">'.$shopPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_shop_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Cart Page</td><td id="product_cart_page_link">'.$cartPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_cart_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Checkout Page</td><td id="product_checkout_page_link">'.$checkoutPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_checkout_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Login Page</td><td id="product_login_page_link">'.$myaccountPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_login_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Create Account Page</td><td id="product_create_account_page_link">'.$myaccountPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_create_account_page_link\')"></i></td></tr>';
+  }else{//if application name is not exist it means no authentication is done.....
+     $pagesLisingWithAffiliateLinks .='<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No affiliate tracking links available</td></tr>';
+  }
+  
+  return $pagesLisingWithAffiliateLinks;//returm html....
+}
+
+
+//Referral Partner Tab : This function is used to get the product categories then create html.....
+function wc_standard_categories_listing(){
+    
+    //set category arguments....
+    $catorderby = 'name';
+    $catorder = 'asc';
+    $categoryArguments = array(
+        'orderby'    => $catorderby,
+        'order'      => $catorder
+    );
+    
+    //get categories.. 
+    $categories = get_terms( 'product_cat', $categoryArguments );
+    //define empty variable.....
+    $categoriesLising = '';
+    //check category listing....
+    if(isset($categories) && !empty($categories)){
+      //execute loop and create html.....
+      foreach ($categories as $key => $value) {
+        $categoryId = $value->term_id;
+        $categoriesLising .= '<tr><td>'.$value->name.'</td><td><a href="javascript:void(0);" onclick="showProductsByCat('.$categoryId.')">View Products</a></td></tr>';
+      }
+    }else{
+        $categoriesLising .='<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No categories available with products</td></tr>';
+    }
+
+    return $categoriesLising;//returm html....
+}
+
+//Referral Partner Tab : This function is used to get the affiliate page slug by page id.....
+function affiliatePageDetails(){
+  $affiliatePageData = array();
+  $affiliatePageId = get_option('affiliate_redirect_page_id');
+  if(isset($affiliatePageId) && !empty($affiliatePageId)){
+    $affiliatePageDetails = get_post($affiliatePageId);
+    if($affiliatePageDetails->post_status == 'publish'){
+      $affiliatePageData['affiliatePageSlug'] = $affiliatePageDetails->post_name;  
+    }
+    $url = get_permalink($affiliatePageId);//get page url by page id......
+    $affiliatePageData['pageUrl'] = $url;  
+  }
+  return $affiliatePageData;
+}
+
+//Referral Partner Tab : This function is used to create the slug of page......
+function createAffiliatePageSlug($pageslug)
+{ 
+    $latestSlug = '';
+    if(isset($pageslug) && !empty($pageslug)){
+      $latestSlug = preg_replace('~[^\\pL\d]+~u', '-', $pageslug);
+      $latestSlug = trim($latestSlug, '-');
+      if(function_exists('iconv')){
+        $latestSlug = iconv('utf-8', 'us-ascii//TRANSLIT', $latestSlug);
+      }
+      $latestSlug = strtolower($latestSlug);
+      $latestSlug = preg_replace('~[^-\w]+~', '', $latestSlug);  
+    }
+    return $latestSlug;
+}
+
+//Referral Partner Tab : Function is used to get affiliate code by affiliate id.....
+function getAffiliateDetails($access_token,$referralAffiliateId){
+    $affiliateCode = '';
+    if(!empty($access_token) && !empty($referralAffiliateId))
+    {
+        $url = "https://api.infusionsoft.com/crm/rest/v1/affiliates/".$referralAffiliateId;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url); //using the setopt function to send request to the url
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+        $response = curl_exec($ch); //executing request
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+          }else{
+            if(!empty($sucessData['code'])){
+                $affiliateCode = $sucessData['code'];
+            }
+          }
+          return $affiliateCode;
+        }
+        curl_close($ch);  
+    }
+    return $affiliateCode;
+}
+
+
+//Checkout Custom fields : Code is used to update contact custom fields with contact id...  
+function updateContactCustomFields($access_token,$contact_id,$customFieldsData){
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
+    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $header = array(
+      'Accept: text/xml',
+      'Content-Type: text/xml',
+      'Authorization: Bearer '. $access_token
+    );
+    
+    //create xml html by executing loop...
+    $customFieldHtml = '';
+    foreach ($customFieldsData as $key => $value) {
+        $keyname = str_replace(" ", "", $key);
+        $customFieldHtml .= '<member><name>'.$keyname.'</name><value><string>'.$value.'</string></value></member>';
+    }
+
+
+    //Create xml to hit the curl request for add order item.....
+    $xmlData = "<methodCall><methodName>ContactService.update</methodName><params><param><value><string>privateKey</string></value></param><param><value><int>".$contact_id."</int></value></param><param><value><struct>".$customFieldHtml."</struct></value></param></params></methodCall>";
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    //check if error occur due to any reason and then save the logs...
+    if($err){
+        $errorMessage = "Update contact custom field values is failed due to ". $err; 
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+    }else{
+      //Covert/Decode response to xml.....
+      $responsedata = xmlrpc_decode($response);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+          if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+              $errorMessage = "Update contact custom field values is failed due to ". $responsedata['faultString']; 
+              $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+      }else{
+        return true;
+      }
+    }
+    curl_close($ch);
+    return true;
 }
 ?>
