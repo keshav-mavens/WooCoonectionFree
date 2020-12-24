@@ -2136,4 +2136,43 @@ function updateContactCustomFields($access_token,$contact_id,$customFieldsData){
     curl_close($ch);
     return true;
 }
+
+//Function is used to apply the referral purchase trigger......
+function orderTriggerReferralPartner($refId,$orderContactId,$access_token,$wooconnectionLogger){
+    if(!empty($orderContactId) && !empty($refId) && !empty($access_token)){
+        //Concate a error message to store the logs...
+        $callback_purpose = 'Wooconnection Referral Partner : Process of referral partner order trigger';
+        //Woocommerce Order trigger : Get the call name and integration name of goal "Referral Partner Order"... 
+        $referralPartnerOrderTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_ORDER,'Referral Partner Order');
+
+        //Define variables....
+        $referralPartnerIntegrationName = '';
+        $referralPartnerCallName = 'refferal'.$refId;
+
+        //Check campaign goal details...
+        if(isset($referralPartnerOrderTrigger) && !empty($referralPartnerOrderTrigger)){
+            //Get and set the wooconnection goal integration name
+            if(isset($referralPartnerOrderTrigger[0]->wc_integration_name) && !empty($referralPartnerOrderTrigger[0]->wc_integration_name)){
+                $referralPartnerIntegrationName = $referralPartnerOrderTrigger[0]->wc_integration_name;
+            }
+        }
+
+        // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
+        if(!empty($referralPartnerIntegrationName) && !empty($referralPartnerCallName))
+        {
+            $orderRefPartnerTriggerResponse = achieveTriggerGoal($access_token,$referralPartnerIntegrationName,$referralPartnerCallName,$orderContactId,$callback_purpose);
+            if(!empty($orderRefPartnerTriggerResponse)){
+                if(empty($orderRefPartnerTriggerResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($orderRefPartnerTriggerResponse[0]['message']) && !empty($orderRefPartnerTriggerResponse[0]['message'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.' because '.$orderRefPartnerTriggerResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.'');
+                    }
+                }
+            }    
+        }
+    }
+    return true;
+}
 ?>
