@@ -104,8 +104,6 @@ function wooconnection_trigger_status_complete_hook($orderid){
 
             if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
                 $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
-                //Woocommerce Order trigger : Get the call name and integration name of goal "Referral Partner Order"... 
-                $referralPartnerOrderTrigger = orderTriggerReferralPartner($referralAffiliateId,$orderContactId,$access_token,$wooconnectionLogger);
             }
             
             if(isset($affiliateCode) && !empty($affiliateCode)){
