@@ -6,21 +6,21 @@
 		//check authenticate application type is infusionsoft or application name is exist......
 		if($authenticateAppdetails[0]->user_application_edition == APPLICATION_TYPE_INFUSIONSOFT && !empty($authenticateAppdetails[0]->user_authorize_application)){
 			//then call the hook to show the meta box in edit screen of every post, product, page.....
-			add_action( 'add_meta_boxes', 'wpdocs_show_referral_link_meta_boxes' );
+			add_action( 'add_meta_boxes', 'wp_show_referral_link_meta_boxes' );
 		}
 	}
 
 	//Function Definiation : wpdocs_show_referral_link_meta_boxes
-	function wpdocs_show_referral_link_meta_boxes() {
+	function wp_show_referral_link_meta_boxes() {
 	    $showOnscreens = array( 'post', 'page','product');//set the name of post type where need to display the referral partner tracking link......
 	    //execute loop to add meta box on screen as set in array.....
 		foreach ( $showOnscreens as $screen ) {
-	        add_meta_box( 'meta-box-id', __( 'Infusionsoft Referral Partner Tracking Link', 'textdomain' ), 'wpdocs_display_referral_tracking_link', $screen,'side');
+	        add_meta_box( 'meta-box-id', __( 'Infusionsoft Referral Partner Tracking Link', 'textdomain' ), 'wp_display_referral_tracking_link', $screen,'side');
 	    }
 	}
 
 	//Function Definiation : wpdocs_show_referral_link_meta_boxes
-	function wpdocs_display_referral_tracking_link( $post ) {
+	function wp_display_referral_tracking_link( $post ) {
 	    //get the authenticate application details first.....
 	    $authenticateAppdetails = getAuthenticationDetails();
 		//define empty variables.....
