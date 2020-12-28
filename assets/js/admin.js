@@ -626,11 +626,11 @@ function applyDatables(tabel_id){
                 });
             }
         }
-        //Campaign Goals Tab: apply datatables on products listing with sku..
+        //Campaign Goals Tab: apply datatables on products listing with sku or coupons listing with sku or products listing with affiliate links..
         else if(tabel_id == 'products_listing_with_sku_'+SKU_LENGHT_SPECIFIC_PRODUCT 
                 || tabel_id == 'products_listing_with_sku_'+SKU_LENGHT_REVIEW 
                     || tabel_id == 'products_listing_with_sku_'+SKU_LENGHT_CART_ITEM 
-                        || tabel_id == 'coupon_listing_with_sku') {
+                        || tabel_id == 'coupon_listing_with_sku' || tabel_id == 'products_listing_with_aff_links') {
             if(!$.fn.DataTable.isDataTable('#'+tabel_id))
             {
                 $('#'+tabel_id).DataTable({
@@ -774,19 +774,33 @@ function showProductsListing(length){
 
 //Referral Partner Tab : On click on view products link show the popup and send the ajax request to get the products listing by category id.....
 function showProductsByCat($catId){
+    //first check category id is exist or not.....
     if($catId != ""){
-        $("#productsAffiliateLinks").html('');
-        $("#productsAffiliateLinks").html('<tr><td colspan="3" style="text-align: center; vertical-align: middle;">Loading Products.....</td></tr>');
-        $("#productsWithAffiliateLInks").show();
-        jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{categoryId:$catId}, function(data) {
-            var responsedata = JSON.parse(data);
-            if(responsedata.status == "1") {
-                if(responsedata.productLisingWithAffiliateLinks != "") {
-                    $("#productsAffiliateLinks").html('');
-                    $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
+        var applicationName = $(".pages_with_aff_links tbody tr:first").attr('data-app-name');
+        if(applicationName != "" && typeof applicationName != 'undefined'){
+            //first empty the existing listing....
+            $("#productsAffiliateLinks").html('');
+            //remove datatable from table listing..
+            $('#products_listing_with_aff_links').DataTable().destroy();
+            //then add html to loading products...
+            $("#productsAffiliateLinks").html('<tr><td colspan="3" style="text-align: center; vertical-align: middle;">Loading Products.....</td></tr>');
+            $("#productsWithAffiliateLInks").show();
+            jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{categoryId:$catId,applicationName:applicationName}, function(data) {
+                var responsedata = JSON.parse(data);
+                if(responsedata.status == "1") {
+                    if(responsedata.productLisingWithAffiliateLinks != "") {
+                        $("#productsAffiliateLinks").html('');
+                        $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
+                        //check table listing exist then call the function "applyDatables" to implement the datatables....
+                        if(jQuery("#products_listing_with_aff_links").length){
+                            applyDatables("products_listing_with_aff_links");
+                        }
+                    }
                 }
-            }
-        });  
+            });  
+        }else{
+            swal("Warning", "Something Went Wrong!", "warning");
+        }
     }
 }
 

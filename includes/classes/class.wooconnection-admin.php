@@ -107,8 +107,15 @@ class WooConnection_Admin {
     public function includeCssJs(){
         ?>
             <style type="text/css">
-                .toplevel_page_wooconnection-admin .wp-menu-image img {
-                    padding: 3px 0 0 0 !important;
+                .toplevel_page_wooconnection-admin .wp-menu-image img {padding: 3px 0 0 0 !important;}
+                .custom-meta-box{word-break: break-all;}
+                .copy_link_button{display: inline-block;text-decoration:none;font-size:13px;line-height: 2.15384615;min-height: 30px;
+                    padding: 0 10px;border-width:1px;border-style: solid;border-radius:3px;white-space:nowrap;
+                    box-shadow: border-box;margin-top:5px;color: #0071a1;border-color:#0071a1;background: #f3f5f6;cursor:pointer;
+                }
+                .copy_link_button:focus{
+                    background: #f3f5f6;border-color: #007cba;color:#016087;box-shadow: 0 0 0 1px #007cba;
+                    outline: 2px solid transparent;outline-offset: 0;
                 }
             </style>
             <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>

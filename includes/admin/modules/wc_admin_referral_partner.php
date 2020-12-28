@@ -40,7 +40,7 @@
 	    //check post status is publish....
 	    if($postStatus == 'publish'){
         	$referralTrackingLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to='.get_the_permalink($post);
-        	$referral_tracking_link_meta_box_html .= '<div class="custom-meta-box" id="referral_tracking_link">'.$referralTrackingLink.'</div><button onclick="copyContent(\'referral_tracking_link\')" type="button">Copy url</button><span id="copyResult"></span>'; 
+        	$referral_tracking_link_meta_box_html .= '<div class="custom-meta-box" id="referral_tracking_link">'.$referralTrackingLink.'</div><button onclick="copyContent(\'referral_tracking_link\')" type="button" class="copy_link_button">Copy url</button><span id="copyResult"></span>'; 
         }else{
             $referral_tracking_link_meta_box_html .= "Publish ".$postType." first for infusionsoft referral partner tracking link.";
         }    

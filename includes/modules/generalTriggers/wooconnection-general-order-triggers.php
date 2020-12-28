@@ -102,11 +102,17 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 $referralAffiliateId = $_COOKIE["affiliateId"];
             }
 
+            //check referral affiliate id exist or not ....if exist then proceed next.....
             if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
+                //get the affiliate details on the basis of affiliate id......
                 $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
+                //Woocommerce Order Trigger : Get the integraton name and the call name of trigger "Referral Partner Order" 
+                $referralPartnerOrderTrigger = orderTriggerReferralPartner($access_token,$referralAffiliateId,$orderContactId,$wooconnectionLogger);
             }
             
+            //check affiliate code is exist or not.....
             if(isset($affiliateCode) && !empty($affiliateCode)){
+                //if exist then update the contact custom field "ReferralCode".....
                 $customField['ReferralCode'] = $affiliateCode;
                 updateContactCustomFields($access_token,$orderContactId,$customField);
             }
@@ -275,11 +281,15 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
             $referralAffiliateId = $_COOKIE["affiliateId"];
         }
 
+        //check referral affiliate id exist or not ....if exist then proceed next.....
         if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
+            //get the affiliate details on the basis of affiliate id......
             $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
         }
         
+        //check affiliate code is exist or not.....
         if(isset($affiliateCode) && !empty($affiliateCode)){
+            //if exist then update the contact custom field "ReferralCode".....
             $customField['ReferralCode'] = $affiliateCode;
             updateContactCustomFields($access_token,$orderContactId,$customField);
         }

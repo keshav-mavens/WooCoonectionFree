@@ -405,23 +405,21 @@ add_action( 'wp_ajax_wc_load_products', 'wc_load_products');
 //Function Definiation : wc_load_products
 function wc_load_products()
 {
+	//first check post data is exist and not empty then proceed next....
 	if(isset($_POST) && !empty($_POST)){
 		//define empty variables.....
 		$productLisingWithAffiliateLinks = "";
   	
-		//get the authenticate application details first.....
-	  	$authenticateAppdetails = getAuthenticationDetails();
-	  	//define empty variables.....
+		//define empty variables.....
 	  	$authenticate_application_name = "";
 	  	$productAffiliateLink = '';
-	  	//check authenticate details....
-	  	if(isset($authenticateAppdetails) && !empty($authenticateAppdetails)){
-		    //check authenticate  name is exist......
-		    if(isset($authenticateAppdetails[0]->user_authorize_application)){
-		        $authenticate_application_name = $authenticateAppdetails[0]->user_authorize_application;
-		        $productAffiliateLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
-		    } 
-	  	}
+  		
+  		//check applicaion name is exist in post or not  name is exist......
+	    if(isset($_POST['applicationName']) && !empty($_POST['applicationName'])){
+	        $authenticate_application_name = $_POST['applicationName'];
+	        $productAffiliateLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
+	    } 
+	  	
 
 	  	//get the products listing on the basis of category id.......
 	  	$wcProductsListing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999,'tax_query' => array(array('taxonomy'=>'product_cat','field'=>'term_id','terms' => $_POST['categoryId']))));
@@ -433,10 +431,7 @@ function wc_load_products()
 	  			$url = get_permalink( $value->ID );//get product url by product id......
 	  			$currentProductAffiliateLink = $productAffiliateLink.$url;
 	  			//concate products listing......
-	  			$productLisingWithAffiliateLinks .= '<tr>
-	  												<td  class="skucss">'.$value->post_title.'</td>
-	  												<td id="product_'.$value->ID.'_affiliate_link"  class="skucss">'.$currentProductAffiliateLink.'</td>
-	  												<td><i class="fa fa-copy" style="cursor:pointer" 
+	  			$productLisingWithAffiliateLinks .= '<tr><td  class="skucss">'.$value->post_title.'</td><td id="product_'.$value->ID.'_affiliate_link"  class="skucss">'.$currentProductAffiliateLink.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
 	                                      onclick="copyContent(\'product_'.$value->ID.'_affiliate_link\')"></td></tr>';
 	  		}
 	  	}else{

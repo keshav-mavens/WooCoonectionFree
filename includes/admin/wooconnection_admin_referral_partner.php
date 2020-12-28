@@ -43,7 +43,7 @@ if(isset($pageDetails['pageUrl']) && !empty($pageDetails['pageUrl'])){
                   	<p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
 				  	<h4>Pages Listing With Affiliate Links</h4>
 				  	<div class="table-responsive">
-					  	<table class="table table-striped">
+					  	<table class="table table-striped pages_with_aff_links">
 						    <thead>
 						      <tr>
 						        <th>Page Name</th>
@@ -114,7 +114,7 @@ if(isset($pageDetails['pageUrl']) && !empty($pageDetails['pageUrl'])){
       </div>
       <div class="modal-body">
       	<div class="table-responsive">
-			<table class="table table-striped">
+			<table class="table table-striped" id="products_listing_with_aff_links">
 			    <thead>
 			      <tr>
 			        <th>Product Name</th>

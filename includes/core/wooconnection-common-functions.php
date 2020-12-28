@@ -879,13 +879,7 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token,$lead_aff
       $orderTitle = "New Order Generated where order number is #" . $orderid . " and generated from " . site_url();
       $url = "https://api.infusionsoft.com/crm/rest/v1/orders";
       $current_time = date("Y-m-d")."T".date("H:i:s")."Z"; 
-      // $jsonArray = '{
-      //                 "contact_id": '.$contactId.',
-      //                 "order_items": '.$jsonOrderItems.',
-      //                 "order_date": "'.$current_time.'",
-      //                 "order_title": "'.$orderTitle.'",
-      //                 "order_type": "Offline"
-      //               }';
+      //check order json array on the basis of referral affiliate is exist or not.....
       if(empty($lead_affiliate_id)){
         $jsonArray = '{"contact_id": '.$contactId.',"order_items": '.$jsonOrderItems.',"order_date": "'.$current_time.'",
                       "order_title": "'.$orderTitle.'","order_type": "Offline"}';
@@ -920,6 +914,10 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token,$lead_aff
         if(!empty($newOrderSucessData)){
             if(!empty($newOrderSucessData['id'])){
               $newOrderId = $newOrderSucessData['id'];
+              //check if affiliate id exist in cookie then needs to emoty it.....
+              if(isset($_COOKIE['affiliateId'])){
+                setcookie( 'affiliateId', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+              }
               return $newOrderId;
             } 
         }
@@ -1977,7 +1975,7 @@ function wc_standard_pages_listing(){
       $checkoutPageUrl = $pageAffiliateLink.wc_get_page_permalink('checkout');
       //get myaccount page url.....
       $myaccountPageUrl = $pageAffiliateLink.wc_get_page_permalink('myaccount');
-      $pagesLisingWithAffiliateLinks .= '<tr><td>Shop Page</td><td id="product_shop_page_link">'.$shopPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_shop_page_link\')">
+      $pagesLisingWithAffiliateLinks .= '<tr data-app-name="'.$authenticate_application_name.'"><td>Shop Page</td><td id="product_shop_page_link">'.$shopPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_shop_page_link\')">
                                           </i></td></tr>';
       $pagesLisingWithAffiliateLinks .= '<tr><td>Cart Page</td><td id="product_cart_page_link">'.$cartPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_cart_page_link\')">
                                           </i></td></tr>';
@@ -2134,6 +2132,52 @@ function updateContactCustomFields($access_token,$contact_id,$customFieldsData){
       }
     }
     curl_close($ch);
+    return true;
+}
+
+//Function is used to apply the referral partner order trigger......
+function orderTriggerReferralPartner($accessToken,$refId,$orderContactId,$objectLogger){
+    //first check required data exist.....
+    if(!empty($accessToken) && !empty($refId) && !empty($orderContactId)){
+        
+        //Define the purpose of function to define the logs.....
+        $orderTriggerPurpose = "WooCommerce Order Trigger : Process of hit referral partner trigger";
+        
+        //Woocommerce Order Trigger : Get the integraton name and the call name of trigger "Referral Partner Order"
+        $referralPartnerOrderTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_ORDER,'Referral Partner Order');
+
+        //Define Empty Variables.....
+        $refPartnerTriggerIntName = '';
+        //Define referral partner order trigger call name by appending the referral partner id....
+        $refPartnerTriggerCallName = 'refferal'.$refId;
+
+        //check referral partner trigger exist in triggers listing, then proceed next......
+        if(isset($referralPartnerOrderTrigger) && !empty($referralPartnerOrderTrigger)){
+            //Get and set the referral partner order trigger "Integration Name"....
+            if(isset($referralPartnerOrderTrigger[0]->wc_integration_name) && !empty($referralPartnerOrderTrigger[0]->wc_integration_name)){
+                $refPartnerTriggerIntName = trim($referralPartnerOrderTrigger[0]->wc_integration_name);
+            }
+        }
+
+        //Check referral partner order trigger integration name and call name of goal is exist or not, if exist then hit the achieveGoal.
+        if(!empty($refPartnerTriggerIntName) && !empty($refPartnerTriggerCallName)){
+            
+            //hit the common function "achieveTriggerGoal" to hit the api goal.....
+            $orderRefPartnerTriggerResponse = achieveTriggerGoal($accessToken,$refPartnerTriggerIntName,$refPartnerTriggerCallName,$orderContactId,$orderTriggerPurpose);
+            
+            //check trigger response.....
+            if(!empty($orderRefPartnerTriggerResponse)){
+                if(empty($orderRefPartnerTriggerResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($orderRefPartnerTriggerResponse[0]['message']) && !empty($orderRefPartnerTriggerResponse[0]['message'])){
+                        $wooconnection_logs_entry = $objectLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.' because '.$orderRefPartnerTriggerResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $objectLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.'');
+                    }
+                }
+            } 
+        }
+    }
     return true;
 }
 ?>
