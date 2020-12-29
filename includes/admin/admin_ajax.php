@@ -220,6 +220,12 @@ function wc_export_wc_products()
                     }else{
                         $wcproductShortDesc = "";
                     }
+                    $wcProductType = $wcproductdetails->get_type();
+                    if(strpos($wcProductType,'subscription') !== false){
+                    	$typeProduct = ITEM_TYPE_SUBSCRIPTION;
+                    }else{
+                    	$typeProduct = ITEM_TYPE_PRODUCT;
+                    }
                     //create final array with values.....
                     $productDetailsArray['active'] = true;
                     $productDetailsArray['product_desc'] = $wcproductDesc;
@@ -233,6 +239,10 @@ function wc_export_wc_products()
                         //if product is not associated along with export product request then need create new product in connected infusionsoft/keap appication.....
                         if(empty($mapppedProductId)){
                         	$productDetailsArray['product_name'] = $wcproductName;//assign product name for new product creation....
+                        	//check item type is a subscription then add new parameter in array that is "subscription_only"....
+                        	if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
+                        		$productDetailsArray['subscription_only'] = true;
+                        	}
                         	$jsonData = json_encode($productDetailsArray);//covert array to json...
                             $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_BACK_END,$wooconnectionLogger);//call the common function to insert the product.....
                             if(!empty($createdProductId)){//if new product created is not then update relation and product sku...
