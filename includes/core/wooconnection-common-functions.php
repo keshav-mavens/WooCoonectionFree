@@ -1109,7 +1109,9 @@ function createNewProduct($access_token,$productDetailsArray,$callback_purpose,$
 function getApplicationOrderDetails($access_token,$orderRelationId,$callback_purpose){
   $data = array();
   if(!empty($access_token) && !empty($orderRelationId)){
-      $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array(
@@ -1145,8 +1147,11 @@ function getApplicationOrderDetails($access_token,$orderRelationId,$callback_pur
 }
 
 //add notes for contact in infusionsoft/keap application....
-function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
+function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle,$callback_purpose){
     if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $logtype = LOG_TYPE_FRONT_END;
         //create json array to push ocde in infusionsoft...
         if (strpos($noteText, ",") !== false)
         {
@@ -1190,7 +1195,9 @@ function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
 function deleteApplicationOrder($access_token,$orderRelationId,$callback_purpose){
   $data = true;
   if(!empty($access_token) && !empty($orderRelationId)){
-      $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array(
