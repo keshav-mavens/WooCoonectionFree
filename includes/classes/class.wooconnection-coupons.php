@@ -9,6 +9,7 @@ if(!defined('ABSPATH')){
 class WC_Subscription_Referral_Coupons extends WC_Coupon
 {
 	public function __construct(){
+	 	//Define the woocommerce gloabal varaiable .....
 	 	global $woocommerce;
 	 	//Wordpress Hook : This action is trigger to add new fields so user should be able to store 
 	 	add_action('woocommerce_coupon_options',[$this,'add_referral_partner_related_custom_fields'],10,2);	
@@ -26,21 +27,21 @@ class WC_Subscription_Referral_Coupons extends WC_Coupon
     }
 
 	//Function Definition : add_referral_partner_related_custom_fields 
-	public function add_referral_partner_related_custom_fields($coupon_get_id, $coupon){
-		//get post meta wether a associate with affiliate is exist or not......
-		$associateWithAffiliate = get_post_meta($coupon_get_id,'coupon_assoicate_with_affiliate',true);
+	public function add_referral_partner_related_custom_fields($current_coupon_id, $coupon){
+		//get post meta whether a associate with affiliate is enable or not......
+		$currentCouponAssAffiliate = get_post_meta($current_coupon_id,'coupon_assoicate_with_affiliate',true);
 		//define empty variable....
-		$associate = '';
+		$associateEnable = '';
 		//check associate with affiliate is enable or not........
-		if(isset($associateWithAffiliate) && !empty($associateWithAffiliate)){
-			$associate = $associateWithAffiliate;
+		if(isset($currentCouponAssAffiliate) && !empty($currentCouponAssAffiliate)){
+			$associateEnable = $currentCouponAssAffiliate;
 		}
 		//create the checkbox.....
 		woocommerce_wp_checkbox(
 				array('id'=>'linked_with_affiliate',
 					'label'=>__('Associate Contact With Affiliate','woocommerce'),
 					'description'=>sprintf( __('Check this box if contact associate with affiliate after applying this coupon.', 'woocommerce')),
-				    'value'=>$associate)
+				    'value'=>$associateEnable)
 				);
 		//create the input field to get the referral partner id from the user.....
 		woocommerce_wp_text_input(
@@ -77,31 +78,34 @@ class WC_Subscription_Referral_Coupons extends WC_Coupon
 
 	//Function Definition : checkout_set_affiliate
 	public function checkout_set_affiliate($cart_object){
+		//Define the woocommerce global variable to access the cart objects......
 		global $woocommerce;
-		//first check coupons applied or not....
+		//first check coupons applied or not in cart or not....
 		if(!empty($woocommerce->cart->get_applied_coupons())){
 			//set coupons codes in variable......
-			$cartCoupons = $woocommerce->cart->get_applied_coupons();
-			//execute loop on coupons.....
-			foreach ($cartCoupons as $key => $value) {
-				//set coupon name.....
-				$couponName = $value;
+			$appliedCartCoupons = $woocommerce->cart->get_applied_coupons();
+			//execute loop on coupons to get the coupon details.....
+			foreach ($appliedCartCoupons as $key => $value) {
+				//get or set coupon name.....
+				$appliedCouponName = $value;
 				//check coupon name is exist or ont....
-				if(isset($couponName) && !empty($couponName)){
+				if(isset($appliedCouponName) && !empty($appliedCouponName)){
 					//get the coupon details by coupon name....
-					$couponData = new WC_Coupon($couponName);
+					$appliedCouponData = new WC_Coupon($appliedCouponName);
 					//check coupon data is exist or not....
-					if(isset($couponData) && !empty($couponData)){
+					if(isset($appliedCouponData) && !empty($appliedCouponData)){
 						//get the coupon id from coupon data......
-						$couponIds = $couponData->get_id();
-						if(isset($couponIds) && !empty($couponIds)){
+						$appliedCouponId = $appliedCouponData->get_id();
+						//check coupon id is exist or not....
+						if(isset($appliedCouponId) && !empty($appliedCouponId)){
 							//get the coupon is associated with referral partner..........
-		        			$enableReferral = get_post_meta($couponIds,'coupon_assoicate_with_affiliate',true);
+		        			$enableReferralInAppliedCoupon = get_post_meta($appliedCouponId,'coupon_assoicate_with_affiliate',true);
 		        			//get the referral partner id.......
-		        			$associatedRefId = get_post_meta($couponIds,'referral_partner_id',true);
-							if(!empty($enableReferral) && !empty($associatedRefId) && !headers_sent()){
+		        			$associatedRefIdWithAppliedCoupon = get_post_meta($couponIds,'referral_partner_id',true);
+							if(!empty($enableReferralInAppliedCoupon) && !empty($associatedRefIdWithAppliedCoupon) && !headers_sent()){
 								$cookieName = "affiliateId";
 			                    $cookieValue = $associatedRefId;
+			                    //set cookie with name......
 			                    setcookie($cookieName, $cookieValue, time() + 3600, "/", $_SERVER['SERVER_NAME']);
 			                    break;
 							}
@@ -121,12 +125,12 @@ class WC_Subscription_Referral_Coupons extends WC_Coupon
 			//get the remove coupon id from coupon data......
 			$removeCouponId = $removeCouponData->get_id();
 	    	//get the remove coupon is associated with referral partner..........
-			$enableReferral = get_post_meta($removeCouponId,'coupon_assoicate_with_affiliate',true);
+			$enableReferralInRemoveCoupon = get_post_meta($removeCouponId,'coupon_assoicate_with_affiliate',true);
 			//get the remove coupon referral partner id.......
-			$associatedRefId = get_post_meta($removeCouponId,'referral_partner_id',true);
+			$associatedRefIdWithRemoveCoupon = get_post_meta($removeCouponId,'referral_partner_id',true);
 	    	//check enable with referral and value of referral partner id is exist and equal to cookie value.....
-	    	if(!empty($enableReferral) && !empty($associatedRefId) && $associatedRefId == $_COOKIE['affiliateId']){
-	    		//then emoty the affiiate cookie value....
+	    	if(!empty($enableReferralInRemoveCoupon) && !empty($associatedRefIdWithRemoveCoupon) && $associatedRefIdWithRemoveCoupon == $_COOKIE['affiliateId']){
+	    		//then empty the affiiate cookie value....
 	    		setcookie( 'affiliateId', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
 	    	}
 	    }
