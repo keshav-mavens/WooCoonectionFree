@@ -19,6 +19,8 @@
             add_action('admin_enqueue_scripts', array($this,'enqueue_script_coupon_admin'));
             //Wordpress hook : This action is triggered to save custom fields related data...........
             add_action( 'woocommerce_before_calculate_totals', [$this, 'checkout_calculate_total_after_free_trial'], 10, 1 );
+            //Wordpress Hook : This filter is used to validate the custom coupons of custom discount type....
+            add_filter('woocommerce_subscriptions_validate_coupon_type',[$this,'implement_custom_coupon_type_validation'],10,3);
         }
 
  		//Function Definiation : create_custom_discount_type
@@ -47,9 +49,10 @@
 	    }
 
 	    //Function Definiation : save_custom_discount_coupon_fields
-	    public function save_custom_discount_coupon_fields($post_id, $coupon){
-	    	update_post_meta( $post_id, 'custom_free_coupon_trial_duration', $_POST['free_coupon_trial_duration'] );
-	    	update_post_meta( $post_id, 'custom_free_coupon_trial_period', $_POST['free_coupon_trial_period'] );
+	    public function save_custom_discount_coupon_fields($coupon_post_id, $coupon){
+	    	//update the custom coupon type information by using the function "update_post_meta" with post id
+	    	update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_duration', $_POST['free_coupon_trial_duration'] );
+	    	update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_period', $_POST['free_coupon_trial_period'] );
 	    }
 
 	    //Function Definiation : enqueue_script_coupon_admin
@@ -94,14 +97,31 @@
 						        //check product type is subsciption or variable subscription........
 						        if ( is_a( $cartItem['data'], 'WC_Product_Subscription' ) || is_a( $cartItem['data'], 'WC_Product_Subscription_Variation' ) ) {
 						        	//then update subscription meta data.....
-						           	$cartItem['data']->update_meta_data('_subscription_trial_length', $couponTrialDuration);
-                            		$cartItem['data']->update_meta_data('_subscription_trial_period', $couponTrialPeriod); 
-						        }
+						           	$cartItem['data']->update_meta_data('_subscription_trial_length', $couponTrialDuration,true);
+                            		$cartItem['data']->update_meta_data('_subscription_trial_period', $couponTrialPeriod,true);
+                  				}
 						    }
 	        			}
 	        		}
 	        	}
 	        }
+	    }
+
+	    //Function Definition : implement_custom_coupon_type_validation
+	    public function implement_custom_coupon_type_validation($firstArg,$coupondata,$validate){
+	    	//first check coupon type is "custom_subscription_free_trial" then proceed next....
+	    	if($coupondata->is_type('custom_subscription_free_trial')){
+	    		//get the coupon trial duration.....
+	    		$sub_trial_coupon_duration = $coupondata->get_meta('custom_free_coupon_trial_duration');
+	    		//get the coupon trial period.....
+	    		$sub_trial_coupon_period = $coupondata->get_meta('custom_free_coupon_trial_period');
+	    		//if both values of coupon duration and coupon code is exist it means coupon is validated and stop the process to validate by woocommercer subscription addone.....
+	    		if(!empty($sub_trial_coupon_duration) && !empty($sub_trial_coupon_period)){
+	    			return false;
+	    		}
+	    	}
+	    	//else return true.....
+	    	return true;
 	    }
 	}
 
