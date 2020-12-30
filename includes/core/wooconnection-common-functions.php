@@ -1567,4 +1567,40 @@ function createOrderPayment($access_token,$orderid,$cardId,$merchId){
     }
     return $orderpaymentResponseData;
 }
+
+//create subscription plan at the time of export products.....
+function addSubscriptionPlan($accessToken,$appProductId,$subJsonData,$logger)
+{
+  if(!empty($accessToken) && !empty($appProductId) && !empty($subJsonData)){
+      //append the application product is in url to add the subscription plan for specific product.....
+      $url = 'https://api.infusionsoft.com/crm/rest/v1/products/'.$appProductId.'/subscriptions';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $accessToken
+      );
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $subJsonData);
+      $subResponse = curl_exec($ch);
+      $subError = curl_error($ch);
+      if($subError){
+        $subErrorMessage = "Add subscription plan for application product #".$appProductId." is failed due to ".$subError;
+        $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true));
+      }else{
+        $subSucessData = json_decode($subResponse,true);
+        if(isset($subSucessData['fault']) && !empty($subSucessData['fault'])){
+          $subErrorMessage = 'Try to add subscription for particluar product #'.$appProductId.' in application is failed ';
+          if(isset($subSucessData['fault']['faultstring']) && !empty($subSucessData['fault']['faultstring'])){
+            $subErrorMessage .= "due to ".$subErrorMessage['fault']['faultstring'];
+          }
+          $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true));
+        }
+      }
+      curl_close($ch);
+  }
+  return true;
+}
 ?>
