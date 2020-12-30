@@ -200,6 +200,21 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
       }
     }
 
+    //by default subscription products is hide....
+    $allowSubscription = false;
+    //get the custom payment gateway settings.......
+    $settingOptions = get_option('woocommerce_infusionsoft_keap_settings');
+    //check settings is exist or not........
+    if(isset($settingOptions) && !empty($settingOptions)){
+      //then check custom gateway is enabled for payments......
+      if($settingOptions['enabled'] == 'yes'){
+        //then check subscriptions are enable or not if enable then call the class to give feature of trial subscription coupons......
+        if(isset($settingOptions['wc_subscriptions']) && !empty($settingOptions['wc_subscriptions']) && $settingOptions['wc_subscriptions'] == 'yes' && !empty($applicationType) && $applicationType == APPLICATION_TYPE_INFUSIONSOFT_LABEL){
+            $allowSubscription = true;
+        }
+      }
+    }
+
     //First check if wooproducts exist...
     if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
         //Create first table....
@@ -231,6 +246,12 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                   $wcproductName = $wcproductName;
                 }else{
                   $wcproductName = "--";
+                }
+                $wcProductType = $wcproduct->get_type();
+                if(stripos($wcProductType, 'subscription') !== false){
+                  $typeProduct = ITEM_TYPE_SUBSCRIPTION;
+                }else{
+                  $typeProduct = ITEM_TYPE_PRODUCT;
                 }
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
                 if(!empty($applicationProductsArray['products'])){
@@ -276,9 +297,14 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                 }else{
                     $wcproductSku = '--';
                 }
-                //Create final html.......
-                $exportTableHtml .= '<tr><td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
-
+                if($typeProduct == ITEM_TYPE_PRODUCT){
+                    //Create final html.......
+                    $exportTableHtml .= '<tr><td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+                }
+                else if($typeProduct == ITEM_TYPE_SUBSCRIPTION && $allowSubscription == true){
+                    //Create final html.......
+                    $exportTableHtml .= '<tr><td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+                }
             }
 
         }
@@ -480,6 +506,21 @@ function createMatchProductsHtml(){
 
 //Create the match products table listing....
 function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
+    //by default subscription products is hide....
+    $allowSubscription = false;
+    //get the custom payment gateway settings.......
+    $settingOptions = get_option('woocommerce_infusionsoft_keap_settings');
+    //check settings is exist or not........
+    if(isset($settingOptions) && !empty($settingOptions)){
+      //then check custom gateway is enabled for payments......
+      if($settingOptions['enabled'] == 'yes'){
+        //then check subscriptions are enable or not if enable then call the class to give feature of trial subscription coupons......
+        if(isset($settingOptions['wc_subscriptions']) && !empty($settingOptions['wc_subscriptions']) && $settingOptions['wc_subscriptions'] == 'yes' && !empty($applicationType) && $applicationType == APPLICATION_TYPE_INFUSIONSOFT_LABEL){
+            $allowSubscription = true;
+        }
+      }
+    }
+
     $matchTableHtml  = '';//Define variable..
     $matchProductsData = array();//Define array...
     //First check if wooproducts exist...
@@ -557,11 +598,15 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                     $actionHtml  = '<button type="button" title="Expand variations of this product." class="btn btn-success exploder" id="'.$wc_product_id.'" data-id="'.$productExistId.'"><i class="fa fa-plus"></i></button>';
                 }
 
-                //Create final html.......
-                $matchTableHtml .= '<tr id="table_row_'.$wc_product_id.'"><td>'.$actionHtml.'</td><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
-
+                if($typeproduct == ITEM_TYPE_PRODUCT){
+                    //Create final html.......
+                    $matchTableHtml .= '<tr id="table_row_'.$wc_product_id.'"><td>'.$actionHtml.'</td><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';  
+                }
+                else if($typeproduct == ITEM_TYPE_SUBSCRIPTION && $allowSubscription == true){
+                    //Create final html.......
+                    $matchTableHtml .= '<tr id="table_row_'.$wc_product_id.'"><td>'.$actionHtml.'</td><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+                }
             }
-
         }
         $matchProductsData['matchTableHtml'] = $matchTableHtml;//Assign html....
     }
