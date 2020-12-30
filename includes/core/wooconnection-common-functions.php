@@ -497,6 +497,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
         $matchTableHtml .= '<tbody>';
         $productExistId = '';
         foreach ($wooCommerceProducts as $key => $value) {
+            $typeproduct = ITEM_TYPE_PRODUCT;
             if(!empty($value)){
                 $wc_product_id = $value->ID;//Define product id...                  
                 $wcproduct = wc_get_product($wc_product_id);//Get product details..
@@ -519,15 +520,25 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                 }else{
                   $wcproductName = "--";
                 }
+                //get the product type i.e simple product or simple subscription......
+                $wcproductType = $wcproduct->get_type();
+                //check it substring "subscription" not exist in product type it means it is a simple product..
+                if (strpos($wcproductType, 'subscription') !== false) {
+                    $typeproduct = ITEM_TYPE_SUBSCRIPTION;
+                }
+                //else it is a subscription plan.....
+                else{
+                    $typeproduct = ITEM_TYPE_PRODUCT;
+                }
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
                 if(!empty($applicationProductsArray['products'])){
                     //Check product relation is exist....
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
                     if(isset($productExistId) && !empty($productExistId)){
-                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$productExistId);
+                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$productExistId,$typeproduct);
                     }else{
-                      $productsDropDown = createMatchProductsSelect($applicationProductsArray);
+                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,'',$typeproduct);
                     }
                     //Create final select html.....
                     $productSelectHtml = '<select class="application_match_products_dropdown" name="wc_product_match_with_'.$wc_product_id.'" data-id="'.$wc_product_id.'"><option value="0">Select '.$applicationType.' product</option>'.$productsDropDown.'</select>';
@@ -558,7 +569,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
 }
 
 //create the infusionsoft products dropdown for mapping..........
-function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_compare=''){
+function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_compare='',$typeProduct){
     $iskp_products_options_html = '';//Define variable...
     if(isset($existingiskpProductResult['products']) && !empty($existingiskpProductResult['products'])){//check application products...
         foreach($existingiskpProductResult['products'] as $iskpProductDetails) {
@@ -572,8 +583,17 @@ function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_com
                   $iskpProductSelected = "";
               }
           }
-           //create the final html.....
-          $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';
+          //first check it item/product type is a subscription or subscription plans exist with products then only those products are available in dropown to update mapping.......
+          if($typeProduct == ITEM_TYPE_SUBSCRIPTION && !empty($iskpProductDetails['subscription_plans'])){
+              //create the final html.....
+              $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';  
+          }
+          //then check if product type is product then show only those products which is not related to subscription plans.....
+          else if ($typeProduct == ITEM_TYPE_PRODUCT && empty($iskpProductDetails['subscription_plans'])) {
+              //create the final html.....
+              $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';
+          }
+          
         }
     }
     return $iskp_products_options_html;//return html...
@@ -1109,7 +1129,9 @@ function createNewProduct($access_token,$productDetailsArray,$callback_purpose,$
 function getApplicationOrderDetails($access_token,$orderRelationId,$callback_purpose){
   $data = array();
   if(!empty($access_token) && !empty($orderRelationId)){
-      $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array(
@@ -1145,8 +1167,11 @@ function getApplicationOrderDetails($access_token,$orderRelationId,$callback_pur
 }
 
 //add notes for contact in infusionsoft/keap application....
-function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
+function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle,$callback_purpose){
     if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $logtype = LOG_TYPE_FRONT_END;
         //create json array to push ocde in infusionsoft...
         if (strpos($noteText, ",") !== false)
         {
@@ -1190,7 +1215,9 @@ function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle){
 function deleteApplicationOrder($access_token,$orderRelationId,$callback_purpose){
   $data = true;
   if(!empty($access_token) && !empty($orderRelationId)){
-      $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        $url = 'https://api.infusionsoft.com/crm/rest/v1/orders/'.$orderRelationId;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array(
@@ -1539,5 +1566,41 @@ function createOrderPayment($access_token,$orderid,$cardId,$merchId){
         curl_close($ch);
     }
     return $orderpaymentResponseData;
+}
+
+//create subscription plan at the time of export products.....
+function addSubscriptionPlan($accessToken,$appProductId,$subJsonData,$logger)
+{
+  if(!empty($accessToken) && !empty($appProductId) && !empty($subJsonData)){
+      //append the application product is in url to add the subscription plan for specific product.....
+      $url = 'https://api.infusionsoft.com/crm/rest/v1/products/'.$appProductId.'/subscriptions';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $accessToken
+      );
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $subJsonData);
+      $subResponse = curl_exec($ch);
+      $subError = curl_error($ch);
+      if($subError){
+        $subErrorMessage = "Add subscription plan for application product #".$appProductId." is failed due to ".$subError;
+        $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true));
+      }else{
+        $subSucessData = json_decode($subResponse,true);
+        if(isset($subSucessData['fault']) && !empty($subSucessData['fault'])){
+          $subErrorMessage = 'Try to add subscription for particluar product #'.$appProductId.' in application is failed ';
+          if(isset($subSucessData['fault']['faultstring']) && !empty($subSucessData['fault']['faultstring'])){
+            $subErrorMessage .= "due to ".$subErrorMessage['fault']['faultstring'];
+          }
+          $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true));
+        }
+      }
+      curl_close($ch);
+  }
+  return true;
 }
 ?>
