@@ -92,7 +92,7 @@
 
 	    //Function Definiation : save_custom_discount_coupon_fields
 	    public function save_custom_discount_coupon_fields($coupon_post_id, $coupon){
-	    	//update the custom coupon type information by using the function "update_post_meta" with post id
+	    	//update the custom coupon type information by using the function "update_post_meta" with post id...
 	    	if(isset($_POST['free_coupon_trial_duration'])){
 	    		update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_duration', $_POST['free_coupon_trial_duration'] );
 	    	}
