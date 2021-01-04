@@ -56,7 +56,7 @@ function insertProductToApplication( $post_id, $post ){
             $wcproductShortDesc = "";
           }
           $wcProductType = $wcproductdetails->get_type();
-          if(stripos($wcProductType, 'subscription') !== false){
+          if(strpos($wcProductType, 'subscription') !== false){
             $newproducttype = ITEM_TYPE_SUBSCRIPTION;
           }else{
             $newproducttype = ITEM_TYPE_PRODUCT;
@@ -69,9 +69,9 @@ function insertProductToApplication( $post_id, $post ){
           $productDetailsArray['product_price'] = $wcproductPrice;
           $productDetailsArray['product_short_desc'] = $wcproductShortDesc;
           $productDetailsArray['product_name'] = $wcproductName;
-          /*if($newproducttype == ITEM_TYPE_SUBSCRIPTION){
+          if($newproducttype == ITEM_TYPE_SUBSCRIPTION){
             $productDetailsArray['subscription_only'] = true;
-          }*/
+          }
           $jsonData = json_encode($productDetailsArray);//covert array to json...
           $newProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_BACK_END,$wooconnectionLogger);//call the common function to insert the product.....
           if(!empty($newProductId)){//if new product created is not then update relation and product sku...
@@ -81,10 +81,10 @@ function insertProductToApplication( $post_id, $post ){
             update_post_meta($post_id, 'wc_product_automation', true);
             //update the woocommerce product sku......
             update_post_meta($post_id,'_sku',$wcproductSku);
-            /*if($newproducttype == ITEM_TYPE_SUBSCRIPTION){
+            if($newproducttype == ITEM_TYPE_SUBSCRIPTION){
               //update post meta to add subscripton in application product....
               update_post_meta($post_id,'add_product_sub',true);
-            }*/
+            }
             
             $callback_purpose = LOG_TYPE_BACK_END." : ".$callback_purpose.' is sucessfully done and newly created product in application is #'.$newProductId;
             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', $callback_purpose);    
@@ -96,6 +96,7 @@ function insertProductToApplication( $post_id, $post ){
 
 //on move product to trash delete the relation.....
 add_action('wp_trash_post', 'custom_trash_function');
+//Function Definiation : custom_trash_function 
 function custom_trash_function($post_id){
     if(!empty($post_id)){
         //Check product relation is exist....
@@ -107,8 +108,10 @@ function custom_trash_function($post_id){
   return true;  
 }
 
-/*add_action('updated_post_meta','do_something',10,4);
-function do_something($metaid,$post_id,$metakey,$metaval)
+//Wordpress hook : This action is triggered to add subscription plan in application product when newly added product is subscription..... 
+add_action('updated_post_meta','add_subscription_plan',10,4);
+//Function Definiation : add_subscription_plan 
+function add_subscription_plan($metaid,$post_id,$metakey,$metaval)
 {
     //first need to check whether the application authentication is done or not..
     $applicationAuthenticationDetails = getAuthenticationDetails();
@@ -122,25 +125,38 @@ function do_something($metaid,$post_id,$metakey,$metaval)
     
     //set the wooconnection log class.....
     $wooconnectionLogger = new WC_Logger();
+    //get some post meta data to check whether needs to add subscription paln in application or not.....
     $needsToAdd = get_post_meta($post_id,'add_product_sub',true);
     $appProductId = get_post_meta($post_id,'is_kp_product_id',true);
     $checkAlreadyAdded = get_post_meta($post_id,'plan_added',true);
+    $productDetails = wc_get_product($post_id);
+    $productPrice = $productDetails->get_regular_price();
+    //define empty variables.....
+    $subInterval = '';
+    $subPeriod = '';
+    $subLength = '';
     if(isset($needsToAdd) && !empty($needsToAdd) && !empty($appProductId) && empty($checkAlreadyAdded)){
         //get the subscription interval.....
-        $subInterval = get_post_meta($post_id,'_subscription_period_interval',true);
-        //get the subscription period....
-        $subPeriod = get_post_meta($post_id,'_subscription_period',true);
-        //get subscription cycle....
-        $subLength = get_post_meta($post_id,'_subscription_length',true);
-        //create json array to add subscription.....
-        $jsonSubArray = '{"active":true,"cycle_type":"'.strtoupper($subPeriod).'","frequency":'.$subInterval.',"number_of_cycles":'.$subLength.',"plan_price":30,"subscription_plan_index:0"}';
+        if(isset($_POST['_subscription_period_interval'])){
+          $subInterval = $_POST['_subscription_period_interval'];
+        }
+        //get the subscription period......
+        if(isset($_POST['_subscription_period'])){
+          $subPeriod = $_POST['_subscription_period'];
+        }
+        //get the subscription cycle.....
+        if(isset($_POST['_subscription_length'])){
+          $subLength = $_POST['_subscription_length'];
+        }
+        //create json array to add subscription plan.....
+        $jsonSubArray = '{"active":true,"cycle_type":"'.strtoupper($subPeriod).'","frequency":'.$subInterval.',"number_of_cycles":'.$subLength.',"plan_price":'.$productPrice.',"subscription_plan_index:0"}';
         //add subscription with particular product.....
         $createSubscription = addSubscriptionPlan($access_token,$appProductId,$jsonSubArray,$wooconnectionLogger);
+        //check subscription plan adding response.....
         if($createSubscription == true){
             update_post_meta($post_id,'plan_added',true);
         }
     }
     return true;
-}*/
-
+}
 ?>

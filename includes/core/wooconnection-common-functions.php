@@ -1634,6 +1634,7 @@ function addSubscriptionPlan($accessToken,$appProductId,$subJsonData,$logger)
       if($subError){
         $subErrorMessage = "Add subscription plan for application product #".$appProductId." is failed due to ".$subError;
         $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true));
+        return false;
       }else{
         $subSucessData = json_decode($subResponse,true);
         if(isset($subSucessData['fault']) && !empty($subSucessData['fault'])){
@@ -1642,6 +1643,13 @@ function addSubscriptionPlan($accessToken,$appProductId,$subJsonData,$logger)
             $subErrorMessage .= "due to ".$subErrorMessage['fault']['faultstring'];
           }
           $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true));
+          return false;
+        }
+        if(isset($subSucessData['message']) && !empty($subSucessData['message'])){
+          $subErrorMessage = 'Process to add subscription plan for particluar product #'.$appProductId.' in application is failed due to ';
+          $subErrorMessage .= $subSucessData['message'];
+          $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true)); 
+          return false;
         }
       }
       curl_close($ch);
