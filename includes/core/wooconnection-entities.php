@@ -59,3 +59,11 @@
 	define('STATUS_ACTIVE', 1);
 	define('STATUS_INACTIVE', 2);
 	define('STATUS_DELETED', 3);
+	//discount/free trial duration entities....
+	define('DURATION_TYPE_DAY', 1);
+	define('DURATION_TYPE_WEEK', 2);
+	define('DURATION_TYPE_MONTH', 3);
+	define('DURATION_TYPE_YEAR',4);
+	//subscription discount type....
+	define('SUBSCRIPTION_DISCOUNT_TYPE_AMOUNT', 1);
+	define('SUBSCRIPTION_DISCOUNT_TYPE_PERCENT', 2);

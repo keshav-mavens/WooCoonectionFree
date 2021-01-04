@@ -25,7 +25,7 @@
 
  		//Function Definiation : create_custom_discount_type
  		public function create_custom_discount_type($discountTypes){
-	        	$discountTypes['custom_subscription_free_trial'] =__( 'Subscription Free Trial', 'woocommerce' );
+	        	$discountTypes['custom_subscription_managed'] =__( 'Managed Subscriptions', 'woocommerce' );
 	            return $discountTypes;
 	    }
 
@@ -33,26 +33,84 @@
 		public function add_custom_discount_type_fields($coupon_get_id, $coupon){
 				$trialDuration = get_post_meta($coupon_get_id,'custom_free_coupon_trial_duration',true);
 	        	$trialPeriod = get_post_meta($coupon_get_id,'custom_free_coupon_trial_period',true);
+	        	$subDiscountDuration = get_post_meta($coupon_get_id,'subscription_discount_duration',true);
+	        	$subDiscountPeriod = get_post_meta($coupon_get_id,'subscription_discount_period',true);	
+	        	$subDiscountType = get_post_meta($coupon_get_id,'subscription_discount_type',true);
+	        	$subDiscountAmount = get_post_meta($coupon_get_id,'subscription_discount_amount',true);
+	        	if(isset($subDiscountAmount) && !empty($subDiscountAmount)){
+	        		$subDiscountAmount = $subDiscountAmount;
+	        	}else{
+	        		$subDiscountAmount = 0;
+	        	}
 	        	?>
 	            <p class="form-field custom_free_trial_coupon_field" style="display: none;">
 	            	<label for="free_coupon_trial_duration">Free Trial Validity</label>
 	            	<input type="number" id="free_coupon_trial_duration" name="free_coupon_trial_duration" class="" value="<?php echo $trialDuration; ?>" />
 	            	<select id="free_coupon_trial_period" name="free_coupon_trial_period" class="" style="margin-left:5px; ">
-                        <option value="day" <?php if (isset($trialPeriod) && $trialPeriod == 'day') echo ' selected="selected"'; ?>>days</option>
-                        <option value="week" <?php if (isset($trialPeriod) && $trialPeriod == 'week') echo ' selected="selected"'; ?>>weeks</option>
-                        <option value="month" <?php if (isset($trialPeriod) && $trialPeriod == 'month') echo ' selected="selected"'; ?>>months</option>
-                        <option value="year" <?php if (isset($trialPeriod) && $trialPeriod == 'year') echo ' selected="selected"'; ?>>years</option>
+                        <option value="<?php echo DURATION_TYPE_DAY ?>" <?php if (isset($trialPeriod) && $trialPeriod == DURATION_TYPE_DAY) echo ' selected="selected"'; ?>>days</option>
+                        <option value="<?php echo DURATION_TYPE_WEEK ?>" <?php if (isset($trialPeriod) && $trialPeriod == DURATION_TYPE_WEEK) echo ' selected="selected"'; ?>>weeks</option>
+                        <option value="<?php echo DURATION_TYPE_MONTH ?>" <?php if (isset($trialPeriod) && $trialPeriod == DURATION_TYPE_MONTH) echo ' selected="selected"'; ?>>months</option>
+                        <option value="<?php echo DURATION_TYPE_YEAR ?>" <?php if (isset($trialPeriod) && $trialPeriod == DURATION_TYPE_YEAR) echo ' selected="selected"'; ?>>years</option>
                     </select>
 	            	<?php echo wc_help_tip("First recurring payment will be charged after the duration mention in field."); ?>
 	            </p>
 	        	<?php
-	    }
+	        	//add dropdown to select the subscription discount type whether it is in fixed amount or percent....
+				woocommerce_wp_select(
+					array('id'=>'sub_discount_type',
+						  'label'=>__('Discount Amount Type','woocommerce'),
+						  'options'=>array(SUBSCRIPTION_DISCOUNT_TYPE_AMOUNT => __('Subscription Amount Discount','woocommerce'),
+						  					SUBSCRIPTION_DISCOUNT_TYPE_PERCENT=>__('Subscription % Discount')),
+						  'description'=>__('Select discount amount type whether its in percent or static amount.','woocommerce'),
+						  'desc_tip'=>'true',
+						  'value'=>$subDiscountType)
+					);
+
+				//add input field to input the discount amount.....
+				woocommerce_wp_text_input(
+					array('id'=>'sub_discount_amount',
+					  'label'=>__('Discount Amount','woocommerce'),
+					  'description'=>__('Amount of the discount.','woocommerce'),
+					  'desc_tip'=>'true',
+					  'value'=>$subDiscountAmount)
+					);
+
+				?>
+					<p class="form-field subscription_discount_validity_field">
+						<label for="sub_discount_duration">Discount Validity</label>
+						<input type="text" name="sub_discount_duration" id="sub_discount_duration" class="" value="<?php echo $subDiscountDuration; ?>">
+						<select id="sub_discount_period" name="sub_discount_period" class="" style="margin-left: 5px;">
+							<option value="<?php echo DURATION_TYPE_DAY ?>" <?php if (isset($subDiscountPeriod) && $subDiscountPeriod == DURATION_TYPE_DAY) echo 'selected="selected"'; ?>>days</option>
+							<option value="<?php echo DURATION_TYPE_WEEK ?>" <?php if (isset($subDiscountPeriod) && $subDiscountPeriod == DURATION_TYPE_WEEK) echo 'selected="selected"'; ?>>weeks</option>
+							<option value="<?php echo DURATION_TYPE_MONTH ?>" <?php if (isset($subDiscountPeriod) && $subDiscountPeriod == DURATION_TYPE_MONTH) echo 'selected="selected"'; ?>>months</option>
+							<option value="<?php echo DURATION_TYPE_YEAR ?>" <?php if (isset($subDiscountPeriod) && $subDiscountPeriod == DURATION_TYPE_YEAR) echo 'selected="selected"'; ?>>years</option>
+						</select>
+						<?php echo wc_help_tip("Discount will be available till duration mention in this field.") ?>
+					</p>
+				<?php
+		}
 
 	    //Function Definiation : save_custom_discount_coupon_fields
 	    public function save_custom_discount_coupon_fields($coupon_post_id, $coupon){
 	    	//update the custom coupon type information by using the function "update_post_meta" with post id
-	    	update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_duration', $_POST['free_coupon_trial_duration'] );
-	    	update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_period', $_POST['free_coupon_trial_period'] );
+	    	if(isset($_POST['free_coupon_trial_duration'])){
+	    		update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_duration', $_POST['free_coupon_trial_duration'] );
+	    	}
+	    	if(isset($_POST['free_coupon_trial_period'])){
+	    		update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_period', $_POST['free_coupon_trial_period'] );
+	    	}
+	    	if(isset($_POST['sub_discount_type'])){
+	    		update_post_meta($coupon_post_id,'subscription_discount_type',$_POST['sub_discount_type']);
+	    	}
+	    	if(isset($_POST['sub_discount_amount'])){
+	    		update_post_meta($coupon_post_id,'subscription_discount_amount',$_POST['sub_discount_amount']);
+	    	}
+	    	if(isset($_POST['sub_discount_duration'])){
+	    		update_post_meta($coupon_post_id,'subscription_discount_duration',$_POST['sub_discount_duration']);
+	    	}
+	    	if(isset($_POST['sub_discount_period'])){
+	    		update_post_meta($coupon_post_id,'subscription_discount_period',$_POST['sub_discount_period']);
+	    	}
 	    }
 
 	    //Function Definiation : enqueue_script_coupon_admin

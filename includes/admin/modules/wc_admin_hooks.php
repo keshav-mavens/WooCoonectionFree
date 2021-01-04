@@ -4,7 +4,7 @@ add_action( 'woocommerce_process_product_meta', 'insertProductToApplication',100
 //Function Definiation : insertProductToApplication
 function insertProductToApplication( $post_id, $post ){  
     if(!empty($post_id)){//check post id is exist
-        //Check product is update or publish....
+    		//Check product is update or publish....
         $productExistId = get_post_meta($post_id, 'wc_product_automation', true);
         //if product is not create yet then need to move in application
         if(empty($productExistId)){
