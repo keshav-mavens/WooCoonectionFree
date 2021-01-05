@@ -9,18 +9,34 @@
 	     */ 
 		public function __construct() {
  			global $woocommerce;
- 			//Wordpress hook : This action is triggered to add new discount type in coupons codes admin panel......
- 			add_filter( 'woocommerce_coupon_discount_types', [$this, 'create_custom_discount_type'], 10, 1);
-        	//Wordpress hook : This action is triggered to add new discount type related fields......
-        	add_action( 'woocommerce_coupon_options', [$this, 'add_custom_discount_type_fields'], 10, 2 );
-        	//Wordpress hook : This action is triggered to save custom fields related data...........
-        	add_action( 'woocommerce_coupon_options_save', [$this, 'save_custom_discount_coupon_fields'], 10, 2 );  
- 			//include js coupons admin panel.....
-            add_action('admin_enqueue_scripts', array($this,'enqueue_script_coupon_admin'));
-            //Wordpress hook : This action is triggered to save custom fields related data...........
-            add_action( 'woocommerce_before_calculate_totals', [$this, 'checkout_calculate_total_after_free_trial'], 10, 1 );
-            //Wordpress Hook : This filter is used to validate the custom coupons of custom discount type....
-            add_filter('woocommerce_subscriptions_validate_coupon_type',[$this,'implement_custom_coupon_type_validation'],10,3);
+ 			$this->subscription_avail = 'no';
+ 			//get the custom payment gateway settings.......
+			$settingOptions = get_option('woocommerce_infusionsoft_keap_settings');
+			//Get the application type so that application type selected from dropdown.....
+			$applicationEdition = applicationType();
+			//check settings is exist or not........
+			if(isset($settingOptions) && !empty($settingOptions)){
+				//then check custom gateway is enabled for payments......
+				if($settingOptions['enabled'] == 'yes'){
+					//then check subscriptions are enable or not if enable then call the class to give feature of trial subscription coupons......
+					if(isset($settingOptions['wc_subscriptions']) && !empty($settingOptions['wc_subscriptions']) && $settingOptions['wc_subscriptions'] == 'yes' && !empty($applicationEdition) && $applicationEdition == APPLICATION_TYPE_INFUSIONSOFT){
+							$this->subscription_avail = 'yes';
+				 			//Wordpress hook : This action is triggered to add new discount type in coupons codes admin panel......
+				 			add_filter( 'woocommerce_coupon_discount_types', [$this, 'create_custom_discount_type'], 10, 1);
+				        	//Wordpress hook : This action is triggered to add new discount type related fields......
+				        	add_action( 'woocommerce_coupon_options', [$this, 'add_custom_discount_type_fields'], 10, 2 );
+				        	//Wordpress hook : This action is triggered to save custom fields related data...........
+				        	add_action( 'woocommerce_coupon_options_save', [$this, 'save_custom_discount_coupon_fields'], 10, 2 );  
+				 			//include js coupons admin panel.....
+				            add_action('admin_enqueue_scripts', array($this,'enqueue_script_coupon_admin'));
+				            //Wordpress hook : This action is triggered to save custom fields related data...........
+				            add_action( 'woocommerce_before_calculate_totals', [$this, 'checkout_calculate_total_after_free_trial'], 10, 1 );
+				            //Wordpress Hook : This filter is used to validate the custom coupons of custom discount type....
+				            add_filter('woocommerce_subscriptions_validate_coupon_type',[$this,'implement_custom_coupon_type_validation'],10,3);
+				        }
+				    }
+				}   
+            add_filter("woocommerce_coupon_is_valid",[$this,"custom_subscription_coupon_validation"],15,2);
         }
 
  		//Function Definiation : create_custom_discount_type
@@ -184,24 +200,23 @@
 	    	//else return true.....
 	    	return true;
 	    }
+
+	    //Function Definition : custom_subscription_coupon_validation.....
+	    public function custom_subscription_coupon_validation($isvalid,$coupon){
+	    	//check if coupon discount type is custom......
+	    	if($coupon->get_discount_type() === 'custom_subscription_managed'){
+	    		//then check 
+	    		if($this->subscription_avail == 'no'){
+	    			return false;
+	    		}
+	    	}
+	    	return $isvalid;
+	    }
 	}
 
-	//get the custom payment gateway settings.......
-	$settingOptions = get_option('woocommerce_infusionsoft_keap_settings');
-	//Get the application type so that application type selected from dropdown.....
-	$applicationEdition = applicationType();
-	//check settings is exist or not........
-	if(isset($settingOptions) && !empty($settingOptions)){
-		//then check custom gateway is enabled for payments......
-		if($settingOptions['enabled'] == 'yes'){
-			//then check subscriptions are enable or not if enable then call the class to give feature of trial subscription coupons......
-			if(isset($settingOptions['wc_subscriptions']) && !empty($settingOptions['wc_subscriptions']) && $settingOptions['wc_subscriptions'] == 'yes' && !empty($applicationEdition) && $applicationEdition == APPLICATION_TYPE_INFUSIONSOFT){
-				// Create global so you can use this variable beyond initial creation.
-				global $custom_subscription_coupons;
+	// Create global so you can use this variable beyond initial creation.
+	global $custom_subscription_coupons;
 
-				// Create instance of our wooconnection class to use off the whole things.
-				$custom_subscription_coupons = new WC_Subscription_Coupons();
-			}
-		}
-	}
+	// Create instance of our wooconnection class to use off the whole things.
+	$custom_subscription_coupons = new WC_Subscription_Coupons();
 ?>
