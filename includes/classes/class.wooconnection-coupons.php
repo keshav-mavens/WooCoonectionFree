@@ -31,12 +31,13 @@
 
 	    //Function Definiation : add_custom_discount_type_fields
 		public function add_custom_discount_type_fields($coupon_get_id, $coupon){
-				$trialDuration = get_post_meta($coupon_get_id,'custom_free_coupon_trial_duration',true);
-	        	$trialPeriod = get_post_meta($coupon_get_id,'custom_free_coupon_trial_period',true);
-	        	$subDiscountDuration = get_post_meta($coupon_get_id,'subscription_discount_duration',true);
-	        	$subDiscountPeriod = get_post_meta($coupon_get_id,'subscription_discount_period',true);	
-	        	$subDiscountType = get_post_meta($coupon_get_id,'subscription_discount_type',true);
-	        	$subDiscountAmount = get_post_meta($coupon_get_id,'subscription_discount_amount',true);
+				$trialDuration = get_post_meta($coupon_get_id,'custom_free_coupon_trial_duration',true);//get the free trial duration......
+	        	$trialPeriod = get_post_meta($coupon_get_id,'custom_free_coupon_trial_period',true);//get the free trial period.....
+	        	$subDiscountDuration = get_post_meta($coupon_get_id,'subscription_discount_duration',true);//get the subscription discount duration....
+	        	$subDiscountPeriod = get_post_meta($coupon_get_id,'subscription_discount_period',true);//get the subscription discount period....	
+	        	$subDiscountType = get_post_meta($coupon_get_id,'subscription_discount_type',true);//get the subscription discount type i.e fixed amount or discount in percent.....
+	        	$subDiscountAmount = get_post_meta($coupon_get_id,'coupon_amount',true);//get the discount amount.....
+	        	//check and set the default discount amount......
 	        	if(isset($subDiscountAmount) && !empty($subDiscountAmount)){
 	        		$subDiscountAmount = $subDiscountAmount;
 	        	}else{
@@ -44,7 +45,7 @@
 	        	}
 	        	?>
 	            <p class="form-field custom_free_trial_coupon_field" style="display: none;">
-	            	<label for="free_coupon_trial_duration">Free Trial Validity</label>
+	            	<label for="free_coupon_trial_duration">Free Trial Period</label>
 	            	<input type="number" id="free_coupon_trial_duration" name="free_coupon_trial_duration" class="" value="<?php echo $trialDuration; ?>" />
 	            	<select id="free_coupon_trial_period" name="free_coupon_trial_period" class="" style="margin-left:5px; ">
                         <option value="<?php echo DURATION_TYPE_DAY ?>" <?php if (isset($trialPeriod) && $trialPeriod == DURATION_TYPE_DAY) echo ' selected="selected"'; ?>>days</option>
@@ -77,7 +78,7 @@
 
 				?>
 					<p class="form-field subscription_discount_validity_field">
-						<label for="sub_discount_duration">Discount Validity</label>
+						<label for="sub_discount_duration">Discount Time Period</label>
 						<input type="text" name="sub_discount_duration" id="sub_discount_duration" class="" value="<?php echo $subDiscountDuration; ?>">
 						<select id="sub_discount_period" name="sub_discount_period" class="" style="margin-left: 5px;">
 							<option value="<?php echo DURATION_TYPE_DAY ?>" <?php if (isset($subDiscountPeriod) && $subDiscountPeriod == DURATION_TYPE_DAY) echo 'selected="selected"'; ?>>days</option>
@@ -92,24 +93,17 @@
 
 	    //Function Definiation : save_custom_discount_coupon_fields
 	    public function save_custom_discount_coupon_fields($coupon_post_id, $coupon){
-	    	//update the custom coupon type information by using the function "update_post_meta" with post id...
-	    	if(isset($_POST['free_coupon_trial_duration'])){
-	    		update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_duration', $_POST['free_coupon_trial_duration'] );
-	    	}
-	    	if(isset($_POST['free_coupon_trial_period'])){
-	    		update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_period', $_POST['free_coupon_trial_period'] );
-	    	}
-	    	if(isset($_POST['sub_discount_type'])){
-	    		update_post_meta($coupon_post_id,'subscription_discount_type',$_POST['sub_discount_type']);
-	    	}
-	    	if(isset($_POST['sub_discount_amount'])){
-	    		update_post_meta($coupon_post_id,'subscription_discount_amount',$_POST['sub_discount_amount']);
-	    	}
-	    	if(isset($_POST['sub_discount_duration'])){
-	    		update_post_meta($coupon_post_id,'subscription_discount_duration',$_POST['sub_discount_duration']);
-	    	}
-	    	if(isset($_POST['sub_discount_period'])){
-	    		update_post_meta($coupon_post_id,'subscription_discount_period',$_POST['sub_discount_period']);
+	    	//get the discount type.....
+	    	$disType = $coupon->get_discount_type();
+	    	//then check discount type is "custom_subscription_managed"
+	    	if($disType == 'custom_subscription_managed'){
+	    		//update the custom coupon type information by using the function "update_post_meta" with post id...
+		    	if(isset($_POST['free_coupon_trial_duration'])){update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_duration', $_POST['free_coupon_trial_duration'] );}
+		    	if(isset($_POST['free_coupon_trial_period'])){update_post_meta( $coupon_post_id, 'custom_free_coupon_trial_period', $_POST['free_coupon_trial_period'] );}
+		    	if(isset($_POST['sub_discount_type'])){update_post_meta($coupon_post_id,'subscription_discount_type',$_POST['sub_discount_type']);}
+		    	if(isset($_POST['sub_discount_amount'])){update_post_meta($coupon_post_id,'coupon_amount',$_POST['sub_discount_amount']);}
+		    	if(isset($_POST['sub_discount_duration'])){update_post_meta($coupon_post_id,'subscription_discount_duration',$_POST['sub_discount_duration']);}
+		    	if(isset($_POST['sub_discount_period'])){update_post_meta($coupon_post_id,'subscription_discount_period',$_POST['sub_discount_period']);}
 	    	}
 	    }
 
@@ -143,11 +137,20 @@
 	        		//then check coupon type......
 	        		$couponDiscountType = $couponData->get_discount_type();
 	        		//if coupon type is custom coupon....
-	        		if($couponDiscountType == 'custom_subscription_free_trial'){
+	        		if($couponDiscountType == 'custom_subscription_managed'){
 	        			//get the coupon trial duration.......
 	        			$couponTrialDuration = get_post_meta($couponIds,'custom_free_coupon_trial_duration',true);
 	        			//get the coupon trial period.......
 	        			$couponTrialPeriod = get_post_meta($couponIds,'custom_free_coupon_trial_period',true);
+	        			if($couponTrialPeriod == DURATION_TYPE_DAY){
+	        				$period = 'day';
+	        			}else if ($couponTrialPeriod == DURATION_TYPE_WEEK) {
+	        				$period = 'week';
+	        			}else if ($couponTrialPeriod == DURATION_TYPE_MONTH) {
+	        				$period = 'month';
+	        			}else if ($couponTrialPeriod == DURATION_TYPE_YEAR) {
+	        				$period = 'year';
+	        			}
 	        			//check if coupon trial duration and trial period exist.....
 	        			if(!empty($couponTrialDuration) && !empty($couponTrialPeriod)){
 	        				//execute loop to check the product type is a subscription or variable subscription.....
@@ -156,7 +159,7 @@
 						        if ( is_a( $cartItem['data'], 'WC_Product_Subscription' ) || is_a( $cartItem['data'], 'WC_Product_Subscription_Variation' ) ) {
 						        	//then update subscription meta data.....
 						           	$cartItem['data']->update_meta_data('_subscription_trial_length', $couponTrialDuration,true);
-                            		$cartItem['data']->update_meta_data('_subscription_trial_period', $couponTrialPeriod,true);
+                            		$cartItem['data']->update_meta_data('_subscription_trial_period', $period,true);
                   				}
 						    }
 	        			}
@@ -167,8 +170,8 @@
 
 	    //Function Definition : implement_custom_coupon_type_validation
 	    public function implement_custom_coupon_type_validation($firstArg,$coupondata,$validate){
-	    	//first check coupon type is "custom_subscription_free_trial" then proceed next....
-	    	if($coupondata->is_type('custom_subscription_free_trial')){
+	    	//first check coupon type is "custom_subscription_managed" then proceed next....
+	    	if($coupondata->is_type('custom_subscription_managed')){
 	    		//get the coupon trial duration.....
 	    		$sub_trial_coupon_duration = $coupondata->get_meta('custom_free_coupon_trial_duration');
 	    		//get the coupon trial period.....
