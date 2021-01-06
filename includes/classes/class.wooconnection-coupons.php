@@ -3,6 +3,8 @@
 	//Define the class WC_Subscription_Coupons.....
 	class WC_Subscription_Coupons extends WC_Coupon {
 		
+		private static $removed_coupons_array = array();
+
 		/** 
 	     * Coupon constructor. Loads coupon data. 
 	     * @param mixed $data Coupon data, object, ID or code. 
@@ -29,14 +31,19 @@
 				        	add_action( 'woocommerce_coupon_options_save', [$this, 'save_custom_discount_coupon_fields'], 10, 2 );  
 				 			//include js coupons admin panel.....
 				            add_action('admin_enqueue_scripts', array($this,'enqueue_script_coupon_admin'));
-				            //Wordpress hook : This action is triggered to save custom fields related data...........
-				            add_action( 'woocommerce_before_calculate_totals', [$this, 'checkout_calculate_total_after_free_trial'], 10, 1 );
-				            //Wordpress Hook : This filter is used to validate the custom coupons of custom discount type....
-				            add_filter('woocommerce_subscriptions_validate_coupon_type',[$this,'implement_custom_coupon_type_validation'],10,3);
 				        }
 				    }
 				}   
             add_filter("woocommerce_coupon_is_valid",[$this,"custom_subscription_coupon_validation"],15,2);
+            //Wordpress hook : This action is triggered to save custom fields related data...........
+            add_action( 'woocommerce_before_calculate_totals', [$this, 'checkout_calculate_total_after_free_trial'], 10, 1 );
+            //Wordpress Hook : This filter is used to validate the custom coupons of custom discount type....
+            add_filter('woocommerce_subscriptions_validate_coupon_type',[$this,'implement_custom_coupon_type_validation'],10,3);
+            
+            //Wordpress Hook : This action is trigger to add coupon discount for recurring section...
+            add_action('woocommerce_before_calculate_totals',[$this,'remove_coupons_custom_discount_type'],10,1);
+           	//Wordpress Hook : This action is trigger to get the discount amount on the basis of discount type....
+           	add_filter('woocommerce_coupon_get_discount_amount',[$this,'subscription_coupon_get_discount_amount'],10,5);
         }
 
  		//Function Definiation : create_custom_discount_type
@@ -212,6 +219,98 @@
 	    	}
 	    	return $isvalid;
 	    }
+
+	    //Function Definition : remove_coupons_custom_discount_type(this function is used to trigger the )
+	    public function remove_coupons_custom_discount_type($cartData){
+	    	//Remove original coupon triggers of wc subsction coupon class.....
+	    	remove_action('woocommerce_before_calculate_totals','WC_Subscriptions_Coupon::remove_coupons',10);
+
+	    	//get the calculation type from woocommerce subscription cart.....
+	    	$payment_calculation_type = WC_Subscriptions_Cart::get_calculation_type();
+
+	    	//first check calculation is none or cart does not contain subscription product or page is checkout,cart etc....
+	    	if(! WC_Subscriptions_Cart::cart_contains_subscription() || $payment_calculation_type == 'none' || (!is_checkout() && !is_cart() && !defined('WOOCOMMERCE_CART') && !defined('WOOCOMMERCE_CHECKOUT')) ){
+	    		return;
+	    	}
+	    	
+	    	//get the list of applied coupons.....
+	    	$cartDataCoupons = $cartData->get_applied_coupons();
+	    	
+	    	//check applied coupons exist or not......
+	    	if(isset($cartDataCoupons) && !empty($cartDataCoupons)){
+	    		//intialize the empty array to applied some coupon directly......
+	    		$reapplied_coupons_array = array();
+
+	    		//execute loop on applied coupons.....
+	    		foreach ($cartDataCoupons as $couponCode) {
+	    			//get the coupon details by coupon code.....
+	    			$couponData = new WC_Coupon($couponCode);
+	    			//get the coupon discount type.....
+	    			$couponDiscountType =  wcs_get_coupon_property($couponData,'discount_type');
+	    			//set the value in array on the basis of condition....
+	    			if(in_array($couponDiscountType, array('recurring_fee','recurring_percent','custom_subscription_managed'))){
+	    				if($payment_calculation_type == 'recurring_total'){
+	    					$reapplied_coupons_array[] = $couponCode;
+	    				}else if($payment_calculation_type == 'none'){
+	    					$reapplied_coupons_array[] = $couponCode; 
+	    				}else{
+	    					self::$removed_coupons_array[] = $couponCode;
+	    				}
+	    			}else if(($payment_calculation_type == 'none') && !in_array($couponDiscountType, array('recurring_fee','recurring_percent'))){
+	    				$reapplied_coupons_array[] = $couponCode;
+	    			}else{
+	    				self::$removed_coupons_array[] = $couponCode;
+	    			}
+	    		}
+
+	    		//hit the default function to remove coupons......
+	    		$cartData->remove_coupons();
+
+	    		//set the applied coupon......
+                $cartData->applied_coupons = $reapplied_coupons_array;
+                
+               	if ( isset( $cartData->coupons ) ) {
+                    $cartData->coupons = $cartData->get_coupons();
+                }
+	    	}
+	    }
+
+    	//Function Definition : subscription_coupon_get_discount_amount.....
+    	public function subscription_coupon_get_discount_amount($discountData,$discountingAmount,$cartItem,$singleitem,$couponDetails){
+    		//get the coupon discount type.....
+    		$couponDisType = wcs_get_coupon_property($couponDetails,'discount_type');
+    		//get the coupon id
+    		$couponId = wcs_get_coupon_property($couponDetails,'id');
+    		//then check whether the coupon discount type is 'custom_subscription_managed'.....
+    		if($couponDisType == 'custom_subscription_managed'){
+    			//then check the coupon id.....
+    			if(!empty($couponId)){
+    				//get the subscription coupon discount type whether is in percent or fixed amount....
+    				$subCouponDisType = SUBSCRIPTION_DISCOUNT_TYPE_PERCENT;
+    				//get_post_meta($couponId,'sub_discount_type',true)
+    				//check if subscription amount in fixed amount..
+    				if($subCouponDisType == SUBSCRIPTION_DISCOUNT_TYPE_AMOUNT){
+    					$discountData = min($couponDetails->get_amount(),$discountingAmount);
+    					//check product is single or not....
+    					if($singleitem){
+    						$discountData = $discountData;
+    					}else{
+    						//get the quantity....
+    						$itemsQuantity = $cartItem->get_quantity();
+    						$discountData = $discountData * $itemsQuantity;
+    					}
+    				}
+    				//another case discount amount is in percent....
+    				else{
+    					$discountData  = (float) $couponDetails->get_amount()*($discountingAmount/100);
+    				}
+    			}	
+    		}else{
+    			$discountData = $discountData;
+    		}
+    		//return discount amount......
+    		return  $discountData;
+    	}
 	}
 
 	// Create global so you can use this variable beyond initial creation.
