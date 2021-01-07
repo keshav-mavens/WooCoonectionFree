@@ -6,8 +6,10 @@ function insertProductToApplication( $post_id, $post ){
     if(!empty($post_id)){//check post id is exist
     		//Check product is update or publish....
         $productExistId = get_post_meta($post_id, 'wc_product_automation', true);
+        //get product is added via import.....
+        $checkAlreadyAdd = get_post_meta($post_id,'insert_via_import',true);
         //if product is not create yet then need to move in application
-        if(empty($productExistId)){
+        if(empty($productExistId) && empty($checkAlreadyAdd)){
           //first need to check whether the application authentication is done or not..
           $applicationAuthenticationDetails = getAuthenticationDetails();
           //get the access token....

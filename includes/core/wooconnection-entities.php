@@ -60,3 +60,8 @@
 	define('STATUS_ACTIVE', 1);
 	define('STATUS_INACTIVE', 2);
 	define('STATUS_DELETED', 3);
+	//application frequery period....
+	define('FREQUENCY_DAY',6);
+	define('FREQUENCY_WEEK',3);
+	define('FREQUENCY_MONTH',2);
+	define('FREQUENCY_YEAR',1);

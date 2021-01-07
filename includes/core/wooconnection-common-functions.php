@@ -1416,6 +1416,8 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
             if(!empty($value['id'])){
                 $wcProductExistId = '';
                 $wcProductSelectHtml = '';
+                //default value product is not related to subscription.....
+                $productRelatedSubscriptionId = '';
                 $appProductId = $value['id'];//Define product id...                  
                 $appProductPrice = $value['product_price'];//Get product price....
                 $currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
@@ -1463,8 +1465,22 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                 }else{
                   $appProductSku = "--";
                 }
+
+                //check whether the product is available for subscription or not....If yes then set products as a subscription for import.....
+                $subPlanPrice = '';
+                $subPlanCycle = '';
+                $subPlanFrequency = '';
+                $subPlanCycleLength = '';
+                if(!empty($value['subscription_plans']) && !empty($value['subscription_only'])){
+                  $productRelatedSubscriptionId = $value['subscription_plans'][0]['id'];
+                  $subPlanPrice = $value['subscription_plans'][0]['plan_price'];
+                  $subPlanCycle = $value['subscription_plans'][0]['cycle'];
+                  $subPlanFrequency = $value['subscription_plans'][0]['frequency'];
+                  $subPlanCycleLength = $value['subscription_plans'][0]['number_of_cycles'];
+                }
+
                 //Create final html.......
-                $importTableHtml .= '<tr><input type="hidden" name="plan_id_'.$value['id'].'[price]" value="'.$value['product_price'].'"><input type="hidden" name="plan_id_'.$value['id'].'[name]" value="'.$value['product_name'].'"><input type="hidden" name="plan_id_'.$value['id'].'[description]" value="'.$value['product_desc'].'"><input type="hidden" name="plan_id_'.$value['id'].'[shortdescription]" value="'.$value['product_short_desc'].'"><input type="hidden" name="plan_id_'.$value['id'].'[sku]" value="'.$value['sku'].'"><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
+                $importTableHtml .= '<tr><input type="hidden" name="plan_id_'.$value['id'].'[price]" value="'.$value['product_price'].'"><input type="hidden" name="plan_id_'.$value['id'].'[name]" value="'.$value['product_name'].'"><input type="hidden" name="plan_id_'.$value['id'].'[description]" value="'.$value['product_desc'].'"><input type="hidden" name="plan_id_'.$value['id'].'[shortdescription]" value="'.$value['product_short_desc'].'"><input type="hidden" name="plan_id_'.$value['id'].'[sku]" value="'.$value['sku'].'"><input type="hidden" name="plan_id_'.$value['id'].'[subscriptionId]" value="'.$productRelatedSubscriptionId.'"><input type = "hidden" name="plan_id_'.$value['id'].'[subplanprice]" value="'.$subPlanPrice.'"><input type="hidden" name="plan_id_'.$value['id'].'[subplancycle]" value="'.$subPlanCycle.'"><input type="hidden" name="plan_id_'.$value['id'].'[subplanfrequency]" value="'.$subPlanFrequency.'"><input type="hidden" name="plan_id_'.$value['id'].'[subplancyclelength]" value="'.$subPlanCycleLength.'"><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
 
             }
 
@@ -1846,4 +1862,42 @@ function addSubscriptionPlan($accessToken,$appProductId,$subJsonData,$logger)
   }
   return true;
 }
+
+// function getSubscriptionPlans($accessToken,$appProductId,$subPlanId){
+//   if(!empty($accessToken) && !empty($appProductId) && !empty($subPlanId)){
+//       //append the application product id and subscription plan id in url to get the subscription plan details of it......
+//       $retrivePlanUrl = 'https://api.infusionsoft.com/crm/rest/v1/products/'.$appProductId.'/subscriptions/'.$subPlanId;
+//       $subscriptionch = curl_init($url);
+//       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//       $header = array('Accept:application/json','Content-Type:application/json','Authorization:Bearer'.$accessToken);
+//       curl_setopt($ch,CURLOPT_HTTPHEADER, $header);
+//       curl_setopt($ch,CURLOPT_CUSTOMREQUEST, 'GET');
+//       $response = curl_exec($ch);
+//       $err = curl_error($ch);
+//       if($err){
+
+//       }else{
+//         $sy
+//       }
+//       // if($err){
+//       //   $errorMessage = $callback_purpose ." is failed due to ". $err; 
+//       //   $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+//       // }else{
+//       //   $sucessData = json_decode($response,true);
+//       //   if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+//       //     $errorMessage = $callback_purpose ." is failed ";
+//       //     if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+//       //       $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+//       //     }
+//       //     $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+//       //   }
+//       //   if(!empty($sucessData['order_items'])){
+//       //     $data = $sucessData['order_items'];
+//       //   }
+//       //   return $data;
+//       // }
+//       // curl_close($ch);
+//   }
+// }
+
 ?>

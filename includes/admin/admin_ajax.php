@@ -451,11 +451,54 @@ function wc_import_application_products()
 		      				$productName = $infusionKeapProduct['name'];
 		      			}
 
-		      			$product_extra_data_array['_regular_price'] = $infusionKeapProduct['price'];
-		      			$product_extra_data_array['_price'] = $infusionKeapProduct['price'];
 		      			if(!empty($infusionKeapProduct['sku'])){
 		      				$product_extra_data_array['_sku'] = $infusionKeapProduct['sku'];
 		      			}
+
+		      			//set and get the product subscription id.....
+		      			$productSubscriptionId = '';
+		      			if(!empty($infusionKeapProduct['subscriptionId'])){
+		      				$productSubscriptionId = $infusionKeapProduct['subscriptionId'];
+		      			}
+
+		      			//get and set the subscription length "Expires After"....
+						$subLength = '0';
+						if(!empty($infusionKeapProduct['subplancyclelength'])){
+							$subLength = $infusionKeapProduct['subplancyclelength'];
+						}
+						//get and set the subscription period....
+						$subPeriod = 'month';
+						if(!empty($infusionKeapProduct['subplancycle'])){
+							$subPeriodInt = $infusionKeapProduct['subplancycle'];
+							if($subPeriodInt == FREQUENCY_DAY){
+								$subPeriod = 'day';
+							}else if($subPeriodInt == FREQUENCY_WEEK){
+								$subPeriod = 'week';
+							}else if($subPeriodInt == FREQUENCY_MONTH){
+								$subPeriod = 'month';
+							}else if($subPeriodInt == FREQUENCY_YEAR){
+								$subPeriod = 'year';
+							}
+						}
+						//get and set the subscription interval.....
+						$subPeriodInterval = '';
+						if(!empty($infusionKeapProduct['subplanfrequency'])){
+							$subPeriodInterval = $infusionKeapProduct['subplanfrequency'];
+						}
+						
+						//get and set the subscription plan price...
+						$subPlanPrice = '';
+						$price = '';
+						if(!empty($infusionKeapProduct['subplanprice'])){
+							$price = $infusionKeapProduct['subplanprice'];
+							$subPlanPrice = $infusionKeapProduct['subplanprice'];
+						}else{
+							$price = $infusionKeapProduct['price'];
+						}
+
+						$product_extra_data_array['_regular_price'] = $price;
+		      			$product_extra_data_array['_price'] = $price;
+
 		      			//if product is not associated along with imported product request then need create new product..
 		      			if(empty($needUpdateExistingProduct)){
 		      				$postData = array('post_content' => $pContent,'post_status' => "publish",'post_title' => $productName,'post_type' => "product",'post_excerpt'=>$pshortContent);
@@ -479,6 +522,21 @@ function wc_import_application_products()
 								}	
 								//update post meta of newly created post...
 								updateProductMetaData($new_post_id,$product_extra_data_array);
+								if(!empty($productSubscriptionId)){
+									wp_set_object_terms($new_post_id,'subscription','product_type');
+									//update the post meta related to subscripitons....
+									update_post_meta($new_post_id,'_subscription_period',$subPeriod);
+									update_post_meta($new_post_id,'_subscription_period_interval',$subPeriodInterval);
+									update_post_meta($new_post_id,'_subscription_price',$subPlanPrice);
+									update_post_meta($new_post_id,'_subscription_limit','no');
+									update_post_meta($new_post_id,'_subscription_one_time_shipping','no');
+									update_post_meta($new_post_id,'_subscription_payment_sync_date','0');
+									update_post_meta($new_post_id,'_subscription_trial_length','0');
+									update_post_meta($new_post_id,'_subscription_trial_period','day');
+								}else{
+									wp_set_object_terms($new_post_id,'simple','product_type');
+								}
+								update_post_meta($new_post_id,'insert_via_import',true);
 							}
 						}
 		      			//if product is associated along with imported product request then need to update the values of exitsing product.........
@@ -505,7 +563,20 @@ function wc_import_application_products()
 							}
 		      				//update post meta of existing post...
 		      				updateProductMetaData($needUpdateExistingProduct,$product_extra_data_array);
-		      			}
+	      					if(!empty($productSubscriptionId)){
+								wp_set_object_terms($needUpdateExistingProduct,'subscription','product_type');
+								//update the post meta related to subscripitons....
+								update_post_meta($needUpdateExistingProduct,'_subscription_period',$subPeriod);
+								update_post_meta($needUpdateExistingProduct,'_subscription_period_interval',$subPeriodInterval);
+								update_post_meta($needUpdateExistingProduct,'_subscription_price',$subPlanPrice);
+								update_post_meta($needUpdateExistingProduct,'_subscription_limit','no');
+								update_post_meta($needUpdateExistingProduct,'_subscription_one_time_shipping','no');
+								update_post_meta($needUpdateExistingProduct,'_subscription_payment_sync_date','0');
+								update_post_meta($needUpdateExistingProduct,'_subscription_trial_length','0');
+								update_post_meta($needUpdateExistingProduct,'_subscription_trial_period','day');
+							}
+							update_post_meta($needUpdateExistingProduct,'insert_via_import',true);
+						}
 
 		      		}
 	      		}
