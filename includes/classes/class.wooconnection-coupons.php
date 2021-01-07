@@ -39,9 +39,10 @@
             add_action( 'woocommerce_before_calculate_totals', [$this, 'checkout_calculate_total_after_free_trial'], 10, 1 );
             //Wordpress Hook : This filter is used to validate the custom coupons of custom discount type....
             add_filter('woocommerce_subscriptions_validate_coupon_type',[$this,'implement_custom_coupon_type_validation'],10,3);
-            
             //Wordpress Hook : This action is trigger to add coupon discount for recurring section...
             add_action('woocommerce_before_calculate_totals',[$this,'remove_coupons_custom_discount_type'],10,1);
+           	//Worpress Hook : This action is trigeer to validate the custom coupon.....
+           	add_filter('woocommerce_coupon_is_valid_for_product',[$this,'validate_custom_subscription_coupons'],10,4);
            	//Wordpress Hook : This action is trigger to get the discount amount on the basis of discount type....
            	add_filter('woocommerce_coupon_get_discount_amount',[$this,'subscription_coupon_get_discount_amount'],10,5);
         }
@@ -273,9 +274,74 @@
                     $cartData->coupons = $cartData->get_coupons();
                 }
 	    	}
-	    }
+	    }	
+	    
+	    //Function Definition : validate_custom_subscription_coupons....
+	    public function validate_custom_subscription_coupons($couponValid,$product,$couponData,$values){
+	    	//get the coupon discount type....
+	    	$couponDiscountType = wcs_get_coupon_property($couponData,'discount_type');
+	    	//check if coupon discount type is not equal to 'custom_subscription_managed'.....
+	    	if($couponDiscountType != 'custom_subscription_managed'){
+	    		return $couponValid;
+	    	}
 
-    	//Function Definition : subscription_coupon_get_discount_amount.....
+	    	$product_cats = wp_get_post_terms( $product->id, 'product_cat', array( "fields" => "ids" ) );
+    
+		    // SPECIFIC PRODUCTS ARE DISCOUNTED
+		    if ( sizeof( $couponData->product_ids ) > 0 ) {
+		        if ( in_array( $product->id, $couponData->product_ids ) || ( isset( $product->variation_id ) && in_array( $product->variation_id, $couponData->product_ids ) ) || in_array( $product->get_parent(), $couponData->product_ids ) ) {
+		            $couponValid = true;
+		        }
+		    }
+
+		    // CATEGORY DISCOUNTS
+		    if ( sizeof( $couponData->product_categories ) > 0 ) {
+		        if ( sizeof( array_intersect( $product_cats, $couponData->product_categories ) ) > 0 ) {
+		            $couponValid = true;
+		        }
+		    }
+
+		    // IF ALL ITEMS ARE DISCOUNTED
+		    if ( ! sizeof( $couponData->product_ids ) && ! sizeof( $couponData->product_categories ) ) {            
+		        $couponValid = true;
+		    }
+		    
+		    // SPECIFIC PRODUCT IDs EXLCUDED FROM DISCOUNT
+		    if ( sizeof( $couponData->exclude_product_ids ) > 0 ) {
+		        if ( in_array( $product->id, $couponData->exclude_product_ids ) || ( isset( $product->variation_id ) && in_array( $product->variation_id, $couponData->exclude_product_ids ) ) || in_array( $product->get_parent(), $couponData->exclude_product_ids ) ) {
+		            $couponValid = false;
+		        }
+		    }
+		    
+		    // SPECIFIC CATEGORIES EXLCUDED FROM THE DISCOUNT
+		    if ( sizeof( $couponData->exclude_product_categories ) > 0 ) {
+		        if ( sizeof( array_intersect( $product_cats, $couponData->exclude_product_categories ) ) > 0 ) {
+		            $couponValid = false;
+		        }
+		    }
+
+		    // SALE ITEMS EXCLUDED FROM DISCOUNT
+		    if ( $couponData->exclude_sale_items == 'yes' ) {
+		        $product_ids_on_sale = wc_get_product_ids_on_sale();
+
+		        if ( isset( $product->variation_id ) ) {
+		            if ( in_array( $product->variation_id, $product_ids_on_sale, true ) ) {
+		                $couponValid = false;
+		            }
+		        } elseif ( in_array( $product->id, $product_ids_on_sale, true ) ) {
+		            $couponValid = false;
+		        }
+		    }
+
+		    //return $valid;
+
+
+	    	//set coupon is valid......
+	    	$couponValid = true;
+		    return $couponValid;//return....
+	    }
+	    
+	    //Function Definition : subscription_coupon_get_discount_amount.....
     	public function subscription_coupon_get_discount_amount($discountData,$discountingAmount,$cartItem,$singleitem,$couponDetails){
     		//get the coupon discount type.....
     		$couponDisType = wcs_get_coupon_property($couponDetails,'discount_type');
