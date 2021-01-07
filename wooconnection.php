@@ -9,9 +9,9 @@
  */
 class WooConnectionPro {
 
-  	public function __construct() {
-		//Call the hook plugin_loaded at the time of plugin initialization..
-		add_action("plugins_loaded", array($this, "wooconnection_plugin_initialization"));
+    public function __construct() {
+        //Call the hook plugin_loaded at the time of plugin initialization..
+        add_action("plugins_loaded", array($this, "wooconnection_plugin_initialization"));
         //Call the hook register_activation_hook at the time of plugin activation and create the table in database for campaign goals management..
         register_activation_hook( __FILE__, array($this, 'create_campaign_goals_database_table' ) );
         //Call the hook register_activation_hook to insert records in table..
@@ -21,12 +21,12 @@ class WooConnectionPro {
     }
 
     
-	//Function Definition : wooconnection_plugin_initialization
+    //Function Definition : wooconnection_plugin_initialization
     public function wooconnection_plugin_initialization(){
-    	if (!class_exists('WC_Integration')) {
-			add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
-			return;
-		}
+        if (!class_exists('WC_Integration')) {
+            add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
+            return;
+        }
         //check if wooconnection free version plugin is already activated then user needs to deactivate or delete the free verison of wooconnection to use the pro wooconnection version.....
         if (class_exists('WooConnection')) {
             add_action('admin_notices', array($this, 'wc_pro_deactivate_free_version_notice'));
@@ -36,15 +36,15 @@ class WooConnectionPro {
         define( 'WOOCONNECTION_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );//Directory Path Entity
         define( 'WOOCONNECTION_PLUGIN_URL', plugin_dir_url( __FILE__ ) );//Directory Url Entity
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-entities.php' );
-		require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
+        require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
     }
 
     //Function Definition : woocommerce_plugin_necessary
     public function woocommerce_plugin_necessary(){
-    	$class = 'notice notice-error';
-		$message = __( 'WooConnection plugin requires the WooCommerce plugin to be installed and active.', 'error-text-plugin' );
-		printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
+        $class = 'notice notice-error';
+        $message = __( 'WooConnection plugin requires the WooCommerce plugin to be installed and active.', 'error-text-plugin' );
+        printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
     }
 
     //Function Definition : wc_pro_deactivate_free_version_notice function is used to show the notice when user try to activate the pro version of wooconnection...

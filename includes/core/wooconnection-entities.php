@@ -46,6 +46,8 @@
 	//order item types.....
 	define("ITEM_TYPE_TAX", 2);
 	define("ITEM_TYPE_DISCOUNT", 7);
+	define("ITEM_TYPE_PRODUCT",4);
+	define("ITEM_TYPE_SUBSCRIPTION",9);
 	//Non product....
 	define("NON_PRODUCT_ID", 0);
 	//Order item quantity

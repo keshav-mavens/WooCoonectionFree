@@ -55,6 +55,12 @@ function insertProductToApplication( $post_id, $post ){
           }else{
             $wcproductShortDesc = "";
           }
+          $wcProductType = $wcproductdetails->get_type();
+          if(stripos($wcProductType, 'subscription') !== false){
+            $newproducttype = ITEM_TYPE_SUBSCRIPTION;
+          }else{
+            $newproducttype = ITEM_TYPE_PRODUCT;
+          }
           //create final array with values.....
           $productDetailsArray = array();
           $productDetailsArray['active'] = true;
