@@ -34,7 +34,7 @@
 				        }
 				    }
 				}   
-            add_filter("woocommerce_coupon_is_valid",[$this,"custom_subscription_coupon_validation"],15,2);
+            //add_filter("woocommerce_coupon_is_valid",[$this,"custom_subscription_coupon_validation"],15,2);
             //Wordpress hook : This action is triggered to save custom fields related data...........
             add_action( 'woocommerce_before_calculate_totals', [$this, 'checkout_calculate_total_after_free_trial'], 10, 1 );
             //Wordpress Hook : This filter is used to validate the custom coupons of custom discount type....
@@ -45,6 +45,9 @@
            	add_filter('woocommerce_coupon_is_valid_for_product',[$this,'validate_custom_subscription_coupons'],10,4);
            	//Wordpress Hook : This action is trigger to get the discount amount on the basis of discount type....
            	add_filter('woocommerce_coupon_get_discount_amount',[$this,'subscription_coupon_get_discount_amount'],10,5);
+           	//Wordpress Hook : This action is trigger to validate the custom coupon with all fields.....
+           	add_filter( 'woocommerce_coupon_is_valid', [$this,'validate_custom_coupons'], 10, 3 );
+
         }
 
  		//Function Definiation : create_custom_discount_type
@@ -150,45 +153,49 @@
 	        global $woocommerce;
 	        //first check coupons applied or not
 	        if(!empty($woocommerce->cart->get_applied_coupons())){
-	        	//if applied then get the first coupon......
-	        	$couponName = $woocommerce->cart->get_applied_coupons()[0];
-	        	//get coupon details by coupon name.....
-	        	$couponData = new WC_Coupon( $couponName );
-	        	//get the coupon id from coupon data......
-	        	$couponIds = $couponData->get_id();
-	        	//check if coupon id exist then proceed next.....
-	        	if(isset($couponIds) && !empty($couponIds)){
-	        		//then check coupon type......
-	        		$couponDiscountType = $couponData->get_discount_type();
-	        		//if coupon type is custom coupon....
-	        		if($couponDiscountType == 'custom_subscription_managed'){
-	        			//get the coupon trial duration.......
-	        			$couponTrialDuration = get_post_meta($couponIds,'custom_free_coupon_trial_duration',true);
-	        			//get the coupon trial period.......
-	        			$couponTrialPeriod = get_post_meta($couponIds,'custom_free_coupon_trial_period',true);
-	        			if($couponTrialPeriod == DURATION_TYPE_DAY){
-	        				$period = 'day';
-	        			}else if ($couponTrialPeriod == DURATION_TYPE_WEEK) {
-	        				$period = 'week';
-	        			}else if ($couponTrialPeriod == DURATION_TYPE_MONTH) {
-	        				$period = 'month';
-	        			}else if ($couponTrialPeriod == DURATION_TYPE_YEAR) {
-	        				$period = 'year';
-	        			}
-	        			//check if coupon trial duration and trial period exist.....
-	        			if(!empty($couponTrialDuration) && !empty($couponTrialPeriod)){
-	        				//execute loop to check the product type is a subscription or variable subscription.....
-	        				foreach ( $cart_object->get_cart() as $cartItem ){
-						        //check product type is subsciption or variable subscription........
-						        if ( is_a( $cartItem['data'], 'WC_Product_Subscription' ) || is_a( $cartItem['data'], 'WC_Product_Subscription_Variation' ) ) {
-						        	//then update subscription meta data.....
-						           	$cartItem['data']->update_meta_data('_subscription_trial_length', $couponTrialDuration,true);
-                            		$cartItem['data']->update_meta_data('_subscription_trial_period', $period,true);
-                  				}
-						    }
-	        			}
-	        		}
-	        	}
+	        	//assign applied coupons in array.....
+	        	$appliedCoupons = $woocommerce->cart->get_applied_coupons();
+	        	//execute loop.....
+	        	foreach ($appliedCoupons as $key => $value) {
+	        		//get coupon details by coupon name.....
+		        	$couponData = new WC_Coupon( $value );
+		        	//get the coupon id from coupon data......
+		        	$couponIds = $couponData->get_id();
+		        	//check if coupon id exist then proceed next.....
+		        	if(isset($couponIds) && !empty($couponIds)){
+		        		//then check coupon type......
+		        		$couponDiscountType = $couponData->get_discount_type();
+		        		//if coupon type is custom coupon....
+		        		if($couponDiscountType == 'custom_subscription_managed'){
+		        			//get the coupon trial duration.......
+		        			$couponTrialDuration = get_post_meta($couponIds,'custom_free_coupon_trial_duration',true);
+		        			//get the coupon trial period.......
+		        			$couponTrialPeriod = get_post_meta($couponIds,'custom_free_coupon_trial_period',true);
+		        			if($couponTrialPeriod == DURATION_TYPE_DAY){
+		        				$period = 'day';
+		        			}else if ($couponTrialPeriod == DURATION_TYPE_WEEK) {
+		        				$period = 'week';
+		        			}else if ($couponTrialPeriod == DURATION_TYPE_MONTH) {
+		        				$period = 'month';
+		        			}else if ($couponTrialPeriod == DURATION_TYPE_YEAR) {
+		        				$period = 'year';
+		        			}
+		        			//check if coupon trial duration and trial period exist.....
+		        			if(!empty($couponTrialDuration) && !empty($couponTrialPeriod)){
+		        				//execute loop to check the product type is a subscription or variable subscription.....
+		        				foreach ( $cart_object->get_cart() as $cartItem ){
+							        //check product type is subsciption or variable subscription........
+							        if ( is_a( $cartItem['data'], 'WC_Product_Subscription' ) || is_a( $cartItem['data'], 'WC_Product_Subscription_Variation' ) ) {
+							        	//then update subscription meta data.....
+							           	$cartItem['data']->update_meta_data('_subscription_trial_length', $couponTrialDuration,true);
+	                            		$cartItem['data']->update_meta_data('_subscription_trial_period', $period,true);
+	                  				}
+							    }
+		        			}
+		        			break;
+		        		}
+		        	}
+		        }
 	        }
 	    }
 
@@ -210,16 +217,16 @@
 	    }
 
 	    //Function Definition : custom_subscription_coupon_validation.....
-	    public function custom_subscription_coupon_validation($isvalid,$coupon){
-	    	//check if coupon discount type is custom......
-	    	if($coupon->get_discount_type() === 'custom_subscription_managed'){
-	    		//then check 
-	    		if($this->subscription_avail == 'no'){
-	    			return false;
-	    		}
-	    	}
-	    	return $isvalid;
-	    }
+	    // public function custom_subscription_coupon_validation($isvalid,$coupon){
+	    // 	//check if coupon discount type is custom......
+	    // 	if($coupon->get_discount_type() === 'custom_subscription_managed'){
+	    // 		//then check 
+	    // 		if($this->subscription_avail == 'no'){
+	    // 			return false;
+	    // 		}
+	    // 	}
+	    // 	return $isvalid;
+	    // }
 
 	    //Function Definition : remove_coupons_custom_discount_type(this function is used to trigger the )
 	    public function remove_coupons_custom_discount_type($cartData){
@@ -277,68 +284,17 @@
 	    }	
 	    
 	    //Function Definition : validate_custom_subscription_coupons....
-	    public function validate_custom_subscription_coupons($couponValid,$product,$couponData,$values){
+	    public function validate_custom_subscription_coupons($coupon_valid,$product_details,$coupon_details,$data_values){
 	    	//get the coupon discount type....
-	    	$couponDiscountType = wcs_get_coupon_property($couponData,'discount_type');
+	    	$couponDiscountType = wcs_get_coupon_property($coupon_details,'discount_type');
 	    	//check if coupon discount type is not equal to 'custom_subscription_managed'.....
 	    	if($couponDiscountType != 'custom_subscription_managed'){
-	    		return $couponValid;
+	    		return $coupon_valid;
 	    	}
-
-	    	$product_cats = wp_get_post_terms( $product->id, 'product_cat', array( "fields" => "ids" ) );
-    
-		    // SPECIFIC PRODUCTS ARE DISCOUNTED
-		    if ( sizeof( $couponData->product_ids ) > 0 ) {
-		        if ( in_array( $product->id, $couponData->product_ids ) || ( isset( $product->variation_id ) && in_array( $product->variation_id, $couponData->product_ids ) ) || in_array( $product->get_parent(), $couponData->product_ids ) ) {
-		            $couponValid = true;
-		        }
-		    }
-
-		    // CATEGORY DISCOUNTS
-		    if ( sizeof( $couponData->product_categories ) > 0 ) {
-		        if ( sizeof( array_intersect( $product_cats, $couponData->product_categories ) ) > 0 ) {
-		            $couponValid = true;
-		        }
-		    }
-
-		    // IF ALL ITEMS ARE DISCOUNTED
-		    if ( ! sizeof( $couponData->product_ids ) && ! sizeof( $couponData->product_categories ) ) {            
-		        $couponValid = true;
-		    }
-		    
-		    // SPECIFIC PRODUCT IDs EXLCUDED FROM DISCOUNT
-		    if ( sizeof( $couponData->exclude_product_ids ) > 0 ) {
-		        if ( in_array( $product->id, $couponData->exclude_product_ids ) || ( isset( $product->variation_id ) && in_array( $product->variation_id, $couponData->exclude_product_ids ) ) || in_array( $product->get_parent(), $couponData->exclude_product_ids ) ) {
-		            $couponValid = false;
-		        }
-		    }
-		    
-		    // SPECIFIC CATEGORIES EXLCUDED FROM THE DISCOUNT
-		    if ( sizeof( $couponData->exclude_product_categories ) > 0 ) {
-		        if ( sizeof( array_intersect( $product_cats, $couponData->exclude_product_categories ) ) > 0 ) {
-		            $couponValid = false;
-		        }
-		    }
-
-		    // SALE ITEMS EXCLUDED FROM DISCOUNT
-		    if ( $couponData->exclude_sale_items == 'yes' ) {
-		        $product_ids_on_sale = wc_get_product_ids_on_sale();
-
-		        if ( isset( $product->variation_id ) ) {
-		            if ( in_array( $product->variation_id, $product_ids_on_sale, true ) ) {
-		                $couponValid = false;
-		            }
-		        } elseif ( in_array( $product->id, $product_ids_on_sale, true ) ) {
-		            $couponValid = false;
-		        }
-		    }
-
-		    //return $valid;
-
-
-	    	//set coupon is valid......
-	    	$couponValid = true;
-		    return $couponValid;//return....
+			
+			//set coupon is valid......
+	    	$coupon_valid = true;
+		    return $coupon_valid;//return....
 	    }
 	    
 	    //Function Definition : subscription_coupon_get_discount_amount.....
@@ -352,8 +308,7 @@
     			//then check the coupon id.....
     			if(!empty($couponId)){
     				//get the subscription coupon discount type whether is in percent or fixed amount....
-    				$subCouponDisType = SUBSCRIPTION_DISCOUNT_TYPE_PERCENT;
-    				//get_post_meta($couponId,'sub_discount_type',true)
+    				$subCouponDisType = get_post_meta($couponId,'sub_discount_type',true);
     				//check if subscription amount in fixed amount..
     				if($subCouponDisType == SUBSCRIPTION_DISCOUNT_TYPE_AMOUNT){
     					$discountData = min($couponDetails->get_amount(),$discountingAmount);
@@ -377,6 +332,30 @@
     		//return discount amount......
     		return  $discountData;
     	}
+
+    	//Function Definition : validate_custom_coupons.....
+    	public function validate_custom_coupons($couponValid,$coupon_details,$discountDetails=null){
+    		//get the coupon discount type first....
+    		$couponType   = wcs_get_coupon_property( $coupon_details, 'discount_type' );
+    		//define empty variable.....
+			$errorMessage = '';
+			//check if coupon discount type is custom....
+			if($couponType == 'custom_subscription_managed'){
+				//then check cart contain subscription items or not...
+				if(!WC_Subscriptions_Cart::cart_contains_subscription() && !wcs_cart_contains_renewal()){
+					//if not contain then set error message....
+					//get the coupon code to show in the error message....
+					$couponCode   = wcs_get_coupon_property( $coupon_details, 'code' );
+					//concate a error messga with coupon code....
+					$errorMessage = __('Sorry the "'.$couponCode.'" coupon is only valid for subscrpiton products.','woocommerce-subscriptions');
+					//throw an error.....
+					throw new Exception( $errorMessage );
+				}	
+			}
+			//return coupon is valid....
+			return $couponValid;
+    	}
+
 	}
 
 	// Create global so you can use this variable beyond initial creation.

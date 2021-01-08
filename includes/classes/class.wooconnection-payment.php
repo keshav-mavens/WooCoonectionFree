@@ -39,7 +39,8 @@
 	        $this->has_fields = true;
 	        $this->method_title = __($applicationLabel, 'woocommerce-gateway-infusionsoft-keap');
 	        $this->method_description = "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s";
-	      	$this->supports = array( 'subscriptions', 'products' );        
+	        //add some new elements in array to show payment method on checkout page with all cases etc subscription with trial,multiple subscriptions,subscription date changes etc..
+	      	$this->supports = array('products','add_payment_method','subscriptions','subscription_amount_changes','subsctiption_date_changes','subscription_payment_method_change','subscription_payment_method_change_customers','subscription_payment_method_change_admin','multiple_subscriptions','pre_orders');      
 	        
 	        // Load the infusionsoft/keap form fields.
 	        $this->initPaymentFormFields($type,$applicationLabel); 
@@ -413,6 +414,49 @@
 		    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
 		        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
 		    }
+		    
+		    // //set default trial days....
+		    // $trialDays = 0;
+		    // //check coupons exist with order or not....
+      //       if(isset($orderCoupons) && !empty($orderCoupons)){
+	     //        //execute loop on applied coupons......
+	     //        foreach ($orderCoupons as $appliedCouponCode) {
+	     //            //get the details on applied coupon by coupon code....
+	     //            $appliedCouponDetails = new WC_Coupon($appliedCouponCode);
+	     //            //get the discount type of coupon.....
+	     //            $appliedCouponDiscountType = wcs_get_coupon_property($appliedCouponDetails,'discount_type');
+	     //            //get the coupon id....
+	     //            $appliedCouponId = wcs_get_coupon_property($appliedCouponDetails,'id');
+	     //            //check if coupon type is custom....
+	     //            if($appliedCouponDiscountType == 'custom_subscription_managed'){
+	     //                //get the coupon trial duration.......
+	     //                $appliedCouponTrialDuration = get_post_meta($appliedCouponId,'custom_free_coupon_trial_duration',true);
+	     //                //get the coupon trial period.......
+	     //                $appliedCouponTrialPeriod = get_post_meta($appliedCouponId,'custom_free_coupon_trial_period',true);
+	     //                //check trial period and and trial duration exist,,,,
+	     //                if(!empty($appliedCouponTrialDuration) && !empty($appliedCouponTrialPeriod)){
+	     //                    //execute switch statement on the basis of trial duration period to calculate the trial
+	     //                    switch ($appliedCouponTrialPeriod) {
+	     //                       	case DURATION_TYPE_DAY:
+	     //                         $trialDays  = $appliedCouponTrialDuration*1;
+	     //                         break;
+	     //                       	case DURATION_TYPE_WEEK:
+	     //                         $trialDays = $appliedCouponTrialDuration*7;
+	     //                         break;
+	     //                       	case DURATION_TYPE_MONTH:
+	     //                         $trialDays = $appliedCouponTrialDuration*30;
+	     //                         break;
+	     //                       	case DURATION_TYPE_YEAR:
+	     //                         $trialDays = $appliedCouponTrialDuration*366;
+	     //                       	default:
+	     //                         $trialDays  = $appliedCouponTrialDuration*1;
+	     //                         break;
+	     //                    }
+	     //                }
+	     //                break;
+	     //            }
+      //       	}
+      //       }
 
 		    //Get the order items from order then execute loop to create the order items array....
             if ( sizeof( $orderProductsItems = $orderData->get_items() ) > 0 ) {
