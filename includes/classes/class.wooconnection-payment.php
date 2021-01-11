@@ -386,6 +386,7 @@
         public function process_payment($order_id)
 		{
 		 	global $woocommerce;
+		 	$wooconnectionLogger = new WC_Logger();
 		 	$orderData = new WC_Order($order_id);//get the order details by order id.......
 		 	$contactId = $_POST['custom_payment_gateway_contact_id'];//get the contact id from post data.....
 		 	$creditCardId = $_POST['custom_payment_gateway_card_id'];//get the contact id from post data.....
@@ -415,54 +416,56 @@
 		        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
 		    }
 		    
-		    // //set default trial days....
-		    // $trialDays = 0;
-		    // //check coupons exist with order or not....
-      //       if(isset($orderCoupons) && !empty($orderCoupons)){
-	     //        //execute loop on applied coupons......
-	     //        foreach ($orderCoupons as $appliedCouponCode) {
-	     //            //get the details on applied coupon by coupon code....
-	     //            $appliedCouponDetails = new WC_Coupon($appliedCouponCode);
-	     //            //get the discount type of coupon.....
-	     //            $appliedCouponDiscountType = wcs_get_coupon_property($appliedCouponDetails,'discount_type');
-	     //            //get the coupon id....
-	     //            $appliedCouponId = wcs_get_coupon_property($appliedCouponDetails,'id');
-	     //            //check if coupon type is custom....
-	     //            if($appliedCouponDiscountType == 'custom_subscription_managed'){
-	     //                //get the coupon trial duration.......
-	     //                $appliedCouponTrialDuration = get_post_meta($appliedCouponId,'custom_free_coupon_trial_duration',true);
-	     //                //get the coupon trial period.......
-	     //                $appliedCouponTrialPeriod = get_post_meta($appliedCouponId,'custom_free_coupon_trial_period',true);
-	     //                //check trial period and and trial duration exist,,,,
-	     //                if(!empty($appliedCouponTrialDuration) && !empty($appliedCouponTrialPeriod)){
-	     //                    //execute switch statement on the basis of trial duration period to calculate the trial
-	     //                    switch ($appliedCouponTrialPeriod) {
-	     //                       	case DURATION_TYPE_DAY:
-	     //                         $trialDays  = $appliedCouponTrialDuration*1;
-	     //                         break;
-	     //                       	case DURATION_TYPE_WEEK:
-	     //                         $trialDays = $appliedCouponTrialDuration*7;
-	     //                         break;
-	     //                       	case DURATION_TYPE_MONTH:
-	     //                         $trialDays = $appliedCouponTrialDuration*30;
-	     //                         break;
-	     //                       	case DURATION_TYPE_YEAR:
-	     //                         $trialDays = $appliedCouponTrialDuration*366;
-	     //                       	default:
-	     //                         $trialDays  = $appliedCouponTrialDuration*1;
-	     //                         break;
-	     //                    }
-	     //                }
-	     //                break;
-	     //            }
-      //       	}
-      //       }
+		    //set default trial days....
+            $trialDays = 0;
+            //check coupons exist with order or not....
+            if(isset($orderCoupons) && !empty($orderCoupons)){
+                //execute loop on applied coupons......
+                foreach ($orderCoupons as $appliedCouponCode) {
+                    //get the details on applied coupon by coupon code....
+                    $appliedCouponDetails = new WC_Coupon($appliedCouponCode);
+                    //get the discount type of coupon.....
+                    $appliedCouponDiscountType = wcs_get_coupon_property($appliedCouponDetails,'discount_type');
+                    //get the coupon id....
+                    $appliedCouponId = wcs_get_coupon_property($appliedCouponDetails,'id');
+                    //check if coupon type is custom....
+                    if($appliedCouponDiscountType == 'custom_subscription_managed'){
+                        //get the coupon trial duration.......
+                        $appliedCouponTrialDuration = get_post_meta($appliedCouponId,'custom_free_coupon_trial_duration',true);
+                        //get the coupon trial period.......
+                        $appliedCouponTrialPeriod = get_post_meta($appliedCouponId,'custom_free_coupon_trial_period',true);
+                        //check trial period and and trial duration exist,,,,
+                        if(!empty($appliedCouponTrialDuration) && !empty($appliedCouponTrialPeriod)){
+                            //execute switch statement on the basis of trial duration period to calculate the trial
+                            switch ($appliedCouponTrialPeriod) {
+                                 case DURATION_TYPE_DAY:
+                                 $trialDays  = $appliedCouponTrialDuration*1;
+                                 break;
+                                 case DURATION_TYPE_WEEK:
+                                 $trialDays = $appliedCouponTrialDuration*7;
+                                 break;
+                                 case DURATION_TYPE_MONTH:
+                                 $trialDays = $appliedCouponTrialDuration*30;
+                                 break;
+                                 case DURATION_TYPE_YEAR:
+                                 $trialDays = $appliedCouponTrialDuration*366;
+                                 default:
+                                 $trialDays  = $appliedCouponTrialDuration*1;
+                                 break;
+                            }
+                        }
+                        break;
+                    }
+             	}
+            }
 
-		    //Get the order items from order then execute loop to create the order items array....
+            //Get the order items from order then execute loop to create the order items array....
             if ( sizeof( $orderProductsItems = $orderData->get_items() ) > 0 ) {
+                $subscriptionPlansArray = array();
                 foreach($orderProductsItems as $itemId => $item)
                 {
                     $parentProduct = '';
+                    $typeItem = ITEM_TYPE_PRODUCT;
                     if(!empty($item->get_variation_id())){
                         $orderProductId = $item->get_variation_id();    
                         $parentProduct = $item->get_product_id();
@@ -473,7 +476,28 @@
                     $orderProductDesc = $productData->get_description();//product description..
                     $orderProductPrice = round($productData->get_price(),2);//get product price....
                     $orderProductQuan = $item['quantity']; // Get the item quantity....
-                    $orderProductIdCheck = checkAddProductIsKp($access_token,$productData,$parentProduct);//get the related  product id on the basis of relation with infusionsoft/keap application product...
+                    //get the product/item type to check whether its related to subscription or not....
+                   	$itemType = $productData->get_type();
+                    if(strpos($itemType,'subscription') !== false){
+                    	$typeItem = ITEM_TYPE_SUBSCRIPTION;
+                    }else{
+                    	$typeItem = ITEM_TYPE_PRODUCT;
+                    }
+                    $orderProductIdCheck = checkAddProductIsKp($access_token,$productData,$parentProduct,$typeItem);//get the related  product id on the basis of relation with infusionsoft/keap application product...
+                   	if($typeItem == ITEM_TYPE_SUBSCRIPTION && !empty($orderProductIdCheck)){
+       					//get the subscription plan interval.......
+       					$subPlanInterval = get_post_meta($orderProductId,'_subscription_period_interval',true);
+       					//get the subscription plan period....
+       					$subPlanPeriod = get_post_meta($orderProductId,'_subscription_period',true);
+            			//get the subscription plan cycle....
+            			$subPlanLength = get_post_meta($orderProductId,'_subscription_length',true);
+            			//create json array to add subscription plan....
+            			$planJsonArray = '{"active":true,"cycle_type":"'.strtoupper($subPlanPeriod).'","frequency":'.$subPlanInterval.',"number_of_cycles":'.$subPlanLength.',"plan_price":'.$orderProductPrice.',"subscription_plan_index":0}';
+            			//add subscription plan in particular application product....
+            			$createdSubscriptionPlanId = 32;//addSubscriptionPlan($access_token,$orderProductIdCheck,$planJsonArray,$wooconnectionLogger);
+            			$orderProductPrice = round($item['line_subtotal'],2);
+            			$subscriptionPlansArray[] = array("subscripionPlanId"=>$createdSubscriptionPlanId,"itemsQuantity"=>$orderProductQuan,"subprice"=>$orderProductPrice);
+            		}
                     $productTitle = $productData->get_title();//get product title..
                     //push product details into array/......
                     $itemsDetailsArray[] = array('description'=>$orderProductDesc,'price'=>$orderProductPrice,'product_id'=>$orderProductIdCheck,'quantity'=>$orderProductQuan);
@@ -497,16 +521,17 @@
                         //Call the common function to add order itema as a discount....
                         addOrderItems($access_token,$applicationorderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $orderDiscountDesc, ITEM_DISCOUNT_NOTES);
                     }
-               	}
+                }
             }
-
+            
             //check if test mode is enable.....
             if ($this->testmode == 'yes') {
-		        wc_add_notice('Your order have been added to authenticate application with the order # ' . $applicationorderId . '. Turn off the test mode to make real transactions.', 'error'); 
+		        //$manualPayment = 'testMode';
+		       	wc_add_notice('Your order have been added to authenticate application with the order # ' . $applicationorderId . '. Turn off the test mode to make real transactions.', 'error'); 
 		        return false;
 		    }
-		  	
-		  	//first check merchant id exist then proceed next....
+		    
+			//first check merchant id exist then proceed next....
 		  	if (!empty($this->is_merchant_id)) {
 				$orderPaymentResults = createOrderPayment($access_token,$applicationorderId,$creditCardId,$this->is_merchant_id);
 		 	} else {
@@ -526,6 +551,47 @@
 	        	return false; 
          	}
      	 	
+     	 	//check order is created or not....
+         	if(isset($applicationorderId) && !empty($applicationorderId)){
+     			//check whether needs to add subscription for contact or not....
+	            if(isset($subscriptionPlansArray) && !empty($subscriptionPlansArray)){
+		            //rotate loop to add multiple subscripitons.....
+		            foreach ($subscriptionPlansArray as $key => $value) {
+		            	//check subscription plan id,quantity and subscription price is exist or not....
+		            	if(!empty($value['subscripionPlanId']) && !empty($value['itemsQuantity']) && !empty($value['subprice'])){
+
+		            		//check if trial days is empty.....
+		            		if($trialDays == 0){
+		            			//get the subscripitiondetails by subscription plan id....
+				            	$subscriptionPlanDetails= getSubscriptionPlanDetails($access_token,$value['subscripionPlanId'],$wooconnectionLogger);
+				            	//check if plan cycle and plan frequency exist then proceed next to set the subscription trial days.....
+				            	if(!empty($subscriptionPlanDetails['DefaultCycle']) && !empty($subscriptionPlanDetails['DefaultFrequency'])){
+				            		switch ($subscriptionPlanDetails['DefaultCycle']) {
+		                                 case 6:
+		                                 $trialDays  = $subscriptionPlanDetails['DefaultFrequency']*1;
+		                                 break;
+		                                 case 3:
+		                                 $trialDays = $subscriptionPlanDetails['DefaultFrequency']*7;
+		                                 break;
+		                                 case 2:
+		                                 $trialDays = $subscriptionPlanDetails['DefaultFrequency']*30;
+		                                 break;
+		                                 case 1:
+		                                 $trialDays = $subscriptionPlanDetails['DefaultFrequency']*366;
+		                            }
+				            	}
+				            }
+
+		                    //create subscription xml....
+		                    $contactSubcriptionXml = '<methodCall><methodName>InvoiceService.addRecurringOrder</methodName><params><param><value><string></string></value></param><param><value><int>'.$contactId.'</int></value></param><param><value><boolean>1</boolean></value></param><param><value><int>'.$value['subscripionPlanId'].'</int></value></param><param><value><int>'.$value['itemsQuantity'].'</int></value></param><param><value><double>'.$value['subprice'].'</double></value></param><param><value><boolean>1</boolean></value></param><param><value><int>'.$this->is_merchant_id.'</int></value></param><param><value><int>'.$creditCardId.'</int></value></param><param><value><int>0</int></value></param><param><value><int>'.$trialDays.'</int></value></param></params></methodCall>';
+		                    
+		                    //create contact subscription.....
+		                    $contactSub = createContactSub($access_token,$contactSubcriptionXml,$wooconnectionLogger);
+		            	}
+		            }	
+	            }
+	        }
+
      	 	//add order notes.......
      	 	$orderData->add_order_note(__('Payment accepted via '.$orderData->payment_method_title.' gateway - Order Successful', 'woocommerce'));
          	

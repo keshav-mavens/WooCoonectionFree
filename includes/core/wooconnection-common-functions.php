@@ -989,7 +989,7 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
 }
 
 //add product to infusionsoft/keap account..
-function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
+function checkAddProductIsKp($access_token,$item,$parent_product_id='',$itemType=''){
     //define empty variables......
     $currentProductID = '';
     $checkAlreadyExist = '';
@@ -1032,6 +1032,13 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
       $productDetailsArray['product_price'] = $wcproductPrice;
       $productDetailsArray['product_short_desc'] = $wcproductShortDesc;
       $productDetailsArray['product_name'] = $wcproductName;
+      //check item type exist....
+      if(isset($itemType) && !empty($itemType)){
+        //add subscription only true if item type is equal to subscription....
+        if($itemType == ITEM_TYPE_SUBSCRIPTION){
+          $productDetailsArray['subscription_only'] = true;
+        }
+      }
       $callback_purpose = 'Add Woocommerce Product : Process of add woocommerce product to infusionsoft/keap application at the time of order creation';
       //Check if product sku is not exist then create the sku on the basis of product slug.........
       if(isset($wcproductSku) && !empty($wcproductSku)){
@@ -1647,5 +1654,89 @@ function addSubscriptionPlan($accessToken,$appProductId,$subJsonData,$logger)
       curl_close($ch);
   }
   return true;
+}
+
+//create contact subscription.....
+function createContactSub($access_token,$xml,$logger){
+  $contactSubscriptionId = '';
+  if(!empty($access_token)){
+    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $header = array(
+      'Accept: text/xml',
+      'Content-Type: text/xml',
+      'Authorization: Bearer '. $access_token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+    $contactSubResponse = curl_exec($ch);
+    $contactSubErr = curl_error($ch);
+    //check if error occur due to any reason and then save the logs...
+    if($contactSubErr){
+        $contactSubErrorMessage = "Add subscription for contact is failed due to ".$contactSubErr; 
+        $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($contactSubErrorMessage, true));
+    }else{
+      //Covert/Decode response to xml.....
+      $contactSubResponseData = xmlrpc_decode($contactSubResponse);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($contactSubResponseData) && xmlrpc_is_fault($contactSubResponseData)) {
+          if(isset($contactSubResponseData['faultString']) && !empty($contactSubResponseData['faultString'])){
+              $contactSubErrorMessage = "Add subscription for contact is failed due to ". $contactSubResponseData['faultString']; 
+              $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($contactSubErrorMessage, true));
+          }
+      }else{
+        $contactSubscriptionId = $contactSubResponseData;
+      }
+    }
+    curl_close($ch);
+  }
+  return $contactSubscriptionId;
+}
+
+//get the subscription details by subscription plan id.....
+function getSubscriptionPlanDetails($access_token,$subPlanId,$logger){
+  $subPlanDetailsArray = array();
+  if(!empty($access_token) && !empty($subPlanId)){
+    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';   
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $header = array(
+      'Accept: text/xml',
+      'Content-Type: text/xml',
+      'Authorization: Bearer '. $access_token
+    );
+
+    //Create xml to hit the curl request to get subscription plan details.....
+    $loadData = "<methodCall><methodName>DataService.load</methodName><params>
+                        <param><value><string></string></value></param><param><value><string>CProgram</string></value></param><param><value><int>".$subPlanId."</int></value></param><param><value><array><data><value><string>DefaultCycle</string></value><value><string>DefaultFrequency</string></value></data>
+                          </array></value></param></params></methodCall>";
+    
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $loadData);
+    $subResponse = curl_exec($ch);
+    $subErr = curl_error($ch);
+    //check if error occur due to any reason and then save the logs...
+    if($subErr){
+        $subErrorMessage = "Process to get subscription plan details is failed due to ".$subErr; 
+        $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($subErr, true));
+    }else{
+      //Covert/Decode response to xml.....
+      $subResponseData = xmlrpc_decode($subResponse);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($subResponseData) && xmlrpc_is_fault($subResponseData)) {
+          if(isset($subResponseData['faultString']) && !empty($subResponseData['faultString'])){
+              $subErrorMessage = "Process to get subscription plan details is failed due to ". $subResponseData['faultString']; 
+              $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($subErrorMessage, true));
+          }
+      }else{
+        $subPlanDetailsArray = $subResponseData;
+      }
+    }
+    curl_close($ch);
+  }
+  return $subPlanDetailsArray;
 }
 ?>
