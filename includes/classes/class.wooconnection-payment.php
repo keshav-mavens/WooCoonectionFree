@@ -499,7 +499,8 @@
             			//add subscription plan in particular application product....
             			$createdSubscriptionPlanId = 32;//addSubscriptionPlan($access_token,$orderProductIdCheck,$planJsonArray,$wooconnectionLogger);
             			$orderProductPrice = round($item['line_subtotal'],2);
-            			$subscriptionPlansArray[] = array("subscripionPlanId"=>$createdSubscriptionPlanId,"itemsQuantity"=>$orderProductQuan,"subprice"=>$productData->get_price());
+            			$price = wc_get_price_including_tax($productData, array('qty' => $orderProductQuan, 'price' => $productData->get_price() ) );
+            			$subscriptionPlansArray[] = array("subscripionPlanId"=>$createdSubscriptionPlanId,"itemsQuantity"=>$orderProductQuan,"subprice"=>$price);
             		}
                     $productTitle = $productData->get_title();//get product title..
                     //push product details into array/......
