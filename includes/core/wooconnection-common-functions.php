@@ -1591,7 +1591,7 @@ function createOrderPayment($access_token,$orderid,$cardId,$merchId){
         );
 
         //Create xml to hit the curl request to process the payment.....
-        $orderpaymentXmlData = "<methodCall><methodName>InvoiceService.chargeInvoice</methodName><params><param><value><string></string></value></param><param><value><int>".$orderid."</int></value></param><param><value><string>Online Shopping Cart</string></value></param><param><value><int>".$cardId."</int></value></param><param><value><int>".$merchId."</int></value></param><param><value><boolean>0</boolean></value></param> </params></methodCall>";
+        $orderpaymentXmlData = "<methodCall><methodName>InvoiceService.chargeInvoice</methodName><params><param><value><string></string></value></param><param><value><int>".$orderid."</int></value></param><param><value><string>Online Shopping Payment</string></value></param><param><value><int>".$cardId."</int></value></param><param><value><int>".$merchId."</int></value></param><param><value><boolean>0</boolean></value></param> </params></methodCall>";
         
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -1738,5 +1738,109 @@ function getSubscriptionPlanDetails($access_token,$subPlanId,$logger){
     curl_close($ch);
   }
   return $subPlanDetailsArray;
+}
+
+//get the amount owned by the authoenticate application order.....
+function getOrderAmountOwned($access_token,$orderId,$logger){
+  $amountOwned = '';
+  //check access token and application order id exist......
+  if(!empty($access_token) && !empty($orderId)){
+    $url = "https://api.infusionsoft.com/crm/xmlrpc/v1";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+    
+    //create xml to hit curl request to get the amount owned by application order......
+    $loadAmountXml = "<?xml version='1.0' encoding='UTF-8'?>
+                      <methodCall>
+                        <methodName>InvoiceService.calculateAmountOwed</methodName>
+                        <params>
+                          <param><value><string></string></value></param>
+                          <param><value><int>".$orderId."</int></value></param>
+                        </params>
+                      </methodCall>";
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $loadAmountXml);
+    $amountOwnedResponse = curl_exec($ch);
+    $amountOwnedErr = curl_error($ch);
+    if($amountOwnedErr){
+        $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ".$amountOwnedErr; 
+        $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($amountOwnedErrorMessage, true));
+    }else{
+      //Covert/Decode response to xml.....
+      $amountOwnedResponseData = xmlrpc_decode($amountOwnedResponse);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($amountOwnedResponseData) && xmlrpc_is_fault($amountOwnedResponseData)) {
+          if(isset($amountOwnedResponseData['faultString']) && !empty($amountOwnedResponseData['faultString'])){
+              $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ". $amountOwnedResponseData['faultString']; 
+              $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($amountOwnedErrorMessage, true));
+          }
+      }else{
+        $amountOwned = $amountOwnedResponseData;
+      }
+    }
+    curl_close($ch);
+  }
+  return $amountOwned;
+}
+
+//charge a manual payment...
+function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode,$logger){
+    $paymentStatus = '';
+    //check access token,order id exist then proceed next.....
+    if(!empty($accessToken) && !empty($orderId)){
+        $url = "https://api.infusionsoft.com/crm/xmlrpc/v1";
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$accessToken);
+        if($mode == PAYMENT_MODE_TEST){
+          $paymentType = 'Payment of Test Mode';
+        }else if($mode == PAYMENT_MODE_SKIPPED ){
+          $paymentType = 'Payment of zero amount';
+        }else{
+          $paymentType = 'Credit Card';
+        }
+        //create xml to hit the curl request to done payment manually.....
+        $chargePaymentXml = "<methodCall>
+                              <methodName>InvoiceService.addManualPayment</methodName>
+                              <params>
+                                  <param><value><string></string></value></param>
+                                  <param><value><int>".$orderId."</int></value></param>
+                                  <param><value><double>".$amountDue."</double></value></param>
+                                  <param><value><dateTime.iso8601></dateTime.iso8601></value></param>
+                                  <param><value><string>".$paymentType."</string></value></param>
+                                  <param><value><string>Woocommerce Payment With ".$description." Method.</string></value></param>
+                                  <param><value><boolean>0</boolean></value></param>
+                              </params>
+                            </methodCall>";
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $chargePaymentXml);
+        $chargePaymentResponse = curl_exec($ch);
+        $chargePaymentErr = curl_error($ch);
+        if($chargePaymentErr){
+          $chargePaymentErrorMessage = "Process to get order amount owned is failed due to ".$chargePaymentErr; 
+          $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($chargePaymentErrorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $chargePaymentResponseData = xmlrpc_decode($chargePaymentResponse);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($chargePaymentResponseData) && xmlrpc_is_fault($chargePaymentResponseData)) {
+              if(isset($chargePaymentResponseData['faultString']) && !empty($chargePaymentResponseData['faultString'])){
+                  $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ". $chargePaymentResponseData['faultString']; 
+                  $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($amountOwnedErrorMessage, true));
+              }
+          }else{
+            $paymentStatus = $chargePaymentResponseData;
+          }
+        }
+      curl_close($ch);
+    }
+    return $paymentStatus;
 }
 ?>

@@ -67,3 +67,7 @@
 	//subscription discount type....
 	define('SUBSCRIPTION_DISCOUNT_TYPE_AMOUNT', 1);
 	define('SUBSCRIPTION_DISCOUNT_TYPE_PERCENT', 2);
+	//payment modes....
+	define('PAYMENT_MODE_TEST',1);
+	define('PAYMENT_MODE_SKIPPED',2);
+	define('PAYMENT_MODE_LIVE',3);

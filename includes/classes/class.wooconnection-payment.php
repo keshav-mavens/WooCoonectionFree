@@ -416,6 +416,9 @@
 		        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
 		    }
 		    
+		    //set the mercent id....
+		    $merchantId = $this->is_merchant_id;
+
 		    //set default trial days....
             $trialDays = 0;
             //check coupons exist with order or not....
@@ -460,8 +463,8 @@
             }
 
             //Get the order items from order then execute loop to create the order items array....
+            $subscriptionPlansArray = array();
             if ( sizeof( $orderProductsItems = $orderData->get_items() ) > 0 ) {
-                $subscriptionPlansArray = array();
                 foreach($orderProductsItems as $itemId => $item)
                 {
                     $parentProduct = '';
@@ -496,7 +499,7 @@
             			//add subscription plan in particular application product....
             			$createdSubscriptionPlanId = 32;//addSubscriptionPlan($access_token,$orderProductIdCheck,$planJsonArray,$wooconnectionLogger);
             			$orderProductPrice = round($item['line_subtotal'],2);
-            			$subscriptionPlansArray[] = array("subscripionPlanId"=>$createdSubscriptionPlanId,"itemsQuantity"=>$orderProductQuan,"subprice"=>$orderProductPrice);
+            			$subscriptionPlansArray[] = array("subscripionPlanId"=>$createdSubscriptionPlanId,"itemsQuantity"=>$orderProductQuan,"subprice"=>$productData->get_price());
             		}
                     $productTitle = $productData->get_title();//get product title..
                     //push product details into array/......
@@ -523,42 +526,44 @@
                     }
                 }
             }
-            
-            //check if test mode is enable.....
-            if ($this->testmode == 'yes') {
-		        //$manualPayment = 'testMode';
-		       	wc_add_notice('Your order have been added to authenticate application with the order # ' . $applicationorderId . '. Turn off the test mode to make real transactions.', 'error'); 
-		        return false;
-		    }
-		    
-			//first check merchant id exist then proceed next....
-		  	if (!empty($this->is_merchant_id)) {
-				$orderPaymentResults = createOrderPayment($access_token,$applicationorderId,$creditCardId,$this->is_merchant_id);
-		 	} else {
-	            wc_add_notice("To process payment with ".$this->title." is failed because Merchant ID is not set in settings. Please do it first.", 'error');
-	            return false;
-	        }
+           	
+           	//check application order id exist or not.....
+           	if(isset($applicationorderId) && !empty($applicationorderId)){
+            	//get the due amount of order by id....
+            	$amountOwned = getOrderAmountOwned($access_token,$applicationorderId,$wooconnectionLogger);
+            	//set payment mode on the basis of condition....
+            	if($amountOwned <= 0){
+            		$paymentMode = PAYMENT_MODE_SKIPPED;
+            	}else if($this->testmode == 'yes'){
+            		$paymentMode = PAYMENT_MODE_TEST;
+            	}else{
+            		$paymentMode = PAYMENT_MODE_LIVE;
+      			}
 
-	        //check if order payment results if empty the it means something is miss like application order id , merchant id or access token.....
-		 	if(empty($orderPaymentResults))
-		 	{
-				wc_add_notice("Something Went Wrong To Process Payment", 'error'); 
-	        	return false; 
-			}
-			//if result exist but order is not sucessful then show error with error message return from api........
-			else if($orderPaymentResults['Successful'] != true) {// If we have failed, report the reason.
-         		wc_add_notice("To Process Payment is failed due to ".$orderPaymentResults['Message'], 'error'); 
-	        	return false; 
-         	}
-     	 	
-     	 	//check order is created or not....
-         	if(isset($applicationorderId) && !empty($applicationorderId)){
-     			//check whether needs to add subscription for contact or not....
+      			//check payment mode if it is test or null payment then do manual payment....
+            	if($paymentMode == PAYMENT_MODE_TEST || $paymentMode == PAYMENT_MODE_SKIPPED){
+            		$manualPayment = chargePaymentManual($access_token,$applicationorderId,$amountOwned,$this->title,$paymentMode,$wooconnectionLogger);
+            	}else{
+            		if (!empty($merchantId)) {
+						$orderPaymentResults = createOrderPayment($access_token,$applicationorderId,$creditCardId,$merchantId);
+				 	} else {
+			            wc_add_notice("To process payment with ".$this->title." is failed because Merchant ID is not set in settings. Please do it first.", 'error');
+			            return false;
+			        }
+            	}
+            }
+
+            //check if order payment results if empty the it means something is miss like application order id , merchant id or access token.....
+            if($paymentMode != PAYMENT_MODE_TEST && $paymentMode != PAYMENT_MODE_SKIPPED && ($orderPaymentResults['Successful'] != true)){
+            	wc_add_notice("To Process Payment is failed due to ".$orderPaymentResults['Message'], 'error'); 
+	 			return false; 
+            }else{
+	        	//check whether needs to add subscription for contact or not....
 	            if(isset($subscriptionPlansArray) && !empty($subscriptionPlansArray)){
 		            //rotate loop to add multiple subscripitons.....
 		            foreach ($subscriptionPlansArray as $key => $value) {
-		            	//check subscription plan id,quantity and subscription price is exist or not....
-		            	if(!empty($value['subscripionPlanId']) && !empty($value['itemsQuantity']) && !empty($value['subprice'])){
+		            	//check subscription plan id and quantity exist in array or not.....
+		            	if(!empty($value['subscripionPlanId']) && !empty($value['itemsQuantity'])){
 
 		            		//check if trial days is empty.....
 		            		if($trialDays == 0){
@@ -583,16 +588,16 @@
 				            }
 
 		                    //create subscription xml....
-		                    $contactSubcriptionXml = '<methodCall><methodName>InvoiceService.addRecurringOrder</methodName><params><param><value><string></string></value></param><param><value><int>'.$contactId.'</int></value></param><param><value><boolean>1</boolean></value></param><param><value><int>'.$value['subscripionPlanId'].'</int></value></param><param><value><int>'.$value['itemsQuantity'].'</int></value></param><param><value><double>'.$value['subprice'].'</double></value></param><param><value><boolean>1</boolean></value></param><param><value><int>'.$this->is_merchant_id.'</int></value></param><param><value><int>'.$creditCardId.'</int></value></param><param><value><int>0</int></value></param><param><value><int>'.$trialDays.'</int></value></param></params></methodCall>';
+		                    $contactSubcriptionXml = '<methodCall><methodName>InvoiceService.addRecurringOrder</methodName><params><param><value><string></string></value></param><param><value><int>'.$contactId.'</int></value></param><param><value><boolean>1</boolean></value></param><param><value><int>'.$value['subscripionPlanId'].'</int></value></param><param><value><int>'.$value['itemsQuantity'].'</int></value></param><param><value><double>'.$value['subprice'].'</double></value></param><param><value><boolean>1</boolean></value></param><param><value><int>'.$merchantId.'</int></value></param><param><value><int>'.$creditCardId.'</int></value></param><param><value><int>0</int></value></param><param><value><int>'.$trialDays.'</int></value></param></params></methodCall>';
 		                    
 		                    //create contact subscription.....
 		                    $contactSub = createContactSub($access_token,$contactSubcriptionXml,$wooconnectionLogger);
 		            	}
 		            }	
 	            }
-	        }
+            }
 
-     	 	//add order notes.......
+            //add order notes.......
      	 	$orderData->add_order_note(__('Payment accepted via '.$orderData->payment_method_title.' gateway - Order Successful', 'woocommerce'));
          	
          	//get or set the merchant reference number...
