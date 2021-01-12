@@ -1791,6 +1791,7 @@ function getOrderAmountOwned($access_token,$orderId,$logger){
 
 //charge a manual payment...
 function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode,$logger){
+    //define empty variables....
     $paymentStatus = '';
     //check access token,order id exist then proceed next.....
     if(!empty($accessToken) && !empty($orderId)){
@@ -1798,6 +1799,7 @@ function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$accessToken);
+        //check mode and on the basis of it set the payment type of custom payment gateway......
         if($mode == PAYMENT_MODE_TEST){
           $paymentType = 'Payment of Test Mode';
         }else if($mode == PAYMENT_MODE_SKIPPED ){
@@ -1805,19 +1807,12 @@ function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode
         }else{
           $paymentType = 'Credit Card';
         }
+        //get/set the current date time for application order....
+        $currentDateTime = new DateTime("now",new DateTimeZone('America/New_York'));
+        $paymentDateTime = $currentDateTime->format('Ymd\TH:i:s');
         //create xml to hit the curl request to done payment manually.....
-        $chargePaymentXml = "<methodCall>
-                              <methodName>InvoiceService.addManualPayment</methodName>
-                              <params>
-                                  <param><value><string></string></value></param>
-                                  <param><value><int>".$orderId."</int></value></param>
-                                  <param><value><double>".$amountDue."</double></value></param>
-                                  <param><value><dateTime.iso8601></dateTime.iso8601></value></param>
-                                  <param><value><string>".$paymentType."</string></value></param>
-                                  <param><value><string>Woocommerce Payment With ".$description." Method.</string></value></param>
-                                  <param><value><boolean>0</boolean></value></param>
-                              </params>
-                            </methodCall>";
+        $chargePaymentXml = "<methodCall><methodName>InvoiceService.addManualPayment</methodName><params>
+                                  <param><value><string></string></value></param><param><value><int>".$orderId."</int></value></param><param><value><double>".$amountDue."</double></value></param><param><value><dateTime.iso8601>".$paymentDateTime."</dateTime.iso8601></value></param><param><value><string>".$paymentType."</string></value></param><param><value><string>Woocommerce Payment With ".$description." Method.</string></value></param><param><value><boolean>0</boolean></value></param></params></methodCall>";
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $chargePaymentXml);
