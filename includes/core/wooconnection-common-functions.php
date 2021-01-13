@@ -658,20 +658,22 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
           }
           if(!empty($sucessData['id'])){
             $appContactId = $sucessData['id'];
-            if (isset($_COOKIE['leadsourceId'])){
-                setcookie( 'leadsourceId', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
-            }
-            if(isset($_COOKIE['lscategory'])){
-              setcookie( 'lscategory', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
-            }
-            if(isset($_COOKIE['lsmedium'])){
-              setcookie( 'lsmedium', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
-            }
-            if(isset($_COOKIE['lsvendor'])){
-              setcookie( 'lsvendor', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
-            }
-            if(isset($_COOKIE['lsmessage'])){
-              setcookie( 'lsmessage', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            if(!headers_sent()){
+                if (isset($_COOKIE['leadsourceId'])){
+                    setcookie( 'leadsourceId', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+                }
+                if(isset($_COOKIE['lscategory'])){
+                  setcookie( 'lscategory', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+                }
+                if(isset($_COOKIE['lsmedium'])){
+                  setcookie( 'lsmedium', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+                }
+                if(isset($_COOKIE['lsvendor'])){
+                  setcookie( 'lsvendor', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+                }
+                if(isset($_COOKIE['lsmessage'])){
+                  setcookie( 'lsmessage', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+                }
             }
           }
           return $appContactId;
