@@ -38,8 +38,10 @@ class WooConnectionPro {
         }
         //check if user try with copy paste the files ....
         $checkProVersionActivated = get_option('wc_pro_version_activated');
+        //if option not exist...
         if(empty($checkProVersionActivated)){
             require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+            //then need to deactivate the plugin....
             deactivate_plugins( plugin_basename( __FILE__ ) );
             wp_die( __( 'Sorry you are allowed to access this plugin. Please activate it first.', 'textdomain' ) );
         }
