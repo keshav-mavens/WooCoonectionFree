@@ -112,7 +112,12 @@ function wc_get_trigger_details()
     			$triggerIntegrationName = strtolower($triggerDetails[0]->wc_integration_name);	
     		}
 	        if(!empty($triggerDetails[0]->wc_call_name)){
-    			$triggerCallName = strtolower($triggerDetails[0]->wc_call_name);	
+    			if($triggerGoalName == 'Specific Product' || $triggerGoalName == 'Item Added to Cart' || $triggerGoalName == 'Review Left' || $triggerGoalName == 'Coupon Code Applied' || $triggerGoalName == 'Referral Partner Order'){
+		            $triggerCallName = $triggerDetails[0]->wc_call_name;
+		        }
+		        else{
+		            $triggerCallName = strtolower($triggerDetails[0]->wc_call_name);
+		        }
     		}
 	    }
     	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerGoalName'=>$triggerGoalName,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName));
@@ -136,10 +141,37 @@ function wc_update_trigger_details()
     			$triggerIntegrationName = strtolower(trim($_POST['integrationname']));	
     		}
 	        if(isset($_POST['callname']) && !empty($_POST['callname'])){
-    			$triggerCallName = strtolower(trim($_POST['callname']));	
+    			if($_POST['edittriggername'] == 'Specific Product'){
+		            $triggerCallName = trim($_POST['callname']);
+		        	$displayCallName = '<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$triggerCallName.'</a>';
+		        }
+		        else if($_POST['edittriggername'] == 'Item Added to Cart'){
+	        		$triggerCallName = trim($_POST['callname']);
+	        		$call_name = explode('added', $triggerCallName);
+	        		$displayCallName = 'added'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListingAdded">'.$call_name[1].'</a>';
+		        }elseif ($_POST['edittriggername'] == 'Review Left') {
+		        	$triggerCallName = trim($_POST['callname']);
+		        	$call_name = explode('review', $triggerCallName);
+	        		$displayCallName = 'review'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListingReview">'.$call_name[1].'</a>';
+		        }
+		        else if($_POST['edittriggername'] == 'Coupon Code Applied'){
+		            $triggerCallName = trim($_POST['callname']);
+		            $call_name = explode('coupon', $triggerCallName);
+		        	$displayCallName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
+		        }
+		        else if($_POST['edittriggername'] == 'Referral Partner Order'){
+		            $triggerCallName = trim($_POST['callname']);
+		            $call_name = explode('refferal', $triggerCallName);
+		            $displayCallName = 'refferal'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#refferalListing">'.$call_name[1].'</a>';
+		       	}
+		        else{
+		            $triggerCallName = strtolower(trim($_POST['callname']));
+		        	$displayCallName = strtolower(trim($_POST['callname']));
+		        }
+
     		}
     		$updateResult = $wpdb->update($wp_table_name, array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName),array('id' => $_POST['edittriggerid']));
-    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName));
+    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName,'displayCallName'=>$displayCallName));
     	}
 	}
 	die();	
@@ -229,7 +261,7 @@ function wc_export_wc_products()
                     }else{
                         $wcproductShortDesc = "";
                     }
-                    //create final array with values.....
+                    //create final array with values.......
                     $productDetailsArray['active'] = true;
                     $productDetailsArray['product_desc'] = $wcproductDesc;
                     $productDetailsArray['sku'] = $wcproductSku;
@@ -1327,6 +1359,25 @@ function wc_load_app_cfield_tabs()
 {
 	$cfRelatedTabs = cfRelatedTabs();
 	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfRelatedTabs'=>$cfRelatedTabs));
+	die();
+}
+
+//Wordpress hook : This action is triggered when user try to export products.....
+add_action( 'wp_ajax_wc_get_products_listing', 'wc_get_products_listing');
+//Function Definiation : wc_get_products_listing
+function wc_get_products_listing()
+{
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		//check select products exist in post data to import.....
+		if(isset($_POST['length']) && !empty($_POST['length'])){
+			$skuLength = $_POST['length'];
+			$productsListing .= '<table class="table table-striped" id="products_listing_with_sku_'.$skuLength.'"><thead><tr><th>Product Name</th><th>Product Sku</th><th>Action</th></tr></thead>';
+			$productsListing .= '<tbody id="products_sku_listing">'.get_products_listing($skuLength).'</tbody>';
+	    	$productsListing .= '</table>';
+	    }
+	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListing'=>$productsListing));
+	}
 	die();
 }
 ?>

@@ -63,7 +63,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
     $generalSuccessfullOrderIntegrationName = '';
     $generalSuccessfullOrderCallName = '';
 
-    // Check call name of wooconnection goal is exist or not if exist then hit the achieveGoal where integration name is purchaseProductIntegrationName and call name sku of product...
+    // Check call name of wooconnection goal is exist or not if exist...
     if(isset($generalSuccessfullOrderTrigger) && !empty($generalSuccessfullOrderTrigger)){
         
         //Get and set the wooconnection goal integration name
@@ -98,6 +98,20 @@ function wooconnection_trigger_status_complete_hook($orderid){
                             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Successful Order : Process of wooconnection successful order trigger is failed where contact id is '.$orderContactId.'');
                         }
                         
+                    }
+                }
+            }
+            
+            //Call the common function to hit the any purchase trigger....
+            $anyPurchaseTrigger = orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger);
+
+            //add goals form specfic coupons...
+            if(!empty($orderAssociatedCoupons)){
+                foreach ($orderAssociatedCoupons as $key => $value) {
+                    if(!empty($value)){
+                        //Call the common function to hit the coupon applied trigger....
+                        $couponName = 'coupon'.substr($value, 0, 34);
+                        $couponApplyTrigger = orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooconnectionLogger);
                     }
                 }
             }
@@ -204,7 +218,7 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
     //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
     $orderContactId = checkAddContactApp($access_token,$order_email,$callback_purpose);
 
-    //Woocommerce Standard trigger : Get the call name and integration name of goal "Woocommerce Successful Order"... 
+    //Woocommerce Standard trigger : Get the call name and integration name of goal "Order Failed"... 
     $generalFailOrderTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_GENERAL,'Order Failed');
 
     //Define variables....

@@ -17,10 +17,10 @@ class WooConnection_Admin {
     }
 
     //Function Definition : wooconnection_admin_menu
-    public function wooconnection_admin_menu() {
-        $icon_url = WOOCONNECTION_PLUGIN_URL .'assets/images/icon-grey-new.png';
-        add_menu_page( 'WooConnection Pro', 'WooConnection Pro', 'manage_options', 'wooconnection-admin', array( $this, 'wooconnection_admin_settings' ), $icon_url, 27 );
-    }
+	public function wooconnection_admin_menu() {
+		$icon_url = WOOCONNECTION_PLUGIN_URL .'assets/images/icon-grey-new.png';
+		add_menu_page( 'WooConnection Pro', 'WooConnection Pro', 'manage_options', 'wooconnection-admin', array( $this, 'wooconnection_admin_settings' ), $icon_url, 27 );
+	}
 
     //Admin Menu : Fuction is used to call main plugin file..
     public function wooconnection_admin_settings(){

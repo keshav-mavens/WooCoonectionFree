@@ -46,6 +46,38 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                 </tbody>
               </table>
           </div>
+          <h4>Woocommerce Logged In User Cart Triggers</h4>
+          <div class="table-responsive">
+              <table class="table table-striped table-overflow">
+                <thead>
+                  <tr>
+                    <th style="width:30%">Trigger Goal Name</th>
+                    <th style="width:30%">Trigger Integration Name</th>
+                    <th style="width:40%">Trigger Call Name</th>
+                    <th style="width:40%">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    <?php echo getCartTriggers();?>
+                </tbody>
+              </table>
+          </div>
+          <h4>WooCommerce Order Triggers</h4>
+          <div class="table-responsive">
+              <table class="table table-striped table-overflow">
+                <thead>
+                  <tr>
+                    <th style="width:30%">Trigger Goal Name</th>
+                    <th style="width:30%">Trigger Integration Name</th>
+                    <th style="width:40%">Trigger Call Name</th>
+                    <th style="width:40%">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    <?php echo getOrderTriggers();?>
+                </tbody>
+              </table>
+          </div>
         <?php }else{
               echo $checkAuthenticationStatus;
         } ?>
@@ -64,6 +96,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
       <div class="modal-body">
         <form action="" method="post" id="trigger_details_form" onsubmit="return false">
           <input type="hidden" name="edittriggerid" id="edittriggerid" value="">
+          <input type="hidden" name="edittriggername" id="edittriggername" value="">
           <div class="form-group row">
             <label class="col-lg-3 col-md-3 col-sm-12 col-12 col-form-label">Integration Name</label>
             <div class="col-lg-9 col-md-9 col-sm-12 col-12">
@@ -92,4 +125,55 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
   </div>
 </div>
 
+<!--Below model is used to show the list of products with their sku with copy feature for specific product purchase trigger,item added to cart, review left for product trigger-->
+<div class="modal" role="dialog" id="productsListing">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Products With Sku</h4>
+        <button type="button" class="close" onclick="hideCustomModel('productsListing')">&times;</button>
+      </div>
+      <div class="modal-body"><div class="table-responsive" id="products_sku_listing"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Below model is used to show the list of coupons with their code with copy feature-->
+<div class="modal" role="dialog" id="couponsListing">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Coupons Code Listing</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+       <div class="table-responsive">
+          <table class="table table-striped" id="coupon_listing_with_sku">
+                <thead><tr><th>Coupon Code</th><th>Coupon Desc</th><th>Action</th></tr></thead>
+                <tbody><?php echo get_coupons_listing(); ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal" role="dialog" id="refferalListing">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Refferal Listing</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+       <div class="table-responsive">
+          <table class="table table-striped" id="refferal_partners_listing">
+                <thead><tr><th>Id</th><th>Referral Partner Name</th><th>Referral Partner Code</th><th>Action</th></tr></thead>
+                <tbody><?php echo affiliateListing(); ?></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <!--Campaign Goals SETUP END-->
