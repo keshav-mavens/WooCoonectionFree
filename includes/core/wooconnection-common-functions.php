@@ -613,10 +613,21 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
     //check if appUseremail is exist then get the current user id from infusionsoft/keap application on the basis of appUseremail 
     $appContactId = "";
     if(isset($appUseremail) && !empty($appUseremail)){
+        $leadsourceId = '';//define empty variable....
+        //first check "leadsourceId" exist in cookie....
+        if( isset($_COOKIE["leadsourceId"])){
+            $leadsourceId = $_COOKIE["leadsourceId"];
+        }else{
+          //the check urm parameters value exist......
+          if(isset($_COOKIE["lscategory"]) && isset($_COOKIE["lsmedium"]) && isset($_COOKIE["lsvendor"])){
+              //call the function to check or add leadsource on the basis of utm parameters.....
+              $leadsourceId = checkAddLeadSource($access_token,$_COOKIE["lscategory"],$_COOKIE["lsmedium"],$_COOKIE["lsvendor"],$_COOKIE["lsmessage"]);
+          }
+        }
         // Create instance of our wooconnection logger class to use off the whole things.
         $wooconnectionLogger = new WC_Logger();
         //create json array to push ocde in infusionsoft...
-        $jsonData ='{"duplicate_option": "Email","email_addresses":[{"email": "'.$appUseremail.'","field": "EMAIL1"}],"opt_in_reason": "Customer opted-in through '.SITE_URL.'"}';
+        $jsonData ='{"duplicate_option": "Email","email_addresses":[{"email": "'.$appUseremail.'","field": "EMAIL1"}],"opt_in_reason": "Customer opted-in through '.SITE_URL.'","lead_source_id": "'.$leadsourceId.'"}';
         $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts';
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -645,6 +656,21 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
           }
           if(!empty($sucessData['id'])){
             $appContactId = $sucessData['id'];
+            if (isset($_COOKIE['leadsourceId'])){
+                setcookie( 'leadsourceId', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lscategory'])){
+              setcookie( 'lscategory', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lsmedium'])){
+              setcookie( 'lsmedium', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lsvendor'])){
+              setcookie( 'lsvendor', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
+            if(isset($_COOKIE['lsmessage'])){
+              setcookie( 'lsmessage', '', time() - 999999, '/', $_SERVER['SERVER_NAME'] );
+            }
           }
           return $appContactId;
         }
@@ -781,94 +807,16 @@ function addNewCompany($newCompanyName,$access_token){
     return $companyId;
 }
 
-
-
-//update contact to infusionsoft/keap account..
-function updateContact($contactId,$woocommerce_order_data,$access_token){
-    $contactLatestInformation = array();
-    if(!empty($contactId) && !empty($woocommerce_order_data) && !empty($access_token)){
-        if(isset($woocommerce_order_data['billing']['country']) && !empty($woocommerce_order_data['billing']['country'])){
-            $countryCode = get_country_code($woocommerce_order_data['billing']['country']);
-            $contactLatestInformation['country_code'] = $countryCode;
-        }
-        $contactLatestInformation['field'] = "BILLING";
-        if(isset($woocommerce_order_data['billing']['address_1']) && !empty($woocommerce_order_data['billing']['address_1'])){
-            $contactLatestInformation['line1'] = trim($woocommerce_order_data['billing']['address_1']);
-        }
-        if(isset($woocommerce_order_data['billing']['address_2']) && !empty($woocommerce_order_data['billing']['address_2']))
-        {
-            $contactLatestInformation['line2'] = $woocommerce_order_data['billing']['address_2'];
-        }
-        if(isset($woocommerce_order_data['billing']['postcode']) && !empty($woocommerce_order_data['billing']['postcode'])){
-            $contactLatestInformation['postal_code'] = $woocommerce_order_data['billing']['postcode'];
-        }
-        if(isset($woocommerce_order_data['billing']['city']) && !empty($woocommerce_order_data['billing']['city'])){
-            $contactLatestInformation['locality'] = $woocommerce_order_data['billing']['city'];
-        }
-        if(isset($woocommerce_order_data['billing']['state']) && !empty($woocommerce_order_data['billing']['state'])){
-            $states = WC()->countries->get_states($woocommerce_order_data['billing']['country']);
-            $state = !empty($states[$woocommerce_order_data['billing']['state']]) ? $states[$woocommerce_order_data['billing']['state']] : '';
-            $contactLatestInformation['region'] = $state;
-        }
-        $companyId = '';
-        if(isset($woocommerce_order_data['billing']['company']) && !empty($woocommerce_order_data['billing']['company'])){
-            $company = stripslashes($woocommerce_order_data['billing']['company']);
-            $companyId = checkAddCompany($company,$access_token);
-        }
-        $firstName = '';
-        if(isset($woocommerce_order_data['billing']['first_name']) && !empty($woocommerce_order_data['billing']['first_name'])){
-            $firstName = trim($woocommerce_order_data['billing']['first_name']);
-        }
-        $phone1 = '';
-        if(isset($woocommerce_order_data['billing']['phone']) && !empty($woocommerce_order_data['billing']['phone'])){
-            $phone1 = $woocommerce_order_data['billing']['phone'];
-        }
-        $jsonAddressedArray = json_encode($contactLatestInformation);
-        $jsonArray = '{"addresses": ['.$jsonAddressedArray.'],"company": {"id": '.$companyId.'},"phone_numbers": 
-          [{"field": "PHONE1","number": "'.$phone1.'"}],"given_name": "'.$firstName.'"}';
-        $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts/'.$contactId;
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-            'Accept: application/json',
-            'Content-Type: application/json',
-            'Authorization: Bearer '. $access_token
-        );
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonArray);
-        $response = curl_exec($ch);
-        $err = curl_error($ch);
-        if($err){
-          $errorMessage = 'Trying to update contact('.$contactId.')';
-          $errorMessage .= $errorMessage ." is failed due to ". $err; 
-          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-        }else{
-          $sucessData = json_decode($response,true);
-          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
-            $errorMessage = 'Trying to update contact('.$contactId.')';
-            $errorMessage = $errorMessage ." is failed";
-            if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
-              $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
-            }
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          }
-        }
-        curl_close($ch);
-    }
-    return true;
-}
-
 //get country code on the basis of code...
-function get_country_code($code){
+function getCountryName($code){
   global $wpdb,$table_prefix;
   $table_name = 'wp_wooconnection_countries';
   $countryDetails = $wpdb->get_results("SELECT * FROM ".$table_name." WHERE code = '".$code."'");
-  $countryCode = "";
-  if(!empty($countryDetails[0]->countrycode)){
-    $countryCode =$countryDetails[0]->countrycode;
+  $countryname = "";
+  if(!empty($countryDetails[0]->countryname)){
+    $countryname =$countryDetails[0]->countryname;
   }
-  return $countryCode;
+  return $countryname;
 }
 
 //Create order in infusionsoft/keap application at the time checkout......
@@ -1293,5 +1241,840 @@ function getApplicationProductDetails($access_token,$productId){
         curl_close($ch);  
     }
     return $productName;
+}
+
+//Custom fields Tab :  Get all latest custom fields from infusionsoft/keap application related to orders/contacts..........
+function getPredefindCustomfields(){
+  //first need to check whether the application authentication is done or not..
+  $applicationAuthenticationDetails = getAuthenticationDetails();
+  //get the access token....
+  $access_token = '';
+  if(!empty($applicationAuthenticationDetails)){//check authentication details......
+      if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+          $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+      }
+  }
+  
+  $predefinedcfields = array();//define empty array.....
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':FirstName'] = "Contact First Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':MiddleName'] = "Contact Middle Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':LastName'] = "Contact Last Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Nickname'] = "Contact Nick Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantName'] = "Contact Assistant Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantPhone'] = "Contact Assistant Phone";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress2'] = "Contact Email Address 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress3'] = "Contact Email Address 3";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone1'] = "Contact Phone 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone2'] = "Contact Phone 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone3'] = "Contact Phone 3";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone4'] = "Contact Phone 4";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone5'] = "Contact Phone 5";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax1'] = "Contact Fax 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Fax2'] = "Contact Fax 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Anniversary'] = "Contact Anniversary";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Birthday'] = "Contact Birthday";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':StreetAddress1'] = "Contact Billing Street 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':StreetAddress2'] = "Contact Billing Street 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address2Street1'] = "Contact Shipping Street 1";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Address2Street2'] = "Contact Shipping Street 2";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City'] = "Contact Billing City";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':City2'] = "Contact Shipping City";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State'] = "Contact Billing State";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':State2'] = "Contact Shipping State";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country'] = "Contact Billing Country";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Country2'] = "Contact Shipping Country";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode'] = "Contact Billing Postal Code";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':PostalCode2'] = "Contact Shipping Postal Code";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour1'] = "Contact Billing ZipFour";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ZipFour2'] = "Contact Shipping ZipFour";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Suffix'] = "Contact Suffix";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':SpouseName'] = "Contact Spouse Name";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':ContactNotes'] = "Contact Notes";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Company'] = "Contact Company";
+  //Infusionsoft/keap application access token check....
+  if($access_token){
+    //Infusionsoft/keap : Get Infusionsoft/Keap Contact Custom Fields
+    $precontactcfields = contactOrderCustomFields($access_token,CUSTOM_FIELD_FORM_TYPE_CONTACT);
+    
+    //Infusionsoft/keap : Get Infusionsoft/Keap Order Custom Fields
+    $preordercfields = contactOrderCustomFields($access_token,CUSTOM_FIELD_FORM_TYPE_ORDER);
+    
+    //create the options with label and name of custom field...
+    if(isset($precontactcfields) && !empty($precontactcfields)){
+      foreach($precontactcfields as $precustomfields) {
+          $cfieldoptionValue = "FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':_'.$precustomfields["label"];
+          $predefinedcfields["Contact Related Custom Fields"][$cfieldoptionValue] = $precustomfields["label"];
+      }
+    }
+      
+    if(isset($preordercfields) && !empty($preordercfields)){
+      foreach($preordercfields as $precustomorderfields) {
+          $cfieldorderoptionValue = "FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.':_'.$precustomorderfields["label"];
+          $predefinedcfields["Order Related Custom Fields"][$cfieldorderoptionValue] = $precustomorderfields["label"];
+      } 
+    }
+  }
+  return $predefinedcfields;//return array.....
+}
+
+//Custom fields Tab : Code is used to get order/contact related custom fields from autherize application....
+function contactOrderCustomFields($access_token,$fieldType){
+    $customFieldsArray = array();//define empty array.....
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
+    //check access token....
+    if(!empty($access_token)){
+      //check form type then set curl url on the basis of it.....
+      if($fieldType == CUSTOM_FIELD_FORM_TYPE_CONTACT){
+        $url = "https://api.infusionsoft.com/crm/rest/v1/contacts/model";
+      }else if ($fieldType == CUSTOM_FIELD_FORM_TYPE_ORDER) {
+        $url = "https://api.infusionsoft.com/crm/rest/v1/orders/model";
+      }
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $url); //using the setopt function to send request to the url
+      $header = array(
+          'Accept: application/json',
+          'Content-Type: application/json',
+          'Authorization: Bearer '. $access_token
+      );
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+      $response = curl_exec($ch); //executing request
+      $err = curl_error($ch);
+      if($err){
+      }else{
+        $sucessData = json_decode($response,true);
+        if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+          $errorMessage = "Get contact and order related custom fields is failed ";
+          if(isset($sucessData['fault']['faultstring']) && !empty($sucessData['fault']['faultstring'])){
+            $errorMessage .= "due to ".$sucessData['fault']['faultstring']; 
+          }
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }
+        if(!empty($sucessData['custom_fields'])){
+          $customFieldsArray = $sucessData['custom_fields'];
+        }
+        return $customFieldsArray;
+      }
+      
+      curl_close($ch); 
+    }
+    return $customFieldsArray;//return array.....
+}
+
+//Custom fields Tab : Code is used to add order/contact related custom fields to autherize application....
+function addCustomField($access_token,$formType,$fieldName,$fieldType,$fieldHeader){
+  $fieldId = '';
+  // Create instance of our wooconnection logger class to use off the whole things.
+  $wooconnectionLogger = new WC_Logger();
+  if(!empty($access_token) && !empty($formType) && !empty($fieldName)){
+      // Create instance of our wooconnection logger class to use off the whole things.
+      $wooconnectionLogger = new WC_Logger();
+      $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: text/xml',
+        'Content-Type: text/xml',
+        'Authorization: Bearer '. $access_token
+      );
+      if($formType == CUSTOM_FIELD_FORM_TYPE_CONTACT){
+        $customFieldType = "Contact";
+      }else if ($formType == CUSTOM_FIELD_FORM_TYPE_ORDER) {
+        $customFieldType = "Job";
+      }
+      
+      //Create xml to hit the curl request for add order item.....
+      $xmlData = "<methodCall><methodName>DataService.addCustomField</methodName><params><param><value><string></string></value></param><param><value><string>".$customFieldType."</string></value></param><param><value><string>".$fieldName."</string></value></param><param><value><string>".$fieldType."</string></value></param><param><value><int>".$fieldHeader."</int></value></param></params></methodCall>";
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      //check if error occur due to any reason and then save the logs...
+      if($err){
+          $errorMessage = "Add custom field is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+      }else{
+        //Covert/Decode response to xml.....
+        $responsedata = xmlrpc_decode($response);
+        //check if any error occur like invalid access token,then save logs....
+        if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+            if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+                $errorMessage = "Add custom field is failed due to ". $responsedata['faultString']; 
+                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+            }
+        }else{
+          $fieldId = $responsedata;
+        }
+        return $fieldId;
+      }
+      curl_close($ch);
+  }
+  return $fieldId;
+}
+
+//Custom fields Tab : Code is used to get order/contact related custom fields tabs from autherize application....
+function cfRelatedTabs($form_type_id=""){
+  
+  //first need to check whether the application authentication is done or not..
+  $applicationAuthenticationDetails = getAuthenticationDetails();
+  //get the access token....
+  $access_token = '';
+  if(!empty($applicationAuthenticationDetails)){//check authentication details......
+      if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+          $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+      }
+  }
+  //Infusion soft connection check
+  $tabRelatedOptions = '<option value="">Select Tab</option>';
+  if(!empty($access_token)){
+    if(!empty($form_type_id)){
+      $form_type_id = $form_type_id;
+    }else{
+      $form_type_id = CUSTOM_FIELD_FORM_TYPE_CONTACT;
+    }
+    $relatedTabs = getTabs($access_token,$form_type_id);//call the function to get tabs
+    if(isset($relatedTabs) && !empty($relatedTabs)){
+        foreach ($relatedTabs as $key => $value) {
+          $tabRelatedOptions.= '<option value="';
+          $tabRelatedOptions.= $value['Id'];
+          $tabRelatedOptions.= '">' . $value['TabName'];
+          $tabRelatedOptions .= '</option>';
+        }
+    }
+    
+  }
+  $tabRelatedOptions .= '</option>';
+  
+  return $tabRelatedOptions;//return html.....
+}
+
+//Custom fields Tab : Code is used to get order/contact related custom fields headers from autherize application....
+function cfRelatedHeaders($tab_type_id=""){
+    //first need to check whether the application authentication is done or not..
+    $applicationAuthenticationDetails = getAuthenticationDetails();
+    //get the access token....
+    $access_token = '';
+    if(!empty($applicationAuthenticationDetails)){//check authentication details......
+        if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+            $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+        }
+    }
+
+    $tabRelatedHeaders='<option value="">Select Header</option>';
+    if(!empty($access_token)){
+      $relatedTabHeaders = getHeaders($access_token,$tab_type_id);
+      if(isset($relatedTabHeaders) && !empty($relatedTabHeaders)){
+        foreach ($relatedTabHeaders as $key => $value) {
+          $tabRelatedHeaders.= '<option value="';
+          $tabRelatedHeaders.= $value['Id'];
+          $tabRelatedHeaders.= '">' . $value['Name'];
+          $tabRelatedHeaders.= "</option>";
+        }
+      }
+    }
+    $tabRelatedHeaders .= '</option>';
+    return $tabRelatedHeaders;//return html.....
+}
+
+//Custom fields Tab : Code is used to hit curl request to get the tabs....
+function getTabs($access_token,$form_type_id){
+  // Create instance of our wooconnection logger class to use off the whole things.
+  $wooconnectionLogger = new WC_Logger();
+  $tabsArray = '';
+  $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $header = array(
+    'Accept: text/xml',
+    'Content-Type: text/xml',
+    'Authorization: Bearer '. $access_token
+  );
+  
+  //Create xml to hit the curl request for add order item.....
+  $xmlData = "<methodCall><methodName>DataService.findByField</methodName><params><param><value><string></string></value></param><param><value><string>DataFormTab</string></value></param><param><value><int>200</int></value></param><param><value><int>0</int></value></param><param><value><string>FormId</string></value></param><param><value><string>".$form_type_id."</string></value></param><param><value><array><data><value><string>Id</string></value><value><string>TabName</string></value></data></array></value></param></params></methodCall>";
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+  $response = curl_exec($ch);
+  $err = curl_error($ch);
+  //check if error occur due to any reason and then save the logs...
+  if($err){
+      $errorMessage = "Get custom fields tab is failed due to ". $err; 
+      $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+  }else{
+    //Covert/Decode response to xml.....
+    $responsedata = xmlrpc_decode($response);
+    //check if any error occur like invalid access token,then save logs....
+    if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+        if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+            $errorMessage = "Get custom fields tab is failed due to ". $responsedata['faultString']; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }
+    }else{
+      $tabsArray = $responsedata;
+    }
+    return $tabsArray;
+  }
+  curl_close($ch);
+  return $tabsArray;
+}
+
+//Custom fields Tab : Code is used to hit curl request to get the headers....
+function getHeaders($access_token,$tab_type_id){
+  // Create instance of our wooconnection logger class to use off the whole things.
+  $wooconnectionLogger = new WC_Logger();
+  $headersArray = '';
+  $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $header = array(
+    'Accept: text/xml',
+    'Content-Type: text/xml',
+    'Authorization: Bearer '. $access_token
+  );
+  
+  //Create xml to hit the curl request for add order item.....
+  $xmlData = "<methodCall><methodName>DataService.findByField</methodName><params><param><value><string></string></value></param><param><value><string>DataFormGroup</string></value></param><param><value><int>200</int></value></param><param><value><int>0</int></value></param><param><value><string>TabId</string></value></param><param><value><string>".$tab_type_id."</string></value></param><param><value><array><data><value><string>Id</string></value><value><string>Name</string></value></data></array></value></param></params></methodCall>";
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+  $response = curl_exec($ch);
+  $err = curl_error($ch);
+  //check if error occur due to any reason and then save the logs...
+  if($err){
+      $errorMessage = "Get custom fields headers is failed due to ". $err; 
+      $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+  }else{
+    //Covert/Decode response to xml.....
+    $responsedata = xmlrpc_decode($response);
+    //check if any error occur like invalid access token,then save logs....
+    if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+        if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+            $errorMessage = "Get custom fields headers is failed due to ". $responsedata['faultString']; 
+            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+        }
+    }else{
+      $headersArray = $responsedata;
+    }
+    return $headersArray;
+  }
+  curl_close($ch);
+  return $headersArray;
+}
+
+//Checkout Custom fields : Code is used to check whether a input date is valid or not....  
+function validateDatecField($dateValue, $dateFormat = 'm/d/Y'){
+    $date = DateTime::createFromFormat($dateFormat, $dateValue);
+    return $date && $date->format($dateFormat) === $dateValue;
+}
+
+//Checkout Custom fields : Code is used to update contact custom fields with contact id...  
+function updateContactCustomFields($access_token,$contact_id,$customFieldsData){
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
+    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $header = array(
+      'Accept: text/xml',
+      'Content-Type: text/xml',
+      'Authorization: Bearer '. $access_token
+    );
+    
+    //create xml html by executing loop...
+    $customFieldHtml = '';
+    foreach ($customFieldsData as $key => $value) {
+        $keyname = str_replace(" ", "", $key);
+        $customFieldHtml .= '<member><name>'.$keyname.'</name><value><string>'.$value.'</string></value></member>';
+    }
+
+
+    //Create xml to hit the curl request for add order item.....
+    $xmlData = "<methodCall><methodName>ContactService.update</methodName><params><param><value><string>privateKey</string></value></param><param><value><int>".$contact_id."</int></value></param><param><value><struct>".$customFieldHtml."</struct></value></param></params></methodCall>";
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    //check if error occur due to any reason and then save the logs...
+    if($err){
+        $errorMessage = "Update contact custom field values is failed due to ". $err; 
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+    }else{
+      //Covert/Decode response to xml.....
+      $responsedata = xmlrpc_decode($response);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+          if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+              $errorMessage = "Update contact custom field values is failed due to ". $responsedata['faultString']; 
+              $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+      }else{
+        return true;
+      }
+    }
+    curl_close($ch);
+    return true;
+}
+
+//Checkout Custom fields : Code is used to update order custom fields with order id...
+function updateOrderCustomFields($access_token,$job_id,$ordercFieldsData){
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
+    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $header = array(
+      'Accept: text/xml',
+      'Content-Type: text/xml',
+      'Authorization: Bearer '. $access_token
+    );
+    
+    //create xml html by executing loop...
+    $ordercFieldHtml = '';
+    foreach ($ordercFieldsData as $key => $value) {
+        $keyname = str_replace(" ", "", $key);
+        $ordercFieldHtml .= '<member><name>'.$keyname.'</name><value><string>'.$value.'</string></value></member>';
+    }
+
+
+    //Create xml to hit the curl request for add order item.....
+    $xmlData = "<methodCall><methodName>DataService.update</methodName><params><param><value></value></param><param><value><string>Job</string></value></param><param><value><int>".$job_id."</int></value></param><param><value><struct>".$ordercFieldHtml."</struct></value></param></params></methodCall>";
+    //echo $xmlData;
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    //check if error occur due to any reason and then save the logs...
+    if($err){
+        $errorMessage = "Update order custom field values is failed due to ". $err; 
+        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+    }else{
+      //Covert/Decode response to xml.....
+      $responsedata = xmlrpc_decode($response);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+          if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+              $errorMessage = "Update order custom field values is failed due to ". $responsedata['faultString']; 
+              $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+          }
+      }else{
+        return true;
+      }
+    }
+    curl_close($ch);
+    return true;
+}
+
+//Main function is used to generate the standard checkout fields mapping html.....
+function createStandardFieldsMappingHtml(){
+  //Define variables.....
+  $standard_fields_mapping_html = "";
+  
+  //Get the application type and set the lable on the basis of it....
+  $configurationType = applicationType();
+  $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;//Default....
+  if(isset($configurationType) && !empty($configurationType)){
+    if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+      $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+    }else if ($configurationType == APPLICATION_TYPE_KEAP) {
+      $type = APPLICATION_TYPE_KEAP_LABEL;
+    }
+  }
+  
+  //Set the application label on the basis of type...
+  $applicationLabel = applicationLabel($type);
+  
+  //call the function to get the list of standard checkout fields....
+  $wooStandardCheckoutFields = listStandardCheckoutFields();
+
+  //Get the export products table html and append to table
+  if(empty($wooStandardCheckoutFields)){
+    $standard_fields_mapping_html = '<p class="heading-text" style="text-align:center">No standard custom fields mapping exist.</p>';
+  }else{
+    $standard_fields_mapping_html .= '<span class="ajax_loader_standard_fields_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_standard_fields_mapping_form" onsubmit="return false"><table class="table table-striped standard_fields_listing_class" id="standard_fields_listing"><thead><tr><th>WooCommerce Standard Field</th><th>'.$applicationLabel.' Field</th></tr></thead><tbody>'.$wooStandardCheckoutFields.'</tbody></table></form>';  
+  }
+  
+  //return the html...
+  return $standard_fields_mapping_html;
+}
+
+
+//get the list of standard checkout fields and its mapped fields...
+function listStandardCheckoutFields(){
+  global $wpdb,$table_prefix;
+  $table_name = 'wooconnection_standard_custom_field_mapping';
+  $wooconnection_standard_custom_field_mapping = $table_prefix . "$table_name";
+  $checkoutStandardFields = $wpdb->get_results("SELECT * FROM ".$wooconnection_standard_custom_field_mapping."");
+  $wccheckoutStandardFieldsHtml = '';
+  $fieldsDropDown = createMappedFieldSelect();
+  if(isset($checkoutStandardFields) && !empty($checkoutStandardFields)){
+    foreach ($checkoutStandardFields as $key => $value) {
+        $field_id = $value->id;
+        $field_name = $value->wc_standardcf_label;
+        $field_mapping = $value->wc_standardcf_mapped;
+        $mapped_field_type = $value->wc_standardcf_mapped_field_type; 
+        $mappedFieldName = 'FormType:'.$mapped_field_type.':'.$field_mapping;
+        $wccheckoutStandardFieldsHtml.='<tr class="standardcfrows" id="'.$field_id.'" data-id="'.$mappedFieldName.'"><td>'.$field_name.'</td><td><select name="standard_cfield_mapping_'.$field_id.'" id="standard_cfield_mapping_'.$field_id.'" data-id="'.$field_id.'" class="standardcfieldmappingwith"><option value="donotmap">Do not mapped</option>'.$fieldsDropDown.'</select></td></tr>';
+    }
+  }
+  return $wccheckoutStandardFieldsHtml;
+}
+
+//create infusionsoft/keap fields options html on the basis of mapping...
+function createMappedFieldSelect(){
+  //get the array of application custom fields.....
+  $preDefinedCustomFields = getPredefindCustomfields();
+  $cfieldOptionsHtml = '';
+  foreach($preDefinedCustomFields as $key => $value) {
+    $cfieldOptionsHtml .= "<optgroup label=\"$key\">";
+    foreach($value as $key1 => $value1) {
+      $cfieldoptionSelected = "";
+      $cfieldOptionsHtml .= '<option value="'.$key1.'"'.$cfieldoptionSelected.'>'.$value1.'</option>';
+    }
+    $cfieldOptionsHtml .= "</optgroup>";
+  }
+  return $cfieldOptionsHtml;
+}
+
+
+//get the list of standard checkout fields and its mapped fields...
+function listAlreadyUsedFields(){
+  global $wpdb,$table_prefix;
+  $table_name = 'wooconnection_standard_custom_field_mapping';
+  $wooconnection_standard_custom_field_mapping = $table_prefix . "$table_name";
+  $checkoutStandardFields = $wpdb->get_results("SELECT * FROM ".$wooconnection_standard_custom_field_mapping."");
+  $wccheckoutStandardFieldsHtml = array();
+  if(isset($checkoutStandardFields) && !empty($checkoutStandardFields)){
+    foreach ($checkoutStandardFields as $key => $value) {
+        $field_id = $value->id;
+        $field_mapping = $value->wc_standardcf_mapped;
+        $mapped_field_type = $value->wc_standardcf_mapped_field_type; 
+        $wccheckoutStandardFieldsHtml[] = 'FormType:'.$mapped_field_type.':'.$field_mapping;
+    }
+  }
+  return $wccheckoutStandardFieldsHtml;
+}
+
+
+//Below function is used to get the lead source id....
+function checkAddLeadSource($access_token,$category,$meduim,$vendor,$content=''){
+  $leadsourceId = '';//define empty variables....
+  if(!empty($category) && !empty($access_token)){
+    //call the function to get the category id....
+    $categoryId = checkAddCategory($access_token,$category);
+    if(!empty($categoryId)){
+      $leadsourceId = getAddLeadSource($access_token,$categoryId,$meduim,$vendor,$content);
+    }
+  }
+  return $leadsourceId;//return lead source id....
+}
+
+//With below function first check "lead source category" exist by name....
+function checkAddCategory($access_token,$categoryname){
+  $categoryId = '';//define empty variables....
+  if(!empty($categoryname) && !empty($access_token)){
+        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array(
+          'Accept: text/xml',
+          'Content-Type: text/xml',
+          'Authorization: Bearer '. $access_token
+        );
+        //Create xml to hit the curl request for get category id by category name.....
+        $xmlData = "<methodCall><methodName>DataService.findByField</methodName><params><param>
+                        <value></value></param><param><value><string>LeadSourceCategory</string></value></param><param><value><int>100</int></value></param><param><value><int>0</int></value></param><param><value><string>Name</string></value></param><param><value><string>".$categoryname."</string></value></param><param><value><array><data><value><string>Id</string></value></data></array></value></param></params></methodCall>";
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $responsedata = xmlrpc_decode($response);
+          if(isset($responsedata) && !empty($responsedata)){
+              if(!empty($responsedata[0]['Id'])){
+                  $categoryId = $responsedata[0]['Id'];
+              } 
+          }
+          //check if category exist..
+          if(!empty($categoryId)){
+            return $categoryId;
+          }else{//else call the "addNewLsCategory" to add new category.....
+            $categoryId = addNewLsCategory($access_token,$categoryname);
+            return $categoryId;
+          } 
+        }
+        curl_close($ch);  
+  }
+  return $categoryId;//return lead source category id....
+}
+
+//Below function is add new lead source category.....
+function addNewLsCategory($access_token,$category){
+  $newCatId = '';//define empty variables....
+  if(!empty($category) && !empty($access_token)){
+      $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: text/xml',
+        'Content-Type: text/xml',
+        'Authorization: Bearer '. $access_token
+      );
+      //Create xml to hit the curl request to add new lead source category.....
+      $xmlData = "<methodCall><methodName>DataService.add</methodName><params><param><value></value></param><param><value><string>LeadSourceCategory</string></value></param><param><value><struct><member><name>Name</name><value><string>".$category."</string></value></member></struct></value></param></params></methodCall>";
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      if($err){
+      }else{
+        $responsedata = xmlrpc_decode($response);
+        if(!empty($responsedata) && is_int($responsedata)){
+          $newCatId = $responsedata;
+        }
+        return $newCatId;  
+      }
+      curl_close($ch); 
+  } 
+  return $newCatId;//return lead source category id....
+}
+
+//get the lead source id on the basis of utm parameters....
+function getAddLeadSource($access_token,$categoryId,$meduim,$vendor,$content=''){
+  $leadId = '';//define empty variables....
+  if(!empty($access_token) && !empty($categoryId) && !empty($meduim) && !empty($vendor)){
+      $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: text/xml',
+        'Content-Type: text/xml',
+        'Authorization: Bearer '. $access_token
+      );
+      //Create xml to hit the curl request to get lead source id.....
+      $xmlData = "<methodCall><methodName>DataService.query</methodName><params><param><value></value></param><param><value><string>LeadSource</string></value></param><param><value><int>1</int></value></param><param><value><int>0</int></value></param><param><value><struct><member><name>LeadSourceCategoryId</name><value><string>".$categoryId."</string></value></member><member><name>Medium</name><value><string>".$meduim."</string></value></member><member><name>Message</name><value><string>".$content."</string></value></member><member><name>Vendor</name><value><string>".$vendor."</string></value></member></struct></value></param><param><value><array><data><value><string>Id</string></value></data></array></value></param></params></methodCall>";
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      if($err){
+      }else{
+        //Covert/Decode response to xml.....
+        $responsedata = xmlrpc_decode($response);
+        if(isset($responsedata) && !empty($responsedata)){
+            if(!empty($responsedata[0]['Id'])){
+                $leadId = $responsedata[0]['Id'];
+            } 
+        }
+        //check if lead source exist....
+        if(!empty($leadId)){
+          return $leadId;
+        }else{//else call the function "addNewLs" to add new lead source....
+          $leadId = addNewLs($access_token,$categoryId,$meduim,$vendor,$content);
+          return $leadId;
+        } 
+      }
+      curl_close($ch);  
+  }
+  return $leadId;//return lead source id....
+}
+
+//Below function is add new lead source .....
+function addNewLs($access_token,$categoryId,$meduim,$vendor,$content=''){
+  $newLsId = '';//define empty variables....
+  if( !empty($access_token) && !empty($categoryId) && !empty($meduim) && !empty($vendor)){
+      $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: text/xml',
+        'Content-Type: text/xml',
+        'Authorization: Bearer '. $access_token
+      );
+      //Create xml to hit the curl request for add new lead source....
+      $xmlData = "<methodCall><methodName>DataService.add</methodName><params><param>
+                        <value></value></param><param><value><string>LeadSource</string></value></param><param><value><struct><member><name>LeadSourceCategoryId</name><value><string>".$categoryId."</string></value></member><member><name>Medium</name><value><string>".$meduim."</string></value></member><member><name>Vendor</name><value><string>".$vendor."</string></value></member>
+                          <member><name>Name</name><value><string>".$vendor."</string></value></member><member><name>Message</name><value><string>".$content."</string></value></member><member><name>Status</name><value><string>Active</string></value></member></struct></value></param></params></methodCall>";
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlData);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      if($err){
+      }else{
+        //Covert/Decode response to xml.....
+        $responsedata = xmlrpc_decode($response);
+        if(!empty($responsedata) && is_int($responsedata)){
+          $newLsId = $responsedata;
+        }
+        return $newLsId;  
+      }
+      curl_close($ch); 
+  }
+  return $newLsId;//return newly created lead source id....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list all publish wordpress posts for default thankyou override....
+function get_wp_posts(){
+    $wp_posts_options_html = '';//Define the empty variable.....
+    $wpPostsListing = get_posts(array('post_type'=> 'post','orderby' => 'ID','post_status' => 'publish','order' => 'DESC','posts_per_page' => -1));
+    //check array is not empty then execute a loop to create the list of options....
+    if(!empty($wpPostsListing)){
+      foreach ($wpPostsListing as $key => $value) {
+          $wpPostName = $value->post_title;
+          $wp_posts_options_html.= '<option value="'.$value->ID.'">'.$wpPostName.'</option>';
+      }
+    }else{
+      $wp_posts_options_html = '<option>No Wordpress Posts Exist!</option>';
+    }
+    return $wp_posts_options_html;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list all publish wordpress pages for default thankyou override....
+function get_wp_pages(){
+    $wp_page_options_html = '';//Define the empty variable.....
+    $wpPagesListing = get_posts(array('post_type'=> 'page','orderby' => 'ID','post_status' => 'publish','order' => 'DESC','posts_per_page' => -1));
+    //check array is not empty then execute a loop to create the list of options....
+    if(!empty($wpPagesListing)){
+      foreach ($wpPagesListing as $key => $value) {
+          $wpPageName = $value->post_title;
+          $wp_page_options_html.= '<option value="'.$value->ID.'">'.$wpPageName.'</option>';
+      }
+    }else{
+      $wp_page_options_html = '<option>No Wordpress Pages Exist!</option>';
+    }
+    return $wp_page_options_html;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list all publish wordpress products for product thankyou override....
+function get_products_options(){
+  $productLisingWithOptions = "";//Define the empty variable.....
+  $products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  //check array is not empty then execute a loop to create the list of options....
+  if(isset($products_listing) && !empty($products_listing))
+  {
+      foreach ($products_listing as $key => $value)
+      {
+        $productLisingWithOptions.= '<option value="'.$value->ID.'">'.$value->post_title.'</option>';
+      }
+  }else{
+    $productLisingWithOptions.= '<option value="">No Products Exist!</option>';
+  }
+  return $productLisingWithOptions;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list all publish wordpress products for product category thankyou override....
+function get_category_options(){
+  $categoriesLisingWithOptions = "";//Define the empty variable.....
+  $category_args = array('orderby' => 'name','order' => 'asc','hide_empty' => false,);
+  $product_categories = get_terms( 'product_cat', $category_args );
+  //check array is not empty then execute a loop to create the list of options....
+  if(isset($product_categories) && !empty($product_categories)){
+    foreach ($product_categories as $key => $value) {
+      $categoriesLisingWithOptions.= '<option value="'.$value->term_id.'">'.$value->name.'</option>';
+    }
+  }else{
+    $categoriesLisingWithOptions.= '<option value="">No Categories Exist</option>';
+  }
+  return $categoriesLisingWithOptions;//return html....
+}
+
+
+//Dynamic Thankyou Override : Function is used to get the list all active product thankyou overrides....
+function loading_product_thanks_overrides(){
+  global $wpdb,$table_prefix;
+  //override main table...
+  $override_table_name = 'wooconnection_thankyou_overrides';
+  $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
+  $thankyouOverrides = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE wc_override_status=".STATUS_ACTIVE." and wc_override_redirect_condition = ".REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS." ORDER BY wc_override_sort_order ASC");
+  $thankyouOverridesListing = "";//Define the empty variable.....
+  //check array is not empty then execute a loop to create the list of product thankyou overrides....
+  if(isset($thankyouOverrides) && !empty($thankyouOverrides)){
+    $thankyouOverridesListing = '<ul class="group-fields override_product_rule">';
+    foreach ($thankyouOverrides as $key => $value) {
+        if(!empty($value->id)){
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="wc_thankyou_override_name override_name_inner">'.$value->wc_override_name.'<span class="listing-operators"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$value->id.'"></i></span></span></li>';
+        }
+    }
+    $thankyouOverridesListing .= '</ul>';
+  }else{
+    $thankyouOverridesListing = "<p class='no_override_exist'>We don't have any product based overrides</p>";
+  }
+  return $thankyouOverridesListing;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list all active product category thankyou overrides....
+function loading_product_cat_thanks_overrides(){
+  global $wpdb,$table_prefix;
+  //override main table...
+  $override_table_name = 'wooconnection_thankyou_overrides';
+  $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
+  $thankyouOverrides = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE wc_override_status=".STATUS_ACTIVE." and wc_override_redirect_condition = ".REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES." ORDER BY wc_override_sort_order ASC");
+  $thankyouOverridesListing = "";//Define the empty variable.....
+  //check array is not empty then execute a loop to create the list of product category thankyou overrides....
+  if(isset($thankyouOverrides) && !empty($thankyouOverrides)){
+    $thankyouOverridesListing = '<ul class="group-fields override_product_category_rule">';
+    foreach ($thankyouOverrides as $key => $value) {
+        if(!empty($value->id)){
+          $thankyouOverridesListing .=  '<li class="group-field" id="'.$value->id.'"><span class="wc_thankyou_override_name override_name_inner">'.$value->wc_override_name.'<span class="listing-operators"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$value->id.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$value->id.'"></i></span></span></li>';
+        }
+    }
+    $thankyouOverridesListing .= '</ul>';
+  }else{
+    $thankyouOverridesListing = "<p class='no_override_exist'>We don't have any product category based overrides</p>";
+  }
+  return $thankyouOverridesListing;//return html....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list of override related products....
+function get_override_related_products($overrideid){
+    global $table_prefix, $wpdb;
+    //override products table name....
+    $override_product_table_name = 'wooconnection_thankyou_override_related_products';
+    $wp_thankyou_override_related_products = $table_prefix . "$override_product_table_name";
+    $thankyouOverrideProductsArray = array();//Define the empty array.....
+    //check the override exist is not empty if exist then execute a query to get the list of products.....
+    if(!empty($overrideid)){
+      $thankyouOverrideProducts = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_related_products." WHERE override_id=".$overrideid." and wc_override_product_status =".STATUS_ACTIVE);
+      //if related products array is not empty then excuate a loop......
+      if(isset($thankyouOverrideProducts) && !empty($thankyouOverrideProducts)){
+        foreach ($thankyouOverrideProducts as $key => $value) {
+          if(!empty($value->override_product_id)){
+            $thankyouOverrideProductsArray[] = $value->override_product_id;
+          }
+        }
+      }
+    }
+    return $thankyouOverrideProductsArray;//return products array....
+}
+
+//Dynamic Thankyou Override : Function is used to get the list of override related categories....
+function get_override_related_cat($overrideid){
+    global $table_prefix, $wpdb;
+    //override cat table name....
+    $override_cat_table_name = 'wooconnection_thankyou_override_related_categories';
+    $wp_thankyou_override_related_categories = $table_prefix . "$override_cat_table_name";
+    $thankyouOverrideCatArray = array();//Define the empty array.....
+    //check the override exist is not empty if exist then execute a query to get the list of products.....
+    if(!empty($overrideid)){
+      $thankyouOverrideCat = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_related_categories." WHERE override_id=".$overrideid." and wc_override_cat_status =".STATUS_ACTIVE);
+      //if related products array is not empty then excuate a loop...... 
+      if(isset($thankyouOverrideCat) && !empty($thankyouOverrideCat)){
+        foreach ($thankyouOverrideCat as $key => $value) {
+          if(!empty($value->override_cat_id)){
+            $thankyouOverrideCatArray[] = $value->override_cat_id;
+          }
+        }
+      }
+    }
+    return $thankyouOverrideCatArray;//return products array....
 }
 ?>

@@ -42,10 +42,10 @@ body { background-color: #f1f1f1 !important; font-family: 'Roboto'; color: #303A
 .m-t-70 { margin-top: 70px; }
 .m-t-80 { margin-top: 80px; }
 .m-b-40 { margin-bottom: 40px; }
-.group-list .group-name, .iw_ty_ov_li .iw_ty_ov_name {
+.group-list .group-name, .wc_thankyou_override .wc_thankyou_override_name , .wc_thankyou_override .group-name{
     background-color: #e4effb;
     color: black;
-    display: inline-block;
+    display: flow-root !important;
     font-size: 12pt;
     cursor: move;
     text-transform: uppercase;
@@ -54,13 +54,14 @@ body { background-color: #f1f1f1 !important; font-family: 'Roboto'; color: #303A
     display: block;
     color: #364699;
     font-weight: 500;
+    word-break:break-all;
 }
-.group-list .group-field { border: 1px solid #d8d8d8 !important; display: block; margin-top: 10px; cursor: move; border-radius: 5px; height: 41px; line-height: 40px; font-size: 15px; color: #000; background-color: #fff; padding-left: 16px; padding-right: 10px; margin-left: 4%; margin-right: 4%; }
-.group-list .group-name .controls, .group-list .group-field .controls, .iw_ty_ov_li .iw_ty_ov_name .controls { display: inline-block; float: right; }
+.group-list .group-field { border: 1px solid #d8d8d8 !important; display: flow-root !important; margin-top: 10px; cursor: move; border-radius: 5px; height: 41px; line-height: 40px; font-size: 15px; color: #000; background-color: #fff; padding-left: 16px; padding-right: 10px; margin-left: 2%; margin-right: 2%; word-break:break-all; }
+.group-list .group-name .listing-operators, .group-list .group-field .listing-operators, .wc_thankyou_override .wc_thankyou_override_name .listing-operators, .wc_thankyou_override .group-name .listing-operators { display: inline-block; float: right; }
 ul.group-fields { padding-bottom: 10px; padding-top: 5px; }
-span.controls i { background: #ffffff; /* padding: 6px; */
+span.listing-operators i { background: #ffffff; /* padding: 6px; */
 color: #364699; border-radius: 50%; height: 25px; width: 25px; text-align: center; line-height: 26px; position: relative; top: -2px; font-size: 12px; cursor: pointer; }
-li.group-list { border: 1px solid #eae7e7; border-radius: 5px; margin-bottom: 21px; }
+li.group-list,li.wc_thankyou_override { border: 1px solid #eae7e7; border-radius: 5px; margin-bottom: 21px; }
 .white-box { background: #fff; margin-bottom: 15px; margin-top: 15px; padding: 15px 0px; }
 .btn-theme { padding: 5px 20px !important; background-color: #364699 !important; color: #fff !important; font-size: 16px !important; text-align: center !important; border-radius: 50px !important; font-family: 'Roboto' !important; transition: all .5s !important; border-color: #364699 !important; }
 .top_logo_row { border-bottom: 1px solid #dedede; padding: 0px 10px 15px 10px; }
@@ -291,6 +292,17 @@ a.active-sub-menu{
     height: 30px;
     width: 30px;
 }
+.ajax_loader_custom_fields_related {
+    position: relative;
+    margin: 0px auto;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+.ajax_loader_custom_fields_related img{
+    height: 30px;
+    width: 30px;
+}
 .overlay {
     opacity:0.5;
     background:rgba(255,255,255,0.8);
@@ -482,7 +494,7 @@ ul.main-group.ui-sortable {
     padding: 3px 0 0 0 !important;
 }
 
-span.controls i {
+span.listing-operators i {
     margin-left: 4px;
 }
 
@@ -524,21 +536,6 @@ top: calc(25% - 9px);font-size: 14px;color: #364699;}
     margin-left: 0px !important; 
     padding-left:5px !important; 
 }
-label[for=cartproducts], label[for=cartcategories] {
-    position: absolute;
-    border: 0;
-    bottom: 24px !important;
-}
-label[for=fccartproducts], label[for=fccartcategories] {
-    position: absolute;
-    border: 0;
-    bottom: 24px !important;
-}
-label[for=redirectcartproducts], label[for=redirectcartcategories] {
-    position: absolute;
-    border: 0;
-    bottom: 24px !important;
-}
 .select2-container--default.select2-container--focus .select2-selection--multiple {
     border: solid #d8d8d8 1px !important;
 }
@@ -546,6 +543,7 @@ label[for=redirectcartproducts], label[for=redirectcartcategories] {
     padding-left: 5px !important;
     width:100% !important;
 }
+
 span.create-new-group,span.create-new-override {
     /* display: block; */
     background: #fbfdff;
@@ -616,7 +614,7 @@ span#customize_referral_partner_url {
     pointer-events:none;
     opacity:0.4;
 }
-.exportProducts,.matchProducts{
+.exportProducts,.matchProducts,.fieldsMapping{
   background-color: #4CAF50; 
   border: none; 
   color: white; 
@@ -679,6 +677,72 @@ div#table_match_products_listing {
     width: 20px;
     text-align: center;
     border: 2px solid #fff;
+}
+.no_override_exist{
+    text-align: center;
+    padding: 21px 20px 10px;
+    font-size: 17px; 
+}
+.wc_thankyou_override .group-field { border: 1px solid #d8d8d8 !important; display: block; margin-top: 10px; cursor: move; border-radius: 5px; font-size: 15px; color: #000; background-color: #fff; margin-left: 4%; margin-right: 4%; }
+span.addcfieldoptions {
+    background: green;
+    color: #fff;
+    height: 30px;
+    width: 30px;
+    text-align: center;
+    line-height: 30px;
+    border-radius: 50%;
+    margin-top: 11px;
+}
+.removecfieldoptions i {
+    background: red;
+    color: #fff;
+    height: 30px;
+    width: 30px;
+    text-align: center;
+    line-height: 30px;
+    border-radius: 50%;
+    margin-top: 14px;
+}
+span.ajax_loader_custom_fields_related {
+    position: absolute;
+    top: 50%;
+    z-index: 9;
+}
+.thanksOverride li span {
+    background: #fff !important;
+}
+.ajax_loader_standard_fields_related {
+    position: absolute;
+    margin: 0px auto;
+    display: block;
+    width: 100%;
+    text-align: center;
+    top: 16%;
+    z-index: 1;
+}
+.ajax_loader_standard_fields_related img{
+    height: 30px;
+    width: 30px;
+}
+.ov-notes{
+    padding-top: 30px;
+}
+.custom_label label.error{
+    font-size: 12px;
+    position: absolute;
+    z-index: 9;
+    top: 65px;
+}
+span.wc_thankyou_override_name.override_name_inner {
+    color: #000;
+    text-transform: none;
+    padding-left: 16px !important;
+    font-size: 15px;
+    padding-right: 10px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    height: 41px;
 }
 @media(min-width:992px) {
   .nav-tabs.wizard li {
@@ -752,8 +816,13 @@ div#table_match_products_listing {
     text-indent: 10px;
 }
 }
+@media only screen and (max-width: 1110px) {
+span.create-new-group,span.create-new-override {
+    display: block !important; 
+    padding:15px !important;
 
-
+}
+}
 
 @media only screen and (max-width: 1090px) {
     span.create-new-group,span.create-new-override {
@@ -766,7 +835,11 @@ span.create-new-group a,span.create-new-override a {
     padding: 1em .8em .8em 1.3em;
 }
 }
-
+@media only screen and (max-width: 1047px) {
+    span.create-new-group a.btn-theme, span.create-new-override a.btn-theme {
+    margin-top: 10px;
+}
+}
 @media only screen and (max-width: 1005px) {
 span.create-new-override,span.create-new-override {
     display: block;
@@ -831,6 +904,10 @@ p.tag-line { padding-top: 10px; }
 .modal-dialog {
     margin: 5.75rem 1rem !important;
 }
+.tab-content {
+    padding: 30px 5px !important;
+}
+.group-list .group-field {height: 83px;}
 }
  @media screen and (max-width: 782px) {
 .auto-fold #wpcontent { padding-left: 0px; }

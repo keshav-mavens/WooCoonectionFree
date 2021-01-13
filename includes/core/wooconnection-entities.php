@@ -22,13 +22,13 @@
 	//Plugin Activation status : Not Activated..
 	define("PLUGIN_NOT_ACTIVATED", 2);
 	//Plugin Activation Remote url
-	define("ADMIN_REMOTE_URL", "https://tqmstaging.com/wooconnection/");
+	define("ADMIN_REMOTE_URL", "https://wooconnection.com/");
 	//Plugin Activation Request Type
 	define("ACTIVATION_REQUEST_TYPE", "activation");
 	//Plugin Activation Product Id...
-	define("ACTIVATION_PRODUCT_ID", "wooconnectionfree");
+	define("ACTIVATION_PRODUCT_ID", "wooconnectionpaid");
 	//Plugin Activation Secret key...
-	define("ACTIVATION_SECRET_KEY", "wooconnectionfree16");
+	define("ACTIVATION_SECRET_KEY", "wooconnectionpaid16");
 	//Plugin Activation Instance...
 	define("ACTIVATION_INSTANCE", 16.0);
 	//Site url....
@@ -57,3 +57,28 @@
 	define('STATUS_ACTIVE', 1);
 	define('STATUS_INACTIVE', 2);
 	define('STATUS_DELETED', 3);
+	//custom field form type entitiy.....
+	define('CUSTOM_FIELD_FORM_TYPE_CONTACT', -1);
+	define('CUSTOM_FIELD_FORM_TYPE_ORDER', -9);
+	//custom field input type entities........
+	define('CF_FIELD_TYPE_TEXT', 1);
+	define('CF_FIELD_TYPE_TEXTAREA', 2);
+	define('CF_FIELD_TYPE_DROPDOWN', 3);
+	define('CF_FIELD_TYPE_RADIO', 4);
+	define('CF_FIELD_TYPE_CHECKBOX', 5);
+	define('CF_FIELD_TYPE_DATE', 6);
+	define('CF_FIELD_REQUIRED_YES', 1);
+	define('CF_FIELD_REQUIRED_NO', 2);
+	//custom field actions entity.....
+	define('CF_FIELD_ACTION_SHOW', 'show');
+	define('CF_FIELD_ACTION_HIDE', 'hide');
+	//Below 3 entities is related to default thanks override....
+	define('DEFAULT_WORDPRESS_POST', 1);
+	define('DEFAULT_WORDPRESS_PAGE', 2);
+	define('DEFAULT_WORDPRESS_CUSTOM_URL', 3);
+	//Below 7 entities is related to redirect thanks override....
+	define('REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS', 1);
+	define('REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES', 2);
+	//override link yes no...
+	define('REDIRECT_OVERRIDE_TRUE', 1);
+	define('REDIRECT_OVERRIDE_FALSE', 0);

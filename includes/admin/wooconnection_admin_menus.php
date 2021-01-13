@@ -59,14 +59,14 @@ if(empty($leftMenuClass)){
 			</a>
 				<ul class="sub-menu getting_started" style="<?php echo $getStartedUlStatus; ?>">
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs <?php echo $getStartedSubmenuClass; ?>" id="guided_setup">Guided Setup</a></li>
-	                <li class="sub-menu-expand <?php echo $pluginActivated; ?>">
+					<li class="sub-menu-expand <?php echo $pluginActivated; ?>">
 	                	<a href="javascript:void(0);" class="nav-tabs" id="plugin_activation">Activation</a>
 	                </li>
 	                <li class="sub-menu-expand common_disable_class <?php echo $leftMenuClass; ?> <?php echo $pluginAuthStatus; ?>">
 	                	<a href="javascript:void(0);" class="nav-tabs" id="application_settings">
 	                		<span class="applicationtype" id="<?php echo $configurationType; ?>"><?php echo $applicationLabel; ?></span> Settings</a>
 	                </li>
-	            </ul>
+				</ul>
 	        </li>
 			
 	        <li class="expanded  common_disable_class <?php echo $leftMenuClass; ?>">
@@ -77,8 +77,8 @@ if(empty($leftMenuClass)){
 		        </a>
 	        </li>
 			
-	        <li class="expanded common_disable_class  <?php echo $leftMenuClass; ?>">
-				<a href="javascript:void(0);" id="automation" class="last <?php echo $automationActiveClass; ?>">
+			<li class="expanded common_disable_class  <?php echo $leftMenuClass; ?>">
+				<a href="javascript:void(0);" id="automation" class="<?php echo $automationActiveClass; ?>">
 					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/auto.png" alt=""></span>
 					<span class="menu-text">Automate</span>
 			        <div class="clr"></div>
@@ -87,6 +87,21 @@ if(empty($leftMenuClass)){
 	                <li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs automation_active <?php echo $automationSubmenuClass; ?> " id="campaign_goals">Campaign Goals</a></li>
 	            </ul>
 	        </li>
+
+	        <li class="expanded common_disable_class <?php echo $leftMenuClass; ?>" class="last">
+				<a class="last" href="javascript:void(0);" id="advanced_options">
+					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/integration.png" alt=""></span>
+					<span class="menu-text">Advanced Options</span>
+			        <div class="clr"></div>
+				</a>
+	            <ul class="sub-menu advanced_options">
+	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs advanced_options_active" id="custom_fields">Custom Fields</a></li>
+	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs advanced_options_active" id="lead_sources">Lead Sources</a></li>
+					<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="dynamic_thank_you_page">Dynamic Thank You Pages</a></li>
+	            </ul>
+	        </li>
+
+
 		</ul>
 	</div>
 </div>

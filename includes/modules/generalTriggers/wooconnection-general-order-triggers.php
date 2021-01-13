@@ -84,8 +84,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
         if(empty($orderRelationId)){
             //get order data and update the contact information,,
             $order_data = $order->get_data();
-            //Update contact data after getting the contact id.....
-            updateContact($orderContactId,$order_data,$access_token);
+            
             // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
             if(!empty($generalSuccessfullOrderIntegrationName) && !empty($generalSuccessfullOrderCallName))
             {
@@ -142,6 +141,24 @@ function wooconnection_trigger_status_complete_hook($orderid){
                         $discountDetected *= -1;
                         //Call the common function to add order itema as a discount....
                         addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
+                    }
+
+                    global $wpdb;//define variable for query......
+                    //execute query to get the details of order related custom fields.....
+                    $orderCustomFields =  $wpdb->get_results($wpdb->prepare("SELECT *  FROM `wp_postmeta` WHERE `post_id` = $orderid AND `meta_key` LIKE '%orderCFields_%'"));
+                    $orderCFields = array();//define empty array....
+                    if(isset($orderCustomFields) && !empty($orderCustomFields)){
+                      //execute loop....
+                      foreach ($orderCustomFields as $key => $value) {
+                          $cfieldKey = explode('orderCFields', $value->meta_key);
+                          $orderCFields[$cfieldKey[1]] = $value->meta_value;
+                      }
+                    }
+
+                    //check order related custom fields exist with data or not....
+                    if(isset($orderCFields) && !empty($orderCFields) && !empty($access_token)){
+                        //call the common function to update the order related custom fields in infusionsoft.......
+                        $responseCheck = updateOrderCustomFields($access_token, $iskporderId, $orderCFields);
                     }
                 }
             }
