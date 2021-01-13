@@ -11,6 +11,8 @@ function checkPluginActivatedNot(){
   if(isset($plugin_settings) && !empty($plugin_settings)){
     if(!empty($plugin_settings['plugin_activation_status']) && $plugin_settings['plugin_activation_status'] != PLUGIN_ACTIVATED){
        $leftMenusDisable = 'leftMenusDisable';
+    }elseif (empty($plugin_settings['plugin_version'])) {
+      $leftMenusDisable = 'leftMenusDisable';
     }
   }else{
     $leftMenusDisable = 'leftMenusDisable';
@@ -50,7 +52,7 @@ function checkPluginActivationStatus(){
   //Get plugin details..
   $plugin_settings = get_option('wc_plugin_details');
   if(isset($plugin_settings) && !empty($plugin_settings)){
-    if(!empty($plugin_settings['plugin_activation_status']) && $plugin_settings['plugin_activation_status'] == PLUGIN_ACTIVATED){
+    if(!empty($plugin_settings['plugin_activation_status']) && $plugin_settings['plugin_activation_status'] == PLUGIN_ACTIVATED && !empty($plugin_settings['plugin_version']) && $plugin_settings['plugin_version'] == ACTIVATION_PRODUCT_ID){
        return true;
     }else{
       return false;
@@ -315,7 +317,7 @@ function getPluginDetails(){
   //Get plugin details..
   $plugin_settings = get_option('wc_plugin_details');
   if(isset($plugin_settings) && !empty($plugin_settings)){
-    if($plugin_settings['plugin_activation_status'] == PLUGIN_ACTIVATED){
+    if($plugin_settings['plugin_activation_status'] == PLUGIN_ACTIVATED && !empty($plugin_settings['plugin_version']) && $plugin_settings['plugin_version'] == ACTIVATION_PRODUCT_ID){
         $pluginDetails['activation_email'] = $plugin_settings['wc_license_email'];
         $pluginDetails['activation_key'] = $plugin_settings['wc_license_key'];
         $pluginDetails['plugin_activation_status'] = PLUGIN_ACTIVATED;

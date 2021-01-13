@@ -24,15 +24,15 @@
   //Code is used check plugin is activated or not.If not activated then stop the click event on progress bar..
   $leftMenuClass = checkPluginActivatedNot();
   //Define variables.....
-  $activeConnectId = "";
+  $activeConnectId = "progress_plugin_activation";
   $importExportId = "";
   $automationId = "";
   //If plugin is activated then set the id attribute for progress bar steps, so onclick work sucessfully.
   if($leftMenuClass == ""){
-    $activeConnectId = "progress_plugin_activation";
     $importExportId = "progress_import_products";
     $automationId = "progress_automation";
   }
+  $plugin_settings = get_option('wc_plugin_details');
 ?>
 <div class="info-header">
   <p>Guided Setup</p>

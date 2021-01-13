@@ -38,10 +38,16 @@ function activate_wooconnection_plugin()
 			$existingactivationkey = $plugin_settings['wc_license_key'];
 		}
 
+		//check post activation plugin version exist or not..
+		if(!empty($plugin_settings['plugin_version'])){
+			$existinactivationversion = $plugin_settings['plugin_version'];
+		}
+		
+
 		//check or set if email and key is same with existing plugin details....
 		$pluginActivated = RESPONSE_STATUS_FALSE;
 		if(!empty($existingactivationemail) && !empty($existingactivationkey)){
-			if($existingactivationemail == $pluginactivationemail && $existingactivationkey == $pluginactivationkey){
+			if($existingactivationemail == $pluginactivationemail && $existingactivationkey == $pluginactivationkey && $existinactivationversion == ACTIVATION_PRODUCT_ID){
 				$pluginActivated = RESPONSE_STATUS_TRUE;
 			}
 		}
@@ -74,6 +80,7 @@ function activate_wooconnection_plugin()
 		    		$plugin_details_array['wc_license_email'] = $pluginactivationemail;
 					$plugin_details_array['wc_license_key'] = $pluginactivationkey;
 					$plugin_details_array['plugin_activation_status'] = PLUGIN_ACTIVATED;
+					$plugin_details_array['plugin_version'] = ACTIVATION_PRODUCT_ID;
 		    		update_option('wc_plugin_details', $plugin_details_array);
 		    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'successmessage'=>'','licence_email'=>$pluginactivationemail,'licence_key'=>$pluginactivationkey));
 		    	}
