@@ -69,7 +69,7 @@ function getGeneralTriggers(){
   $table_name = 'wooconnection_campaign_goals';
   $wp_table_name = $table_prefix . "$table_name";
   $trigger_type = WOOCONNECTION_TRIGGER_TYPE_GENERAL;
-  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type);
+  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type." ORDER BY id ASC");
   $wcGeneralTriggers = '';
   if(isset($campaignGoalDetails) && !empty($campaignGoalDetails)){
     foreach ($campaignGoalDetails as $key => $value) {
@@ -2087,7 +2087,7 @@ function getCartTriggers(){
   $table_name = 'wooconnection_campaign_goals';
   $wp_table_name = $table_prefix . "$table_name";
   $trigger_type = WOOCONNECTION_TRIGGER_TYPE_CART;
-  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type);
+  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type." ORDER BY id ASC");
   $wcGeneralTriggers = '';
   if(isset($campaignGoalDetails) && !empty($campaignGoalDetails)){
     foreach ($campaignGoalDetails as $key => $value) {
@@ -2145,7 +2145,7 @@ function getOrderTriggers(){
   $table_name = 'wooconnection_campaign_goals';
   $wp_table_name = $table_prefix . "$table_name";
   $trigger_type = WOOCONNECTION_TRIGGER_TYPE_ORDER;
-  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type);
+  $campaignGoalDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE wc_trigger_type=".$trigger_type." ORDER BY id ASC");
   $wcGeneralTriggers = '';
   if(isset($campaignGoalDetails) && !empty($campaignGoalDetails)){
     foreach ($campaignGoalDetails as $key => $value) {
