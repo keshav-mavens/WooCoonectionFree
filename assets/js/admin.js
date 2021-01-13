@@ -556,6 +556,11 @@
                 var inputType = $(this).find(':selected').data('id');//get input type.....
                 //check value
                 if(inputType != "" && inputType !== null){
+                    if(inputType == 'input-type-3' || inputType == 'input-type-4'){
+                        $(".morecfieldoptions").show(); 
+                    }else{
+                        $(".morecfieldoptions").hide();
+                    }
                     $(".externalcfields").hide();//hide the all external fields first,...
                     $("."+inputType).show();//then show the only external fields which is related to input type....
                 }
