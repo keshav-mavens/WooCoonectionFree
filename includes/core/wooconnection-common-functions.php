@@ -622,8 +622,12 @@ function checkAddContactApp($access_token,$appUseremail,$callback_purpose){
         }else{
           //the check urm parameters value exist......
           if(isset($_COOKIE["lscategory"]) && isset($_COOKIE["lsmedium"]) && isset($_COOKIE["lsvendor"])){
+              $message = '';
+              if(isset($_COOKIE['lsmessage'])){
+                $message = $_COOKIE['lsmessage'];
+              }
               //call the function to check or add leadsource on the basis of utm parameters.....
-              $leadsourceId = checkAddLeadSource($access_token,$_COOKIE["lscategory"],$_COOKIE["lsmedium"],$_COOKIE["lsvendor"],$_COOKIE["lsmessage"]);
+              $leadsourceId = checkAddLeadSource($access_token,$_COOKIE["lscategory"],$_COOKIE["lsmedium"],$_COOKIE["lsvendor"],$message);
           }
         }
         // Create instance of our wooconnection logger class to use off the whole things.
