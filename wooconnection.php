@@ -21,6 +21,7 @@ class WooConnectionPro {
         register_activation_hook( __FILE__, array($this, 'create_custom_fields_group_table' ) );
         register_activation_hook( __FILE__, array($this, 'create_standard_custom_fields_mapping_table' ) );
         register_activation_hook( __FILE__, array($this, 'create_thanks_page_override_table' ) );
+        register_activation_hook( __FILE__, array($this, 'update_pro_version_status' ) );
     }
 
     
@@ -34,6 +35,13 @@ class WooConnectionPro {
         if (class_exists('WooConnection')) {
             add_action('admin_notices', array($this, 'wc_pro_deactivate_free_version_notice'));
             return;
+        }
+        //check if user try with copy paste the files ....
+        $checkProVersionActivated = get_option('wc_pro_version_activated');
+        if(empty($checkProVersionActivated)){
+            require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+            deactivate_plugins( plugin_basename( __FILE__ ) );
+            wp_die( __( 'Sorry you are allowed to access this plugin. Please activate it first.', 'textdomain' ) );
         }
         define( 'WOOCONNECTION_VERSION', '16' );//Version Entity
         define( 'WOOCONNECTION_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );//Directory Path Entity
@@ -287,6 +295,12 @@ class WooConnectionPro {
             require_once( ABSPATH . '/wp-admin/includes/upgrade.php' );
             dbDelta($sqlOverrideCat);
         }
+    }
+
+    //Function Definition : update_pro_version_status.... 
+    public function update_pro_version_status(){
+        global $table_prefix, $wpdb;
+        update_option('wc_pro_version_activated', true);
     }
 }
 // Create global so you can use this variable beyond initial creation.
