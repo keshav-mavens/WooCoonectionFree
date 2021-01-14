@@ -2141,6 +2141,8 @@ function get_set_user_email(){
       }else{
         $useremail = get_user_meta($currentLoginUser->ID, 'billing_email', true);
       }
+    } else if(WC()->session){
+      $useremail = WC()->session->get('session_email');
     }
     return $useremail;
 }

@@ -80,6 +80,19 @@ function wooconnection_user_arrive_checkout(){
                 }
             }
         }
+
+        //Below code is used to push user in reached checkout page process for cart abandon follow up process.
+        $callback_checkout_follow_up = 'Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up';
+        $standardReachedCheckoutFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_CHECKOUT_CALL_NAME,$reachedContactId,$callback_checkout_follow_up)
+        if(!empty($standardReachedCheckoutFollowUpResponse)){
+            if(empty($standardReachedCheckoutFollowUpResponse[0]['success'])){
+                if(isset($standardReachedCheckoutFollowUpResponse[0]['message']) && !empty($standardReachedCheckoutFollowUpResponse[0]['message'])){
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft','Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up is failed where contact id is '.$reachedContactId.' because '.$standardReachedCheckoutFollowUpResponse[0]['message'].'');
+                }else{
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft','Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up is failed where contact id is '.$reachedContactId.'');
+                }
+            }
+        }
     }
     return true;
 }

@@ -79,6 +79,21 @@ function wooconnection_cart_empty_trigger(){
                 }
             }
         }
+
+        //Below code is used to push user in empty cart trigger to remove from cart abandon follow up process.....
+        $callback_empty_cart_follow_up = 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence';
+        $standardEmptiedCartFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_EMPTY_CART_CALL_NAME,$emptiedCartContactId,$callback_empty_cart_follow_up);
+        if(!empty($standardEmptiedCartFollowUpResponse)){
+            if(empty($standardEmptiedCartFollowUpResponse[0]['success'])){
+                //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                if(isset($standardEmptiedCartFollowUpResponse[0]['message']) && !empty($standardEmptiedCartFollowUpResponse[0]['message'])){
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence is failed where contact id is '.$emptiedCartContactId.' because '.$standardEmptiedCartFollowUpResponse[0]['message'].'');    
+                }else{
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence is failed where contact id is '.$emptiedCartContactId.'');
+                }
+                
+            }
+        }
     }
 	return true;
 }
