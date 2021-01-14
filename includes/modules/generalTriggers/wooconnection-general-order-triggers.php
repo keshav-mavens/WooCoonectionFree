@@ -82,6 +82,25 @@ function wooconnection_trigger_status_complete_hook($orderid){
         //check relation of current order with infusionsoft/keap application order.....
         $orderRelationId = get_post_meta($orderid, 'is_kp_order_relation', true);
         if(empty($orderRelationId)){
+            //define empty variable....
+            $referralAffiliateId = '';
+            $affiliateCode = '';
+            $customField = array();
+
+            //first check "affiliateId" exist in cookie....
+            if(isset($_COOKIE["affiliateId"])){
+                $referralAffiliateId = $_COOKIE["affiliateId"];
+            }
+
+            if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
+                $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
+            }
+            
+            if(isset($affiliateCode) && !empty($affiliateCode)){
+                $customField['ReferralCode'] = $affiliateCode;
+                updateContactCustomFields($access_token,$orderContactId,$customField);
+            }
+            
             //get order data and update the contact information,,
             $order_data = $order->get_data();
             
@@ -159,7 +178,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 //create order items json....
                 $jsonOrderItems = json_encode($itemsArray);
                 //create order in infusionsoft/keap application.....
-                $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token);
+                $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token,$referralAffiliateId);
                 //update order relation between woocommerce order and infusionsoft/keap application order.....
                 if(!empty($iskporderId)){
                     //Update relation .....
@@ -261,6 +280,26 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
 
     //check if contact id is exist then hit the trigger....
     if(isset($orderContactId) && !empty($orderContactId)) {
+        //define empty variable....
+        $referralAffiliateId = '';
+        $affiliateCode = '';
+        $customField = array();
+
+        //first check "affiliateId" exist in cookie....
+        if(isset($_COOKIE["affiliateId"])){
+            $referralAffiliateId = $_COOKIE["affiliateId"];
+        }
+
+        if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
+            $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
+        }
+        
+        if(isset($affiliateCode) && !empty($affiliateCode)){
+            $customField['ReferralCode'] = $affiliateCode;
+            updateContactCustomFields($access_token,$orderContactId,$customField);
+        }
+
+
         // Check wooconnection integration name and call name of goal is exist or not if exist then hit the achieveGoal.
         if(!empty($generalFailOrderIntegrationName) && !empty($generalFailOrderCallName))
         {

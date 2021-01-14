@@ -678,6 +678,7 @@ div#table_match_products_listing {
     text-align: center;
     border: 2px solid #fff;
 }
+<<<<<<< HEAD
 .no_override_exist{
     text-align: center;
     padding: 21px 20px 10px;
@@ -743,6 +744,9 @@ span.wc_thankyou_override_name.override_name_inner {
     padding-top: 8px;
     padding-bottom: 8px;
     height: 41px;
+}
+.modal-dialog {
+    margin: 5.75rem auto !important;
 }
 @media(min-width:992px) {
   .nav-tabs.wizard li {

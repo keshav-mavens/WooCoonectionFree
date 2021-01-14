@@ -100,6 +100,7 @@ class WooConnection_Admin {
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
+        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
     }
 
     //Function Definition : includeCssJs
@@ -108,6 +109,9 @@ class WooConnection_Admin {
             <style type="text/css">
                 .toplevel_page_wooconnection-admin .wp-menu-image img {
                     padding: 3px 0 0 0 !important;
+                }
+                .custom-meta-box{
+                    word-break: break-all;
                 }
             </style>
             <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
@@ -127,8 +131,26 @@ class WooConnection_Admin {
                                 return src.replace('icon-blue.png', 'icon-grey-new.png')
                             }
                         });
-                    });    
+                    });
                 });
+                //This function is used to perform the copy clipboard content action........
+                function copyContent(elementid) {
+                  var elementDetails = document.getElementById(elementid);
+                  if(window.getSelection) {
+                    var selectWindow = window.getSelection();
+                    var eleTextRange = document.createRange();
+                    eleTextRange.selectNodeContents(elementDetails);
+                    selectWindow.removeAllRanges();
+                    selectWindow.addRange(eleTextRange);
+                    document.execCommand("Copy");
+                    var executeCommand = document.execCommand('copy',true);
+                  }else if(document.body.createTextRange) {
+                    var eleTextRange = document.body.createTextRange();
+                    eleTextRange.moveToElementText(elementDetails);
+                    eleTextRange.select();
+                    var executeCommand = document.execCommand('copy',true);
+                  }
+                }
             </script>
         <?php
     }

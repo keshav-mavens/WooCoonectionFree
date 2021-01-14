@@ -174,6 +174,16 @@
                         if(jQuery("#coupon_listing_with_sku").length){
                             applyDatables("coupon_listing_with_sku");
                         }
+                        
+                        //apply change icon rule on referral partner "How this works" button..
+                        if($("#collapseReferralPartner").length){
+                            applyCollapseRules('collapseReferralPartner');
+                        }
+
+                        //validate a affiliate_redirect_form.....
+                        if($('#affiliate_redirect_form').length){
+                            validateForms('affiliate_redirect_form');
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -221,7 +231,7 @@
                 }
             });
 
-             //Export Tab : check all products checkbox rule....
+            //Export Tab : check all products checkbox rule....
             $document.on("click",".all_products_checkbox_export",function(event) {
                 if ($(this).is(":checked"))
                 {
@@ -313,6 +323,14 @@
             //Check if "response" done....
             var checkResponse = getQueryParameter('response');
             if(checkResponse != "" && checkResponse == "1"){
+                //get input hidden value to stop the duplication of page creation.....
+                var affiliateReferralPageId = $("#affiliate_referral_page_id").val();
+                var configurationType =  $(".configurationType").attr('id');
+                //if value of input hidden is empty so we need to add new page....
+                if(affiliateReferralPageId == '' && configurationType == 'Infusionsoft'){
+                    addNewPageAffiliate();//call the function....
+                }
+            
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
                 swal({
                   title: "Authorization!",
@@ -362,6 +380,16 @@
                     }
                 }
             });
+
+            //Below code is used to check whether a application type is infusionsoft/keap, if keap then hide some feature menus like leadsource,refferal partner..
+            if($(".configurationType").attr('id') != ""){
+                var configurationType =  $(".configurationType").attr('id');
+                if(configurationType == 'Infusionsoft'){//if application type is infusionsoft.......
+                    $("#referral_partner").show();
+                }else if (configurationType == 'Keap'){//if application type is keap.....
+                    $("#referral_partner").hide();
+                }
+            }
 
             //this code is used to check whether the plugin is activated or not if activated then add "tick" icon in next of activation menu......
             if ($(".activated").length ) {
@@ -1097,6 +1125,7 @@ function validateForms(form){
             });
         }
 
+
         //check form is custom field form for application then validate it..
         if(form == "addcfieldapp"){
             $("#"+form).validate({
@@ -1238,6 +1267,20 @@ function validateForms(form){
                     },
                 }
             }); 
+        }
+        
+        //check form is custom affiliate redirect form then validate it..
+        if(form == "affiliate_redirect_form"){
+            $("#"+form).validate({
+                rules:{
+                        affiliateredirectslug: "required",
+                },
+                messages:{
+                    affiliateredirectslug: {
+                        required: 'Please enter the affiliate redirect slug!'
+                    }
+                }
+            });
         }
     }
 }
@@ -1588,7 +1631,7 @@ function checkSelectedProducts($class,$except){
     return checkProducts;
 }
 
-//on collapse div change the icon of button done.....
+//on collapse div change the icon of "How This Works" button done.....
 function applyCollapseRules(div_id){
     if(div_id != ""){
         $('#'+div_id).on('shown.bs.collapse', function() {
@@ -1706,6 +1749,56 @@ function loadingCustomFields(){
     });
 }
 
+//This function is used to perform the copy clipboard content action........
+function copyContent(elementid) {
+  var elementDetails = document.getElementById(elementid);
+  if(window.getSelection) {
+    var selectWindow = window.getSelection();
+    var eleTextRange = document.createRange();
+    eleTextRange.selectNodeContents(elementDetails);
+    selectWindow.removeAllRanges();
+    selectWindow.addRange(eleTextRange);
+    document.execCommand("Copy");
+    var executeCommand = document.execCommand('copy',true);
+  }else if(document.body.createTextRange) {
+    var eleTextRange = document.body.createTextRange();
+    eleTextRange.moveToElementText(elementDetails);
+    eleTextRange.select();
+    var executeCommand = document.execCommand('copy',true);
+  }
+}
+
+//Referral Partner Tab : On click on view products link show the popup and send the ajax request to get the products listing by category id.....
+function showProductsByCat($catId){
+    if($catId != ""){
+        $("#productsAffiliateLinks").html('');
+        $("#productsAffiliateLinks").html('<tr><td colspan="3" style="text-align: center; vertical-align: middle;">Loading Products.....</td></tr>');
+        $("#productsWithAffiliateLInks").show();
+        jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{categoryId:$catId}, function(data) {
+            var responsedata = JSON.parse(data);
+            if(responsedata.status == "1") {
+                if(responsedata.productLisingWithAffiliateLinks != "") {
+                    $("#productsAffiliateLinks").html('');
+                    $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
+                }
+            }
+        });  
+    }
+}
+
+//Referral Partner Tab : On application authentication send ajax request to add new page to website......
+function addNewPageAffiliate(){
+    jQuery.post( ajax_object.ajax_url + "?action=wc_add_affiliate_page",{}, function(data) {
+        var responsedata = JSON.parse(data);
+        //check response....
+        if(responsedata.status == "1") {
+            //check affiliate page id exist in response if yes then update the value of hidden field...
+            if(responsedata.affiliate_redirect_page_id != '' && responsedata.affiliate_redirect_page_id !== null ){
+                $("#affiliate_referral_page_id").val(responsedata.affiliate_redirect_page_id);
+            }
+        }
+    });
+}
 
 //Custom fields Tab : when user click on save button of custom field form.....
 function savegroupcfield(){
@@ -1977,4 +2070,41 @@ function showProductsListing(length){
             }
         }
     });
+}
+
+//Referral Partner Tab : On click of save buttons send ajax request to update the slug of affiliate redirect page......
+function saveAffiliateRedirectSlug(){
+    if($('#affiliate_redirect_form').valid()){
+        $(".affiliate-redirect-success").hide();
+        $(".affiliate-redirect-error").hide();
+        $(".affiliateRedirectUrl").show();
+        $('.affiliate_redirect_btn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_affiliate_redirect_slug",$('#affiliate_redirect_form').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".affiliateRedirectUrl").hide();
+            if(responsedata.status == "1") {
+                $('.affiliate_redirect_btn').removeClass("disable_anchor");
+                if(responsedata.latest_affiliate_redirect_url != ""){
+                    $("#custom_affiliate_redirect_url").html('');
+                    $("#custom_affiliate_redirect_url").html(responsedata.latest_affiliate_redirect_url);
+                }
+                if(responsedata.affiliateredirectslug != ""){
+                    $("#affiliateredirectslug").val(responsedata.affiliateredirectslug);
+                }
+                $(".affiliate-redirect-success").show();
+            }else{
+                $(".affiliate-redirect-error").show();
+                $(".affiliate-redirect-error").html('Something Went Wrong.');
+                setTimeout(function()
+                {
+                    $('.affiliate-redirect-error').fadeOut("slow");
+                    $('.affiliate_redirect_btn').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+        setTimeout(function()
+        {
+            $('.affiliate-redirect-success').fadeOut("slow");
+        }, 3000);
+    }  
 }

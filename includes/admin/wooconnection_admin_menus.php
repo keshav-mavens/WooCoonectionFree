@@ -77,7 +77,7 @@ if(empty($leftMenuClass)){
 		        </a>
 	        </li>
 			
-			<li class="expanded common_disable_class  <?php echo $leftMenuClass; ?>">
+	        <li class="expanded common_disable_class  <?php echo $leftMenuClass; ?>">
 				<a href="javascript:void(0);" id="automation" class="<?php echo $automationActiveClass; ?>">
 					<span class="menu-icon"><img src="<?php echo WOOCONNECTION_PLUGIN_URL; ?>assets/images/auto.png" alt=""></span>
 					<span class="menu-text">Automate</span>
@@ -98,11 +98,10 @@ if(empty($leftMenuClass)){
 	            <ul class="sub-menu advanced_options">
 	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs advanced_options_active" id="custom_fields">Custom Fields</a></li>
 	               	<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs advanced_options_active" id="lead_sources">Lead Sources</a></li>
+					<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="referral_partner">Referral Partners</a></li>
 					<li class="sub-menu-expand"><a href="javascript:void(0);" class="nav-tabs" id="dynamic_thank_you_page">Dynamic Thank You Pages</a></li>
-	            </ul>
+				</ul>
 	        </li>
-
-
 		</ul>
 	</div>
 </div>
