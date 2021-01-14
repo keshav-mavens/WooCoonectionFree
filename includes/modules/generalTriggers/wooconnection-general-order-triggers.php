@@ -135,6 +135,13 @@ function wooconnection_trigger_status_complete_hook($orderid){
                     $productTitle = $product->get_title();//get product title..
                     //push product details into array/......
                     $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
+                    //get product sku..
+                    $length = 40;
+                    $productSku = get_set_product_sku($item['product_id'],$length);
+                    if(isset($productSku) && !empty($productSku)){
+                        //Call the common function to hit the specific product purchase trigger....
+                        $specificPurchaseTrigger = orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,$wooconnectionLogger);
+                    }
                 }
                 //create order items json....
                 $jsonOrderItems = json_encode($itemsArray);
