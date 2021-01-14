@@ -1601,6 +1601,7 @@ function wc_standard_pages_listing(){
   
   //check application name is exist or not, if exist then proceed next else show the message no authentication...
   if(!empty($authenticate_application_name)){
+      $getRegistationEnable = get_option('woocommerce_enable_myaccount_registration');
       //get shop page url.....
       $shopPageUrl = $pageAffiliateLink.wc_get_page_permalink('shop');
       //get cart page url.....
@@ -1609,6 +1610,11 @@ function wc_standard_pages_listing(){
       $checkoutPageUrl = $pageAffiliateLink.wc_get_page_permalink('checkout');
       //get myaccount page url.....
       $myaccountPageUrl = $pageAffiliateLink.wc_get_page_permalink('myaccount');
+      if($getRegistationEnable == 'yes'){
+        $registerPageUrl = $myaccountPageUrl;
+      }else{
+        $registerPageUrl = $myaccountPageUrl;
+      }
       $pagesLisingWithAffiliateLinks .= '<tr><td>Shop Page</td><td id="product_shop_page_link">'.$shopPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_shop_page_link\')">
                                           </i></td></tr>';
       $pagesLisingWithAffiliateLinks .= '<tr><td>Cart Page</td><td id="product_cart_page_link">'.$cartPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_cart_page_link\')">
@@ -1617,7 +1623,7 @@ function wc_standard_pages_listing(){
                                           </i></td></tr>';
       $pagesLisingWithAffiliateLinks .= '<tr><td>Login Page</td><td id="product_login_page_link">'.$myaccountPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_login_page_link\')">
                                           </i></td></tr>';
-      $pagesLisingWithAffiliateLinks .= '<tr><td>Create Account Page</td><td id="product_create_account_page_link">'.$myaccountPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_create_account_page_link\')"></i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Create Account Page</td><td id="product_create_account_page_link">'.$registerPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_create_account_page_link\')"></i></td></tr>';
   }else{//if application name is not exist it means no authentication is done.....
      $pagesLisingWithAffiliateLinks .='<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No affiliate tracking links available</td></tr>';
   }
