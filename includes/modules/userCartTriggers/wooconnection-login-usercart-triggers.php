@@ -303,12 +303,47 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
                 $productName = get_the_title($comment_parent_product);//get the product name....
                 $itemTitle = 'Review posted for product '.$productName;//set notes title....
                 //Add note for contact with comment text or product name.....
-                addContactNotes($access_token,$reviewLeftCartContactId,$comment_text,$itemTitle,$callback_purpose);
+                addContactNotes($access_token,$reviewLeftCartContactId,$comment_text,$itemTitle,$callback_purpose,NOTE_TYPE_REVIEW);
             }
         }
     }
     return true;
 }
 
+//Woocommerce Hook : This action is triggered when to show the saved cart products...
+add_action('template_redirect','redirect_user_cart');
 
+//Function Definition : redirect_user_cart.
+function redirect_user_cart(){
+    //on template redirect first check whether the page is caty or not if cart then start the process of saved cart items...
+    if(is_page('cart') || is_cart()){
+        //check user email is exist in query string or not if try then try to find the saved cart items.....
+        if(isset($_GET['user_email'])){
+            $userEmail = $_GET['user_email'];
+            //get the user details by email id....
+            $userDetails = get_user_by('email',$userEmail);
+            if(isset($userDetails) && !empty($userDetails)){
+                //get the user id from user details array..
+                $userId = $userDetails->ID;
+                if(isset($userId) && !empty($userId)){
+                    //get the user cart details from the user meta on the basis of user id....
+                    $userCartDetails = get_user_meta($userId,'_woocommerce_persistent_cart_1',false);
+                    //then check the cart data exist in user meta array or not, if not exist then set the cart data in session...
+                    if(isset($userCartDetails[0]['cart']) && !empty($userCartDetails[0]['cart'])){
+                        if(isset(WC()->session) && !WC()->session->has_session()){
+                            WC()->session->set_customer_session_cookie(true);
+                            WC()->session->set('cart',$userCartDetails[0]['cart']);
+                            WC()->session->set('session_email',$_GET['user_email']);
+                        }
+                    }
+                }
+                //get the cart page url...
+                $headTo = wc_get_cart_url();
+                //call the header location function to redirect it on the cart page.....
+                Header("Location: ".$headTo);
+                exit();
+            }
+        }
+    }
+}
 ?>

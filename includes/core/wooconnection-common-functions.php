@@ -1093,15 +1093,19 @@ function getApplicationOrderDetails($access_token,$orderRelationId,$callback_pur
 }
 
 //add notes for contact in infusionsoft/keap application....
-function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle,$callback_purpose){
+function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle,$callback_purpose,$noteType=''){
     if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
         // Create instance of our wooconnection logger class to use off the whole things.
         $wooconnectionLogger = new WC_Logger();
         $logtype = LOG_TYPE_FRONT_END;
         //create json array to push ocde in infusionsoft...
-        if (strpos($noteText, ",") !== false)
-        {
-          $comma_separated = implode(",", $noteText);
+        if(empty($noteType)){
+          if (strpos($noteText, ",") !== false)
+          {
+            $comma_separated = implode(",", $noteText);
+          }else{
+            $comma_separated = $noteText;
+          }
         }else{
           $comma_separated = $noteText;
         }
