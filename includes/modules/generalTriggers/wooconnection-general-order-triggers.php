@@ -105,6 +105,19 @@ function wooconnection_trigger_status_complete_hook($orderid){
             //Call the common function to hit the any purchase trigger....
             $anyPurchaseTrigger = orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger);
 
+            //Below code is used to push user in product purchase goal to remove from cart abandon follow up process.
+            $callback_purchase_follow_up = 'Wooconnection Successful Order Follow Up : Process to push user in purchase goal to remove user from follow up sequence';
+            $generalSuccessfullOrderFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_PURCHASE_CALL_NAME,$orderContactId,$callback_purchase_follow_up);
+            if(!empty($generalSuccessfullOrderFollowUpResponse)){
+                if(empty($generalSuccessfullOrderFollowUpResponse[0]['success'])){
+                    if(isset($generalSuccessfullOrderFollowUpResponse[0]['message']) && !empty($generalSuccessfullOrderFollowUpResponse[0]['success'])){
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence is failed where contact id is '.$orderContactId.' because '.$generalSuccessfullOrderFollowUpResponse[0]['message'].'');   
+                    }else{
+                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft','Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence if failed where contact id is '.$orderContactId.'');
+                    }
+                }    
+            }
+            
             //add goals form specfic coupons...
             if(!empty($orderAssociatedCoupons)){
                 foreach ($orderAssociatedCoupons as $key => $value) {
@@ -136,7 +149,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
                     //push product details into array/......
                     $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
                     //get product sku..
-                    $length = 40;
+                    $length = SKU_LENGHT_SPECIFIC_PRODUCT;
                     $productSku = get_set_product_sku($item['product_id'],$length);
                     if(isset($productSku) && !empty($productSku)){
                         //Call the common function to hit the specific product purchase trigger....
