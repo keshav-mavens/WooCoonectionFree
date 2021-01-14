@@ -114,7 +114,7 @@ if(isset($pageDetails['pageUrl']) && !empty($pageDetails['pageUrl'])){
       </div>
       <div class="modal-body">
       	<div class="table-responsive">
-			<table class="table table-striped">
+			<table class="table table-striped" id="products_listing_with_affiliate_links">
 			    <thead>
 			      <tr>
 			        <th>Product Name</th>

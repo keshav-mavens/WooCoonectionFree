@@ -1504,7 +1504,7 @@ function applyDatables(tabel_id){
         else if(tabel_id == 'products_listing_with_sku_34' 
                 || tabel_id == 'products_listing_with_sku_35' 
                     || tabel_id == 'products_listing_with_sku_40' 
-                        || tabel_id == 'coupon_listing_with_sku') {
+                        || tabel_id == 'coupon_listing_with_sku' || tabel_id == 'products_listing_with_affiliate_links') {
             if(!$.fn.DataTable.isDataTable('#'+tabel_id))
             {
                 $('#'+tabel_id).DataTable({
@@ -1780,6 +1780,7 @@ function showProductsByCat($catId){
                 if(responsedata.productLisingWithAffiliateLinks != "") {
                     $("#productsAffiliateLinks").html('');
                     $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
+                    applyDatables("products_listing_with_affiliate_links");
                 }
             }
         });  
