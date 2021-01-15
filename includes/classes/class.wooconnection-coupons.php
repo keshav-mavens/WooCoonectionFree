@@ -350,6 +350,26 @@
 					$errorMessage = __('Sorry the "'.$couponCode.'" coupon is only valid for subscrpiton products.','woocommerce-subscriptions');
 					//throw an error.....
 					throw new Exception( $errorMessage );
+				}else{
+					$productAsSubscription = array();
+					foreach(WC()->cart->get_cart() as $cartItems){
+						$product_id = $cartItems['product_id'];
+						if(!empty($product_id)){
+							$soldAsSubscription = get_post_meta($product_id,'_product_sold_subscription',true);
+							if($soldAsSubscription == 'yes'){
+								$productAsSubscription['productId'] = $product_id;
+							}
+						}
+					}
+					if(empty($productAsSubscription)){
+						//if array is empty it means no any product is sold by infusionsoft subscription....
+						//get the coupon code to show in the error message....
+						$couponCode   = wcs_get_coupon_property( $coupon_details, 'code' );
+						//concate a error messga with coupon code....
+						$errorMessage = __('Sorry the "'.$couponCode.'" coupon is only valid for those proucts which is mark as a subscription managed by infusionsoft.','woocommerce-subscriptions');
+						//throw an error.....
+						throw new Exception( $errorMessage );
+					}
 				}	
 			}
 			//return coupon is valid....

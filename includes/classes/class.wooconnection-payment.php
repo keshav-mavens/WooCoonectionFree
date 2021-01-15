@@ -419,56 +419,13 @@
 		    //set the mercent id....
 		    $merchantId = $this->is_merchant_id;
 
-		    //set default trial days....
-            $trialDays = 0;
-            //check coupons exist with order or not....
-            if(isset($orderCoupons) && !empty($orderCoupons)){
-                //execute loop on applied coupons......
-                foreach ($orderCoupons as $appliedCouponCode) {
-                    //get the details on applied coupon by coupon code....
-                    $appliedCouponDetails = new WC_Coupon($appliedCouponCode);
-                    //get the discount type of coupon.....
-                    $appliedCouponDiscountType = wcs_get_coupon_property($appliedCouponDetails,'discount_type');
-                    //get the coupon id....
-                    $appliedCouponId = wcs_get_coupon_property($appliedCouponDetails,'id');
-                    //check if coupon type is custom....
-                    if($appliedCouponDiscountType == 'custom_subscription_managed'){
-                        //get the coupon trial duration.......
-                        $appliedCouponTrialDuration = get_post_meta($appliedCouponId,'custom_free_coupon_trial_duration',true);
-                        //get the coupon trial period.......
-                        $appliedCouponTrialPeriod = get_post_meta($appliedCouponId,'custom_free_coupon_trial_period',true);
-                        //check trial period and and trial duration exist,,,,
-                        if(!empty($appliedCouponTrialDuration) && !empty($appliedCouponTrialPeriod)){
-                            //execute switch statement on the basis of trial duration period to calculate the trial
-                            switch ($appliedCouponTrialPeriod) {
-                                 case DURATION_TYPE_DAY:
-                                 $trialDays  = $appliedCouponTrialDuration*1;
-                                 break;
-                                 case DURATION_TYPE_WEEK:
-                                 $trialDays = $appliedCouponTrialDuration*7;
-                                 break;
-                                 case DURATION_TYPE_MONTH:
-                                 $trialDays = $appliedCouponTrialDuration*30;
-                                 break;
-                                 case DURATION_TYPE_YEAR:
-                                 $trialDays = $appliedCouponTrialDuration*366;
-                                 default:
-                                 $trialDays  = $appliedCouponTrialDuration*1;
-                                 break;
-                            }
-                        }
-                        break;
-                    }
-             	}
-            }
-
-            //Get the order items from order then execute loop to create the order items array....
-            $subscriptionPlansArray = array();
+		    //Get the order items from order then execute loop to create the order items array....
+            // $subscriptionPlansArray = array();
             if ( sizeof( $orderProductsItems = $orderData->get_items() ) > 0 ) {
                 foreach($orderProductsItems as $itemId => $item)
                 {
-                    $parentProduct = '';
                     $typeItem = ITEM_TYPE_PRODUCT;
+                    $parentProduct = '';
                     if(!empty($item->get_variation_id())){
                         $orderProductId = $item->get_variation_id();    
                         $parentProduct = $item->get_product_id();
@@ -479,42 +436,30 @@
                     $orderProductDesc = $productData->get_description();//product description..
                     $orderProductPrice = round($productData->get_price(),2);//get product price....
                     $orderProductQuan = $item['quantity']; // Get the item quantity....
-                    //get the product/item type to check whether its related to subscription or not....
-                   	$itemType = $productData->get_type();
-                   	//if string exist in item type......
-                    if($itemType == 'subscription'){
-                    	$typeItem = ITEM_TYPE_SUBSCRIPTION;
-                    }
-                    else if($itemType == 'subscription_variation'){
-                    	$typeItem = '';
-                    }
-                    else{
-                    	$typeItem = ITEM_TYPE_PRODUCT;
-                    }
-                    if(isset($typeItem) && !empty($typeItem)){
-                    	$orderProductIdCheck = checkAddProductIsKp($access_token,$productData,$parentProduct,$typeItem);//get the related  product id on the basis of relation with infusionsoft/keap application product...
-	                   	if($typeItem == ITEM_TYPE_SUBSCRIPTION && !empty($orderProductIdCheck)){
-	       					//get the subscription plan interval.......
-	       					$subPlanInterval = get_post_meta($orderProductId,'_subscription_period_interval',true);
-	       					//get the subscription plan period....
-	       					$subPlanPeriod = get_post_meta($orderProductId,'_subscription_period',true);
-	            			//get the subscription plan cycle....
-	            			$subPlanLength = get_post_meta($orderProductId,'_subscription_length',true);
-	            			$res = checkSubscriptionPlanExist($access_token,$orderProductIdCheck,$subPlanInterval,$subPlanPeriod,$subPlanLength='');
-	            			// //create json array to add subscription plan....
-	            			// $planJsonArray = '{"active":true,"cycle_type":"'.strtoupper($subPlanPeriod).'","frequency":'.$subPlanInterval.',"number_of_cycles":'.$subPlanLength.',"plan_price":'.$orderProductPrice.',"subscription_plan_index":0}';
-	            			// //add subscription plan in particular application product....
-	            			// $createdSubscriptionPlanId = 32;//addSubscriptionPlan($access_token,$orderProductIdCheck,$planJsonArray,$wooconnectionLogger);
-	            			// $orderProductPrice = round($item['line_subtotal'],2);
-	            			// //get product price including taxes......
-	            			// $price = wc_get_price_including_tax($productData, array('qty' => $orderProductQuan, 'price' => $productData->get_price() ) );
-	            			// //create subscription plan array.....
-	            			// $subscriptionPlansArray[] = array("subscripionPlanId"=>$createdSubscriptionPlanId,"itemsQuantity"=>$orderProductQuan,"subprice"=>$price);
-	            		}
-	                    $productTitle = $productData->get_title();//get product title..
-	                    //push product details into array/......
-	                    $itemsDetailsArray[] = array('description'=>$orderProductDesc,'price'=>$orderProductPrice,'product_id'=>$orderProductIdCheck,'quantity'=>$orderProductQuan);
-                    }
+                   	$checkProductAsSub = get_post_meta($orderProductId,'_product_sold_subscription',true);
+                   	if($checkProductAsSub == 'yes'){
+                   		$typeItem = ITEM_TYPE_SUBSCRIPTION;
+                   	}
+                   	$orderProductIdCheck = checkAddProductIsKp($access_token,$productData,$parentProduct,$typeItem);//get the related  product id on the basis of relation with infusionsoft/keap application product...
+               		if($typeItem == ITEM_TYPE_SUBSCRIPTION && !empty($orderProductIdCheck)){
+       					//get the subscription plan interval.......
+       					$subPlanInterval = get_post_meta($orderProductId,'_subscription_period_interval',true);
+       					//get the subscription plan period....
+       					$subPlanPeriod = get_post_meta($orderProductId,'_subscription_period',true);
+            			//get the subscription plan cycle....
+            			$subPlanLength = get_post_meta($orderProductId,'_subscription_length',true);
+            			//create json array to add subscription plan....
+            			$planJsonArray = '{"active":true,"cycle_type":"'.strtoupper($subPlanPeriod).'","frequency":'.$subPlanInterval.',"number_of_cycles":'.$subPlanLength.',"plan_price":'.$orderProductPrice.',"subscription_plan_index":0}';
+            			//add subscription plan in particular application product....
+            			$createdSubscriptionPlanId = addSubscriptionPlan($access_token,$orderProductIdCheck,$planJsonArray,$wooconnectionLogger);
+            			$orderProductPrice = round($item['line_subtotal'],2);
+            			//get product price including taxes......
+            			$price = wc_get_price_including_tax($productData, array('qty' => $orderProductQuan, 'price' => $productData->get_price() ) );
+            			//create subscription plan array.....
+            			$subscriptionPlansArray[] = array("subscripionPlanId"=>$createdSubscriptionPlanId,"itemsQuantity"=>$orderProductQuan,"subprice"=>$productData->get_price());
+            		}
+                    //push product details into array......
+                    $itemsDetailsArray[] = array('description'=>$orderProductDesc,'price'=>$orderProductPrice,'product_id'=>$orderProductIdCheck,'quantity'=>$orderProductQuan);
                 }
                 //check items array is exist or not.....
                 if(isset($itemsDetailsArray) && !empty($itemsDetailsArray)){
@@ -565,6 +510,9 @@
 			            return false;
 			        }
             	}
+            }else{
+            	wc_add_notice("To Process Payment is failed due to order is not created in authenticate application", 'error'); 
+	 			return false; 
             }
 
             //check if order payment results if empty the it means something is miss like application order id , merchant id or access token.....
@@ -572,7 +520,7 @@
             	wc_add_notice("To Process Payment is failed due to ".$orderPaymentResults['Message'], 'error'); 
 	 			return false; 
             }else{
-	        	//check whether needs to add subscription for contact or not....
+            	//check whether needs to add subscription for contact or not....
 	            if(isset($subscriptionPlansArray) && !empty($subscriptionPlansArray)){
 		            //rotate loop to add multiple subscripitons.....
 		            foreach ($subscriptionPlansArray as $key => $value) {
@@ -611,8 +559,8 @@
 		            }	
 	            }
             }
-
-            //add order notes.......
+          	
+          	//add order notes.......
      	 	$orderData->add_order_note(__('Payment accepted via '.$orderData->payment_method_title.' gateway - Order Successful', 'woocommerce'));
          	
          	//get or set the merchant reference number...

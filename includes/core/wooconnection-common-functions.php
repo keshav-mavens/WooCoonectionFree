@@ -563,14 +563,19 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                 }
                 //get the product type i.e simple product or simple subscription......
                 $wcproductType = $wcproduct->get_type();
-                //check it substring "subscription" not exist in product type it means it is a simple product..
-                if (strpos($wcproductType, 'subscription') !== false) {
-                    $typeproduct = ITEM_TYPE_SUBSCRIPTION;
+                // //check it substring "subscription" not exist in product type it means it is a simple product..
+                // if ($wcproductType, 'subscription') !== false) {
+                //     $typeproduct = ITEM_TYPE_SUBSCRIPTION;
+                // }
+                // //else it is a subscription plan.....
+                // else{
+                //     $typeproduct = ITEM_TYPE_PRODUCT;
+                // }
+                $productSoldAsSubscription = get_post_meta($wc_product_id,'_product_sold_subscription',true);
+                if($productSoldAsSubscription == 'yes'){
+                  $typeproduct = ITEM_TYPE_SUBSCRIPTION;
                 }
-                //else it is a subscription plan.....
-                else{
-                    $typeproduct = ITEM_TYPE_PRODUCT;
-                }
+
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
                 if(!empty($applicationProductsArray['products'])){
                     //Check product relation is exist....
@@ -614,7 +619,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
 }
 
 //create the infusionsoft products dropdown for mapping..........
-function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_compare='',$typeProduct){
+function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_compare='',$typeProduct=''){
     $iskp_products_options_html = '';//Define variable...
     if(isset($existingiskpProductResult['products']) && !empty($existingiskpProductResult['products'])){//check application products...
         foreach($existingiskpProductResult['products'] as $iskpProductDetails) {
@@ -629,7 +634,7 @@ function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_com
               }
           }
           //first check it item/product type is a subscription or subscription plans exist with products then only those products are available in dropown to update mapping.......
-          if($typeProduct == ITEM_TYPE_SUBSCRIPTION && !empty($iskpProductDetails['subscription_plans'])){
+          if($typeProduct == ITEM_TYPE_SUBSCRIPTION && $iskpProductDetails['subscription_only'] == true){
               //create the final html.....
               $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';  
           }
@@ -1623,6 +1628,7 @@ function createOrderPayment($access_token,$orderid,$cardId,$merchId){
 //create subscription plan at the time of export products.....
 function addSubscriptionPlan($accessToken,$appProductId,$subJsonData,$logger)
 {
+  $newSubPlanId = '';
   if(!empty($accessToken) && !empty($appProductId) && !empty($subJsonData)){
       //append the application product is in url to add the subscription plan for specific product.....
       $url = 'https://api.infusionsoft.com/crm/rest/v1/products/'.$appProductId.'/subscriptions';
@@ -1650,10 +1656,13 @@ function addSubscriptionPlan($accessToken,$appProductId,$subJsonData,$logger)
           }
           $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true));
         }
+        if(isset($subSucessData['id']) && !empty($subSucessData['id'])){
+          $newSubPlanId = $subSucessData['id'];
+        }
       }
       curl_close($ch);
   }
-  return true;
+  return $newSubPlanId;
 }
 
 //create contact subscription.....
@@ -1838,105 +1847,4 @@ function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode
     }
     return $paymentStatus;
 }
-
-//get the subscription details by subscription plan id.....
-// function getSubscriptionPlanDetails($access_token,$subPlanId,$logger){
-//   $subPlanDetailsArray = array();
-//   if(!empty($access_token) && !empty($subPlanId)){
-//     $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';   
-//     $ch = curl_init($url);
-//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//     $header = array(
-//       'Accept: text/xml',
-//       'Content-Type: text/xml',
-//       'Authorization: Bearer '. $access_token
-//     );
-
-//     //Create xml to hit the curl request to get subscription plan details.....
-//     $loadData = "<methodCall><methodName>DataService.load</methodName><params>
-//                         <param><value><string></string></value></param><param><value><string>CProgram</string></value></param><param><value><int>".$subPlanId."</int></value></param><param><value><array><data><value><string>DefaultCycle</string></value><value><string>DefaultFrequency</string></value></data>
-//                           </array></value></param></params></methodCall>";
-    
-//     curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-//     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-//     curl_setopt($ch, CURLOPT_POSTFIELDS, $loadData);
-//     $subResponse = curl_exec($ch);
-//     $subErr = curl_error($ch);
-//     //check if error occur due to any reason and then save the logs...
-//     if($subErr){
-//         $subErrorMessage = "Process to get subscription plan details is failed due to ".$subErr; 
-//         $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($subErr, true));
-//     }else{
-//       //Covert/Decode response to xml.....
-//       $subResponseData = xmlrpc_decode($subResponse);
-//       //check if any error occur like invalid access token,then save logs....
-//       if (is_array($subResponseData) && xmlrpc_is_fault($subResponseData)) {
-//           if(isset($subResponseData['faultString']) && !empty($subResponseData['faultString'])){
-//               $subErrorMessage = "Process to get subscription plan details is failed due to ". $subResponseData['faultString']; 
-//               $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($subErrorMessage, true));
-//           }
-//       }else{
-//         $subPlanDetailsArray = $subResponseData;
-//       }
-//     }
-//     curl_close($ch);
-//   }
-//   return $subPlanDetailsArray;
-// }
-
-//check subscription plan exist or not...
-// function checkSubscriptionPlanExist($access_token,$applicationProductId,$planInterval,$planPeriod,$planLength=''){
-//     $planExist = false;
-//     if(!empty($access_token) && !empty($access_token)){
-//       $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';   
-//       $ch = curl_init($url);
-//       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//       $header = array(
-//         'Accept: text/xml',
-//         'Content-Type: text/xml',
-//         'Authorization: Bearer '. $access_token
-//       );
-
-//       //Create xml to hit the curl request to get subscription plan details.....
-//       $loadSubscriptionData = "<methodCall>
-//                                 <methodName>DataService.findByField</methodName>
-//                                   <params>
-//                                     <param><value><string></string></value></param>
-//                                     <param><value><string>SubscriptionPlan</string></value></param>
-//                                     <param><value><int>1</int></value></param>
-//                                     <param><value><int>0</int></value></param>
-//                                     <param>
-//                                         <value><string>Active</string></value>
-//                                     </param>
-//                                     <param>
-//                                         <value><string>true</string></value>
-//                                     </param>
-                                    
-//                                     <param>
-//                                       <value><array>
-//                                         <data>
-//                                           <value><string>Id</string></value>
-//                                         </data>
-//                                       </array></value>
-//                                     </param>
-//                                   </params>
-//                               </methodCall>";
-      
-//       curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-//       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-//       curl_setopt($ch, CURLOPT_POSTFIELDS, $loadSubscriptionData);
-//       $subPlanResponse = curl_exec($ch);
-//       $subPlanErr = curl_error($ch);
-//       if($subPlanErr){
-//         echo $subPlanErr;
-//       }else{
-//           //Covert/Decode response to xml.....
-//           $subPlanResponseData = xmlrpc_decode($subPlanResponse);
-//           echo "<pre>";
-//           print_r($subPlanResponseData);
-//       }
-//       die();
-//   }
-// }
-
 ?>

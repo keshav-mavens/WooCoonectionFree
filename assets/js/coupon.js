@@ -43,5 +43,15 @@
                     $(".sub_discount_amount_field").hide();
                 }
             });
+
+            //check product type is a not subscription product or variable products show hide the fields on the basis of it....
+            $('[name=product-type]').change( function() {
+                var productType = $(this).val();
+                if(productType == 'variable' || productType == 'subscription' || productType == 'variable-subscription'){
+                    $(".product_tabs_tab").hide();
+                }else{
+                    $(".product_tabs_tab").show();
+                }
+            });
         });
 }(jQuery));

@@ -221,11 +221,15 @@ function wc_export_wc_products()
                         $wcproductShortDesc = "";
                     }
                     $wcProductType = $wcproductdetails->get_type();
-                    if(strpos($wcProductType,'subscription') !== false){
-                    	$typeProduct = ITEM_TYPE_SUBSCRIPTION;
-                    }else{
-                    	$typeProduct = ITEM_TYPE_PRODUCT;
-                    }
+                    // if(strpos($wcProductType,'subscription') !== false){
+                    // 	$typeProduct = ITEM_TYPE_SUBSCRIPTION;
+                    // }else{
+                    // 	$typeProduct = ITEM_TYPE_PRODUCT;
+                    // }
+                    $productSoldAsSubscription = get_post_meta($value,'_product_sold_subscription',true);
+	                if($productSoldAsSubscription == 'yes'){
+	                  $typeProduct = ITEM_TYPE_SUBSCRIPTION;
+	                }
                     //create final array with values.....
                     $productDetailsArray['active'] = true;
                     $productDetailsArray['product_desc'] = $wcproductDesc;
@@ -251,18 +255,18 @@ function wc_export_wc_products()
                                 //update the woocommerce product sku......
                             	update_post_meta($value,'_sku',$wcproductSku);
 	                            //check if product type is subscription then add subscription plan for paricular product....
-	                            if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
-	                            	//get the subscription interval.....
-	                            	$subInterval = get_post_meta($value,'_subscription_period_interval',true);
-	                            	//get the subscription period....
-	                            	$subPeriod = get_post_meta($value,'_subscription_period',true);
-	                            	//get subscription cycle....
-	                            	$subLength = get_post_meta($value,'_subscription_length',true);
-	                            	//create json array to add subscription....
-	                            	$jsonSubArray = '{"active": true,"cycle_type": "'.strtoupper($subPeriod).'","frequency":'.$subInterval.',"number_of_cycles":'.$subLength.',"plan_price":'.$wcproductPrice.',"subscription_plan_index": 0}';
-	                            	//add subscription with particular application product....
-	                            	$createSubscription = addSubscriptionPlan($access_token,$createdProductId,$jsonSubArray,$wooconnectionLogger);
-	                            }                   
+	                            // if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
+	                            // 	//get the subscription interval.....
+	                            // 	$subInterval = get_post_meta($value,'_subscription_period_interval',true);
+	                            // 	//get the subscription period....
+	                            // 	$subPeriod = get_post_meta($value,'_subscription_period',true);
+	                            // 	//get subscription cycle....
+	                            // 	$subLength = get_post_meta($value,'_subscription_length',true);
+	                            // 	//create json array to add subscription....
+	                            // 	$jsonSubArray = '{"active": true,"cycle_type": "'.strtoupper($subPeriod).'","frequency":'.$subInterval.',"number_of_cycles":'.$subLength.',"plan_price":'.$wcproductPrice.',"subscription_plan_index": 0}';
+	                            // 	//add subscription with particular application product....
+	                            // 	$createSubscription = addSubscriptionPlan($access_token,$createdProductId,$jsonSubArray,$wooconnectionLogger);
+	                            // }                   
                         	}
                         }
                         //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
@@ -330,6 +334,7 @@ function wc_get_product_variation()
   			$applicationLabel = applicationLabel($type);
   			$currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
 	  		if(isset($available_variations) && !empty($available_variations)){
+	  			$typeProduct == ITEM_TYPE_PRODUCT;
 	  			foreach ($available_variations as $key => $value) {
 	  				if($value['variation_is_active'] == STATUS_ACTIVE){
 	  					$mappedProductHtml = '';
@@ -339,12 +344,12 @@ function wc_get_product_variation()
 		                    $variationExistId = get_post_meta($value['variation_id'], 'is_kp_product_id', true);
 		                    //If variation relation exist then create select deopdown and set associative product selected....
 		                    if(isset($variationExistId) && !empty($variationExistId)){
-		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId);
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId,$typeProduct);
 		                    }else if($variationExistId === '0'){
-		                    	$productsDropDown = createMatchProductsSelect($applicationProductsArray);
+		                    	$productsDropDown = createMatchProductsSelect($applicationProductsArray,'',$typeProduct);
 		                    }
 		                    else if(isset($_POST['matchProductId']) && !empty($_POST['matchProductId'])){
-		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$_POST['matchProductId']);
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$_POST['matchProductId'],$typeProduct);
 		                    }
 		                    $mappedProductHtml = '<select class="application_match_products_dropdown" name="wc_product_match_with_'.$value['variation_id'].'" data-id="'.$value['variation_id'].'"><option value="0">Select '.$applicationLabel.' product</option>'.$productsDropDown.'</select>';
 	  					}else{
