@@ -70,11 +70,13 @@
 			if(!empty($checkProductAsSubscription)){
 				//execute loop on payment gateways to disable all payment methods except infusionsoft...
 				foreach ($gateWays as $key => $value) {
-					// if($key != 'infusionsoft_keap'){
-					// 	unset($gateWays[$key]);
-					// }
+					//check if payment method id is not equal to infusionsoft_keap then need to unset another payment gateways......
+					if($key != 'infusionsoft_keap'){
+						unset($gateWays[$key]);
+					}
 				}
 			}
+			//return all the gateways after set/unset....
 			return $gateWays;
 		}
 	}

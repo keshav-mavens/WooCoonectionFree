@@ -310,20 +310,24 @@
     				//get the subscription coupon discount type whether is in percent or fixed amount....
     				$subCouponDisType = get_post_meta($couponId,'sub_discount_type',true);
     				//check if subscription amount in fixed amount..
-    				if($subCouponDisType == SUBSCRIPTION_DISCOUNT_TYPE_AMOUNT){
-    					$discountData = min($couponDetails->get_amount(),$discountingAmount);
-    					//check product is single or not....
-    					if($singleitem){
-    						$discountData = $discountData;
-    					}else{
-    						//get the quantity....
-    						$itemsQuantity = $cartItem->get_quantity();
-    						$discountData = $discountData * $itemsQuantity;
-    					}
-    				}
-    				//another case discount amount is in percent....
-    				else{
-    					$discountData  = (float) $couponDetails->get_amount()*($discountingAmount/100);
+    				if(!empty($couponDetails->get_amount())){
+    					if($subCouponDisType == SUBSCRIPTION_DISCOUNT_TYPE_AMOUNT){
+	    					$discountData = min($couponDetails->get_amount(),$discountingAmount);
+	    					//check product is single or not....
+	    					if($singleitem){
+	    						$discountData = $discountData;
+	    					}else{
+	    						//get the quantity....
+	    						$itemsQuantity = $cartItem->get_quantity();
+	    						$discountData = $discountData * $itemsQuantity;
+	    					}
+	    				}
+	    				//another case discount amount is in percent....
+	    				else{
+	    					$discountData  = (float) $couponDetails->get_amount()*($discountingAmount/100);
+	    				}
+    				}else{
+    					$discountData = $discountData;
     				}
     			}	
     		}else{
