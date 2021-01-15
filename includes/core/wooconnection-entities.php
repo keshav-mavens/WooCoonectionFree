@@ -22,13 +22,13 @@
 	//Plugin Activation status : Not Activated..
 	define("PLUGIN_NOT_ACTIVATED", 2);
 	//Plugin Activation Remote url
-	define("ADMIN_REMOTE_URL", "https://tqmstaging.com/wooconnection/");
+	define("ADMIN_REMOTE_URL", "https://wooconnection.com/");
 	//Plugin Activation Request Type
 	define("ACTIVATION_REQUEST_TYPE", "activation");
 	//Plugin Activation Product Id...
-	define("ACTIVATION_PRODUCT_ID", "wooconnectionfree");
+	define("ACTIVATION_PRODUCT_ID", "wooconnectionpaid");
 	//Plugin Activation Secret key...
-	define("ACTIVATION_SECRET_KEY", "wooconnectionfree16");
+	define("ACTIVATION_SECRET_KEY", "wooconnectionpaid16");
 	//Plugin Activation Instance...
 	define("ACTIVATION_INSTANCE", 16.0);
 	//Site url....

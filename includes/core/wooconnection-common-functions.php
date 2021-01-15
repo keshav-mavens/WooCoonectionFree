@@ -1838,4 +1838,105 @@ function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode
     }
     return $paymentStatus;
 }
+
+//get the subscription details by subscription plan id.....
+// function getSubscriptionPlanDetails($access_token,$subPlanId,$logger){
+//   $subPlanDetailsArray = array();
+//   if(!empty($access_token) && !empty($subPlanId)){
+//     $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';   
+//     $ch = curl_init($url);
+//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//     $header = array(
+//       'Accept: text/xml',
+//       'Content-Type: text/xml',
+//       'Authorization: Bearer '. $access_token
+//     );
+
+//     //Create xml to hit the curl request to get subscription plan details.....
+//     $loadData = "<methodCall><methodName>DataService.load</methodName><params>
+//                         <param><value><string></string></value></param><param><value><string>CProgram</string></value></param><param><value><int>".$subPlanId."</int></value></param><param><value><array><data><value><string>DefaultCycle</string></value><value><string>DefaultFrequency</string></value></data>
+//                           </array></value></param></params></methodCall>";
+    
+//     curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+//     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+//     curl_setopt($ch, CURLOPT_POSTFIELDS, $loadData);
+//     $subResponse = curl_exec($ch);
+//     $subErr = curl_error($ch);
+//     //check if error occur due to any reason and then save the logs...
+//     if($subErr){
+//         $subErrorMessage = "Process to get subscription plan details is failed due to ".$subErr; 
+//         $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($subErr, true));
+//     }else{
+//       //Covert/Decode response to xml.....
+//       $subResponseData = xmlrpc_decode($subResponse);
+//       //check if any error occur like invalid access token,then save logs....
+//       if (is_array($subResponseData) && xmlrpc_is_fault($subResponseData)) {
+//           if(isset($subResponseData['faultString']) && !empty($subResponseData['faultString'])){
+//               $subErrorMessage = "Process to get subscription plan details is failed due to ". $subResponseData['faultString']; 
+//               $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($subErrorMessage, true));
+//           }
+//       }else{
+//         $subPlanDetailsArray = $subResponseData;
+//       }
+//     }
+//     curl_close($ch);
+//   }
+//   return $subPlanDetailsArray;
+// }
+
+//check subscription plan exist or not...
+// function checkSubscriptionPlanExist($access_token,$applicationProductId,$planInterval,$planPeriod,$planLength=''){
+//     $planExist = false;
+//     if(!empty($access_token) && !empty($access_token)){
+//       $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';   
+//       $ch = curl_init($url);
+//       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//       $header = array(
+//         'Accept: text/xml',
+//         'Content-Type: text/xml',
+//         'Authorization: Bearer '. $access_token
+//       );
+
+//       //Create xml to hit the curl request to get subscription plan details.....
+//       $loadSubscriptionData = "<methodCall>
+//                                 <methodName>DataService.findByField</methodName>
+//                                   <params>
+//                                     <param><value><string></string></value></param>
+//                                     <param><value><string>SubscriptionPlan</string></value></param>
+//                                     <param><value><int>1</int></value></param>
+//                                     <param><value><int>0</int></value></param>
+//                                     <param>
+//                                         <value><string>Active</string></value>
+//                                     </param>
+//                                     <param>
+//                                         <value><string>true</string></value>
+//                                     </param>
+                                    
+//                                     <param>
+//                                       <value><array>
+//                                         <data>
+//                                           <value><string>Id</string></value>
+//                                         </data>
+//                                       </array></value>
+//                                     </param>
+//                                   </params>
+//                               </methodCall>";
+      
+//       curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+//       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+//       curl_setopt($ch, CURLOPT_POSTFIELDS, $loadSubscriptionData);
+//       $subPlanResponse = curl_exec($ch);
+//       $subPlanErr = curl_error($ch);
+//       if($subPlanErr){
+//         echo $subPlanErr;
+//       }else{
+//           //Covert/Decode response to xml.....
+//           $subPlanResponseData = xmlrpc_decode($subPlanResponse);
+//           echo "<pre>";
+//           print_r($subPlanResponseData);
+//       }
+//       die();
+//   }
+// }
+
 ?>
