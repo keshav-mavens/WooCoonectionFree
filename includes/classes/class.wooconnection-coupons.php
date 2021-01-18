@@ -308,7 +308,7 @@
     			//then check the coupon id.....
     			if(!empty($couponId)){
     				//get the subscription coupon discount type whether is in percent or fixed amount....
-    				$subCouponDisType = get_post_meta($couponId,'sub_discount_type',true);
+    				$subCouponDisType = get_post_meta($couponId,'subscription_discount_type',true);
     				//check if subscription amount in fixed amount..
     				if(!empty($couponDetails->get_amount())){
     					if($subCouponDisType == SUBSCRIPTION_DISCOUNT_TYPE_AMOUNT){

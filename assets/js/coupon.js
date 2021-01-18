@@ -44,10 +44,18 @@
                 }
             });
 
+            //on document ready check the product type on the basis of its value show hide the extra products tab.....
+            var productDataType = $("#product-type").val();
+            if(productDataType == 'subscription'){
+                $(".product_tabs_tab").show();
+            }else{
+                $(".product_tabs_tab").hide();
+            }
+
             //check product type is a not subscription product or variable products show hide the fields on the basis of it....
             $('[name=product-type]').change( function() {
                 var productType = $(this).val();
-                if(productType == 'variable' || productType == 'subscription' || productType == 'variable-subscription'){
+                if(productType != 'subscription'){
                     $(".product_tabs_tab").hide();
                 }else{
                     $(".product_tabs_tab").show();
