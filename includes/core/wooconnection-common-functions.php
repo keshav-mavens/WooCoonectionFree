@@ -2620,4 +2620,19 @@ function affiliateListing(){
   }
   return $listing;
 }
+
+//Function is used to get the cookie values....
+function getCookieValue($name) {
+    $cookies = [];
+    $headers = headers_list();
+    // see http://tools.ietf.org/html/rfc6265#section-4.1.1
+    foreach($headers as $header) {
+        if (strpos($header, 'Set-Cookie: ') === 0) {
+            $value = str_replace('&', urlencode('&'), substr($header, 12));
+            parse_str(current(explode(';', $value, 1)), $pair);
+            $cookies = array_merge_recursive($cookies, $pair);
+        }
+    }
+    return $cookies[$name];
+}
 ?>

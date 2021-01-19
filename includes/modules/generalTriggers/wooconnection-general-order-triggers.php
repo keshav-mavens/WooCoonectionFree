@@ -48,6 +48,20 @@ function wooconnection_trigger_status_complete_hook($orderid){
     if(!empty($orderAssociatedCoupons)){
         $discountDesc = implode(",", $orderAssociatedCoupons);
         $discountDesc = "Discount generated from coupons ".$discountDesc;
+        foreach ($orderAssociatedCoupons as $key => $value) {
+            global $woocommerce;
+            $couponDetails = new WC_Coupon($value);
+            $couponId = $couponDetails->id;
+            if(!empty($couponId)){
+                $checkReferralAssociationEnable = get_post_meta($couponId,'enable_referral_association',true);
+                $getReferralPartnerId = get_post_meta($couponId,'associated_referral_partner',true);
+                if(!empty($checkReferralAssociationEnable) && $checkReferralAssociationEnable == 'yes'
+                    && !empty($getReferralPartnerId) && !headers_sent()){
+                    setcookie('affiliateId', $getReferralPartnerId, time() + 3600, "/", $_SERVER['SERVER_NAME']);
+                    break;
+                }
+            }
+        }
     }
     
     // Validate email is in valid format or not 
@@ -89,9 +103,15 @@ function wooconnection_trigger_status_complete_hook($orderid){
 
             //first check "affiliateId" exist in cookie....
             if(isset($_COOKIE["affiliateId"])){
-                $referralAffiliateId = $_COOKIE["affiliateId"];
+                $cookieDetail = getCookieValue('affiliateId');
+                if(!empty($cookieDetail)){
+                    $cookieDetailsArray = explode(';', $cookieDetail);
+                    if(isset($cookieDetailsArray) && !empty($cookieDetailsArray)){
+                        $referralAffiliateId = $cookieDetailsArray[0];
+                    }
+                }
             }
-
+            
             if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
                 $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
             }
@@ -99,6 +119,11 @@ function wooconnection_trigger_status_complete_hook($orderid){
             if(isset($affiliateCode) && !empty($affiliateCode)){
                 $customField['ReferralCode'] = $affiliateCode;
                 updateContactCustomFields($access_token,$orderContactId,$customField);
+                if(!headers_sent()){
+                    if(isset($_COOKIE['affiliateId'])){
+                        setcookie('affiliateId','',time()-99999,'/',$_SERVER['SERVER_NAME']);
+                    }
+                }   
             }
             
             //get order data and update the contact information,,

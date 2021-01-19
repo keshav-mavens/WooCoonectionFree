@@ -7,6 +7,12 @@
 		if($authenticateAppdetails[0]->user_application_edition == APPLICATION_TYPE_INFUSIONSOFT && !empty($authenticateAppdetails[0]->user_authorize_application)){
 			//then call the hook to show the meta box in edit screen of every post, product, page.....
 			add_action( 'add_meta_boxes', 'wpdocs_show_referral_link_meta_boxes' );
+			//Wordpress Hook : This action is triggered to add custom fields to associate contact with referral partner.....
+			add_action('woocommerce_coupon_options','add_referral_partner_related_fields',10,2);
+			//add js for referral partner related fields on coupon admin screen...
+			add_action('admin_enqueue_scripts','enqueue_script_referral_section_coupon');
+			//Wordpress Hook : This action is used to save referral partner details with coupon code...
+			add_action('woocommerce_coupon_options_save','save_referral_related_fields',10,2);
 		}
 	}
 
@@ -45,5 +51,70 @@
             $referral_tracking_link_meta_box_html .= "Publish ".$postType." first for infusionsoft referral partner tracking link.";
         }    
 	    echo $referral_tracking_link_meta_box_html;
+	}
+
+	//Function Definition : add_referral_partner_related_fields...
+	function add_referral_partner_related_fields($couponId,$couponDetails){
+		//get the referral partner id associated with coupon code...
+		$referralPartnerId = get_post_meta($couponId,'associated_referral_partner',true);
+		woocommerce_wp_checkbox(array('id'=>'enable_referral_association','label'=>__('Contact Association With Referral Partner','woocommerce'),'description'=>__('Check this box if coupon code associate a contact with define referral partner.','woocommerce')));
+		?>
+		<p class="form-field referral_partner_field" style="display: none;">
+			<label for="referral_partner_id">Referral Partner Id</label>
+			<input type="number" name="referral_partner_id" id="referral_partner_id" value="<?php echo $referralPartnerId; ?>" placeholder="Referral Partner Id">
+			<?php echo wc_help_tip("The mention referral partner id override the contact lead referral partner any previously set lead referral partner for contact."); ?>
+		</p>
+		<?php
+	}
+	
+	//Function Definition : enqueue_script_referral_section_coupon
+	function enqueue_script_referral_section_coupon(){
+		// deregisters the default WordPress jQuery  
+		wp_deregister_script( 'jquery' );
+        //Wooconnection Scripts : Resgister the wooconnection scripts..
+        wp_register_script('jquery', (WOOCONNECTION_PLUGIN_URL.'assets/js/jquery.min.js'),WOOCONNECTION_VERSION, true);
+        //Wooconnection Scripts : Enqueue the wooconnection scripts..
+        wp_enqueue_script('jquery');
+        ?>
+        	<script type="text/javascript">
+	   			$(document).ready(function() {
+	   				if($("#enable_referral_association").is(':checked')){
+	   					$(".referral_partner_field").show();
+	   				}else{
+	   					$(".referral_partner_field").hide();
+	   				}
+
+	   				$("#enable_referral_association").change(function(){
+	       				if(this.checked){
+	       					$(".referral_partner_field").show();
+	       				}else{
+	       					$(".referral_partner_field").hide();
+	       				}
+	       			});	
+	   			});
+       		</script>
+        <?php
+	}
+
+	//Function Definition : save_referral_related_fields 
+	function save_referral_related_fields($postId,$coupon){
+		//first check post if exist or not....
+		if(isset($postId) && !empty($postId)){
+			//update enable referral with coupon association
+			update_post_meta($postId,'enable_referral_association',$_POST['enable_referral_association']);
+			//check referral partner field exist in coupon code or not...
+			if(isset($_POST['referral_partner_id'])){
+				//check if referral association id disable then set the referral partner null....
+				if(!isset($_POST['enable_referral_association'])){
+					$referral_partner_id = NULL;
+				}
+				//else set referral partner set in post data....
+				else{
+					$referral_partner_id = $_POST['referral_partner_id'];
+				}
+				//update the referral partner association.....
+				update_post_meta($postId,'associated_referral_partner',$referral_partner_id);
+			}
+		}
 	}
 ?>
