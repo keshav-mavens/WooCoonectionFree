@@ -12,7 +12,12 @@
 			add_action('woocommerce_process_product_meta', [$this,'product_custom_fields_save'],10,1);
 			//Wordpress Hook : This action is triggeres to remove all payment methods if custom  coupon applied.....
 			add_filter( 'woocommerce_available_payment_gateways', [$this,'remove_custom_payment_gateways'], 10, 2 );
-        }
+   //      	function do_this_in_an_hour() {
+ 
+			//     // do something
+			// }
+			// add_action( 'my_new_event','do_this_in_an_hour' );
+		}
 
         //Function Definition : wc_custom_tab_head
         public function wc_custom_tab_head()
@@ -99,4 +104,6 @@
 			}
 		}
 	}
+
+	wp_schedule_single_event( time() + 3600, 'my_new_event' );
 ?>
