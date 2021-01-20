@@ -184,6 +184,16 @@
                         if($('#affiliate_redirect_form').length){
                             validateForms('affiliate_redirect_form');
                         }
+                        
+                        //check if referral tracking is exist it means tab is referral partner
+                        if($("#referral_tracking").length){
+                            //check referral tracking status.....
+                            if($("#referral_tracking").val() != '' && $("#referral_tracking").val() == 'On'){
+                                $(".conditional_data").css("display","block");
+                            }else{
+                                $(".conditional_data").hide("display","none");
+                            }
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -1065,6 +1075,35 @@
                         }
                     });
                 } 
+            });
+
+            //Referral Partner Tab : On change of enable/disable referral partner tracking send ajax to update start of referral partner tracking in database...
+            $document.on("click","#referral_tracking",function(event){
+                event.stopPropagation();
+                var actionValue = '';
+                if (this.checked) {
+                    actionValue = 'On';
+                }else{
+                    actionValue = 'Off';
+                }
+                if(actionValue != "" && typeof actionValue !== "undefined"){
+                    jQuery(".referral_partner_main_html").addClass('overlay');
+                    jQuery(".ajax_loader").show();
+                    jQuery.post(ajax_object.ajax_url+"?action=wc_update_referral_tracking&jsoncallback=x",{actionStatus:actionValue},function(data){
+                        jQuery(".ajax_loader").hide();
+                        jQuery(".referral_partner_main_html").removeClass('overlay');
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == '1'){
+                            if(actionValue == 'On'){
+                                $(this).prop('checked',true);
+                                $(".conditional_data").css("display","block");
+                            }else{
+                                $(this).prop('checked',false);
+                                $(".conditional_data").css("display","none");
+                            }   
+                        }
+                    });
+                }
             });
         });
 }(jQuery));

@@ -1476,4 +1476,18 @@ function wc_save_affiliate_redirect_slug()
 	}
 	die();
 }
+
+//Wordpress Hook : This action is triggered when user try to enable disable referral partner tracking in infusionsoft application....
+add_action('wp_ajax_wc_update_referral_tracking','wc_update_referral_tracking');
+//Function Definition : wc_update_referral_tracking
+function wc_update_referral_tracking(){
+	if(isset($_POST) && !empty($_POST)){
+		if(isset($_POST['actionStatus']) && !empty($_POST['actionStatus'])){
+			update_option('referral_partner_tracking_status',$_POST['actionStatus']);
+		}
+		//return response with html.....
+	  	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
 ?>

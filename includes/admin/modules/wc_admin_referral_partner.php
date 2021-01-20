@@ -1,16 +1,18 @@
 <?php
 	//get the authenticate application details first.....
 	$authenticateAppdetails = getAuthenticationDetails();
+	//get the referral partner tracking status......
+	$checkReferralTrackingStatus = get_option('referral_partner_tracking_status',true);
 	//check authenticate details....
 	if(isset($authenticateAppdetails) && !empty($authenticateAppdetails)){
 		//check authenticate application type is infusionsoft or application name is exist......
-		if($authenticateAppdetails[0]->user_application_edition == APPLICATION_TYPE_INFUSIONSOFT && !empty($authenticateAppdetails[0]->user_authorize_application)){
+		if($authenticateAppdetails[0]->user_application_edition == APPLICATION_TYPE_INFUSIONSOFT && !empty($authenticateAppdetails[0]->user_authorize_application) && !empty($checkReferralTrackingStatus) && $checkReferralTrackingStatus == 'On'){
 			//then call the hook to show the meta box in edit screen of every post, product, page.....
 			add_action( 'add_meta_boxes', 'wpdocs_show_referral_link_meta_boxes' );
 			//Wordpress Hook : This action is triggered to add custom fields to associate contact with referral partner.....
 			add_action('woocommerce_coupon_options','add_referral_partner_related_fields',10,2);
 			//add js for referral partner related fields on coupon admin screen...
-			add_action('admin_enqueue_scripts','enqueue_script_referral_section_coupon');
+			add_action('admin_enqueue_scripts','enqueue_script_referral_section_coupon',10,1);
 			//Wordpress Hook : This action is used to save referral partner details with coupon code...
 			add_action('woocommerce_coupon_options_save','save_referral_related_fields',10,2);
 		}
@@ -68,32 +70,40 @@
 	}
 	
 	//Function Definition : enqueue_script_referral_section_coupon
-	function enqueue_script_referral_section_coupon(){
-		// deregisters the default WordPress jQuery  
-		wp_deregister_script( 'jquery' );
-        //Wooconnection Scripts : Resgister the wooconnection scripts..
-        wp_register_script('jquery', (WOOCONNECTION_PLUGIN_URL.'assets/js/jquery.min.js'),WOOCONNECTION_VERSION, true);
-        //Wooconnection Scripts : Enqueue the wooconnection scripts..
-        wp_enqueue_script('jquery');
-        ?>
-        	<script type="text/javascript">
-	   			$(document).ready(function() {
-	   				if($("#enable_referral_association").is(':checked')){
-	   					$(".referral_partner_field").show();
-	   				}else{
-	   					$(".referral_partner_field").hide();
-	   				}
+	function enqueue_script_referral_section_coupon($hook){
+		global $post;
+		//check page is add/edit post...
+		if($hook == 'post-new.php' || $hook == 'post.php'){
+			//get the post type.....
+			$postType = $post->post_type;
+			//check if post type is equal to coupon then add the custom jquery...
+			if($postType === 'shop_coupon'){
+				wp_deregister_script( 'jquery' );
+		        //Wooconnection Scripts : Resgister the wooconnection scripts..
+		        wp_register_script('jquery', (WOOCONNECTION_PLUGIN_URL.'assets/js/jquery.min.js'),WOOCONNECTION_VERSION, true);
+		        //Wooconnection Scripts : Enqueue the wooconnection scripts..
+		        wp_enqueue_script('jquery');
+		        ?>
+		        	<script type="text/javascript">
+			   			$(document).ready(function() {
+			   				if($("#enable_referral_association").is(':checked')){
+			   					$(".referral_partner_field").show();
+			   				}else{
+			   					$(".referral_partner_field").hide();
+			   				}
 
-	   				$("#enable_referral_association").change(function(){
-	       				if(this.checked){
-	       					$(".referral_partner_field").show();
-	       				}else{
-	       					$(".referral_partner_field").hide();
-	       				}
-	       			});	
-	   			});
-       		</script>
-        <?php
+			   				$("#enable_referral_association").change(function(){
+			       				if(this.checked){
+			       					$(".referral_partner_field").show();
+			       				}else{
+			       					$(".referral_partner_field").hide();
+			       				}
+			       			});	
+			   			});
+		       		</script>
+		        <?php
+			}
+		}
 	}
 
 	//Function Definition : save_referral_related_fields 
