@@ -13,11 +13,12 @@ class WooConnection_Front {
         add_action('init', array($this, 'wooconnection_leadsource_handling'));
         //Call the hook wp_enqueue_scripts at the time of front end site loading..
 		add_action( 'wp_enqueue_scripts', array($this, 'remove_affiliate_page_menu'));
-        //Call the hook template_redirect to control the affiliate redirection process..
-        add_action('template_redirect', array($this, 'affiliate_redirection_control'));
         //get the referral partner tracking status......
         $checkReferralTrackingStatus = get_option('referral_partner_tracking_status',true);
+        //check if referral partner tracking in enable....
         if($checkReferralTrackingStatus == 'On'){
+            //Call the hook template_redirect to control the affiliate redirection process..
+            add_action('template_redirect', array($this, 'affiliate_redirection_control'));
             //Call the hook init to control the referral partner process....
             add_action('init', array($this, 'wooconnection_referral_partner_handling'));
         }

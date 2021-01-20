@@ -44,7 +44,7 @@ if(isset($pageDetails['pageUrl']) && !empty($pageDetails['pageUrl'])){
 			<p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.</p>
 			<label style="margin-right:10px">Enable/Disable Referral Partner Tracking In Infusionsoft</label>
 			<label class="switch" style="cursor: pointer;"><input value="<?php echo $toggleValue; ?>" <?php if($toggleValue == 'On'){ echo 'checked'; } ?> type="checkbox" name="referral_tracking" id="referral_tracking"><span class="slider round"></span></label>
-          	<span class="conditional_data" id="conditional_data" style="display: none;">
+          	<span class="conditional_data" id="conditional_data" style="display: none;margin-top:20px;">
 	          	<nav>
 	            	<div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
 		              	<a class="nav-item nav-link active" id="nav-profile-tab" data-toggle="tab" href="#tab-5" role="tab" aria-controls="nav-profile" aria-selected="false">Affiliate Tracking Links</a>
