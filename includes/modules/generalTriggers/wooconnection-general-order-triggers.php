@@ -117,11 +117,15 @@ function wooconnection_trigger_status_complete_hook($orderid){
                     if(isset($cookieDetailsArray) && !empty($cookieDetailsArray)){
                         $referralAffiliateId = $cookieDetailsArray[0];
                     }
+                }else{
+                    $referralAffiliateId = $_COOKIE['affiliateId'];
                 }
             }
             
             if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
                 $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
+                //Woocommerce Order Trigger : Get the integraton name and the call name of trigger "Referral Partner Order" 
+                $referralPartnerOrderTrigger = orderTriggerReferralPartner($access_token,$referralAffiliateId,$orderContactId,$wooconnectionLogger);
             }
             
             if(isset($affiliateCode) && !empty($affiliateCode)){
