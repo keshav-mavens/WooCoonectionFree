@@ -945,7 +945,7 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
       }
       $wcproductShortDesc = $item->get_short_description();//get product short description....
       if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
-          $wcproductShortDesc = $wcproductShortDesc;
+          $wcproductShortDesc = strip_tags($wcproductShortDesc);
       }else{
           $wcproductShortDesc = "";
       }

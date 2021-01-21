@@ -216,7 +216,7 @@ function wc_export_wc_products()
                     }
                     $wcproductShortDesc = $wcproductdetails->get_short_description();//get product short description....
                     if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
-                        $wcproductShortDesc = $wcproductShortDesc;
+                        $wcproductShortDesc = strip_tags($wcproductShortDesc);
                     }else{
                         $wcproductShortDesc = "";
                     }

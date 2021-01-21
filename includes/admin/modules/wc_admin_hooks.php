@@ -51,7 +51,7 @@ function insertProductToApplication( $post_id, $post ){
           }
           $wcproductShortDesc = $wcproductdetails->get_short_description();//get product short description....
           if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
-            $wcproductShortDesc = $wcproductShortDesc;
+            $wcproductShortDesc = strip_tags($wcproductShortDesc);
           }else{
             $wcproductShortDesc = "";
           }
