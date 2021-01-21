@@ -304,6 +304,8 @@
                                 if(responsedata.variationsHtml != ""){
                                     $("#table_row_"+productId).after(responsedata.variationsHtml);
                                     applySelectTwo('application_match_products_dropdown');
+                                }else{
+                                    $("#table_row_"+productId).after('<tr class="customvariations_'+productId+' custom_tr"><td colspan="5" style="text-align: center; vertical-align: middle;">No Product Variations Exist!</td></tr>');
                                 }
                             }
                         });
