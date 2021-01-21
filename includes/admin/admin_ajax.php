@@ -217,7 +217,13 @@ function wc_export_wc_products()
                     $wcproductShortDesc = $wcproductdetails->get_short_description();//get product short description....
                     if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
                         $wcproductShortDesc = strip_tags($wcproductShortDesc);
-                    }else{
+               			$shortDescriptionLen = strlen($wcproductShortDesc);
+               			if($shortDescriptionLen > 250){
+               				$wcproductShortDesc = substr($wcproductShortDesc,0,250);
+               			}else{
+               				$wcproductShortDesc = $wcproductShortDesc;
+               			}
+               		}else{
                         $wcproductShortDesc = "";
                     }
                     //create final array with values.....
