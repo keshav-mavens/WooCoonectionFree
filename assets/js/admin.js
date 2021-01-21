@@ -370,7 +370,10 @@ function validateForms(form){
 //save application settings
 function saveApplicationSettings(){
     var activationEmail = $("#activationEmail").val();
-    var activationKey = $("#activationKey").val();siteUrl
+    if (activationEmail.indexOf('+') > -1) {
+        var activationEmail = activationEmail.replace("+", "$");
+    }
+    var activationKey = $("#activationKey").val();
     var currentSiteUrl = $("#siteUrl").val();
     var connectionType = $('input[name=applicationtype]:checked', '#application_settings_form').val();
     var formData = {userEmail:activationEmail,userPluginKey:activationKey,requestWebUrl:currentSiteUrl,connectionType:connectionType}; //Array 

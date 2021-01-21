@@ -99,6 +99,14 @@ function getAuthenticationDetails(){
   if(isset($pluginDetails) && !empty($pluginDetails)){
       if(!empty($pluginDetails['activation_email'])){
         $email = $pluginDetails['activation_email'];
+        if(strpos($email, "+") !== false)
+        {
+            $email = str_replace("+", "$", $email);
+        }
+        else 
+        {
+            $email = $email; 
+        }
       }
       if(!empty($pluginDetails['activation_key'])){
         $key = $pluginDetails['activation_key'];
