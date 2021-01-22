@@ -833,7 +833,7 @@ function updateContact($contactId,$woocommerce_order_data,$access_token){
         }
         $jsonAddressedArray = json_encode($contactLatestInformation);
         $jsonArray = '{"addresses": ['.$jsonAddressedArray.'],"company": {"id": '.$companyId.'},"phone_numbers": 
-          [{"field": "PHONE1","number": "'.$phone1.'"}],"given_name": "'.$firstName.'"}';
+          [{"field": "PHONE1","number": "'.$phone1.'","type":"Mobile"}],"given_name": "'.$firstName.'"}';
         $url = 'https://api.infusionsoft.com/crm/rest/v1/contacts/'.$contactId;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
