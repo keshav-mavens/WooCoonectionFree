@@ -166,10 +166,14 @@ function wc_export_wc_products()
         $applicationAuthenticationDetails = getAuthenticationDetails();
         //get the access token....
         $access_token = '';
+        $applicationEdition = '';
         if(!empty($applicationAuthenticationDetails)){//check authentication details......
             if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
                 $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
             }
+            
+            //set the value of application edition such as keap, infusionsoft.....
+        	$applicationEdition = $applicationAuthenticationDetails[0]->user_application_edition;
         }
         //Define the exact position of process to store the logs...
         $callback_purpose = 'Export Woocommerce Product : Process of export woocommerce product to infusionsoft/keap application';
@@ -210,7 +214,15 @@ function wc_export_wc_products()
                     $wcproductName = $wcproductdetails->get_name();//get product name....
                     $wcproductDesc = $wcproductdetails->get_description();//get product description....
                     if(isset($wcproductDesc) && !empty($wcproductDesc)){
-                        $wcproductDesc = $wcproductDesc;
+                    	//check if application edition is keap...
+		              	if($applicationEdition == APPLICATION_TYPE_KEAP){
+		                  //then strip tags of description because keap application description section is simple textarea......
+		                  $wcproductDesc = strip_tags($wcproductDesc);
+		              	}
+		              	else{
+		                  //if application edition is infusionsoft then pass description same set in wp product....
+		                  $wcproductDesc = $wcproductDesc;
+		              	}
                     }else{
                         $wcproductDesc = "";
                     }
@@ -218,11 +230,20 @@ function wc_export_wc_products()
                     if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
                         $wcproductShortDesc = strip_tags($wcproductShortDesc);
                			$shortDescriptionLen = strlen($wcproductShortDesc);
-               			if($shortDescriptionLen > 250){
-               				$wcproductShortDesc = substr($wcproductShortDesc,0,250);
-               			}else{
-               				$wcproductShortDesc = $wcproductShortDesc;
-               			}
+               			//check if application edition is keap....
+		              	if($applicationEdition == APPLICATION_TYPE_KEAP){
+			                //then check if description is empty......
+			                if(empty($wcproductDesc)){
+			                  //then set short description as description....
+			                  $wcproductDesc = $wcproductShortDesc;
+			                }
+			            }else{
+			                if($shortDescriptionLen > 250){
+			                  $wcproductShortDesc = substr($wcproductShortDesc,0,250);
+			                }else{
+			                  $wcproductShortDesc = $wcproductShortDesc;
+			                }
+			            }
                		}else{
                         $wcproductShortDesc = "";
                     }

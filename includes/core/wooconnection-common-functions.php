@@ -922,7 +922,7 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
 }
 
 //add product to infusionsoft/keap account..
-function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
+function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEdition=''){
     //define empty variables......
     $currentProductID = '';
     $checkAlreadyExist = '';
@@ -947,7 +947,15 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
       $wcproductName = $item->get_name();//get product name....
       $wcproductDesc = $item->get_description();//get product description....
       if(isset($wcproductDesc) && !empty($wcproductDesc)){
-          $wcproductDesc = $wcproductDesc;
+          //check if application edition is keap...
+          if($appEdition == APPLICATION_TYPE_KEAP){
+              //then strip tags of description because keap application description section is simple textarea......
+              $wcproductDesc = strip_tags($wcproductDesc);
+          }
+          else{
+              //if application edition is infusionsoft then pass description same set in wp product....
+              $wcproductDesc = $wcproductDesc;
+          }
       }else{
           $wcproductDesc = "";
       }
@@ -955,10 +963,19 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
       if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
           $wcproductShortDesc = strip_tags($wcproductShortDesc);
           $shortDescriptionLen = strlen($wcproductShortDesc);
-          if($shortDescriptionLen > 250){
-            $wcproductShortDesc = substr($wcproductShortDesc,0,250);
+          //check if application edition is keap....
+          if($appEdition == APPLICATION_TYPE_KEAP){
+            //then check if description is empty......
+            if(empty($wcproductDesc)){
+              //then set short description as description....
+              $wcproductDesc = $wcproductShortDesc;
+            }
           }else{
-            $wcproductShortDesc = $wcproductShortDesc;
+            if($shortDescriptionLen > 250){
+              $wcproductShortDesc = substr($wcproductShortDesc,0,250);
+            }else{
+              $wcproductShortDesc = $wcproductShortDesc;
+            }
           }
       }else{
           $wcproductShortDesc = "";
