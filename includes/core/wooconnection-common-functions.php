@@ -137,11 +137,11 @@ function getAuthenticationDetails(){
 }
 
 //Main function is used to generate the export products html.....
-function createExportProductsHtml(){
+function createExportProductsHtml($limit='',$offset='',$htmlType=''){
   //Define export table html variable.....
   $table_export_products_html = "";
   //call the common function to get the list of woocommerce publish products...
-  $woocommerceProducts = listExistingDatabaseWooProducts();
+  $woocommerceProducts = listExistingDatabaseWooProducts($limit,$offset);
   //Get the application type and set the lable on the basis of it....
   $configurationType = applicationType();
   $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;//Default....
@@ -159,24 +159,32 @@ function createExportProductsHtml(){
   
   //set html if no products exist in woocommerce for export....
   if(empty($woocommerceProducts)){
-      $table_export_products_html = '<p class="heading-text" style="text-align:center">No products exist in woocommerce for export to '.$applicationLabel.' application.</p>';
+      if(empty($htmlType)){
+        $table_export_products_html = '<p class="heading-text" style="text-align:center">No products exist in woocommerce for export to '.$applicationLabel.' application.</p>';
+      }
   }else{
       //Compare woocommerce publish products with application products
-      $exportProductsData = exportProductsListingApplication($woocommerceProducts,$applicationProductsArray,$applicationLabel);
+      $exportProductsData = exportProductsListingApplication($woocommerceProducts,$applicationProductsArray,$applicationLabel,$htmlType);
       if(isset($exportProductsData) && !empty($exportProductsData)){
           //Get the export products table html and append to table
           if(!empty($exportProductsData['exportTableHtml'])){
-            $table_export_products_html .= '<form action="" method="post" id="wc_export_products_form" onsubmit="return false">  
-              <table class="table table-striped export_products_listing_class" id="export_products_listing">
-                '.$exportProductsData['exportTableHtml'].'
-              </table>
-              <div class="form-group col-md-12 text-center m-t-60">
-                <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Process Export Products....</div>
-                <div class="alert-error-message export-products-error" style="display: none;"></div>
-                <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
-                <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
-              </div>
-            </form>';
+            if(!empty($htmlType) && $htmlType == PRODUCTS_HTML_TYPE_LOAD_MORE){
+                $table_export_products_html = $exportProductsData['exportTableHtml'];
+            }
+            else{
+              $table_export_products_html .= '<form action="" method="post" id="wc_export_products_form" onsubmit="return false">  
+                <table class="table table-striped export_products_listing_class" id="export_products_listing">
+                  '.$exportProductsData['exportTableHtml'].'
+                </table>
+                <div class="form-group col-md-12 text-center m-t-60">
+                  <div class="load_table_export_products" style="display:none;"><img src="http://localhost/wooconnectionfree/wp-content/plugins/wooconnection/assets/images/loader.svg"></div>
+                  <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Process Export Products....</div>
+                  <div class="alert-error-message export-products-error" style="display: none;"></div>
+                  <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
+                  <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
+                </div>
+              </form>';
+            }
           }
       }
   }
@@ -185,9 +193,17 @@ function createExportProductsHtml(){
 }
 
 //list of existing woocommerce products from database and then return...
-function listExistingDatabaseWooProducts(){
+function listExistingDatabaseWooProducts($limit='',$offset=''){
+    $productsLimit = 20;
+    $productsOffset = 0;
+    if(!empty($limit)){
+      $productsLimit = $limit;
+    }
+    if(!empty($offset)){
+      $productsOffset = $offset;
+    }
     $productsListing = array();
-    $existProductsDetails = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+    $existProductsDetails = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'=>$productsLimit,'offset'=>$productsOffset));
     if(!empty($existProductsDetails)){
       $productsListing = $existProductsDetails;
     }
@@ -195,7 +211,7 @@ function listExistingDatabaseWooProducts(){
 }
 
 //create products listing if infusionsoft/keap products are exist...
-function exportProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
+function exportProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$htmlType=''){
     $exportTableHtml  = '';//Define variable..
     $exportProductsData = array();//Define array...
     //first need to check connection is created or not infusionsoft/keap application then next process need to done..
@@ -210,11 +226,13 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
 
     //First check if wooproducts exist...
     if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
-        //Create first table....
-        $exportTableHtml .= '<thead>';
-        $exportTableHtml .= '<tr><th style="text-align: center;"><input type="checkbox" id="export_products_all" name="export_products_all" class="all_products_checkbox_export" value="allproductsexport"></th><th>WooCommerce Product Name</th><th>WooCommerce Product SKU</th><th>WooCommerce Product Price</th><th>'.$applicationType.' Product</th></tr>';
-        $exportTableHtml .= '</thead>';
-        $exportTableHtml .= '<tbody>';
+        if(empty($htmlType)){
+          //Create first table....
+          $exportTableHtml .= '<thead>';
+          $exportTableHtml .= '<tr><th style="text-align: center;"><input type="checkbox" id="export_products_all" name="export_products_all" class="all_products_checkbox_export" value="allproductsexport"></th><th>WooCommerce Product Name</th><th>WooCommerce Product SKU</th><th>WooCommerce Product Price</th><th>'.$applicationType.' Product</th></tr>';
+          $exportTableHtml .= '</thead>';
+          $exportTableHtml .= '<tbody>';
+        }
         $productSelectHtml = '';
         foreach ($wooCommerceProducts as $key => $value) {
             if(!empty($value->ID)){
@@ -440,14 +458,14 @@ function updateExistingProduct($alreadyExistProductId,$access_token,$productDeta
 }
 
 //Main function is used to generate the match products html.....
-function createMatchProductsHtml(){
+function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',$matchProductHtmlType=''){
   global $wpdb;
   //Define match table html variable.....
   $table_match_products_html = "";
   //Define array to manage the sorting.....
   $wcproductsArray = array();
   //call the common function to get the list of woocommerce products they are in relation with application products.......
-  $wooCommerceProducts = listExistingDatabaseWooProducts();
+  $wooCommerceProducts = listExistingDatabaseWooProducts($matchProductsLimit,$matchProductsOffset);
   
   //Get the application type and set the lable on the basis of it.... 
   $configurationType = applicationType();
@@ -470,15 +488,20 @@ function createMatchProductsHtml(){
     $table_match_products_html = '<p class="heading-text" style="text-align:center">No products mapping exist.</p>';
   }else{
       //Compare woocommerce publish products application products....
-      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel);
+      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel,$matchProductHtmlType);
       //Check export products data....
       if(isset($matchProductsData) && !empty($matchProductsData)){
           //Get the match products table html and append to table
           if(!empty($matchProductsData['matchTableHtml'])){
-            $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
-              <table class="table table-striped match_products_listing_class" id="match_products_listing">
-                '.$matchProductsData['matchTableHtml'].'
-              </table></form>';
+            if(!empty($matchProductHtmlType) && $matchProductHtmlType == PRODUCTS_HTML_TYPE_LOAD_MORE){
+                $table_match_products_html = $matchProductsData['matchTableHtml'];
+            }
+            else{
+              $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
+                <table class="table table-striped match_products_listing_class" id="match_products_listing">
+                  '.$matchProductsData['matchTableHtml'].'
+                </table></form>';
+            }
           }
       }
   }
@@ -487,22 +510,24 @@ function createMatchProductsHtml(){
 }
 
 //Create the match products table listing....
-function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
+function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$matchProductHtmlType=''){
     $matchTableHtml  = '';//Define variable..
     $matchProductsData = array();//Define array...
     //First check if wooproducts exist...
     if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
-        //Create first table....
-        $matchTableHtml .= '<thead>';
-        $matchTableHtml .= '<tr>
-                        <th></th>
-                        <th>WooCommerce Product Name</th>
-                        <th>WooCommerce Product SKU</th>
-                        <th>WooCommerce Product Price</th>
-                        <th>'.$applicationType.' Product</th>
-                      </tr>';
-        $matchTableHtml .= '</thead>';
-        $matchTableHtml .= '<tbody>';
+        if(empty($matchProductHtmlType)){
+          //Create first table....
+          $matchTableHtml .= '<thead>';
+          $matchTableHtml .= '<tr>
+                          <th></th>
+                          <th>WooCommerce Product Name</th>
+                          <th>WooCommerce Product SKU</th>
+                          <th>WooCommerce Product Price</th>
+                          <th>'.$applicationType.' Product</th>
+                        </tr>';
+          $matchTableHtml .= '</thead>';
+          $matchTableHtml .= '<tbody>';
+        }
         $productExistId = '';
         foreach ($wooCommerceProducts as $key => $value) {
             if(!empty($value)){

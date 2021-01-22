@@ -39,7 +39,7 @@
                                 $(".tab_related_content").html(data);
                                 jQuery(".tab_related_content").removeClass('overlay');
                                 if(jQuery("#export_products_listing").length){
-                                    applyDatables("export_products_listing");
+                                    //applyDatables("export_products_listing");
                                 }
                                 //add select 2 for woocommerce products field
                                 if($(".wc_iskp_products_dropdown").length){
@@ -174,7 +174,7 @@
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     //apply datatable on export products listing
                                     if(jQuery("#export_products_listing").length){
-                                        applyDatables("export_products_listing");
+                                        //applyDatables("export_products_listing");
                                     }
                                     //add select 2 for woocommerce products field
                                     if($(".wc_iskp_products_dropdown").length){
@@ -185,7 +185,7 @@
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     //apply datatable on export products listing
                                     if(jQuery("#match_products_listing").length){
-                                        applyDatables("match_products_listing");
+                                        //applyDatables("match_products_listing");
                                     }
                                     //add select 2 for woocommerce products field
                                     if($(".application_match_products_dropdown").length){
@@ -193,6 +193,8 @@
                                     }
                                 }    
                             }
+                            //reintialize the default values on tab change..........
+                            //$(".scroll_counter").val(0);
                         }
                     });
                 }
@@ -538,7 +540,7 @@ function applyDatables(tabel_id){
             {
                 $('#'+tabel_id).DataTable({
                     "pagingType": "simple_numbers",
-                    "pageLength": 10,
+                    "pageLength": 50,
                     "searching": false,
                     "bLengthChange" : false,
                     "bInfo":false,
@@ -561,7 +563,7 @@ function applyDatables(tabel_id){
             {
                 $('#'+tabel_id).DataTable({
                     "pagingType": "simple_numbers",
-                    "pageLength": 10,
+                    "pageLength": 50,
                     "searching": false,
                     "bLengthChange" : false,
                     "bInfo":false,
@@ -615,7 +617,7 @@ function wcProductsExport(){
                 }
                 //apply datatable on export products listing
                 if(jQuery("#export_products_listing").length){
-                    applyDatables("export_products_listing");
+                    //applyDatables("export_products_listing");
                 }
 
                 //add select 2 for woocommerce products field
@@ -657,5 +659,50 @@ function applyCollapseRules(div_id){
         $('#'+div_id).on('hidden.bs.collapse', function() {
            $("#icon_"+div_id).addClass('fa-caret-down').removeClass('fa-caret-up');
         });    
+    }
+}
+
+//define the intial values...
+var productsLimit = 20;
+var productsOffset = 20;
+
+//on scroll load more products...
+function loadMoreProducts(){
+    //check scroll touch to botton...then proceed next...
+    if($(".righttextInner").scrollTop() + $(".righttextInner").innerHeight() >= $(".righttextInner")[0].scrollHeight)
+    {
+        var tabType = $(".nav-link.active").attr('href');
+        var tabId = tabType.split('#');
+        if(tabId[1] != ""){
+            var scroll_counter_value = $("#scroll_count_"+tabId[1]).val();
+            var scroll_counter_updated_value = parseInt(scroll_counter_value) + 1;
+            $("#scroll_count_"+tabId[1]).val(scroll_counter_updated_value);
+            if(scroll_counter_updated_value !== 1){
+                productsOffset = parseInt(productsOffset) + parseInt(productsLimit);
+            }else{
+                productsLimit = 20;
+                productsOffset = 20;
+            }
+            $(".load_"+tabId[1]).html('');
+            $(".load_"+tabId[1]).html('<img src="http://localhost/wooconnectionfree/wp-content/plugins/wooconnection/assets/images/loader.svg">');
+            $(".load_"+tabId[1]).show();
+            jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
+                var responsedata = JSON.parse(data);
+                $(".load_"+tabId[1]).hide();
+                if(responsedata.status == "1") {
+                    if(responsedata.moreProductsListing != ""){
+                        if(tabId[1] == 'table_export_products'){
+                            $("table#export_products_listing tbody").append(responsedata.moreProductsListing);
+                        }else{
+                            $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
+                        }
+                    }else{
+                        $(".load_"+tabId[1]).html('');
+                        $(".load_"+tabId[1]).html('No More Products Exist!');
+                        $(".load_"+tabId[1]).show();
+                    }
+                }
+            });
+        }
     }
 }

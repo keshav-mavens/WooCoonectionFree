@@ -57,3 +57,8 @@
 	define('STATUS_ACTIVE', 1);
 	define('STATUS_INACTIVE', 2);
 	define('STATUS_DELETED', 3);
+	//limit and offset entities for lazy loading of products..
+	define("PRODUCT_LAZY_LOADING_LIMIT", 20);
+	define("PRODUCT_LAZY_LOADING_OFFSET", 0);
+	//set the products html.....
+	define("PRODUCTS_HTML_TYPE_LOAD_MORE", 1);

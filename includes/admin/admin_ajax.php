@@ -378,4 +378,23 @@ function wc_get_product_variation()
 	die();
 }
 
+//Wordpress Hook : This hook is triggered to load the more product either for match products tab or export products tab.....
+add_action('wp_ajax_wc_load_more_products','wc_load_more_products');
+function wc_load_more_products(){
+	if(isset($_POST) && !empty($_POST)){
+		$moreProductsListing = '';
+		if(!empty($_POST['tabversion']) && !empty($_POST['productsLimit']) && !empty($_POST['productsOffset'])){
+			if($_POST['tabversion'] == 'table_export_products'){
+				//then call the "createExportProductsHtml" function to get the next products for export products...
+        		$moreProductsListing = createExportProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+			}else if ($_POST['tabversion'] == 'table_match_products') {
+				//then call the "createMatchProductsHtml" function to get the next products for match products....
+				$moreProductsListing = createMatchProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+			}
+	    }
+	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'moreProductsListing'=>$moreProductsListing));
+	}
+	die();
+}
+
 ?>
