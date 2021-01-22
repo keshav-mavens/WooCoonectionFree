@@ -380,6 +380,7 @@ function wc_get_product_variation()
 
 //Wordpress Hook : This hook is triggered to load the more product either for match products tab or export products tab.....
 add_action('wp_ajax_wc_load_more_products','wc_load_more_products');
+//Function Definition : wc_load_more_products
 function wc_load_more_products(){
 	if(isset($_POST) && !empty($_POST)){
 		$moreProductsListing = '';

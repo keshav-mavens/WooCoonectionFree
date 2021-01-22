@@ -671,6 +671,7 @@ function loadMoreProducts(){
     //check scroll touch to botton...then proceed next...
     if($(".righttextInner").scrollTop() + $(".righttextInner").innerHeight() >= $(".righttextInner")[0].scrollHeight)
     {
+        //get the href to identify for which tab scroll request is hit....
         var tabType = $(".nav-link.active").attr('href');
         var tabId = tabType.split('#');
         if(tabId[1] != ""){
