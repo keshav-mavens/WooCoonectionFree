@@ -37,17 +37,17 @@ $applicationLabel = applicationLabel($type);
 	        <div class="tab-content" id="nav-tabContent">
 	        	<div class="tab-pane fade show active" id="table_export_products" role="tabpanel" aria-labelledby="nav-home-tab">
 		       		<p class="heading-text">Select the WooCommerce products below that you would like to add to your <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> account and press the Export Products button (you may need to scroll to the bottom of the list to see it).</p>
-		       		<input type="hidden" id="scroll_count_table_export_products" value="0">
+		       		<input type="hidden" id="scroll_count_table_export_products" value="0" class="scroll_counter">
 		       		<div class="table-responsive export_products_listing_class" id="table_export_products_listing">
 						<?php echo createExportProductsHtml(); ?>
 					</div>
 				</div>
 		        <div class="tab-pane fade" id="table_match_products" role="tabpanel" aria-labelledby="nav-home-tab">
 		        	<p class="heading-text">Match up the existing WooCommerce products to the existing <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> products by choosing the appropriate <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> product from the dropdown menu. This will control which product in <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> we use when recording the orders. When you're done, don't forget to click the Update Mapping button at the bottom of the list.</p>
-		        	<input type="hidden" id="scroll_count_table_match_products" value="0">
+		        	<input type="hidden" id="scroll_count_table_match_products" value="0" class="scroll_counter">
 		        	<div class="table-responsive" id="table_match_products_listing">
 					</div>
-					<div class="load_table_match_products" style="text-align: center;display: none;"><img src="http://localhost/wooconnectionfree/wp-content/plugins/wooconnection/assets/images/loader.svg"></div>
+					<div class="load_table_match_products loading_products" style="text-align: center;display: none;"><img src="http://localhost/wooconnectionfree/wp-content/plugins/wooconnection/assets/images/loader.svg"></div>
 		        </div>
 	        </div>
 	        <?php }else{

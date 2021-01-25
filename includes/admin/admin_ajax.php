@@ -145,10 +145,12 @@ function wc_load_import_export_tab_main_content(){
 	//First check the target tab id the call the html function for latest html.....
 	if(isset($_POST['target_tab_id']) && !empty($_POST['target_tab_id'])){
 		$latestHtml = '';
+		$limit = 0;
+		$offset = 0;
 		if ($_POST['target_tab_id'] == '#table_export_products') {
-			$latestHtml = createExportProductsHtml();
+			$latestHtml = createExportProductsHtml($limit,$offset);
 		}else if ($_POST['target_tab_id'] == '#table_match_products') {
-			$latestHtml = createMatchProductsHtml();
+			$latestHtml = createMatchProductsHtml($limit,$offset);
 		}
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestHtml'=>$latestHtml));
 	}

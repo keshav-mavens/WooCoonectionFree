@@ -177,7 +177,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
                   '.$exportProductsData['exportTableHtml'].'
                 </table>
                 <div class="form-group col-md-12 text-center m-t-60">
-                  <div class="load_table_export_products" style="display:none;"><img src="http://localhost/wooconnectionfree/wp-content/plugins/wooconnection/assets/images/loader.svg"></div>
+                  <div class="load_table_export_products loading_products" style="display:none;"><img src="http://localhost/wooconnectionfree/wp-content/plugins/wooconnection/assets/images/loader.svg"></div>
                   <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Process Export Products....</div>
                   <div class="alert-error-message export-products-error" style="display: none;"></div>
                   <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
@@ -485,7 +485,9 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
   
   //set html if no products exist in woocommerce they are in relation with applcation products....
   if(empty($wooCommerceProducts)){
-    $table_match_products_html = '<p class="heading-text" style="text-align:center">No products mapping exist.</p>';
+    if(empty($matchProductHtmlType)){
+      $table_match_products_html = '<p class="heading-text" style="text-align:center">No products mapping exist.</p>';
+    }
   }else{
       //Compare woocommerce publish products application products....
       $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel,$matchProductHtmlType);
