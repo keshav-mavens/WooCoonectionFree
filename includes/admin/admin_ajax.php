@@ -145,11 +145,16 @@ function wc_load_import_export_tab_main_content(){
 	//First check the target tab id the call the html function for latest html.....
 	if(isset($_POST['target_tab_id']) && !empty($_POST['target_tab_id'])){
 		$latestHtml = '';
-		$limit = 0;
 		$offset = 0;
 		if ($_POST['target_tab_id'] == '#table_export_products') {
+			if(isset($_POST['newLimitExport']) && !empty($_POST['newLimitExport'])){
+				$limit = $_POST['newLimitExport'];
+			}
 			$latestHtml = createExportProductsHtml($limit,$offset);
 		}else if ($_POST['target_tab_id'] == '#table_match_products') {
+			if(isset($_POST['newLimitMatch']) && !empty($_POST['newLimitMatch'])){
+				$limit = $_POST['newLimitMatch'];
+			}
 			$latestHtml = createMatchProductsHtml($limit,$offset);
 		}
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestHtml'=>$latestHtml));
@@ -288,8 +293,16 @@ function wc_export_wc_products()
                     
                 }
             }
+            //set default offset and limit....
+            $exportOffset = 0;
+            $exportLimit = 20;
+            //check limit exist in post data or not......
+            if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
+            	//set the latest limit to fetch the records...
+            	$exportLimit = $_POST['newLimit'];
+            }
             //then call the "createExportProductsHtml" function to get the latest html...
-            $latestExportProductsHtml = createExportProductsHtml();
+            $latestExportProductsHtml = createExportProductsHtml($exportLimit,$exportOffset);
             echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestExportProductsHtml'=>$latestExportProductsHtml));
         }
     }

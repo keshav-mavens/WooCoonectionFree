@@ -154,9 +154,15 @@
                 jQuery(".ajax_loader").show();
                 jQuery(".tab_related_content").addClass('overlay');
                 if(target_tab_id != ""){
+                    if(target_tab_id == '#table_export_products'){
+                        var newExportLimit = $("#products_limit_export").val();
+                    }else if(target_tab_id == '#table_match_products'){
+                        var newMatchLimit = $("#products_limit_match").val();
+                    }
+                    //alert("exportlimit : "+newExportLimit+"matchLimit : "+newMatchLimit);
                     $(target_tab_id+"_listing").html('');
                     $(target_tab_id+"_listing").html('<p class="heading-text" style="text-align:center;">Loading Data....</p>');
-                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id}, function(data) {
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id,newLimitExport:newExportLimit,newLimitMatch:newMatchLimit}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
                             jQuery(".ajax_loader").hide();
@@ -168,10 +174,10 @@
                                 }else if (target_tab_id == '#table_match_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
+                                    applySelectTwo('application_match_products_dropdown');
                                 }    
                             }
-                            //reintialize the default values on tab change..........
-                            $(".scroll_counter").val(0);
+                            //hide the loader div and "error message" on tab change.....
                             $(".loading_products").hide();
                         }
                     });
@@ -240,6 +246,7 @@
             $document.on("change",".application_match_products_dropdown", function(event)
             {
                 event.stopPropagation();
+                $(".load_table_match_products loading_products").hide();
                 //get woocommerce product id....
                 var wcProductId = $(this).data('id');
                 //get application product id with woocommerce product mapping set.........
@@ -528,6 +535,15 @@ function applySelectTwo(element){
 
 //On click of export products button send ajax to export products and on sucess update the html....
 function wcProductsExport(){
+    //get the scroll top....
+    var scrollTop = $(".righttextInner").scrollTop();
+    //minus 100px from it....
+    var newScrollTopValue = scrollTop-100;
+    //set the new scroll top with latest value....
+    $(".righttextInner").scrollTop(newScrollTopValue);
+    $(".loading_products").hide();
+    //get the input type hidden value....
+    var limitAfterExport = $("#products_limit_export").val();
     var checkProducts = checkSelectedProducts('export_products_listing_class','allproductsexport');
     var checkSelectedProductsCount = checkProducts.length;//console.log(checkProducts);
     if(checkSelectedProductsCount == 0){
@@ -537,7 +553,7 @@ function wcProductsExport(){
         $(".export-products-error").hide();
         $(".exportProducts").show();
         $('.export_products_btn').addClass("disable_anchor");
-        jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize(), function(data) {
+        jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize()+"&newLimit="+limitAfterExport, function(data) {
             var responsedata = JSON.parse(data);
             $(".exportProducts").hide();
             if(responsedata.status == "1") {
@@ -556,6 +572,8 @@ function wcProductsExport(){
                     $('.export_products_btn').removeClass("disable_anchor");
                 }, 3000);
             }
+            //after export products set the scroll top to 0...
+            $(".righttextInner").scrollTop(0);
         });
     }
     setTimeout(function()
@@ -584,11 +602,14 @@ function applyCollapseRules(div_id){
     }
 }
 
+//define the intial values....
+var productsLimit = 20;
+var productsOffset = 20;
+var customLimitExport = 20;
+var customLimitMatch = 20;
+
 //on scroll load more products...
 function loadMoreProducts(){
-    //define the intial values....
-    var productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
-    var productsOffset = PRODUCT_LAZY_LOADING_OFFSET;
     //check scroll touch to botton...then proceed next...
     if($(".righttextInner").scrollTop() + $(".righttextInner").innerHeight() >= $(".righttextInner")[0].scrollHeight)
     {
@@ -611,26 +632,44 @@ function loadMoreProducts(){
                 productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
                 productsOffset = PRODUCT_LAZY_LOADING_OFFSET;
             }
+            if(tabId[1] == 'table_export_products'){
+                customLimitExport = parseInt(productsOffset)+parseInt(productsLimit);
+            }else if(tabId[1] == 'table_match_products'){
+                customLimitMatch = parseInt(productsOffset) + parseInt(productsLimit);
+            }
+            //set the input hidden value to fetch the same list of records after export process done....
+            $("#products_limit_export").val(customLimitExport);
+            $("#products_limit_match").val(customLimitMatch);
             //set the loader image....
             $(".load_"+tabId[1]).html('');
             $(".load_"+tabId[1]).html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
             $(".load_"+tabId[1]).show();
+            $('.export_products_btn').addClass("disable_anchor");
             //send ajax to get the latest products of wc with updated offset....
             jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
                 var responsedata = JSON.parse(data);
                 //hide the loader...
                 $(".load_"+tabId[1]).hide();
                 if(responsedata.status == "1") {
+                    $('.export_products_btn').removeClass("disable_anchor");
                     if(responsedata.moreProductsListing != ""){
                         //check the tab if then append the next products html.....
                         if(tabId[1] == 'table_export_products'){
                             $("table#export_products_listing tbody").append(responsedata.moreProductsListing);
+                            //first check checkbox of all checkbox is checked or not....
+                            if($(".all_products_checkbox_export").is(":checked")){
+                                $(".each_product_checkbox_export").prop("checked",true);
+                            }
                         }else{
                             $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
                             //apply select two on match products tab.....
                             applySelectTwo('application_match_products_dropdown');
                         }
                     }else{
+                        //minus something from scroll top to prevent next ajax request immediately.....
+                        var scrollTop = $(".righttextInner").scrollTop();
+                        var newScrollTopValue = scrollTop-100;//minus 100 to set the new scroll top value....
+                        $(".righttextInner").scrollTop(newScrollTopValue);//set scroll top to up on the basis of new value....
                         //set the html to no products if response html is empty.....
                         $(".load_"+tabId[1]).html('');
                         $(".load_"+tabId[1]).html('No More Products Exist!');
