@@ -604,7 +604,8 @@ function applyCollapseRules(div_id){
 
 //define the intial values....
 var productsLimit = 20;
-var productsOffset = 20;
+var productsOffsetExport = 20;
+var productsOffsetMatch = 20;
 var customLimitExport = 20;
 var customLimitMatch = 20;
 
@@ -625,17 +626,26 @@ function loadMoreProducts(){
             var scroll_counter_updated_value = parseInt(scroll_counter_value) + 1;
             //set the latest value....
             $("#scroll_count_"+tabId[1]).val(scroll_counter_updated_value);
-            //compare scroll counter value......
-            if(scroll_counter_updated_value !== 1){
-                productsOffset = parseInt(productsOffset) + parseInt(productsLimit);
-            }else{
-                productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
-                productsOffset = PRODUCT_LAZY_LOADING_OFFSET;
-            }
             if(tabId[1] == 'table_export_products'){
-                customLimitExport = parseInt(productsOffset)+parseInt(productsLimit);
+                //compare scroll counter value......
+                if(scroll_counter_updated_value !== 1){
+                    productsOffsetExport = parseInt(productsOffsetExport) + parseInt(productsLimit);
+                }else{
+                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                    productsOffsetExport = PRODUCT_LAZY_LOADING_OFFSET;
+                }
+                var productsOffset = productsOffsetExport;
+                customLimitExport = parseInt(productsOffsetExport)+parseInt(productsLimit);
             }else if(tabId[1] == 'table_match_products'){
-                customLimitMatch = parseInt(productsOffset) + parseInt(productsLimit);
+                //compare scroll counter value......
+                if(scroll_counter_updated_value !== 1){
+                    productsOffsetMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+                }else{
+                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                    productsOffsetMatch = PRODUCT_LAZY_LOADING_OFFSET;
+                }
+                var productsOffset = productsOffsetMatch;
+                customLimitMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
             }
             //set the input hidden value to fetch the same list of records after export process done....
             $("#products_limit_export").val(customLimitExport);
