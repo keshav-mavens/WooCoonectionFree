@@ -112,6 +112,21 @@ class WooConnectionPro {
                 ('Order Successful','wooconnection','successfulorder',1,1),
                 ('Order Failed','wooconnection','failedorder',1,1)");
         }
+
+        //Check Table Records : First need to check whether the table records is exist or not if not exist then create new table records with pro campaign goals....... 
+        $checkTableRecordsPro = $wpdb->get_results('SELECT * FROM '.$wp_table_name.'  WHERE wc_trigger_verison=2'); 
+        if(empty($checkTableRecordsPro)){   
+            $wpdb->query("INSERT INTO ".$wp_table_name."    
+                (`wc_goal_name`,`wc_integration_name`,`wc_call_name`,`wc_trigger_type`,`wc_trigger_verison`)    
+                VALUES  
+                ('Checkout Page View','wooconnectionuser','checkoutpage',2,2),  
+                ('Cart Emptied','wooconnectionuser','emptiedcart',2,2), 
+                ('Item Added to Cart','wooconnectionuser','added{Product SKU}',2,2),    
+                ('Review Left','wooconnectionuser','review{Product SKU}',2,2),  
+                ('Any Purchase','wooconnectionorder','success',3,2),    
+                ('Specific Product','wooconnectionorder','{Product SKU}',3,2),  
+                ('Coupon Code Applied','wooconnectionorder','coupon{Coupon Code}',3,2)");  
+        }
     }
 
     //Function Definition : create_countries_database_table

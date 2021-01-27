@@ -169,6 +169,11 @@
                         if($(".override_product_category_rule").length){
                             sortabledivs('override_product_category_rule');
                         }
+
+                        //apply data tables on coupons listing with coupon code...
+                        if(jQuery("#coupon_listing_with_sku").length){
+                            applyDatables("coupon_listing_with_sku");
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -551,6 +556,11 @@
                 var inputType = $(this).find(':selected').data('id');//get input type.....
                 //check value
                 if(inputType != "" && inputType !== null){
+                    if(inputType == 'input-type-3' || inputType == 'input-type-4'){
+                        $(".morecfieldoptions").show(); 
+                    }else{
+                        $(".morecfieldoptions").hide();
+                    }
                     $(".externalcfields").hide();//hide the all external fields first,...
                     $("."+inputType).show();//then show the only external fields which is related to input type....
                 }
@@ -1061,6 +1071,9 @@ function validateForms(form){
             });
 
             $("#"+form).validate({
+                onfocusout: false,
+                onkeyup: false,
+                ignore: ".ignore",
                 rules:{
                         integrationname: {
                             required: true,
@@ -1307,9 +1320,11 @@ function activateWcPlugin(){
 //show the popup to edit the trigger deatils....
 function popupEditDetails(triggerid){
     if(triggerid != ""){
+        $checkClass = $("#trigger_tr_"+triggerid).attr('class');
         jQuery.post( ajax_object.ajax_url + "?action=wc_get_trigger_details",{triggerid:triggerid}, function(data) {
             var responsedata = JSON.parse(data);
             if(responsedata.status == "1") {
+                jQuery("label.error").hide();
                 jQuery("#edittriggerid").val(triggerid);
                 jQuery("#edittriggerid").val(triggerid);
                 if(responsedata.triggerGoalName != ""){
@@ -1321,6 +1336,13 @@ function popupEditDetails(triggerid){
                 }
                 if(responsedata.triggerCallName != ""){
                     jQuery("#callname").val(responsedata.triggerCallName);
+                    if($checkClass!="" && $checkClass == 'readonly'){
+                        $('#callname').attr('readonly', true);
+                        $('#callname').addClass('ignore');
+                    }else{
+                        $('#callname').attr('readonly', false);
+                        $('#callname').removeClass('ignore');
+                    }
                 }
                 $("#editTriggerDetails").show();
                 //validate a application_settings_form form.....
@@ -1354,8 +1376,8 @@ function updateTriggerdetails(){
                 if(responsedata.triggerIntegrationName != ""){
                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_integration_name_'+trigger_id).html(responsedata.triggerIntegrationName);
                 }
-                if(responsedata.triggerCallName != ""){
-                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.triggerCallName);
+                if(responsedata.displayCallName != ""){
+                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.displayCallName);
                 }
             }else{
                 $(".trigger-details-error").show();
@@ -1434,6 +1456,24 @@ function applyDatables(tabel_id){
                     }
                 });
             }
+        }
+        //Campaign Goals Tab: apply datatables on products listing with sku..
+        else if(tabel_id == 'products_listing_with_sku_34' 
+                || tabel_id == 'products_listing_with_sku_35' 
+                    || tabel_id == 'products_listing_with_sku_40' 
+                        || tabel_id == 'coupon_listing_with_sku') {
+            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
+            {
+                $('#'+tabel_id).DataTable({
+                    "pagingType": "simple_numbers",
+                    "pageLength": 5,
+                    "searching": false,
+                    "bLengthChange" : false,
+                    "bInfo":false,
+                    "scrollX": false,
+                    "ordering": false,
+                });
+            }   
         }
     }
 }
@@ -1893,6 +1933,47 @@ function loading_thanks_overrides($type){
                         sortabledivs('override_product_category_rule');
                     }
                 }
+            }
+        }
+    });
+}
+
+//This is a common function used to perform the copy clipboard content action........
+function copyContent(elementid) {
+  var elementDetails = document.getElementById(elementid);
+  if(window.getSelection) {
+    var selectWindow = window.getSelection();
+    var eleTextRange = document.createRange();
+    eleTextRange.selectNodeContents(elementDetails);
+    selectWindow.removeAllRanges();
+    selectWindow.addRange(eleTextRange);
+    document.execCommand("Copy");
+    var executeCommand = document.execCommand('copy',true);
+  }else if(document.body.createTextRange) {
+    var eleTextRange = document.body.createTextRange();
+    eleTextRange.moveToElementText(elementDetails);
+    eleTextRange.select();
+    var executeCommand = document.execCommand('copy',true);
+  }
+  
+}
+
+//Onlick of products sku get the products listing with listing then show the popup....
+function showProductsListing(length){
+    jQuery("#products_sku_listing").html('');
+    jQuery("#products_sku_listing").html('<tr class="text-center"><td colspan="3">Loading Records...</td></tr>');
+    $("#productsListing").show();
+    $(".common-table-class").attr("id", "products_listing_with_sku_"+length);
+    jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length}, function(data) {
+        var responsedata = JSON.parse(data);
+        if(responsedata.status == "1") {
+            if(responsedata.productsListing != ""){
+                jQuery("#products_sku_listing").html('');
+                jQuery("#products_sku_listing").html(responsedata.productsListing);
+            }
+            //apply data tables on products listing with sku...
+            if(jQuery("#products_listing_with_sku_"+length).length){
+                applyDatables("products_listing_with_sku_"+length);
             }
         }
     });
