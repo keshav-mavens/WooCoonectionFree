@@ -164,9 +164,9 @@
                         }
 
                         //apply data tables on coupons listing with coupon code...
-                        if(jQuery("#coupon_listing_with_sku").length){
-                            applyDatables("coupon_listing_with_sku");
-                        }
+                        // if(jQuery("#coupon_listing_with_sku").length){
+                        //     applyDatables("coupon_listing_with_sku");
+                        // }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -1446,27 +1446,24 @@ function hideCustomModel(modelId){
 }
 
 //comon function is used to apply a datatables by table id.....
-function applyDatables(tabel_id){
-    if(tabel_id != ""){
-        if(tabel_id == 'products_listing_with_sku_34' 
-                || tabel_id == 'products_listing_with_sku_35' 
-                    || tabel_id == 'products_listing_with_sku_40' 
-                        || tabel_id == 'coupon_listing_with_sku') {
-            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-            {
-                $('#'+tabel_id).DataTable({
-                    "pagingType": "simple_numbers",
-                    "pageLength": 5,
-                    "searching": false,
-                    "bLengthChange" : false,
-                    "bInfo":false,
-                    "scrollX": false,
-                    "ordering": false,
-                });
-            }   
-        }
-    }
-}
+// function applyDatables(tabel_id){
+//     if(tabel_id != ""){
+//         if(tabel_id == 'coupon_listing_with_sku') {
+//             if(!$.fn.DataTable.isDataTable('#'+tabel_id))
+//             {
+//                 $('#'+tabel_id).DataTable({
+//                     "pagingType": "simple_numbers",
+//                     "pageLength": 20,
+//                     "searching": false,
+//                     "bLengthChange" : false,
+//                     "bInfo":false,
+//                     "scrollX": false,
+//                     "ordering": false,
+//                 });
+//             }   
+//         }
+//     }
+// }
 
 //common function to apply a select2
 function applySelectTwo(element){
@@ -1963,10 +1960,6 @@ function showProductsListing(length){
                 jQuery("#products_sku_listing").html('');
                 jQuery("#products_sku_listing").html(responsedata.productsListing);
             }
-            //apply data tables on products listing with sku...
-            if(jQuery("#products_listing_with_sku_"+length).length){
-                applyDatables("products_listing_with_sku_"+length);
-            }
         }
     });
 }
@@ -2057,5 +2050,100 @@ function loadMoreProducts(){
                 }
             });
         }
+    }
+}
+
+//define the intial values for products listing with sku popup...
+var productsListingLimit = 20;
+var productsListingOffset = 20;
+
+//On scroll touch to bottom in products listing with sku popup
+function loadProductsWithSku(){
+    //check scroll touch to bottom then proceed next....
+    if($(".productsModelBody").scrollTop() + $(".productsModelBody").innerHeight() >= $(".productsModelBody")[0].scrollHeight){
+        //get the scroll counter value....
+        var products_scroll_counter_value = $("#products_scroll_count").val();
+        //add "1" to set the next value...
+        var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
+        //set the latest value....
+        $("#products_scroll_count").val(products_scroll_counter_updated_value);
+        //compare products listing scroll counter value......
+        if(products_scroll_counter_updated_value !== 1){
+            productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+        }else{
+            productsListingLimit = 20;
+            productsListingOffset = 20;
+        }
+
+        //set the loader image....
+        $(".load_products_listing_with_sku").html('');
+        $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+        $(".load_products_listing_with_sku").show();
+        var popupTableId = $(".common-table-class").attr('id');
+        var explodedId = popupTableId.split('products_listing_with_sku_');
+        var skuLength = explodedId[1];
+        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
+            var responseData = JSON.parse(data);
+            $(".load_products_listing_with_sku").hide();
+            if(responseData.status == "1"){
+                if(responseData.productsListingWithSku != ""){
+                    $("#products_sku_listing").append(responseData.productsListingWithSku);
+                }else{
+                    $(".load_products_listing_with_sku").html('');
+                    $(".load_products_listing_with_sku").html('No More Products Exist!');
+                    $(".load_products_listing_with_sku").show();
+                    //minus something from scroll top to prevent next ajax request immediately.....
+                    var listingScrollTop = $(".productsModelBody").scrollTop();
+                    var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
+                    $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
+                }
+            }
+        });
+    }
+}
+
+//define the intial values for coupons listing in popup....
+var couponsListingLimit = 20;
+var couponsListingOffset = 20;
+
+//On scroll touch to botton in coupons listing popup....
+function loadMoreCoupons(){
+    //check scroll touch to bottom....
+    if($(".couponsLisingContent").scrollTop() + $(".couponsLisingContent").innerHeight() >= $(".couponsLisingContent")[0].scrollHeight){
+        //get the scroll counter value....
+        var coupons_scroll_counter_value = $("#coupons_scroll_count").val();
+        //add "1" to set the next value...
+        var coupons_scroll_counter_updated_value = parseInt(coupons_scroll_counter_value)+1;
+        //set the latest value....
+        $("#coupons_scroll_count").val(coupons_scroll_counter_updated_value);
+        //compare products listing scroll counter value......
+        if(coupons_scroll_counter_updated_value !== 1){
+            couponsListingOffset = parseInt(couponsListingOffset) + parseInt(couponsListingLimit);
+        }else{
+            couponsListingLimit = 20;
+            couponsListingOffset = 20;
+        }
+        
+        //set the loader image.....
+        $(".load_coupons_listing").html('');
+        $(".load_coupons_listing").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+        $(".load_coupons_listing").show();
+        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_coupons",{couponsListingLimit:couponsListingLimit,couponsListingOffset:couponsListingOffset},function(data){
+            var responseData = JSON.parse(data);
+            $(".load_coupons_listing").hide();
+            if(responseData.status == "1"){
+                if(responseData.couponsListingHtml != ""){
+                    $("#coupon_listing_with_sku").append(responseData.couponsListingHtml);
+                }else{
+                    $(".load_coupons_listing").html('');
+                    $(".load_coupons_listing").html('No More Coupons Exist!');
+                    $(".load_coupons_listing").show();
+                    //minus something from scroll top to prevent next ajax request immediately.....
+                    var couponsListingScrollTop = $(".couponsLisingContent").scrollTop();
+                    var newCouponsListingScrollTopValue = couponsListingScrollTop-100;//minus 100 to set the new scroll top value....
+                    $(".couponsLisingContent").scrollTop(newCouponsListingScrollTopValue);//set scroll top to up on the basis of new value....
+                }
+            }
+        });
     }
 }

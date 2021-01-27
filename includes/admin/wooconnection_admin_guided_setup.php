@@ -33,7 +33,6 @@
     $importExportId = "progress_import_products";
     $automationId = "progress_automation";
   }
-  $plugin_settings = get_option('wc_plugin_details');
 ?>
 <div class="info-header">
   <p>Guided Setup</p>

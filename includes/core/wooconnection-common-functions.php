@@ -2251,9 +2251,20 @@ function getOrderTriggers(){
 }
 
 //get the list of products with sku...
-function get_products_listing($length){
+function get_products_listing($length,$limit='',$offset='',$htmlType = ''){
+  //set default limit and offset....
+  $listingLimit = 20;
+  $listingOffset = 0;
+  //check if limit exist in function parameter...
+  if(!empty($limit)){
+    $listingLimit = $limit;
+  }
+  //check if offset exist in function parameter....
+  if(!empty($offset)){
+    $listingOffset = $offset;
+  }
   $productLisingWithSku = "";
-  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => $listingLimit,'offset'=>$listingOffset));
   if(isset($woo_products_listing) && !empty($woo_products_listing)){
     foreach ($woo_products_listing as $key => $value)
     {
@@ -2265,16 +2276,30 @@ function get_products_listing($length){
                               </tr>';
     }
   }else{
-    $productLisingWithSku .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Products Exist!</td></tr>';
+    //if html type is empty then return table with message...else return empty....
+    if(empty($htmlType)){
+      $productLisingWithSku .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Products Exist!</td></tr>';
+    }
   }
   return $productLisingWithSku;
 }
 
 
 //get the list of coupons with coupon code...
-function get_coupons_listing(){
+function get_coupons_listing($couponListingLimit='',$couponListingOffset='',$couponListingType=''){
+  //set default limit and offset.....
+  $couponsListingLimit = 20;
+  $couponsListingOffset = 0;
+  //check if coupon limit exist in function parameter.....
+  if(!empty($couponListingLimit)){
+    $couponsListingLimit = $couponListingLimit;
+  }
+  //check if offset exist in function parameter.......
+  if(!empty($couponListingOffset)){
+    $couponsListingOffset = $couponListingOffset;
+  }
   $couponsLisingWithCode = "";
-  $woo_coupons_listing = get_posts(array('post_type' => 'shop_coupon','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  $woo_coupons_listing = get_posts(array('post_type' => 'shop_coupon','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'=>$couponsListingLimit,'offset'=>$couponsListingOffset));
   if(isset($woo_coupons_listing) && !empty($woo_coupons_listing)){
     foreach ($woo_coupons_listing as $key => $value)
     {
@@ -2293,7 +2318,9 @@ function get_coupons_listing(){
         $couponsLisingWithCode.='<tr><td id="coupon_'.$value->ID.'_code" class="skucss">'.substr($value->post_name, 0, 34).'</td><td class="skucss">'.$couponDescription.'</td><td><i class="fa fa-copy" onclick = "copyContent(\'coupon_'.$value->ID.'_code\')" style="cursor:pointer"></i></td></tr>';
     }
   }else{
-    $couponsLisingWithCode .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Coupons Exist!</td></tr>';
+    if(empty($couponListingType)){
+      $couponsLisingWithCode .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Coupons Exist!</td></tr>';
+    }
   }
   return $couponsLisingWithCode;
 }

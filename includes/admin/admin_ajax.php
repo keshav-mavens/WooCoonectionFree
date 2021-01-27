@@ -1453,4 +1453,30 @@ function wc_load_custom_fields_tab_data(){
 	}
 	die();
 }
+
+//Wordpress Hook : This action is trigged to load more products with sku....
+add_action('wp_ajax_wc_load_more_products_with_sku','wc_load_more_products_with_sku');
+//Function Definition : wc_load_more_products_with_sku
+function wc_load_more_products_with_sku(){
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		$productsListing = '';
+		$productsListing = get_products_listing($_POST['productSkuLength'],$_POST['productsListingLimit'],$_POST['productsListingOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListingWithSku'=>$productsListing));
+	}
+	die();
+}
+
+//Wordpress Hook : This action is triggered to load more coupons
+add_action('wp_ajax_wc_load_more_coupons','wc_load_more_coupons');
+//Function Definition : wc_load_more_coupons
+function wc_load_more_coupons(){
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		$couponsListingHtml = '';
+		$couponsListingHtml = get_coupons_listing($_POST['couponsListingLimit'],$_POST['couponsListingOffset'],COUPONS_HTML_WITH_LOAD_MORE);
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'couponsListingHtml'=>$couponsListingHtml));
+	}
+	die();
+}
 ?>
