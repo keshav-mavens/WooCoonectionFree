@@ -24,6 +24,8 @@ class WooConnectionPro {
         add_action('recurring_payment_schedular_everyday',array($this,'everyday_event_custom_function'));
         //Call the hook register deactivation to clear the set custom cron job....
         register_deactivation_hook(__FILE__,array($this,'clear_custom_schedular'));
+        //Call the hook register activation hook to create the custom table for store the recurring payment details...
+        //register_activation_hook( __FILE__, array($this, 'create_recurring_details_table' ) );
     }
 
     
