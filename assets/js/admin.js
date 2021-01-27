@@ -162,11 +162,6 @@
                         if($(".override_product_category_rule").length){
                             sortabledivs('override_product_category_rule');
                         }
-
-                        //apply data tables on coupons listing with coupon code...
-                        // if(jQuery("#coupon_listing_with_sku").length){
-                        //     applyDatables("coupon_listing_with_sku");
-                        // }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -1444,26 +1439,6 @@ function hideCustomModel(modelId){
         }
     }
 }
-
-//comon function is used to apply a datatables by table id.....
-// function applyDatables(tabel_id){
-//     if(tabel_id != ""){
-//         if(tabel_id == 'coupon_listing_with_sku') {
-//             if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-//             {
-//                 $('#'+tabel_id).DataTable({
-//                     "pagingType": "simple_numbers",
-//                     "pageLength": 20,
-//                     "searching": false,
-//                     "bLengthChange" : false,
-//                     "bInfo":false,
-//                     "scrollX": false,
-//                     "ordering": false,
-//                 });
-//             }   
-//         }
-//     }
-// }
 
 //common function to apply a select2
 function applySelectTwo(element){
