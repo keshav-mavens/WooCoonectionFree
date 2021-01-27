@@ -29,6 +29,7 @@
   $automationId = "";
   //If plugin is activated then set the id attribute for progress bar steps, so onclick work sucessfully.
   if($leftMenuClass == ""){
+    $activeConnectId = "";
     $importExportId = "progress_import_products";
     $automationId = "progress_automation";
   }

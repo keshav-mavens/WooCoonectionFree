@@ -29,8 +29,10 @@ function wooconnection_trigger_status_complete_hook($orderid){
 
     //get the access token....
     $access_token = '';
+    $applicationEdition = '';
     if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
         $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+        $applicationEdition = $applicationAuthenticationDetails[0]->user_application_edition;
     }
 
     // Get the order details
@@ -128,10 +130,10 @@ function wooconnection_trigger_status_complete_hook($orderid){
                         $product_id = $item->get_product_id(); 
                     }
                     $product = wc_get_product($product_id);//get the prouct details...
-                    $productDesc = $product->get_description();//product description..
+                    $productDesc = strip_tags($product->get_description());//product description..
                     $productPrice = round($product->get_price(),2);//get product price....
                     $productQuan = $item['quantity']; // Get the item quantity....
-                    $productIdCheck = checkAddProductIsKp($access_token,$product,$parent_product_id);//get the related  product id on the basis of relation with infusionsoft/keap application product...
+                    $productIdCheck = checkAddProductIsKp($access_token,$product,$parent_product_id,$applicationEdition);//get the related  product id on the basis of relation with infusionsoft/keap application product...
                     $productTitle = $product->get_title();//get product title..
                     //push product details into array/......
                     $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);

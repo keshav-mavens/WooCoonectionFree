@@ -184,10 +184,17 @@ function wc_load_import_export_tab_main_content(){
 	//First check the target tab id the call the html function for latest html.....
 	if(isset($_POST['target_tab_id']) && !empty($_POST['target_tab_id'])){
 		$latestHtml = '';
+		$offset = 0;
 		if ($_POST['target_tab_id'] == '#table_export_products') {
-			$latestHtml = createExportProductsHtml();
+			if(isset($_POST['newLimitExport']) && !empty($_POST['newLimitExport'])){
+				$limit = $_POST['newLimitExport'];
+			}
+			$latestHtml = createExportProductsHtml($limit,$offset);
 		}else if ($_POST['target_tab_id'] == '#table_match_products') {
-			$latestHtml = createMatchProductsHtml();
+			if(isset($_POST['newLimitMatch']) && !empty($_POST['newLimitMatch'])){
+				$limit = $_POST['newLimitMatch'];
+			}
+			$latestHtml = createMatchProductsHtml($limit,$offset);
 		}else if ($_POST['target_tab_id'] == '#table_standard_fields_mapping') {
 			$latestHtml = createStandardFieldsMappingHtml();
 		}
@@ -207,10 +214,14 @@ function wc_export_wc_products()
         $applicationAuthenticationDetails = getAuthenticationDetails();
         //get the access token....
         $access_token = '';
+        $applicationEdition = '';
         if(!empty($applicationAuthenticationDetails)){//check authentication details......
             if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
                 $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
             }
+            
+            //set the value of application edition such as keap, infusionsoft.....
+        	$applicationEdition = $applicationAuthenticationDetails[0]->user_application_edition;
         }
         //Define the exact position of process to store the logs...
         $callback_purpose = 'Export Woocommerce Product : Process of export woocommerce product to infusionsoft/keap application';
@@ -251,14 +262,37 @@ function wc_export_wc_products()
                     $wcproductName = $wcproductdetails->get_name();//get product name....
                     $wcproductDesc = $wcproductdetails->get_description();//get product description....
                     if(isset($wcproductDesc) && !empty($wcproductDesc)){
-                        $wcproductDesc = $wcproductDesc;
+                    	//check if application edition is keap...
+		              	if($applicationEdition == APPLICATION_TYPE_KEAP){
+		                  //then strip tags of description because keap application description section is simple textarea......
+		                  $wcproductDesc = strip_tags($wcproductDesc);
+		              	}
+		              	else{
+		                  //if application edition is infusionsoft then pass description same set in wp product....
+		                  $wcproductDesc = $wcproductDesc;
+		              	}
                     }else{
                         $wcproductDesc = "";
                     }
                     $wcproductShortDesc = $wcproductdetails->get_short_description();//get product short description....
                     if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
-                        $wcproductShortDesc = $wcproductShortDesc;
-                    }else{
+                        $wcproductShortDesc = strip_tags($wcproductShortDesc);
+               			$shortDescriptionLen = strlen($wcproductShortDesc);
+               			//check if application edition is keap....
+		              	if($applicationEdition == APPLICATION_TYPE_KEAP){
+			                //then check if description is empty......
+			                if(empty($wcproductDesc)){
+			                  //then set short description as description....
+			                  $wcproductDesc = $wcproductShortDesc;
+			                }
+			            }else{
+			                if($shortDescriptionLen > 250){
+			                  $wcproductShortDesc = substr($wcproductShortDesc,0,250);
+			                }else{
+			                  $wcproductShortDesc = $wcproductShortDesc;
+			                }
+			            }
+               		}else{
                         $wcproductShortDesc = "";
                     }
                     //create final array with values.......
@@ -300,8 +334,16 @@ function wc_export_wc_products()
                     
                 }
             }
+            //set default offset and limit....
+            $exportOffset = 0;
+            $exportLimit = 20;
+            //check limit exist in post data or not......
+            if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
+            	//set the latest limit to fetch the records...
+            	$exportLimit = $_POST['newLimit'];
+            }
             //then call the "createExportProductsHtml" function to get the latest html...
-            $latestExportProductsHtml = createExportProductsHtml();
+            $latestExportProductsHtml = createExportProductsHtml($exportLimit,$exportOffset);
             echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestExportProductsHtml'=>$latestExportProductsHtml));
         }
     }
@@ -802,7 +844,25 @@ function wc_save_cfield_app(){
 	    }else{
 			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>'Authentication Error'));
 	    }
-		
+	}
+}		
+
+//Wordpress Hook : This hook is triggered to load the more product either for match products tab or export products tab.....
+add_action('wp_ajax_wc_load_more_products','wc_load_more_products');
+//Function Definition : wc_load_more_products
+function wc_load_more_products(){
+	if(isset($_POST) && !empty($_POST)){
+		$moreProductsListing = '';
+		if(!empty($_POST['tabversion']) && !empty($_POST['productsLimit']) && !empty($_POST['productsOffset'])){
+			if($_POST['tabversion'] == 'table_export_products'){
+				//then call the "createExportProductsHtml" function to get the next products for export products...
+        		$moreProductsListing = createExportProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+			}else if ($_POST['tabversion'] == 'table_match_products') {
+				//then call the "createMatchProductsHtml" function to get the next products for match products....
+				$moreProductsListing = createMatchProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+			}
+	    }
+	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'moreProductsListing'=>$moreProductsListing));
 	}
 	die();
 }
@@ -1375,6 +1435,21 @@ function wc_get_products_listing()
 			$productsListing = get_products_listing($skuLength);
 	    }
 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListing'=>$productsListing));
+	}
+	die();
+}
+
+//Wordpress Hook : This action is triggered when user change the inner tabs of custom fields tab..
+add_action('wp_ajax_wc_load_custom_fields_tab_data','wc_load_custom_fields_tab_data');
+//Function Definiation : wc_load_custom_fields_tab_data
+function wc_load_custom_fields_tab_data(){
+	//First check the target tab exist then call the function to get the standard fields mapping listing..
+	if(isset($_POST['targetTabId']) && !empty($_POST['targetTabId'])){
+		$listingHtml = '';
+		if($_POST['targetTabId'] == '#table_standard_fields_mapping'){
+			$listingHtml  = createStandardFieldsMappingHtml();
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'responseHtml'=>$listingHtml));
 	}
 	die();
 }
