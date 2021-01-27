@@ -1448,49 +1448,7 @@ function hideCustomModel(modelId){
 //comon function is used to apply a datatables by table id.....
 function applyDatables(tabel_id){
     if(tabel_id != ""){
-        //Export Tab: apply datatables on products listing..
-        if (tabel_id == 'export_products_listing') {
-            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-            {
-                $('#'+tabel_id).DataTable({
-                    "pagingType": "simple_numbers",
-                    "pageLength": 10,
-                    "searching": false,
-                    "bLengthChange" : false,
-                    "bInfo":false,
-                    "scrollX": false,
-                    "ordering": false,
-                    drawCallback: function(dt) {
-                      applySelectTwo('wc_iskp_products_dropdown');
-                        if ($('.all_products_checkbox_export').is(":checked"))
-                        {
-                            $('.all_products_checkbox_export').prop("checked", false);
-                        }
-                        $('.each_product_checkbox_export').prop("checked", false);
-                    }
-                });
-            }
-        }
-        //Match Tab: apply datatables on products listing..
-        else if (tabel_id == 'match_products_listing') {
-            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-            {
-                $('#'+tabel_id).DataTable({
-                    "pagingType": "simple_numbers",
-                    "pageLength": 10,
-                    "searching": false,
-                    "bLengthChange" : false,
-                    "bInfo":false,
-                    "scrollX": false,
-                    "ordering": false,
-                    drawCallback: function(dt) {
-                      applySelectTwo('application_match_products_dropdown');
-                    }
-                });
-            }
-        }
-        //Campaign Goals Tab: apply datatables on products listing with sku..
-        else if(tabel_id == 'products_listing_with_sku_34' 
+        if(tabel_id == 'products_listing_with_sku_34' 
                 || tabel_id == 'products_listing_with_sku_35' 
                     || tabel_id == 'products_listing_with_sku_40' 
                         || tabel_id == 'coupon_listing_with_sku') {

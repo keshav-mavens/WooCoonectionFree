@@ -2253,7 +2253,7 @@ function getOrderTriggers(){
 //get the list of products with sku...
 function get_products_listing($length){
   $productLisingWithSku = "";
-  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 9999999));
+  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
   if(isset($woo_products_listing) && !empty($woo_products_listing)){
     foreach ($woo_products_listing as $key => $value)
     {
