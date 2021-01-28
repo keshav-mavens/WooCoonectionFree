@@ -177,8 +177,8 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
                   '.$exportProductsData['exportTableHtml'].'
                 </table>
                 <div class="form-group col-md-12 text-center m-t-25">
-                  <div class="load_table_export_products loading_products" style="display:none;"><img src="http://localhost/wooconnectionfree/wp-content/plugins/wooconnection/assets/images/loader.svg"></div>
-                  <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Process Export Products....</div>
+                  <div class="load_table_export_products loading_products" style="display:none;"></div>
+                  <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Exporting products to your '.$applicationLabel.' account.</div>
                   <div class="alert-error-message export-products-error" style="display: none;"></div>
                   <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
                   <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
