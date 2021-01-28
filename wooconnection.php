@@ -153,7 +153,27 @@ class WooConnectionPro {
 
     //Function Definition : everyday_event_custom_function
     public function everyday_event_custom_function(){
-        //update_option('my_option', 'latest meythod payment');
+      global $table_prefix,$wpdb;
+      $recurring_table_name = 'wooconnection_recurring_payments_data';
+      $wp_recurring_table_name = $table_prefix."$recurring_table_name";
+      //Check Table Records : First need to check whether the table records is exist or not if not exist....
+      $getRecurringRecords = $wpdb->get_results('SELECT * FROM '.$wp_recurring_table_name.' WHERE sub_status=1');
+      $access_token = '';
+      //check active recurring exist associated with authorize application...
+      if(isset($getRecurringRecords) && !empty($getRecurringRecords)){
+        //execute loop......
+        foreach($getRecurringRecords as $key=>$value){
+          if(!empty($value->sub_discount_amount) && !empty($value->discount_duration)){
+            $appSubId = $value->app_sub_id;
+            $subCreatedDate = $value->created;
+            $discountExpirationDate = date('Y-m-d', strtotime($subCreatedDate. ' + '.$value->discount_duration.' days'));
+            $todayDate = date('Y-m-d', strtotime('+2 days')).'<br>';
+            if($todayDate == $discountExpirationDate){
+                //updateSubscriptionAmount($access_token,$appSubId); 
+            }
+          }
+        }
+      }
     }
 
     //Function Definition : clear_custom_schedular 
@@ -178,6 +198,7 @@ class WooConnectionPro {
             $custom_table_sql .= "`app_sub_id` int(11) NOT NULL,";
             $custom_table_sql .= "`sub_discount_amount` double NOT NULL DEFAULT 0,";
             $custom_table_sql .= "`discount_duration` varchar(255),";
+            $custom_table_sql .= "`sub_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";
             $custom_table_sql .= "`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
             $custom_table_sql .= "`modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,";
             $custom_table_sql .= "PRIMARY KEY (`id`)";

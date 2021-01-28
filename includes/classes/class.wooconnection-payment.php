@@ -385,7 +385,8 @@
 		//Function Definition : process_payment
         public function process_payment($order_id)
 		{
-		 	global $woocommerce;
+		 	global $woocommerce,$wpdb;
+		 	$recurring_data_table_name = $wpdb->prefix . 'wooconnection_recurring_payments_data';
 		 	$wooconnectionLogger = new WC_Logger();
 		 	$orderData = new WC_Order($order_id);//get the order details by order id.......
 		 	$contactId = $_POST['custom_payment_gateway_contact_id'];//get the contact id from post data.....
@@ -394,6 +395,17 @@
 		    $orderDiscountDetails  = (int) $orderData->get_total_discount();//get the discount on order.....
 		    $orderCoupons = $orderData->get_used_coupons();//get the list of used coupons.....
 		    $orderDiscountDesc = "Order Discount";//Set order discount disc....
+		    $orderUserEmail = $orderData->get_billing_email();
+	     	$registerUserInformation = '';
+	     	if(isset($orderUserEmail) && !empty($orderUserEmail)){
+		       $registerUserInformation  = get_user_by('email',$orderUserEmail);
+		    }
+		    
+		    $wp_user_id = '';
+		    if(isset($registerUserInformation) && !empty($registerUserInformation)){
+		    	$wp_user_id = $registerUserInformation->ID;
+		    }
+
 		    //Append list of discount coupon codes in string....
 		    if(!empty($orderCoupons)){
 		        $orderDiscountDesc = implode(",", $orderCoupons);
@@ -436,7 +448,7 @@
 	             	//get final price after adding tax....
 	             	$finalProductPrice = $priceAfterDis + $tax;
 	             	//create array with key value is a product id....
-	             	$subscriptionDetailsArray[$cart_item['product_id']] = array('subscription_quantity'=>$cart_item['quantity'],'subscription_price'=>$finalProductPrice,'subscription_discount'=>$eachItemDis);
+	             	$subscriptionDetailsArray[$cart_item['product_id']] = array('subscription_quantity'=>$cart_item['quantity'],'subscription_price'=>$finalProductPrice,'subscription_discount'=>$eachItemDis*$cart_item['quantity']);
 	            }
          	}
          		
@@ -547,6 +559,7 @@
 	            if(isset($subscriptionDetailsArray) && !empty($subscriptionDetailsArray)){
 		           	//set default trial days....
 		            $trialDays = 0;
+		            $discountDays = 0;
 		            //check coupons exist with order or not....
 		            if(isset($orderCoupons) && !empty($orderCoupons)){
 		                //execute loop on applied coupons......
@@ -583,13 +596,39 @@
 		                                 break;
 		                            }
 		                        }
+		                        //get the discount duration....
+		                        $appliedCouponDiscountDuration = get_post_meta($appliedCouponId,'subscription_discount_duration',true);
+		                        //get the discount period....
+		                        $appliedCouponDiscountPeriod = get_post_meta($appliedCouponId,'subscription_discount_period',true);
+		                        //check discount duration and discount period....
+		                        if(!empty($appliedCouponDiscountDuration) && !empty($appliedCouponDiscountPeriod)){
+		                        	//execute switch statement on the basis of discount duration period to calculate the discount validity
+		                        	switch ($appliedCouponDiscountPeriod) {
+		                        		case DURATION_TYPE_DAY:
+		                        			$discountDays = $appliedCouponDiscountDuration*1;
+		                        			break;
+		                        		case DURATION_TYPE_WEEK:
+		                        			$discountDays = $appliedCouponDiscountDuration*7;
+		                        			break;
+		                        		case DURATION_TYPE_MONTH:
+		                        			$discountDays = $appliedCouponDiscountDuration*30;
+		                        			break;
+		                        		case DURATION_TYPE_YEAR;
+		                        			$discountDays = $appliedCouponDiscountDuration*366;
+		                        			break;
+		                        		default:
+		                        			$discountDays = $appliedCouponDiscountDuration*1;
+		                        			break;
+		                        	}
+		                        }
 		                        break;
 		                    }
 		                 }
 		            }
 
-		            //rotate loop to add multiple subscripitons.....
+		           	//rotate loop to add multiple subscripitons.....
 		            foreach ($subscriptionDetailsArray as $key => $value) {
+		            	$recurringDetailsArray =array();
 		            	//check subscription plan id and quantity exist in array or not.....
 		            	if(!empty($value['subscriptionPlanId']) && !empty($value['subscription_quantity'])){
 
@@ -622,12 +661,16 @@
 		                    //create contact subscription.....
 		                    $contactSub = createContactSub($access_token,$contactSubcriptionXml,$wooconnectionLogger);
 		            		if(!empty($contactSub)){
-		            			//echo "subId".$contactSub;
+		            			$recurringDetailsArray['wp_user_id'] = $wp_user_id;
+		            			$recurringDetailsArray['app_contact_id'] = $contactId;
+		            			$recurringDetailsArray['app_sub_id'] = $contactSub;
+		            			$recurringDetailsArray['sub_discount_amount'] = $value['subscription_discount'];
+		            			$recurringDetailsArray['discount_duration'] = $discountDays;
+		            			$wpdb->insert($recurring_data_table_name, $recurringDetailsArray); 
 		            		}
 		            	}
 		            }
-		            //die();	
-	            }
+		        }
             }
           	
           	//add order notes.......
