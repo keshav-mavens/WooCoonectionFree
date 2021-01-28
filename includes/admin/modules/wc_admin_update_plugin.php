@@ -27,8 +27,8 @@
 		      $res = new stdClass();
 			  $res->slug = 'wooconnection-master';
 		      $res->plugin = 'wooconnection-master/wooconnection.php';
-			  $res->new_version = $remoteDetails->version;
-		      $res->tested = $remoteDetails->tested;
+		      $res->new_version = $remoteDetails->version;
+			  $res->tested = $remoteDetails->tested;
 		      $res->package = $remoteDetails->download_url;
 		      $plugin_transient->response[$res->plugin] = $res;
 		    }

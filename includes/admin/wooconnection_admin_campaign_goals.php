@@ -147,7 +147,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
             <tbody id="products_sku_listing">
             </tbody>
           </table>
-          <div class="load_products_listing_with_sku" style="text-align: center;display: none;"></div>
+          <div class="load_products_listing_with_sku" style="text-align: center;display: none;margin-top:10px;margin-bottom: 10px;"></div>
         </div>
       </div>
     </div>
@@ -169,7 +169,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                 <thead><tr><th>Coupon Code</th><th>Coupon Desc</th><th>Action</th></tr></thead>
                 <tbody><?php echo get_coupons_listing(); ?></tbody>
           </table>
-          <div class="load_coupons_listing" style="display: none;text-align:center"></div>
+          <div class="load_coupons_listing" style="display: none;text-align:center;margin-top:10;margin-bottom:10px;"></div>
         </div>
       </div>
     </div>

@@ -1428,6 +1428,7 @@ function getQueryParameter(qspar){
     return email;
 }
 
+
 //hide model by model id....
 function hideCustomModel(modelId){
     if(modelId != ""){
@@ -1928,6 +1929,9 @@ function showProductsListing(length){
     jQuery("#products_sku_listing").html('<tr class="text-center"><td colspan="3">Loading Records...</td></tr>');
     $("#productsListing").show();
     $(".common-table-class").attr("id", "products_listing_with_sku_"+length);
+    $("#products_scroll_count").val(0);
+    $(".load_products_listing_with_sku").hide();
+    $(".load_coupons_listing").hide();
     jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length}, function(data) {
         var responsedata = JSON.parse(data);
         if(responsedata.status == "1") {

@@ -49,8 +49,8 @@ $applicationLabel = applicationLabel($type);
 		        	<input type="hidden" id="products_limit_match" value="20" class="scroll_counter">
 		        	<div class="table-responsive" id="table_match_products_listing">
 					</div>
-					<div class="load_table_match_products loading_products" style="text-align: center;display: none;"><img src="http://localhost/wooconnectionfree/wp-content/plugins/wooconnection/assets/images/loader.svg"></div>
-		        </div>
+					<div class="load_table_match_products loading_products" style="text-align: center;display: none;"></div>
+				</div>
 	        </div>
 	        <?php }else{
 	              echo $checkAuthenticationStatus;

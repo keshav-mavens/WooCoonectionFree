@@ -89,3 +89,4 @@
 	define("PRODUCTS_HTML_TYPE_LOAD_MORE", 1);
 	//set the coupon listing html type...
 	define("COUPONS_HTML_WITH_LOAD_MORE", 1);
+

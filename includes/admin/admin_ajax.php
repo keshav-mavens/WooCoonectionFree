@@ -195,8 +195,6 @@ function wc_load_import_export_tab_main_content(){
 				$limit = $_POST['newLimitMatch'];
 			}
 			$latestHtml = createMatchProductsHtml($limit,$offset);
-		}else if ($_POST['target_tab_id'] == '#table_standard_fields_mapping') {
-			$latestHtml = createStandardFieldsMappingHtml();
 		}
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestHtml'=>$latestHtml));
 	}
@@ -866,7 +864,6 @@ function wc_load_more_products(){
 	}
 	die();
 }
-
 
 //Custom fields Tab : wordpress hook is call to get the custom fields tab on change custom field type e.g contact, order at the time of custom field creation....
 add_action( 'wp_ajax_wc_cfield_app_tabs', 'wc_cfield_app_tabs');
