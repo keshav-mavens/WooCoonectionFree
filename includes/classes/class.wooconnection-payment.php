@@ -622,10 +622,11 @@
 		                    //create contact subscription.....
 		                    $contactSub = createContactSub($access_token,$contactSubcriptionXml,$wooconnectionLogger);
 		            		if(!empty($contactSub)){
-		            			
+		            			//echo "subId".$contactSub;
 		            		}
 		            	}
-		            }	
+		            }
+		            //die();	
 	            }
             }
           	

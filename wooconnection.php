@@ -24,8 +24,8 @@ class WooConnectionPro {
         add_action('recurring_payment_schedular_everyday',array($this,'everyday_event_custom_function'));
         //Call the hook register deactivation to clear the set custom cron job....
         register_deactivation_hook(__FILE__,array($this,'clear_custom_schedular'));
-        //Call the hook register activation hook to create the custom table for store the recurring payment details...
-        //register_activation_hook( __FILE__, array($this, 'create_recurring_details_table' ) );
+        //Call the register activation hook to create the custom table for store the recurring payment data of all users...
+        register_activation_hook(__FILE__,array($this,'create_recurring_details_table'));
     }
 
     
@@ -165,6 +165,27 @@ class WooConnectionPro {
         }
     }
 
+    //Function Definition : create_recurring_details_table
+    public function create_recurring_details_table(){
+        global $table_prefix,$wpdb;
+        $custom_table_name = 'wooconnection_recurring_payments_data';
+        $wp_custom_table_name = $table_prefix. "$custom_table_name";
+        if($wpdb->get_var("show tables like '$wp_custom_table_name'") != $wp_custom_table_name){
+            $custom_table_sql = "CREATE TABLE `".$wp_custom_table_name."`(";
+            $custom_table_sql .= "`id` int(11) NOT NULL auto_increment,";
+            $custom_table_sql .= "`wp_user_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`app_contact_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`app_sub_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`sub_discount_amount` double NOT NULL DEFAULT 0,";
+            $custom_table_sql .= "`discount_duration` varchar(255),";
+            $custom_table_sql .= "`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+            $custom_table_sql .= "`modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,";
+            $custom_table_sql .= "PRIMARY KEY (`id`)";
+            $custom_table_sql .= ") ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
+            require_once(ABSPATH .'/wp-admin/includes/upgrade.php');
+            dbDelta($custom_table_sql);
+        }
+    }
 }
 
 // Create global so you can use this variable beyond initial creation.
