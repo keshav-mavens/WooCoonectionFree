@@ -1329,6 +1329,7 @@ function getPredefindCustomfields(){
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Nickname'] = "Contact Nick Name";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantName'] = "Contact Assistant Name";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantPhone'] = "Contact Assistant Phone";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Email'] = "Contact Email Address 1";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress2'] = "Contact Email Address 2";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress3'] = "Contact Email Address 3";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone1'] = "Contact Phone 1";
