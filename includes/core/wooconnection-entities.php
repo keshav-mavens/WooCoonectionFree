@@ -62,3 +62,7 @@
 	define("PRODUCT_LAZY_LOADING_OFFSET", 20);
 	//set the products html.....
 	define("PRODUCTS_HTML_TYPE_LOAD_MORE", 1);
+	//payment modes....
+	define('PAYMENT_MODE_TEST',1);
+	define('PAYMENT_MODE_SKIPPED',2);
+	define('PAYMENT_MODE_LIVE',3);
