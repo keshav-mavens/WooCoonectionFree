@@ -29,8 +29,10 @@ function wooconnection_trigger_status_complete_hook($orderid){
 
     //get the access token....
     $access_token = '';
+    $applicationEdition = '';
     if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
         $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+        $applicationEdition = $applicationAuthenticationDetails[0]->user_application_edition;
     }
 
     // Get the order details
@@ -112,6 +114,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
                     }
                 }
             }
+            
             //get the payment method to proceed next........
             $payment_method = $order->get_payment_method();
             //check if payment gateway is not equal to infusionsoft or keap then proceed next.....
@@ -157,6 +160,13 @@ function wooconnection_trigger_status_complete_hook($orderid){
                             addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
                         }
                     }
+                    
+                    //get the payment method....
+                    $paymentMethodTitle = $order->get_payment_method_title();
+                    //get the amount ownd by the application order......
+                    $totalAmountOwned = getOrderAmountOwned($access_token,$iskporderId,$wooconnectionLogger);
+                    //then charge the payment....
+                    $chargeManualPayment = chargePaymentManual($access_token,$iskporderId,$totalAmountOwned,$paymentMethodTitle,$paymentMethodTitle,$wooconnectionLogger);
                 }
             }
         }

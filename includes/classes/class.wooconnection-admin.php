@@ -102,6 +102,7 @@ class WooConnection_Admin {
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-payment.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-coupons.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin-subscriptions.php');
+        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
     }
 
     //Function Definition : includeCssJs
