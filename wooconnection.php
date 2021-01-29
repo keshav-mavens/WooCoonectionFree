@@ -147,7 +147,7 @@ class WooConnectionPro {
     public function set_custom_schedular(){
         //check schedular is already set or not.....
         if (!wp_next_scheduled( 'recurring_payment_schedular_everyday' ) ) {
-            wp_schedule_event( time(), 'daily', 'recurring_payment_schedular_everyday' );
+            wp_schedule_event( time(), 'every_minute', 'recurring_payment_schedular_everyday' );
         }
     }
 
@@ -164,12 +164,19 @@ class WooConnectionPro {
         //execute loop......
         foreach($getRecurringRecords as $key=>$value){
           if(!empty($value->sub_discount_amount) && !empty($value->discount_duration)){
+            $totalSubAmount = $value->sub_total_amount;
+            $subDiscountAmount = $value->sub_discount_amount;
             $appSubId = $value->app_sub_id;
             $subCreatedDate = $value->created;
             $discountExpirationDate = date('Y-m-d', strtotime($subCreatedDate. ' + '.$value->discount_duration.' days'));
             $todayDate = date('Y-m-d', strtotime('+2 days')).'<br>';
             if($todayDate == $discountExpirationDate){
-                //updateSubscriptionAmount($access_token,$appSubId); 
+                if(!empty($totalSubAmount)){
+                    $updatedSubAmount = $totalSubAmount + $subDiscountAmount;
+                }
+                //updateSubscriptionAmount($access_token,$appSubId,$updatedSubAmount); 
+            }else{
+
             }
           }
         }
@@ -196,6 +203,7 @@ class WooConnectionPro {
             $custom_table_sql .= "`wp_user_id` int(11) NOT NULL,";
             $custom_table_sql .= "`app_contact_id` int(11) NOT NULL,";
             $custom_table_sql .= "`app_sub_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`sub_total_amount` double NOT NULL DEFAULT 0,";
             $custom_table_sql .= "`sub_discount_amount` double NOT NULL DEFAULT 0,";
             $custom_table_sql .= "`discount_duration` varchar(255),";
             $custom_table_sql .= "`sub_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";

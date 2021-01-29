@@ -664,6 +664,7 @@
 		            			$recurringDetailsArray['wp_user_id'] = $wp_user_id;
 		            			$recurringDetailsArray['app_contact_id'] = $contactId;
 		            			$recurringDetailsArray['app_sub_id'] = $contactSub;
+		            			$recurringDetailsArray['sub_total_amount'] = $value['subscription_price'];
 		            			$recurringDetailsArray['sub_discount_amount'] = $value['subscription_discount'];
 		            			$recurringDetailsArray['discount_duration'] = $discountDays;
 		            			$wpdb->insert($recurring_data_table_name, $recurringDetailsArray); 

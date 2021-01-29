@@ -1900,4 +1900,52 @@ function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode
     //return payment status...
     return $paymentStatus;
 }
+
+//update a subscription amount.....
+function updateSubscriptionAmount($access_token,$subscriptionId,$updatedAmount){
+  $subId = '';
+  if(!empty($access_token) && !empty($subscriptionId))
+  {
+      // Create instance of our wooconnection logger class to use off the whole things.
+      $wooconnectionLogger = new WC_Logger();  
+
+      $url = "https://api.infusionsoft.com/crm/xmlrpc/v1";
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$access_token);
+      
+      //create xml to hit the curl request to update the subscription amount....
+      $updateAmountXml = "<methodCall><methodName>DataService.update</methodName><params><param><value><string></string></value></param><param><value><string>RecurringOrder</string></value></param><param><value>
+        <int>".$subscriptionId."</int></value></param><param><value><struct><member><name>BillingAmt</name><value><string>".$updatedAmount."</string></value></member></struct></value></param></params></methodCall>";
+      
+      //curl setup...
+      curl_setopt($ch,CURLOPT_HTTPHEADER,$header);
+      curl_setopt($ch,CURLOPT_CUSTOMREQUEST,"POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $updateAmountXml);
+      
+      //get the curl response and curl error....
+      $updateAmountResponse = curl_exec($ch);
+      $updateAmountErr = curl_error($ch);
+
+      if($updateAmountErr){
+          $updateAmountErrorMessage = "Process to uppdate subscription amount is failed due to ".$updateAmountErr; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($updateAmountErrorMessage, true));
+      }else{
+          //Covert/Decode response to xml.....
+          $updateAmountResponseData = xmlrpc_decode($updateAmountResponse);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($updateAmountResponseData) && xmlrpc_is_fault($updateAmountResponseData)) {
+              if(isset($updateAmountResponseData['faultString']) && !empty($updateAmountResponseData['faultString'])){
+                  $updateAmountErrorMessage = "Process to uppdate subscription amount is failed due to ". $updateAmountResponseData['faultString']; 
+                  $updateAmountErrorMessage = $wooconnectionLogger->add('infusionsoft', print_r($updateAmountErrorMessage, true));
+              }
+          }else{
+            //set payment status....
+            $subId = $updateAmountResponseData;
+          }
+      }
+      curl_close($ch);
+  }
+  return $subId;
+}
 ?>
