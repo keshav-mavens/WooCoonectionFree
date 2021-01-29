@@ -145,6 +145,13 @@ function wooconnection_trigger_status_complete_hook($orderid){
                         //Call the common function to add order itema as a discount....
                         addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
                     }
+                    
+                    //get the payment method....
+                    $paymentMethodTitle = $order->get_payment_method_title();
+                    //get the amount ownd by the application order......
+                    $totalAmountOwned = getOrderAmountOwned($access_token,$iskporderId,$wooconnectionLogger);
+                    //then charge the payment....
+                    $chargeManualPayment = chargePaymentManual($access_token,$iskporderId,$totalAmountOwned,$paymentMethodTitle,$paymentMethodTitle,$wooconnectionLogger);
                 }
             }
         }
