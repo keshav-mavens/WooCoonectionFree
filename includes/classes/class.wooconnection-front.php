@@ -21,6 +21,8 @@ class WooConnection_Front {
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/generalTriggers/wooconnection-general-order-triggers.php');
     	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/dynamicCheckoutFields/wooconnection-dynamic-checkout-custom-fields.php');
 		require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/thankyouoverrides/wooconnection-thank-you-overrides.php');
+		require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/userCartTriggers/wooconnection-login-usercheckout-triggers.php');
+    	require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/modules/userCartTriggers/wooconnection-login-usercart-triggers.php');
 	}
 
     //Function Definition : wooconnection_leadsource_handling is used to handle the leadsource funtionality.....

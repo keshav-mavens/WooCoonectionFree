@@ -29,8 +29,10 @@ function wooconnection_trigger_status_complete_hook($orderid){
 
     //get the access token....
     $access_token = '';
+    $applicationEdition = '';
     if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
         $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+        $applicationEdition = $applicationAuthenticationDetails[0]->user_application_edition;
     }
 
     // Get the order details
@@ -63,7 +65,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
     $generalSuccessfullOrderIntegrationName = '';
     $generalSuccessfullOrderCallName = '';
 
-    // Check call name of wooconnection goal is exist or not if exist then hit the achieveGoal where integration name is purchaseProductIntegrationName and call name sku of product...
+    // Check call name of wooconnection goal is exist or not if exist...
     if(isset($generalSuccessfullOrderTrigger) && !empty($generalSuccessfullOrderTrigger)){
         
         //Get and set the wooconnection goal integration name
@@ -102,6 +104,20 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 }
             }
             
+            //Call the common function to hit the any purchase trigger....
+            $anyPurchaseTrigger = orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLogger);
+
+            //add goals form specfic coupons...
+            if(!empty($orderAssociatedCoupons)){
+                foreach ($orderAssociatedCoupons as $key => $value) {
+                    if(!empty($value)){
+                        //Call the common function to hit the coupon applied trigger....
+                        $couponName = 'coupon'.substr($value, 0, 34);
+                        $couponApplyTrigger = orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooconnectionLogger);
+                    }
+                }
+            }
+            
             //Get the order items from order then execute loop to create the order items array....
             if ( sizeof( $products_items = $order->get_items() ) > 0 ) {
                 foreach($products_items as $item_id => $item)
@@ -114,13 +130,20 @@ function wooconnection_trigger_status_complete_hook($orderid){
                         $product_id = $item->get_product_id(); 
                     }
                     $product = wc_get_product($product_id);//get the prouct details...
-                    $productDesc = $product->get_description();//product description..
+                    $productDesc = strip_tags($product->get_description());//product description..
                     $productPrice = round($product->get_price(),2);//get product price....
                     $productQuan = $item['quantity']; // Get the item quantity....
-                    $productIdCheck = checkAddProductIsKp($access_token,$product,$parent_product_id);//get the related  product id on the basis of relation with infusionsoft/keap application product...
+                    $productIdCheck = checkAddProductIsKp($access_token,$product,$parent_product_id,$applicationEdition);//get the related  product id on the basis of relation with infusionsoft/keap application product...
                     $productTitle = $product->get_title();//get product title..
                     //push product details into array/......
                     $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
+                    //get product sku..
+                    $length = 40;
+                    $productSku = get_set_product_sku($item['product_id'],$length);
+                    if(isset($productSku) && !empty($productSku)){
+                        //Call the common function to hit the specific product purchase trigger....
+                        $specificPurchaseTrigger = orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,$wooconnectionLogger);
+                    }
                 }
                 //create order items json....
                 $jsonOrderItems = json_encode($itemsArray);
@@ -142,7 +165,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
                         //Call the common function to add order itema as a discount....
                         addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
                     }
-
+                    
                     global $wpdb;//define variable for query......
                     //execute query to get the details of order related custom fields.....
                     $orderCustomFields =  $wpdb->get_results($wpdb->prepare("SELECT *  FROM `wp_postmeta` WHERE `post_id` = $orderid AND `meta_key` LIKE '%orderCFields_%'"));
@@ -160,6 +183,13 @@ function wooconnection_trigger_status_complete_hook($orderid){
                         //call the common function to update the order related custom fields in infusionsoft.......
                         $responseCheck = updateOrderCustomFields($access_token, $iskporderId, $orderCFields);
                     }
+                    
+                    //get the payment method....
+                    $paymentMethodTitle = $order->get_payment_method_title();
+                    //get the amount ownd by the application order......
+                    $totalAmountOwned = getOrderAmountOwned($access_token,$iskporderId,$wooconnectionLogger);
+                    //then charge the payment....
+                    $chargeManualPayment = chargePaymentManual($access_token,$iskporderId,$totalAmountOwned,$paymentMethodTitle,$paymentMethodTitle,$wooconnectionLogger);
                 }
             }
         }
@@ -204,7 +234,7 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
     //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
     $orderContactId = checkAddContactApp($access_token,$order_email,$callback_purpose);
 
-    //Woocommerce Standard trigger : Get the call name and integration name of goal "Woocommerce Successful Order"... 
+    //Woocommerce Standard trigger : Get the call name and integration name of goal "Order Failed"... 
     $generalFailOrderTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_GENERAL,'Order Failed');
 
     //Define variables....

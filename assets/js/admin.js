@@ -38,13 +38,6 @@
                                 $(".tab_related_content").html('');
                                 $(".tab_related_content").html(data);
                                 jQuery(".tab_related_content").removeClass('overlay');
-                                if(jQuery("#export_products_listing").length){
-                                    applyDatables("export_products_listing");
-                                }
-                                //add select 2 for woocommerce products field
-                                if($(".wc_iskp_products_dropdown").length){
-                                    applySelectTwo('wc_iskp_products_dropdown');
-                                }
                             });
                         }
                         //Check if "response" done....
@@ -242,9 +235,14 @@
                 if(target_tab_id != ""){
                     jQuery(".ajax_loader").show();
                     jQuery(".tab_related_content").addClass('overlay');
+                    if(target_tab_id == '#table_export_products'){
+                        var newExportLimit = $("#products_limit_export").val();
+                    }else if(target_tab_id == '#table_match_products'){
+                        var newMatchLimit = $("#products_limit_match").val();
+                    }
                     $(target_tab_id+"_listing").html('');
                     $(target_tab_id+"_listing").html('<p class="heading-text" style="text-align:center;">Loading Data....</p>');
-                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id}, function(data) {
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id,newLimitExport:newExportLimit,newLimitMatch:newMatchLimit}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
                             jQuery(".ajax_loader").hide();
@@ -253,27 +251,11 @@
                                 if (target_tab_id == '#table_export_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    //apply datatable on export products listing
-                                    if(jQuery("#export_products_listing").length){
-                                        applyDatables("export_products_listing");
-                                    }
-                                    //add select 2 for woocommerce products field
-                                    if($(".wc_iskp_products_dropdown").length){
-                                        applySelectTwo('wc_iskp_products_dropdown');
-                                    }
                                 }else if (target_tab_id == '#table_match_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    //apply datatable on export products listing
-                                    if(jQuery("#match_products_listing").length){
-                                        applyDatables("match_products_listing");
-                                    }
-                                    //add select 2 for woocommerce products field
-                                    if($(".application_match_products_dropdown").length){
-                                        applySelectTwo('application_match_products_dropdown');
-                                    }
-                                }
-                                else if (target_tab_id == '#table_standard_fields_mapping') {
+                                    applySelectTwo('application_match_products_dropdown');
+                                }else if (target_tab_id == '#table_standard_fields_mapping') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     
@@ -294,12 +276,11 @@
                                         }
                                     });
 
-                                }    
+                                }     
+                                
                             }
-                            else{
-                                $('.custom_fields_main_html').show();//toggle the form and show listing....
-                                $('.hide').hide();//hide the form whether it is custom field group form or custom field form....
-                            }
+                            //hide the loader div and "error message" on tab change.....
+                            $(".loading_products").hide();
                         }
                     });
                 }
@@ -372,6 +353,7 @@
             $document.on("change",".application_match_products_dropdown", function(event)
             {
                 event.stopPropagation();
+                $(".load_table_match_products loading_products").hide();
                 //get woocommerce product id....
                 var wcProductId = $(this).data('id');
                 //get application product id with woocommerce product mapping set.........
@@ -416,6 +398,8 @@
                                 if(responsedata.variationsHtml != ""){
                                     $("#table_row_"+productId).after(responsedata.variationsHtml);
                                     applySelectTwo('application_match_products_dropdown');
+                                }else{
+                                    $("#table_row_"+productId).after('<tr class="customvariations_'+productId+' custom_tr"><td colspan="5" style="text-align: center; vertical-align: middle;">No Product Variations Exist!</td></tr>');
                                 }
                             }
                         });
@@ -551,6 +535,11 @@
                 var inputType = $(this).find(':selected').data('id');//get input type.....
                 //check value
                 if(inputType != "" && inputType !== null){
+                    if(inputType == 'input-type-3' || inputType == 'input-type-4'){
+                        $(".morecfieldoptions").show(); 
+                    }else{
+                        $(".morecfieldoptions").hide();
+                    }
                     $(".externalcfields").hide();//hide the all external fields first,...
                     $("."+inputType).show();//then show the only external fields which is related to input type....
                 }
@@ -1028,6 +1017,51 @@
                     });
                 } 
             });
+
+            //Custom Fields Tab : On click of standard fields mapping tab in custom fields tab load the content of standard fields mapping..
+            $document.on("click",".custom-fields-tabs a",function(event){
+                var targetTabId = $(this).attr('href');
+                if(targetTabId != '' && typeof targetTabId !== 'undefined' ){
+                    jQuery(".ajax_loader").show();
+                    jQuery(".tab_related_content").addClass('overlay');
+                    $(targetTabId+"_listing").html('');
+                    $(targetTabId+"_listing").html('<p class="heading-text" style="text-align:center;">Loading Data....</p>');
+                    jQuery.post(ajax_object.ajax_url + "?action=wc_load_custom_fields_tab_data",{targetTabId:targetTabId},function(data){
+                        var responseData = JSON.parse(data);
+                        if(responseData.status == "1"){
+                            jQuery(".ajax_loader").hide();
+                            jQuery(".tab_related_content").removeClass("overlay");
+                            if(responseData.responseHtml != ""){
+                                if(targetTabId == '#table_standard_fields_mapping'){
+                                    $(targetTabId+"_listing").html('');
+                                    $(targetTabId+"_listing").html(responseData.responseHtml);
+                                    
+                                    //add select 2 for infusionsoft/keap fields....
+                                    if($(".standardcfieldmappingwith").length){
+                                        applySelectTwo('standardcfieldmappingwith');
+                                    }
+
+                                    //code is used to set the infusionsoft/keap field selected from dropdown....
+                                    $(".standardcfrows").each(function() {
+                                        var standardcfId = $(this).attr('id');//get the standard field id....
+                                        var standardcdmapp = $(this).attr("data-id");//get the standard field mapped with....
+                                        if(standardcfId != ''){
+                                            if(standardcdmapp != ""){
+                                                //set field selected....
+                                                $('#standard_cfield_mapping_'+standardcfId).val(standardcdmapp).trigger('change.select2');
+                                            }
+                                        }
+                                    });
+                                }
+                            }else{
+                                $('.custom_fields_main_html').show();//toggle the form and show listing....
+                                $('.hide').hide();//hide the form whether it is custom field group form or custom field form....
+                            }
+                        }
+                    });
+                }
+            });
+
         });
 }(jQuery));
 
@@ -1061,6 +1095,9 @@ function validateForms(form){
             });
 
             $("#"+form).validate({
+                onfocusout: false,
+                onkeyup: false,
+                ignore: ".ignore",
                 rules:{
                         integrationname: {
                             required: true,
@@ -1232,7 +1269,10 @@ function validateForms(form){
 //save application settings
 function saveApplicationSettings(){
     var activationEmail = $("#activationEmail").val();
-    var activationKey = $("#activationKey").val();siteUrl
+    if (activationEmail.indexOf('+') > -1) {
+        var activationEmail = activationEmail.replace("+", "$");
+    }
+    var activationKey = $("#activationKey").val();
     var currentSiteUrl = $("#siteUrl").val();
     var connectionType = $('input[name=applicationtype]:checked', '#application_settings_form').val();
     var formData = {userEmail:activationEmail,userPluginKey:activationKey,requestWebUrl:currentSiteUrl,connectionType:connectionType}; //Array 
@@ -1307,9 +1347,11 @@ function activateWcPlugin(){
 //show the popup to edit the trigger deatils....
 function popupEditDetails(triggerid){
     if(triggerid != ""){
+        $checkClass = $("#trigger_tr_"+triggerid).attr('class');
         jQuery.post( ajax_object.ajax_url + "?action=wc_get_trigger_details",{triggerid:triggerid}, function(data) {
             var responsedata = JSON.parse(data);
             if(responsedata.status == "1") {
+                jQuery("label.error").hide();
                 jQuery("#edittriggerid").val(triggerid);
                 jQuery("#edittriggerid").val(triggerid);
                 if(responsedata.triggerGoalName != ""){
@@ -1321,6 +1363,13 @@ function popupEditDetails(triggerid){
                 }
                 if(responsedata.triggerCallName != ""){
                     jQuery("#callname").val(responsedata.triggerCallName);
+                    if($checkClass!="" && $checkClass == 'readonly'){
+                        $('#callname').attr('readonly', true);
+                        $('#callname').addClass('ignore');
+                    }else{
+                        $('#callname').attr('readonly', false);
+                        $('#callname').removeClass('ignore');
+                    }
                 }
                 $("#editTriggerDetails").show();
                 //validate a application_settings_form form.....
@@ -1354,8 +1403,8 @@ function updateTriggerdetails(){
                 if(responsedata.triggerIntegrationName != ""){
                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_integration_name_'+trigger_id).html(responsedata.triggerIntegrationName);
                 }
-                if(responsedata.triggerCallName != ""){
-                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.triggerCallName);
+                if(responsedata.displayCallName != ""){
+                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.displayCallName);
                 }
             }else{
                 $(".trigger-details-error").show();
@@ -1379,6 +1428,7 @@ function getQueryParameter(qspar){
     return email;
 }
 
+
 //hide model by model id....
 function hideCustomModel(modelId){
     if(modelId != ""){
@@ -1387,53 +1437,6 @@ function hideCustomModel(modelId){
         if($("#addcfieldapp").length){
             $("#addcfieldapp")[0].reset();
             $("#addcfieldapp").validate().resetForm();
-        }
-    }
-}
-
-//comon function is used to apply a datatables by table id.....
-function applyDatables(tabel_id){
-    if(tabel_id != ""){
-        //Export Tab: apply datatables on products listing..
-        if (tabel_id == 'export_products_listing') {
-            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-            {
-                $('#'+tabel_id).DataTable({
-                    "pagingType": "simple_numbers",
-                    "pageLength": 10,
-                    "searching": false,
-                    "bLengthChange" : false,
-                    "bInfo":false,
-                    "scrollX": false,
-                    "ordering": false,
-                    drawCallback: function(dt) {
-                      applySelectTwo('wc_iskp_products_dropdown');
-                        if ($('.all_products_checkbox_export').is(":checked"))
-                        {
-                            $('.all_products_checkbox_export').prop("checked", false);
-                        }
-                        $('.each_product_checkbox_export').prop("checked", false);
-                    }
-                });
-            }
-        }
-        //Match Tab: apply datatables on products listing..
-        else if (tabel_id == 'match_products_listing') {
-            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-            {
-                $('#'+tabel_id).DataTable({
-                    "pagingType": "simple_numbers",
-                    "pageLength": 10,
-                    "searching": false,
-                    "bLengthChange" : false,
-                    "bInfo":false,
-                    "scrollX": false,
-                    "ordering": false,
-                    drawCallback: function(dt) {
-                      applySelectTwo('application_match_products_dropdown');
-                    }
-                });
-            }
         }
     }
 }
@@ -1495,6 +1498,15 @@ function applySelectTwo(element){
 
 //On click of export products button send ajax to export products and on sucess update the html....
 function wcProductsExport(){
+    //get the scroll top....
+    var scrollTop = $(".righttextInner").scrollTop();
+    //minus 100px from it....
+    var newScrollTopValue = scrollTop-100;
+    //set the new scroll top with latest value....
+    $(".righttextInner").scrollTop(newScrollTopValue);
+    $(".loading_products").hide();
+    //get the input type hidden value....
+    var limitAfterExport = $("#products_limit_export").val();
     var checkProducts = checkSelectedProducts('export_products_listing_class','allproductsexport');
     var checkSelectedProductsCount = checkProducts.length;//console.log(checkProducts);
     if(checkSelectedProductsCount == 0){
@@ -1504,7 +1516,7 @@ function wcProductsExport(){
         $(".export-products-error").hide();
         $(".exportProducts").show();
         $('.export_products_btn').addClass("disable_anchor");
-        jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize(), function(data) {
+        jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize()+"&newLimit="+limitAfterExport, function(data) {
             var responsedata = JSON.parse(data);
             $(".exportProducts").hide();
             if(responsedata.status == "1") {
@@ -1512,15 +1524,6 @@ function wcProductsExport(){
                 if(responsedata.latestExportProductsHtml != ""){
                      $('.export_products_listing_class').html();
                      $('.export_products_listing_class').html(responsedata.latestExportProductsHtml);
-                }
-                //apply datatable on export products listing
-                if(jQuery("#export_products_listing").length){
-                    applyDatables("export_products_listing");
-                }
-
-                //add select 2 for woocommerce products field
-                if($(".wc_iskp_products_dropdown").length){
-                    applySelectTwo('wc_iskp_products_dropdown');
                 }
                 swal("Saved!", 'Products exported successfully.', "success");
             }else{
@@ -1532,6 +1535,8 @@ function wcProductsExport(){
                     $('.export_products_btn').removeClass("disable_anchor");
                 }, 3000);
             }
+            //after export products set the scroll top to 0...
+            $(".righttextInner").scrollTop(0);
         });
     }
     setTimeout(function()
@@ -1896,4 +1901,228 @@ function loading_thanks_overrides($type){
             }
         }
     });
+}
+
+//This is a common function used to perform the copy clipboard content action........
+function copyContent(elementid) {
+  var elementDetails = document.getElementById(elementid);
+  if(window.getSelection) {
+    var selectWindow = window.getSelection();
+    var eleTextRange = document.createRange();
+    eleTextRange.selectNodeContents(elementDetails);
+    selectWindow.removeAllRanges();
+    selectWindow.addRange(eleTextRange);
+    document.execCommand("Copy");
+    var executeCommand = document.execCommand('copy',true);
+  }else if(document.body.createTextRange) {
+    var eleTextRange = document.body.createTextRange();
+    eleTextRange.moveToElementText(elementDetails);
+    eleTextRange.select();
+    var executeCommand = document.execCommand('copy',true);
+  }
+  
+}
+
+//Onlick of products sku get the products listing with listing then show the popup....
+function showProductsListing(length){
+    jQuery("#products_sku_listing").html('');
+    jQuery("#products_sku_listing").html('<tr class="text-center"><td colspan="3">Loading Records...</td></tr>');
+    $("#productsListing").show();
+    $(".common-table-class").attr("id", "products_listing_with_sku_"+length);
+    $("#products_scroll_count").val(0);
+    $(".load_products_listing_with_sku").hide();
+    $(".load_coupons_listing").hide();
+    jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length}, function(data) {
+        var responsedata = JSON.parse(data);
+        if(responsedata.status == "1") {
+            if(responsedata.productsListing != ""){
+                jQuery("#products_sku_listing").html('');
+                jQuery("#products_sku_listing").html(responsedata.productsListing);
+            }
+        }
+    });
+}
+
+//define the intial values....
+var productsLimit = 20;
+var productsOffsetExport = 20;
+var productsOffsetMatch = 20;
+var customLimitExport = 20;
+var customLimitMatch = 20;
+
+//on scroll load more products...
+function loadMoreProducts(){
+    //check scroll touch to botton...then proceed next...
+    if($(".righttextInner").scrollTop() + $(".righttextInner").innerHeight() >= $(".righttextInner")[0].scrollHeight)
+    {
+        //get the href to identify for which tab scroll request is hit....
+        var tabType = $(".nav-link.active").attr('href');
+        //remove '#' from tab href....
+        var tabId = tabType.split('#');
+        //get the first element after split....
+        if(tabId[1] != ""){
+            //get the scroll counter value....
+            var scroll_counter_value = $("#scroll_count_"+tabId[1]).val();
+            //add "1" to set the next value...
+            var scroll_counter_updated_value = parseInt(scroll_counter_value) + 1;
+            //set the latest value....
+            $("#scroll_count_"+tabId[1]).val(scroll_counter_updated_value);
+            if(tabId[1] == 'table_export_products'){
+                //compare scroll counter value......
+                if(scroll_counter_updated_value !== 1){
+                    productsOffsetExport = parseInt(productsOffsetExport) + parseInt(productsLimit);
+                }else{
+                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                    productsOffsetExport = PRODUCT_LAZY_LOADING_OFFSET;
+                }
+                var productsOffset = productsOffsetExport;
+                customLimitExport = parseInt(productsOffsetExport)+parseInt(productsLimit);
+            }else if(tabId[1] == 'table_match_products'){
+                //compare scroll counter value......
+                if(scroll_counter_updated_value !== 1){
+                    productsOffsetMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+                }else{
+                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                    productsOffsetMatch = PRODUCT_LAZY_LOADING_OFFSET;
+                }
+                var productsOffset = productsOffsetMatch;
+                customLimitMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+            }
+            //set the input hidden value to fetch the same list of records after export process done....
+            $("#products_limit_export").val(customLimitExport);
+            $("#products_limit_match").val(customLimitMatch);
+            //set the loader image....
+            $(".load_"+tabId[1]).html('');
+            $(".load_"+tabId[1]).html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+            $(".load_"+tabId[1]).show();
+            $('.export_products_btn').addClass("disable_anchor");
+            //send ajax to get the latest products of wc with updated offset....
+            jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
+                var responsedata = JSON.parse(data);
+                //hide the loader...
+                $(".load_"+tabId[1]).hide();
+                if(responsedata.status == "1") {
+                    $('.export_products_btn').removeClass("disable_anchor");
+                    if(responsedata.moreProductsListing != ""){
+                        //check the tab if then append the next products html.....
+                        if(tabId[1] == 'table_export_products'){
+                            $("table#export_products_listing tbody").append(responsedata.moreProductsListing);
+                            //first check checkbox of all checkbox is checked or not....
+                            if($(".all_products_checkbox_export").is(":checked")){
+                                $(".each_product_checkbox_export").prop("checked",true);
+                            }
+                        }else{
+                            $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
+                            //apply select two on match products tab.....
+                            applySelectTwo('application_match_products_dropdown');
+                        }
+                    }else{
+                        //minus something from scroll top to prevent next ajax request immediately.....
+                        var scrollTop = $(".righttextInner").scrollTop();
+                        var newScrollTopValue = scrollTop-100;//minus 100 to set the new scroll top value....
+                        $(".righttextInner").scrollTop(newScrollTopValue);//set scroll top to up on the basis of new value....
+                        //set the html to no products if response html is empty.....
+                        $(".load_"+tabId[1]).html('');
+                        $(".load_"+tabId[1]).html('No More Products Exist!');
+                        $(".load_"+tabId[1]).show();
+                    }
+                }
+            });
+        }
+    }
+}
+
+//define the intial values for products listing with sku popup...
+var productsListingLimit = 20;
+var productsListingOffset = 20;
+
+//On scroll touch to bottom in products listing with sku popup
+function loadProductsWithSku(){
+    //check scroll touch to bottom then proceed next....
+    if($(".productsModelBody").scrollTop() + $(".productsModelBody").innerHeight() >= $(".productsModelBody")[0].scrollHeight){
+        //get the scroll counter value....
+        var products_scroll_counter_value = $("#products_scroll_count").val();
+        //add "1" to set the next value...
+        var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
+        //set the latest value....
+        $("#products_scroll_count").val(products_scroll_counter_updated_value);
+        //compare products listing scroll counter value......
+        if(products_scroll_counter_updated_value !== 1){
+            productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+        }else{
+            productsListingLimit = 20;
+            productsListingOffset = 20;
+        }
+
+        //set the loader image....
+        $(".load_products_listing_with_sku").html('');
+        $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+        $(".load_products_listing_with_sku").show();
+        var popupTableId = $(".common-table-class").attr('id');
+        var explodedId = popupTableId.split('products_listing_with_sku_');
+        var skuLength = explodedId[1];
+        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
+            var responseData = JSON.parse(data);
+            $(".load_products_listing_with_sku").hide();
+            if(responseData.status == "1"){
+                if(responseData.productsListingWithSku != ""){
+                    $("#products_sku_listing").append(responseData.productsListingWithSku);
+                }else{
+                    $(".load_products_listing_with_sku").html('');
+                    $(".load_products_listing_with_sku").html('No More Products Exist!');
+                    $(".load_products_listing_with_sku").show();
+                    //minus something from scroll top to prevent next ajax request immediately.....
+                    var listingScrollTop = $(".productsModelBody").scrollTop();
+                    var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
+                    $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
+                }
+            }
+        });
+    }
+}
+
+//define the intial values for coupons listing in popup....
+var couponsListingLimit = 20;
+var couponsListingOffset = 20;
+
+//On scroll touch to botton in coupons listing popup....
+function loadMoreCoupons(){
+    //check scroll touch to bottom....
+    if($(".couponsLisingContent").scrollTop() + $(".couponsLisingContent").innerHeight() >= $(".couponsLisingContent")[0].scrollHeight){
+        //get the scroll counter value....
+        var coupons_scroll_counter_value = $("#coupons_scroll_count").val();
+        //add "1" to set the next value...
+        var coupons_scroll_counter_updated_value = parseInt(coupons_scroll_counter_value)+1;
+        //set the latest value....
+        $("#coupons_scroll_count").val(coupons_scroll_counter_updated_value);
+        //compare products listing scroll counter value......
+        if(coupons_scroll_counter_updated_value !== 1){
+            couponsListingOffset = parseInt(couponsListingOffset) + parseInt(couponsListingLimit);
+        }else{
+            couponsListingLimit = 20;
+            couponsListingOffset = 20;
+        }
+        
+        //set the loader image.....
+        $(".load_coupons_listing").html('');
+        $(".load_coupons_listing").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+        $(".load_coupons_listing").show();
+        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_coupons",{couponsListingLimit:couponsListingLimit,couponsListingOffset:couponsListingOffset},function(data){
+            var responseData = JSON.parse(data);
+            $(".load_coupons_listing").hide();
+            if(responseData.status == "1"){
+                if(responseData.couponsListingHtml != ""){
+                    $("#coupon_listing_with_sku").append(responseData.couponsListingHtml);
+                }else{
+                    $(".load_coupons_listing").html('');
+                    $(".load_coupons_listing").html('No More Coupons Exist!');
+                    $(".load_coupons_listing").show();
+                    //minus something from scroll top to prevent next ajax request immediately.....
+                    var couponsListingScrollTop = $(".couponsLisingContent").scrollTop();
+                    var newCouponsListingScrollTopValue = couponsListingScrollTop-100;//minus 100 to set the new scroll top value....
+                    $(".couponsLisingContent").scrollTop(newCouponsListingScrollTopValue);//set scroll top to up on the basis of new value....
+                }
+            }
+        });
+    }
 }
