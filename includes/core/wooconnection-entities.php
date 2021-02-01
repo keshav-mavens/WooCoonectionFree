@@ -76,3 +76,6 @@
 	define("PRODUCT_LAZY_LOADING_OFFSET", 20);
 	//set the products html.....
 	define("PRODUCTS_HTML_TYPE_LOAD_MORE", 1);
+	//subscription amount update status.....
+	define('SUBSCRIPTION_AMOUNT_UPDATED_FALSE',0);
+	define('SUBSCRIPTION_AMOUNT_UPDATED_TRUE', 1);

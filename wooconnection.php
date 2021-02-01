@@ -20,8 +20,6 @@ class WooConnectionPro {
         register_activation_hook( __FILE__, array($this, 'insert_countries_database_table' ) );
         //Call the hook register activation hook to call the custom action to set the schedular....
         register_activation_hook(__FILE__,  array($this, 'set_custom_schedular'));
-        //Call the hook to call the custom function to update the recurring amount in authenticate application....
-        add_action('recurring_payment_schedular_everyday',array($this,'everyday_event_custom_function'));
         //Call the hook register deactivation to clear the set custom cron job....
         register_deactivation_hook(__FILE__,array($this,'clear_custom_schedular'));
         //Call the register activation hook to create the custom table for store the recurring payment data of all users...
@@ -46,6 +44,8 @@ class WooConnectionPro {
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-entities.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
+        //Call the hook to call the custom function to update the recurring amount in authenticate application....
+        add_action('recurring_payment_schedular_everyday','WooConnection_Admin::everyday_event_custom_function');
     }
 
     //Function Definition : woocommerce_plugin_necessary
@@ -151,38 +151,6 @@ class WooConnectionPro {
         }
     }
 
-    //Function Definition : everyday_event_custom_function
-    public function everyday_event_custom_function(){
-      global $table_prefix,$wpdb;
-      $recurring_table_name = 'wooconnection_recurring_payments_data';
-      $wp_recurring_table_name = $table_prefix."$recurring_table_name";
-      //Check Table Records : First need to check whether the table records is exist or not if not exist....
-      $getRecurringRecords = $wpdb->get_results('SELECT * FROM '.$wp_recurring_table_name.' WHERE sub_status=1');
-      $access_token = '';
-      //check active recurring exist associated with authorize application...
-      if(isset($getRecurringRecords) && !empty($getRecurringRecords)){
-        //execute loop......
-        foreach($getRecurringRecords as $key=>$value){
-          if(!empty($value->sub_discount_amount) && !empty($value->discount_duration)){
-            $totalSubAmount = $value->sub_total_amount;
-            $subDiscountAmount = $value->sub_discount_amount;
-            $appSubId = $value->app_sub_id;
-            $subCreatedDate = $value->created;
-            $discountExpirationDate = date('Y-m-d', strtotime($subCreatedDate. ' + '.$value->discount_duration.' days'));
-            $todayDate = date('Y-m-d', strtotime('+2 days')).'<br>';
-            if($todayDate == $discountExpirationDate){
-                if(!empty($totalSubAmount)){
-                    $updatedSubAmount = $totalSubAmount + $subDiscountAmount;
-                }
-                //updateSubscriptionAmount($access_token,$appSubId,$updatedSubAmount); 
-            }else{
-
-            }
-          }
-        }
-      }
-    }
-
     //Function Definition : clear_custom_schedular 
     public function clear_custom_schedular(){
         //check schedular is exist or not......
@@ -206,6 +174,7 @@ class WooConnectionPro {
             $custom_table_sql .= "`sub_total_amount` double NOT NULL DEFAULT 0,";
             $custom_table_sql .= "`sub_discount_amount` double NOT NULL DEFAULT 0,";
             $custom_table_sql .= "`discount_duration` varchar(255),";
+            $custom_table_sql .= "`sub_amount_updation_status` tinyint(4) DEFAULT 0 COMMENT '0-false,1-true',";
             $custom_table_sql .= "`sub_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";
             $custom_table_sql .= "`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
             $custom_table_sql .= "`modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,";

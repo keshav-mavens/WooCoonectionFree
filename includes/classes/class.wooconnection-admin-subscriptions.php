@@ -54,29 +54,29 @@
 		//Function Definition : remove_custom_payment_gateways
 		public function remove_custom_payment_gateways($gateWays)
 		{
-			$checkProductAsSubscription = array();
-			//execute the loop on cart items to check wether the product is exist in array which is sold as a subscription managed by infusionsoft.....
-			foreach(WC()->cart->get_cart() as $cartItems){
-				$product_id = $cartItems['product_id'];
-				if(!empty($product_id)){
-					$soldAsSubscription = get_post_meta($product_id,'_product_sold_subscription',true);
-					//if any product exist with sold as a subscription  then set the id of product in array..
-					if($soldAsSubscription == 'yes'){
-						$checkProductAsSubscription['productId'] = $product_id;
-					}
-				}
-			}
-			//check array is not empty it means product exist in cart which is sold as a subscription managed by infusionsoft....
-			if(!empty($checkProductAsSubscription)){
-				//execute loop on payment gateways to disable all payment methods except infusionsoft...
-				foreach ($gateWays as $key => $value) {
-					//check if payment method id is not equal to infusionsoft_keap then need to unset another payment gateways......
-					if($key != 'infusionsoft_keap'){
-						unset($gateWays[$key]);
-					}
-				}
-			}
-			//return all the gateways after set/unset....
+			// $checkProductAsSubscription = array();
+			// //execute the loop on cart items to check wether the product is exist in array which is sold as a subscription managed by infusionsoft.....
+			// foreach(WC()->cart->get_cart() as $cartItems){
+			// 	$product_id = $cartItems['product_id'];
+			// 	if(!empty($product_id)){
+			// 		$soldAsSubscription = get_post_meta($product_id,'_product_sold_subscription',true);
+			// 		//if any product exist with sold as a subscription  then set the id of product in array..
+			// 		if($soldAsSubscription == 'yes'){
+			// 			$checkProductAsSubscription['productId'] = $product_id;
+			// 		}
+			// 	}
+			// }
+			// //check array is not empty it means product exist in cart which is sold as a subscription managed by infusionsoft....
+			// if(!empty($checkProductAsSubscription)){
+			// 	//execute loop on payment gateways to disable all payment methods except infusionsoft...
+			// 	foreach ($gateWays as $key => $value) {
+			// 		//check if payment method id is not equal to infusionsoft_keap then need to unset another payment gateways......
+			// 		if($key != 'infusionsoft_keap'){
+			// 			unset($gateWays[$key]);
+			// 		}
+			// 	}
+			// }
+			// //return all the gateways after set/unset....
 			return $gateWays;
 		}
 	}
