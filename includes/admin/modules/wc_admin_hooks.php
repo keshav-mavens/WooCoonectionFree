@@ -83,8 +83,22 @@ function insertProductToApplication( $post_id, $post ){
             }else{
               $wcproductShortDesc = "";
             }
+              
+            //get the product type....
+            $addedProductType = $wcproductdetails->get_type();
+
+            //check from post data ...
+            $addedProductSoldAsSubscription = '';
+            if(!empty($_POST['_product_subscription'])){
+              $addedProductSoldAsSubscription = $_POST['_product_subscription'];
+            } 
+
             //create final array with values.....
             $productDetailsArray = array();
+            if(stripos($addedProductType, 'subscription') !== false && $addedProductSoldAsSubscription == 'yes'){
+                $productDetailsArray['subscription_only'] = true;
+            }
+
             $productDetailsArray['active'] = true;
             $productDetailsArray['product_desc'] = $wcproductDesc;
             $productDetailsArray['sku'] = $wcproductSku;

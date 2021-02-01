@@ -61,5 +61,13 @@
                     $(".product_tabs_tab").show();
                 }
             });
+
+            $("[name=_product_subscription]").change(function() {
+                if($(this).is(":checked")){
+                    $(this).val('yes');
+                }else{
+                    $(this).val('no');
+                }
+            }); 
         });
 }(jQuery));

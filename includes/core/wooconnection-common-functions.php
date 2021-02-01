@@ -274,7 +274,10 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                   $wcproductName = "--";
                 }
                 $wcProductType = $wcproduct->get_type();
-                if(stripos($wcProductType, 'subscription') !== false){
+                //get the product meta to check wehther this product is sold as a subscription managed by infusionsoft.....
+                $productSoldAsSubscription = get_post_meta($wc_product_id,'_product_sold_subscription',true);
+                //get_post_meta($product_id,'_product_sold_subscription',true);
+                if(stripos($wcProductType, 'subscription') !== false && $productSoldAsSubscription == 'yes'){
                   $typeProduct = ITEM_TYPE_SUBSCRIPTION;
                 }else{
                   $typeProduct = ITEM_TYPE_PRODUCT;
@@ -504,6 +507,21 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
     }
   }
 
+  //by default subscription products is hide....
+  $allowSubscription = false;
+  //get the custom payment gateway settings.......
+  $settingOptions = get_option('woocommerce_infusionsoft_keap_settings');
+  //check settings is exist or not........
+  if(isset($settingOptions) && !empty($settingOptions)){
+    //then check custom gateway is enabled for payments......
+    if($settingOptions['enabled'] == 'yes'){
+      //then check subscriptions are enable or not if enable then call the class to give feature of trial subscription coupons......
+      if(isset($settingOptions['wc_subscriptions']) && !empty($settingOptions['wc_subscriptions']) && $settingOptions['wc_subscriptions'] == 'yes' && !empty($type) && $type == APPLICATION_TYPE_INFUSIONSOFT_LABEL){
+          $allowSubscription = true;
+      }
+    }
+  }
+
   //Set the application label on the basis of type...
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
@@ -516,7 +534,7 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
     }
   }else{
       //Compare woocommerce publish products application products....
-      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel,$matchProductHtmlType);
+      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel,$matchProductHtmlType,$allowSubscription);
       //Check export products data....
       if(isset($matchProductsData) && !empty($matchProductsData)){
           //Get the match products table html and append to table
@@ -538,7 +556,7 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
 }
 
 //Create the match products table listing....
-function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$matchProductHtmlType=''){
+function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$matchProductHtmlType='',$allowSubscription=''){
     $matchTableHtml  = '';//Define variable..
     $matchProductsData = array();//Define array...
     //First check if wooproducts exist...
@@ -583,19 +601,17 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                 }
                 //get the product type i.e simple product or simple subscription......
                 $wcproductType = $wcproduct->get_type();
-                // //check it substring "subscription" not exist in product type it means it is a simple product..
-                // if ($wcproductType, 'subscription') !== false) {
-                //     $typeproduct = ITEM_TYPE_SUBSCRIPTION;
-                // }
-                // //else it is a subscription plan.....
-                // else{
-                //     $typeproduct = ITEM_TYPE_PRODUCT;
-                // }
+                //get the product meta to check wehther this product is sold as a subscription managed by infusionsoft.....
                 $productSoldAsSubscription = get_post_meta($wc_product_id,'_product_sold_subscription',true);
-                if($productSoldAsSubscription == 'yes'){
-                  $typeproduct = ITEM_TYPE_SUBSCRIPTION;
+                //check it substring "subscription" not exist in product type it means it is a simple product..
+                if(stripos($wcproductType, 'subscription') !== false && $productSoldAsSubscription == 'yes'){
+                    $typeproduct = ITEM_TYPE_SUBSCRIPTION;
                 }
-
+                //else it is a subscription plan.....
+                else{
+                    $typeproduct = ITEM_TYPE_PRODUCT;
+                }
+                
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
                 if(!empty($applicationProductsArray['products'])){
                     //Check product relation is exist....
@@ -659,7 +675,7 @@ function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_com
               $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';  
           }
           //then check if product type is product then show only those products which is not related to subscription plans.....
-          else if ($typeProduct == ITEM_TYPE_PRODUCT && empty($iskpProductDetails['subscription_plans'])) {
+          else if ($typeProduct == ITEM_TYPE_PRODUCT && $iskpProductDetails['subscription_only'] !== true) {
               //create the final html.....
               $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';
           }

@@ -660,13 +660,16 @@
 		                    
 		                    //create contact subscription.....
 		                    $contactSub = createContactSub($access_token,$contactSubcriptionXml,$wooconnectionLogger);
-		            		if(!empty($contactSub)){
+		            		//check if subscription added for contact sucessfully..
+		            		if(!empty($contactSub) && is_int($contactSub)){
+		            			//create array with value for update the subscription amount in authorize application.....
 		            			$recurringDetailsArray['wp_user_id'] = $wp_user_id;
 		            			$recurringDetailsArray['app_contact_id'] = $contactId;
 		            			$recurringDetailsArray['app_sub_id'] = $contactSub;
 		            			$recurringDetailsArray['sub_total_amount'] = $value['subscription_price'];
 		            			$recurringDetailsArray['sub_discount_amount'] = $value['subscription_discount'];
 		            			$recurringDetailsArray['discount_duration'] = $discountDays;
+		            			//insert the details in custom table of database.....
 		            			$wpdb->insert($recurring_data_table_name, $recurringDetailsArray); 
 		            		}
 		            	}

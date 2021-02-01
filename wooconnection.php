@@ -147,7 +147,7 @@ class WooConnectionPro {
     public function set_custom_schedular(){
         //check schedular is already set or not.....
         if (!wp_next_scheduled( 'recurring_payment_schedular_everyday' ) ) {
-            wp_schedule_event( time(), 'every_minute', 'recurring_payment_schedular_everyday' );
+            wp_schedule_event( time(), 'daily', 'recurring_payment_schedular_everyday' );
         }
     }
 
