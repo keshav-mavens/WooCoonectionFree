@@ -95,6 +95,7 @@ function insertProductToApplication( $post_id, $post ){
 
             //create final array with values.....
             $productDetailsArray = array();
+            //check if product type is marked as a subscription and is also managed by infusionsoft.....
             if(stripos($addedProductType, 'subscription') !== false && $addedProductSoldAsSubscription == 'yes'){
                 $productDetailsArray['subscription_only'] = true;
             }
@@ -108,6 +109,33 @@ function insertProductToApplication( $post_id, $post ){
             $jsonData = json_encode($productDetailsArray);//covert array to json...
             $newProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_BACK_END,$wooconnectionLogger);//call the common function to insert the product.....
             if(!empty($newProductId)){//if new product created is not then update relation and product sku...
+              if(!empty($addedProductSoldAsSubscription) && $addedProductSoldAsSubscription == 'yes'){
+                  if(isset($_POST['_subscription_period_interval'])){
+                    //get the subscription plan interval.......
+                    $subPlanInterval = $_POST['_subscription_period_interval'];
+                  }
+                  
+                  if(isset($_POST['_subscription_period'])){
+                    //get the subscription plan period....
+                    $subPlanPeriod = $_POST['_subscription_period'];
+                  }
+                  
+                  if(isset($_POST['_subscription_length'])){
+                    //get the subscription plan cycle....
+                    $subPlanLength = $_POST['_subscription_length'];
+                  }
+
+                  $planPrice = $wcproductPrice;
+                  if(isset($_POST['_subscription_price'])){
+                    $planPrice = $_POST['_subscription_price'];
+                  }
+                  
+                  //create json array to add subscription plan....
+                  $subPlanJsonArray = '{"active":true,"cycle_type":"'.strtoupper($subPlanPeriod).'","frequency":'.$subPlanInterval.',"number_of_cycles":'.$subPlanLength.',"plan_price":'.$planPrice.',"subscription_plan_index":0}';
+                  
+                  //add subscription plan in particular application product....
+                  $createdSubscriptionPlanId = addSubscriptionPlan($access_token,$newProductId,$subPlanJsonArray,$wooconnectionLogger);
+              }
               //update relationship between woocommerce product and infusionsoft/keap product...
               update_post_meta($post_id, 'is_kp_product_id', $newProductId);
               //update automation so next time product is updated stop the product insertion process.....
