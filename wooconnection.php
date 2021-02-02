@@ -8,10 +8,10 @@
  * Plugin URI: https://www.wooconnection.com
  */
 class WooConnectionPro {
-
     public function __construct() {
-        //Call the hook plugin_loaded at the time of plugin initialization..
-        add_action("plugins_loaded", array($this, "wooconnection_plugin_initialization"));
+		//Call the hook plugin_loaded at the time of plugin initialization..
+		add_action("plugins_loaded", array($this, "wooconnection_plugin_initialization"));
+
         //Call the hook register_activation_hook at the time of plugin activation and create the table in database for campaign goals management..
         register_activation_hook( __FILE__, array($this, 'create_campaign_goals_database_table' ) );
         //Call the hook register_activation_hook to insert records in table..
@@ -28,14 +28,15 @@ class WooConnectionPro {
     //Function Definition : wooconnection_plugin_initialization
     public function wooconnection_plugin_initialization(){
         if (!class_exists('WC_Integration')) {
-            add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
-            return;
-        }
+			add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
+			return;
+		}
         //check if wooconnection free version plugin is already activated then user needs to deactivate or delete the free verison of wooconnection to use the pro wooconnection version.....
         if (class_exists('WooConnection')) {
             add_action('admin_notices', array($this, 'wc_pro_deactivate_free_version_notice'));
             return;
         }
+        
         //check if user try with copy paste the files ....
         $checkProVersionActivated = get_option('wc_pro_version_activated');
         //if option not exist...
@@ -45,6 +46,7 @@ class WooConnectionPro {
             deactivate_plugins( plugin_basename( __FILE__ ) );
             wp_die( __( 'Sorry you are allowed to access this plugin. Please activate it first.', 'textdomain' ) );
         }
+        
         define( 'WOOCONNECTION_VERSION', '16' );//Version Entity
         define( 'WOOCONNECTION_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );//Directory Path Entity
         define( 'WOOCONNECTION_PLUGIN_URL', plugin_dir_url( __FILE__ ) );//Directory Url Entity

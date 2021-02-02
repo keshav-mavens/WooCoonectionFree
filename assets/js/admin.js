@@ -38,6 +38,16 @@
                                 $(".tab_related_content").html('');
                                 $(".tab_related_content").html(data);
                                 jQuery(".tab_related_content").removeClass('overlay');
+                                
+                                //add select 2 for woocommerce products field in import products tab...
+                                if($(".wc_import_products_dropdown").length){
+                                    applySelectTwo('wc_import_products_dropdown');
+                                }
+                                
+                                //code is used to set the woocommerce product selected from dropdown....
+                                if(jQuery(".wcProductsDropdown").length){
+                                    applyProductSelected();
+                                }
                             });
                         }
                         //Check if "response" done....
@@ -239,10 +249,12 @@
                         var newExportLimit = $("#products_limit_export").val();
                     }else if(target_tab_id == '#table_match_products'){
                         var newMatchLimit = $("#products_limit_match").val();
+                    }else if(target_tab_id == '#table_import_products'){
+                        var newImportLimit = $("#products_limit_import").val();
                     }
                     $(target_tab_id+"_listing").html('');
                     $(target_tab_id+"_listing").html('<p class="heading-text" style="text-align:center;">Loading Data....</p>');
-                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id,newLimitExport:newExportLimit,newLimitMatch:newMatchLimit}, function(data) {
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id,newLimitExport:newExportLimit,newLimitMatch:newMatchLimit,newLimitImport:newImportLimit}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
                             jQuery(".ajax_loader").hide();
@@ -255,29 +267,19 @@
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     applySelectTwo('application_match_products_dropdown');
-                                }else if (target_tab_id == '#table_standard_fields_mapping') {
+                                }
+                                else if (target_tab_id == '#table_import_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    
-                                    //add select 2 for infusionsoft/keap fields....
-                                    if($(".standardcfieldmappingwith").length){
-                                        applySelectTwo('standardcfieldmappingwith');
+                                    //add select 2 for woocommerce products field in import products tab...
+                                    if($(".wc_import_products_dropdown").length){
+                                        applySelectTwo('wc_import_products_dropdown');
                                     }
-
-                                    //code is used to set the infusionsoft/keap field selected from dropdown....
-                                    $(".standardcfrows").each(function() {
-                                        var standardcfId = $(this).attr('id');//get the standard field id....
-                                        var standardcdmapp = $(this).attr("data-id");//get the standard field mapped with....
-                                        if(standardcfId != ''){
-                                            if(standardcdmapp != ""){
-                                                //set field selected....
-                                                $('#standard_cfield_mapping_'+standardcfId).val(standardcdmapp).trigger('change.select2');
-                                            }
-                                        }
-                                    });
-
-                                }     
-                                
+                                    //code is used to set the woocommerce product selected from dropdown....
+                                    if(jQuery(".wcProductsDropdown").length){
+                                        applyProductSelected();
+                                    }
+                                }    
                             }
                             //hide the loader div and "error message" on tab change.....
                             $(".loading_products").hide();
@@ -1062,6 +1064,25 @@
                 }
             });
 
+            //Import Products Tab : check all products checkbox rule....
+            $document.on("click",".all_products_checkbox_import",function(event) {
+                if ($(this).is(":checked"))
+                {
+                    $('.each_product_checkbox_import').prop("checked", true);
+                }
+                else
+                {
+                    $('.each_product_checkbox_import').prop("checked", false);
+                }
+            });
+            
+            //Import Products Tab : on change of select box of woocommerce products mark checkbox checked or unchecked on the basis of select value.....
+            $document.on("click",".each_product_checkbox_import",function(event) {
+                if ($('.all_products_checkbox_import').is(":checked"))
+                {
+                    $('.all_products_checkbox_import').prop("checked", false);
+                }
+            });
         });
 }(jQuery));
 
@@ -1444,11 +1465,6 @@ function hideCustomModel(modelId){
 //common function to apply a select2
 function applySelectTwo(element){
     if(element != ""){
-        //Export Tab: apply select 2 on infusionsoft products tab..
-        if(element == 'wc_iskp_products_dropdown'){
-            $("."+element).select2({
-            });    
-        }
         //Match Products Tab: apply select 2 on infusionsoft products tab..
         if(element == 'application_match_products_dropdown'){
             $("."+element).select2({
@@ -1460,6 +1476,12 @@ function applySelectTwo(element){
                 placeholder: 'Select Mapped Infusionsoft Field',
                 tags: true,
             }); 
+        }    
+
+        //Import Tab: apply select 2 on import products tab..
+        if(element == 'wc_import_products_dropdown'){
+            $("."+element).select2({
+            });    
         } 
         //add select 2 for woocommerce products field
         if(element == 'standardcfieldmappingwith'){
@@ -1564,6 +1586,7 @@ function applyCollapseRules(div_id){
         });    
     }
 }
+
 
 //Custom fields Tab : when user click on save button of custom field application form.....
 function savecfieldapp(){
@@ -1947,8 +1970,10 @@ function showProductsListing(length){
 var productsLimit = 20;
 var productsOffsetExport = 20;
 var productsOffsetMatch = 20;
+var productsOffsetImport = 20;
 var customLimitExport = 20;
 var customLimitMatch = 20;
+var customLimitImport = 20;
 
 //on scroll load more products...
 function loadMoreProducts(){
@@ -1987,15 +2012,28 @@ function loadMoreProducts(){
                 }
                 var productsOffset = productsOffsetMatch;
                 customLimitMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+            }else if(tabId[1] == 'table_import_products') {
+                //compare scroll counter value......
+                if(scroll_counter_updated_value !== 1){
+                    productsOffsetImport = parseInt(productsOffsetImport) + parseInt(productsLimit);
+                }else{
+                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                    productsOffsetImport = PRODUCT_LAZY_LOADING_OFFSET;
+                }
+                var productsOffset = productsOffsetImport;
+                customLimitImport = parseInt(productsOffsetImport)+parseInt(productsLimit);
             }
+            
             //set the input hidden value to fetch the same list of records after export process done....
             $("#products_limit_export").val(customLimitExport);
             $("#products_limit_match").val(customLimitMatch);
+            $("#products_limit_import").val(customLimitImport);
             //set the loader image....
             $(".load_"+tabId[1]).html('');
             $(".load_"+tabId[1]).html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
             $(".load_"+tabId[1]).show();
             $('.export_products_btn').addClass("disable_anchor");
+            $('.import_products_btn').addClass("disable_anchor");
             //send ajax to get the latest products of wc with updated offset....
             jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
                 var responsedata = JSON.parse(data);
@@ -2003,6 +2041,7 @@ function loadMoreProducts(){
                 $(".load_"+tabId[1]).hide();
                 if(responsedata.status == "1") {
                     $('.export_products_btn').removeClass("disable_anchor");
+                    $('.import_products_btn').removeClass("disable_anchor");
                     if(responsedata.moreProductsListing != ""){
                         //check the tab if then append the next products html.....
                         if(tabId[1] == 'table_export_products'){
@@ -2011,10 +2050,16 @@ function loadMoreProducts(){
                             if($(".all_products_checkbox_export").is(":checked")){
                                 $(".each_product_checkbox_export").prop("checked",true);
                             }
-                        }else{
+                        }else if(tabId[1] == 'table_match_products'){
                             $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
                             //apply select two on match products tab.....
                             applySelectTwo('application_match_products_dropdown');
+                        }else{
+                            $("table#import_products_listing tbody").append(responsedata.moreProductsListing);
+                            //add select 2 for woocommerce products field
+                            if($(".wc_import_products_dropdown").length){
+                                applySelectTwo('wc_import_products_dropdown');
+                            }
                         }
                     }else{
                         //minus something from scroll top to prevent next ajax request immediately.....
@@ -2125,4 +2170,72 @@ function loadMoreCoupons(){
             }
         });
     }
+}
+//On click of import products button send ajax to import products and on sucess update the html....
+function infusionKeapProductsImport(){
+    var checkImportProducts = checkSelectedProducts('import_products_listing_class','allproductsimport');
+    var checkSelectedImportProductsCount = checkImportProducts.length;
+    if(checkSelectedImportProductsCount == 0){
+        $(".import-products-error").html('You need to select atleast one product to import.');
+        $(".import-products-error").show();
+    }else{
+        $(".import-products-error").hide();
+        $(".importProducts").show();
+        $('.import_products_btn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_import_application_products",$('#wc_import_products_form').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".importProducts").hide();
+            if(responsedata.status == "1") {
+                $('.import_products_btn').removeClass("disable_anchor");
+                if(responsedata.latestImportProductsHtml != ""){
+                     $('.import_products_listing_class').html();
+                     $('.import_products_listing_class').html(responsedata.latestImportProductsHtml);
+                }
+                
+                //add select 2 for woocommerce products field
+                if($(".wc_import_products_dropdown").length){
+                    applySelectTwo('wc_import_products_dropdown');
+                }
+                //code is used to set the woocommerce product selected from dropdown....
+                if($(".wcProductsDropdown").length){
+                    applyProductSelected();
+                }
+                $('.all_products_checkbox_import').prop("checked", false);
+                $('.each_product_checkbox_import').prop("checked", false);
+                swal("Saved!", 'Products imported successfully.', "success");
+            }else{
+                $(".import-products-error").show();
+                $(".import-products-error").html('Something Went Wrong.');
+                setTimeout(function()
+                {
+                    $('.import-products-error').fadeOut("slow");
+                    $('.import_products_btn').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+    }
+    setTimeout(function()
+    {
+        $('.import-products-error').fadeOut("slow");
+    }, 3000);
+}
+
+//Import/Export Tab : code is used to set the woocommerce product selected from dropdown....
+function applyProductSelected(){
+    //execute loop on each select box of woocommerce products....
+    $(".wcProductsDropdown").each(function() {
+        //get the application product id....
+        var appProductId = $(this).attr('data-target');
+        //get the woocommercer product id....
+        var wcProductId = $(this).attr("data-id");
+        //first check application product id is exist....
+        if(appProductId != ''){
+            //then check woocommerce product id exist////
+            if(wcProductId != ""){
+                //set woocommerce product selected by select box name....
+                $('[name="wc_product_import_with_'+appProductId+'"]').val(wcProductId);
+                $('[name="wc_product_import_with_'+appProductId+'"]').select2().trigger('change');
+            }
+        }
+    }); 
 }

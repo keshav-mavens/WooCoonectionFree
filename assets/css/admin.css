@@ -614,7 +614,7 @@ span#customize_referral_partner_url {
     pointer-events:none;
     opacity:0.4;
 }
-.exportProducts,.matchProducts,.fieldsMapping{
+.exportProducts,.matchProducts,.importProducts{
   background-color: #4CAF50; 
   border: none; 
   color: white; 
