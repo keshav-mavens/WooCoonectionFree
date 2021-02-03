@@ -1513,8 +1513,8 @@ function wc_import_application_products()
 	      			}
 	      			//define array to store the infusionsoft/keap product detail......
 	      			$product_extra_data_array = array();
-	      			//$infusionKeapProduct = getApplicationProductDetail($value,$access_token);
 	      			if(isset($_POST['plan_id_'.$value]) && !empty($_POST['plan_id_'.$value])){
+	      				//get the all data of application product from hidden values.....
 	      				$infusionKeapProduct = $_POST['plan_id_'.$value];
 
 	      				$pContent = '';
