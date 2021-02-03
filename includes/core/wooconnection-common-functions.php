@@ -1493,40 +1493,6 @@ function getProductId($key, $value) {
   }
 }
 
-//Function is used to get the product information from the the authenticate application.....
-function getApplicationProductDetails($access_token,$productId){
-    $productName = '';
-    if(!empty($access_token) && !empty($productId))
-    {
-        $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$productId;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url); //using the setopt function to send request to the url
-        $header = array(
-            'Accept: application/json',
-            'Content-Type: application/json',
-            'Authorization: Bearer '. $access_token
-        );
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
-        $response = curl_exec($ch); //executing request
-        $err = curl_error($ch);
-        if($err){
-        }else{
-          $sucessData = json_decode($response,true);
-          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
-           
-          }else{
-            if(!empty($sucessData['product_name'])){
-                $productName = $sucessData['product_name'];
-            }
-          }
-          return $productName;
-        }
-        curl_close($ch);  
-    }
-    return $productName;
-}
-
 //Custom fields Tab :  Get all latest custom fields from infusionsoft/keap application related to orders/contacts..........
 function getPredefindCustomfields(){
   //first need to check whether the application authentication is done or not..
@@ -2901,6 +2867,41 @@ function checkWcProductExistSku($appsku,$wcproductsArray){
             }
         }
       }   
+  }
+}
+
+//Get the list of application products....
+function getApplicationProductDetail($id,$access_token){
+    $productsListing = array();
+    $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$id;
+    $ch = curl_init($url);
+    $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $access_token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    $matchIdsArray = array();
+    if($err){
+    }else{
+      $sucessData = json_decode($response,true);
+      return $sucessData;
+    }
+    curl_close($ch);
+}
+
+//This function is used to update the post meta with latest details..
+function updateProductMetaData($productId,$detailsArray){
+  if(!empty($productId) && !empty($detailsArray)){
+    foreach ($detailsArray as $key => $value) {
+      if(!empty($key)){
+        update_post_meta($productId, $key, $value);     
+      }
+    }
+    return RESPONSE_STATUS_TRUE;
   }
 }
 ?>

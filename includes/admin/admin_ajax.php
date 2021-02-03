@@ -1611,40 +1611,5 @@ function wc_import_application_products()
  	}
 	die();
 }
-
-//Get the list of application products....
-function getApplicationProductDetail($id,$access_token){
-   	$productsListing = array();
-    $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$id;
-    $ch = curl_init($url);
-    $header = array(
-        'Accept: application/json',
-        'Content-Type: application/json',
-        'Authorization: Bearer '. $access_token
-    );
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
-    $response = curl_exec($ch);
-    $err = curl_error($ch);
-    $matchIdsArray = array();
-    if($err){
-    }else{
-      $sucessData = json_decode($response,true);
-      return $sucessData;
-    }
-    curl_close($ch);
-}
-
-//This function is used to update the post meta with latest details..
-function updateProductMetaData($productId,$detailsArray){
-	if(!empty($productId) && !empty($detailsArray)){
-		foreach ($detailsArray as $key => $value) {
-			if(!empty($key)){
-				update_post_meta($productId, $key, $value);			
-			}
-		}
-		return RESPONSE_STATUS_TRUE;
-	}
-}
 ?>
 
