@@ -2177,6 +2177,15 @@ function loadMoreCoupons(){
 }
 //On click of import products button send ajax to import products and on sucess update the html....
 function infusionKeapProductsImport(){
+    //get the scroll top....
+    var scrollTop = $(".righttextInner").scrollTop();
+    //minus 100px from it.....
+    var newScrollTopValue =scrollTop-100;
+    //set the new scroll top with latest value....
+    $(".righttextInner").scrollTop(newScrollTopValue);
+    $(".loading_products").hide();
+    //get the input type hidden value to tha same list of products they are already loaded....
+    var limitAfterImport = $("#products_limit_import").val();
     var checkImportProducts = checkSelectedProducts('import_products_listing_class','allproductsimport');
     var checkSelectedImportProductsCount = checkImportProducts.length;
     if(checkSelectedImportProductsCount == 0){
@@ -2186,7 +2195,7 @@ function infusionKeapProductsImport(){
         $(".import-products-error").hide();
         $(".importProducts").show();
         $('.import_products_btn').addClass("disable_anchor");
-        jQuery.post( ajax_object.ajax_url + "?action=wc_import_application_products",$('#wc_import_products_form').serialize(), function(data) {
+        jQuery.post( ajax_object.ajax_url + "?action=wc_import_application_products",$('#wc_import_products_form').serialize()+"&newLimit="+limitAfterImport, function(data) {
             var responsedata = JSON.parse(data);
             $(".importProducts").hide();
             if(responsedata.status == "1") {
@@ -2216,6 +2225,8 @@ function infusionKeapProductsImport(){
                     $('.import_products_btn').removeClass("disable_anchor");
                 }, 3000);
             }
+            //after export products set the scroll top to 0...
+            $(".righttextInner").scrollTop(0);
         });
     }
     setTimeout(function()

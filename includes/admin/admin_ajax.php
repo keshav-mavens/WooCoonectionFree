@@ -1596,8 +1596,16 @@ function wc_import_application_products()
 		      		}
 	      		}
  			}
+ 			//set default offset and limit.....
+ 			$importProductsLimit = 20;
+ 			$importProductsOffset = 0;
+ 			//check limit exist in post data or not....
+ 			if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
+ 				$importProductsLimit = $_POST['newLimit'];
+ 			}
+ 			
  			//then call the "createImportProductsHtml" function to get the latest html...
-            $latestImportProductsHtml = createImportProductsHtml();
+            $latestImportProductsHtml = createImportProductsHtml($importProductsLimit,$importProductsOffset);
             echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestImportProductsHtml'=>$latestImportProductsHtml));
  		}
  	}

@@ -1358,7 +1358,6 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
                       <div class="load_table_import_products loading_products" style="display:none"></div>
                       <div class="load_table_export_products loading_products" style="display:none;"></div>
                       <div class="importProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Importing products from your '.$applicationLabel.' account.</div>
-                      <div class="importProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Process Import Products....</div>
                       <div class="alert-error-message import-products-error" style="display: none;"></div>
                       <div class="alert-sucess-message import-products-success" style="display: none;">Products import successfully.</div>
                       <input type="button" value="Import Products" class="btn btn-primary btn-radius btn-theme import_products_btn" onclick="infusionKeapProductsImport()">
@@ -1446,7 +1445,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                   $appProductSku = "--";
                 }
                 //Create final html.......
-                $importTableHtml .= '<tr><input type="hidden" name="plan_id_'.$value['id'].'[price]" value="'.$value['ProductPrice'].'"><input type="hidden" name="plan_id_'.$value['id'].'[name]" value="'.$value['ProductName'].'"><input type="hidden" name="plan_id_'.$value['id'].'[description]" value="'.strip_tags($value['Description']).'"><input type="hidden" name="plan_id_'.$value['id'].'[shortdescription]" value="'.strip_tags($value['ShortDescription']).'"><input type="hidden" name="plan_id_'.$value['id'].'[sku]" value="'.$value['Sku'].'"><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
+                $importTableHtml .= '<tr><input type="hidden" name="plan_id_'.$value['Id'].'[price]" value="'.$value['ProductPrice'].'"><input type="hidden" name="plan_id_'.$value['Id'].'[name]" value="'.$value['ProductName'].'"><input type="hidden" name="plan_id_'.$value['Id'].'[description]" value="'.strip_tags($value['Description']).'"><input type="hidden" name="plan_id_'.$value['Id'].'[shortdescription]" value="'.strip_tags($value['ShortDescription']).'"><input type="hidden" name="plan_id_'.$value['Id'].'[sku]" value="'.$value['Sku'].'"><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
 
             }
 
