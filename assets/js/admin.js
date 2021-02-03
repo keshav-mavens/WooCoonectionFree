@@ -1970,7 +1970,7 @@ function showProductsListing(length){
 var productsLimit = 20;
 var productsOffsetExport = 20;
 var productsOffsetMatch = 20;
-var productsOffsetImport = 20;
+var productsOffsetImport = 0;
 var customLimitExport = 20;
 var customLimitMatch = 20;
 var customLimitImport = 20;
@@ -2015,13 +2015,13 @@ function loadMoreProducts(){
             }else if(tabId[1] == 'table_import_products') {
                 //compare scroll counter value......
                 if(scroll_counter_updated_value !== 1){
-                    productsOffsetImport = parseInt(productsOffsetImport) + parseInt(productsLimit);
+                    productsOffsetImport = parseInt(productsOffsetImport) + 1;
                 }else{
                     productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
-                    productsOffsetImport = PRODUCT_LAZY_LOADING_OFFSET;
+                    productsOffsetImport = 1;
                 }
                 var productsOffset = productsOffsetImport;
-                customLimitImport = parseInt(productsOffsetImport)+parseInt(productsLimit);
+                customLimitImport = parseInt(productsLimit) + 20;
             }
             
             //set the input hidden value to fetch the same list of records after export process done....
@@ -2059,6 +2059,10 @@ function loadMoreProducts(){
                             //add select 2 for woocommerce products field
                             if($(".wc_import_products_dropdown").length){
                                 applySelectTwo('wc_import_products_dropdown');
+                            }
+                            //first check checkbox of all checkbox is checked or not...
+                            if($(".all_products_checkbox_import").is(":checked")){
+                                $(".each_product_checkbox_import").prop("checked",true);
                             }
                         }
                     }else{
