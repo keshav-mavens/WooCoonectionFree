@@ -254,6 +254,8 @@
                     }
                     $(target_tab_id+"_listing").html('');
                     $(target_tab_id+"_listing").html('<p class="heading-text" style="text-align:center;">Loading Data....</p>');
+                    //hide the loader div and "error message" on tab change....,
+                    $(".loading_products").hide();
                     jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id,newLimitExport:newExportLimit,newLimitMatch:newMatchLimit,newLimitImport:newImportLimit}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
@@ -281,8 +283,6 @@
                                     }
                                 }    
                             }
-                            //hide the loader div and "error message" on tab change.....
-                            $(".loading_products").hide();
                         }
                     });
                 }
