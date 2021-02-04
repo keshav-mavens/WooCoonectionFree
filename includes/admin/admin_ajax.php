@@ -861,8 +861,9 @@ function wc_load_more_products(){
 				//then call the "createExportProductsHtml" function to get the next products for export products...
         		$moreProductsListing = createExportProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
 			}else if ($_POST['tabversion'] == 'table_match_products') {
+				$dropDownLimit = $_POST['dropdownLimit'];
 				//then call the "createMatchProductsHtml" function to get the next products for match products....
-				$moreProductsListing = createMatchProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+				$moreProductsListing = createMatchProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE,$dropDownLimit);
 			}else if($_POST['tabversion'] == 'table_import_products'){
 				//then call the "createImportProductsHtml" function to get the next products for import products...
 				$moreProductsListing = createImportProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
@@ -1609,6 +1610,28 @@ function wc_import_application_products()
             echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestImportProductsHtml'=>$latestImportProductsHtml));
  		}
  	}
+	die();
+}
+
+
+//Wordpress Hook : This hook is used to load the more products of application with limit......
+add_action('wp_ajax_wc_load_application_products','wc_load_application_products');
+//Function Definiation : wc_load_application_products
+function wc_load_application_products(){
+	//first check if post data exist////
+	if(isset($_POST) && !empty($_POST)){
+		//empty variable.....
+		$options = '';
+		$appLimit = 20;//define default limit.....
+		$appPageNumber = $_POST['matchProductsPageNumber'];
+		//get the list of application product by limit and page number.....
+		$applicationProducts = getApplicationProducts($appLimit,$appPageNumber);
+		if(isset($applicationProducts) && !empty($applicationProducts)){
+			$options = $applicationProducts;
+		}
+		//return response....
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newOptions'=>$options));
+	}
 	die();
 }
 ?>

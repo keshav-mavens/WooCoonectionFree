@@ -491,7 +491,7 @@ function updateExistingProduct($alreadyExistProductId,$access_token,$productDeta
 }
 
 //Main function is used to generate the match products html.....
-function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',$matchProductHtmlType=''){
+function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',$matchProductHtmlType='',$dropdownLimit=''){
   global $wpdb;
   //Define match table html variable.....
   $table_match_products_html = "";
@@ -514,7 +514,17 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
   //Set the application label on the basis of type...
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
-  $applicationProductsArray = getApplicationProducts();
+  $applicationProductsArray = getApplicationProducts($dropdownLimit);
+
+  //first need to check connection is created or not infusionsoft/keap application then next process need to done..
+  $applicationAuthenticationDetails = getAuthenticationDetails();
+  //get the access token....
+  $access_token = '';
+  if(!empty($applicationAuthenticationDetails)){
+    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+    }
+  }
   
   //set html if no products exist in woocommerce they are in relation with applcation products....
   if(empty($wooCommerceProducts)){
@@ -523,7 +533,7 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
     }
   }else{
       //Compare woocommerce publish products application products....
-      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel,$matchProductHtmlType);
+      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel,$matchProductHtmlType,$access_token);
       //Check export products data....
       if(isset($matchProductsData) && !empty($matchProductsData)){
           //Get the match products table html and append to table
@@ -545,7 +555,7 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
 }
 
 //Create the match products table listing....
-function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$matchProductHtmlType=''){
+function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$matchProductHtmlType='',$access_token){
     $matchTableHtml  = '';//Define variable..
     $matchProductsData = array();//Define array...
     //First check if wooproducts exist...
@@ -587,6 +597,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                 }else{
                   $wcproductName = "--";
                 }
+                $mappedOptionHtml = '';
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
                 if(!empty($applicationProductsArray)){
                     //Check product relation is exist....
@@ -594,11 +605,26 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                     //If product relation exist then create select deopdown and set associative product selected....
                     if(isset($productExistId) && !empty($productExistId)){
                       $productsDropDown = createMatchProductsSelect($applicationProductsArray,$productExistId);
+                      //check if mapped product is exist in application products or not.....
+                      $checkProductExist = array_search($productExistId, array_column($applicationProductsArray, 'Id'));
+                      //if not exist......
+                      if($checkProductExist == false){
+                        //get the application product details....
+                        $appProductDetail = getApplicationProductDetail($productExistId,$access_token);
+                        $productName = '';
+                        if(isset($appProductDetail) && !empty($appProductDetail)){
+                          $productName = $appProductDetail['product_name'];
+                        }
+                        //check if product exist in application then add custom option html.....
+                        if(!empty($productName)){
+                          $mappedOptionHtml = '<option value="'.$productExistId.'" data-id="'.$productExistId.'" selected>'.$productName.'</option>';
+                        }
+                      }
                     }else{
                       $productsDropDown = createMatchProductsSelect($applicationProductsArray);
                     }
                     //Create final select html.....
-                    $productSelectHtml = '<select class="application_match_products_dropdown" name="wc_product_match_with_'.$wc_product_id.'" data-id="'.$wc_product_id.'"><option value="0">Select '.$applicationType.' product</option>'.$productsDropDown.'</select>';
+                    $productSelectHtml = '<input type="hidden" id="scroll_count_app_products" value="0" class="scroll_counter"><input type="hidden" id="products_limit_application_match" value="20" class="scroll_counter"><select class="application_match_products_dropdown" name="wc_product_match_with_'.$wc_product_id.'" data-id="'.$wc_product_id.'"><option value="0">Select '.$applicationType.' product</option>'.$productsDropDown.$mappedOptionHtml.'</select>';
                 }else{
                   //Set the html of select if no products exist in application....
                   $productSelectHtml = 'No '.$applicationType.' Products Exist!';

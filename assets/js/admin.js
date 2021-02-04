@@ -1083,6 +1083,83 @@
                     $('.all_products_checkbox_import').prop("checked", false);
                 }
             });
+            
+            var matchProductsLimit = 20;
+            var matchProductsOffser = 0;
+            $document.on('mousewheel',".select2-results__options", function (e) { 
+                //check scroll touch to bottom....
+                if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight){
+                    var ulId = $(this).attr('id');
+                    if (ulId.indexOf('select2-wc_product_match_with_') > -1) {
+                        var selectName = $(this).attr('select-name');
+                        //get the scroll counter value....
+                        var scroll_count_app_match_products = $("#scroll_count_app_products").val();
+                        //add "1" to set the next value...
+                        var count_updated_value = parseInt(scroll_count_app_match_products) + 1;
+                        //set the latest value....
+                        $("#scroll_count_app_products").val(count_updated_value);
+                        //compare scroll counter value......
+                        if(count_updated_value !== 1){
+                            matchProductsOffser = parseInt(matchProductsOffser) + 1;
+                        }else{
+                            matchProductsLimit = 20;
+                            matchProductsOffser = 1;
+                        }
+                        var matchProductsPageNumber = matchProductsOffser;
+                        var dropdownLimit = $("#products_limit_application_match").val();
+                        var newDropdownLimit = parseInt(dropdownLimit) + 20;
+                        $("#products_limit_application_match").val(newDropdownLimit);
+                        //minus something from scroll top to prevent next ajax request immediately.....
+                        var scrollTop = $(this).scrollTop();
+                        var newScrollTopValue = scrollTop-100;//minus 100 to set the new scroll top value....
+                        $(this).scrollTop(newScrollTopValue);//set scroll top to up on the basis of new value....
+                        $(".loading_products_more").hide();
+                        $(this).append('<li class="loading_products_more">Loading More Products..</li>');
+                        jQuery.post(ajax_object.ajax_url + "?action=wc_load_application_products&jsoncallback=x", {matchProductsPageNumber: matchProductsPageNumber}, function(data) {
+                            var responseData = JSON.parse(data);
+                            if(responseData.status == "1"){
+                                //check options exist in response.....
+                                if(responseData.newOptions !== ''){
+                                    $(".loading_products_more").hide();
+                                    //execute loop on opitons.....
+                                    $(responseData.newOptions).each(function (index, item) {
+                                       var resultProductName = item.ProductName;//set the option title....
+                                       var resultProductId = item.Id;//set the option id.....
+                                        if($("[name='"+selectName+"'] option[value='"+item.Id+"']").length == 0){
+                                           //create new option...
+                                           var newOptions = new Option(resultProductName,resultProductId,false,false);
+                                           //append new option........
+                                           $('.application_match_products_dropdown').append(newOptions);
+                                        }
+                                        //apply select two on match products tab.....
+                                        applySelectTwo('application_match_products_dropdown');
+                                        //open the select2 by name.......
+                                        $('[name="'+selectName+'"]').select2('open');
+                                   });
+                                }else{
+                                    //set the html of li......
+                                    $(".loading_products_more").html('No More Products Exist!');
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            $document.on("select2:open",".application_match_products_dropdown",function(event) {
+                event.preventDefault();
+                var openSelectName = $(this).attr('name');
+                var openSelectContainer = $(".select2-container .select2-dropdown .select2-results .select2-results__options");
+                openSelectContainer.attr('select-name', openSelectName);
+            });
+
+            $document.on("select2:close" , ".application_match_products_dropdown" ,function(event){
+                event.preventDefault();
+                var closeSelectContainer = $(".select2-container .select2-dropdown .select2-results .select2-results__options");
+                closeSelectContainer.removeAttr('select-name');
+            });
+
+
         });
 }(jQuery));
 
@@ -1974,6 +2051,7 @@ var productsOffsetImport = 0;
 var customLimitExport = 20;
 var customLimitMatch = 20;
 var customLimitImport = 20;
+var dropdownAppProducts = 20;
 
 //on scroll load more products...
 function loadMoreProducts(){
@@ -2012,6 +2090,7 @@ function loadMoreProducts(){
                 }
                 var productsOffset = productsOffsetMatch;
                 customLimitMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+                var dropdownAppProducts = $("#products_limit_application_match").val();
             }else if(tabId[1] == 'table_import_products') {
                 //compare scroll counter value......
                 if(scroll_counter_updated_value !== 1){
@@ -2035,7 +2114,7 @@ function loadMoreProducts(){
             $('.export_products_btn').addClass("disable_anchor");
             $('.import_products_btn').addClass("disable_anchor");
             //send ajax to get the latest products of wc with updated offset....
-            jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
+            jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset,dropdownLimit:dropdownAppProducts}, function(data) {
                 var responsedata = JSON.parse(data);
                 //hide the loader...
                 $(".load_"+tabId[1]).hide();
