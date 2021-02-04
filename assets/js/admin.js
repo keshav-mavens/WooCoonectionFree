@@ -1084,14 +1084,16 @@
                 }
             });
             
+            //set the default limit and page number...
             var matchProductsLimit = 20;
-            var matchProductsOffser = 0;
+            var loadProductsPageNumber = 0;
+            //on mousewheel event of select box ul...
             $document.on('mousewheel',".select2-results__options", function (e) { 
                 //check scroll touch to bottom....
                 if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight){
-                    var ulId = $(this).attr('id');
-                    if (ulId.indexOf('select2-wc_product_match_with_') > -1) {
-                        var selectName = $(this).attr('select-name');
+                    var ulId = $(this).attr('id');//get the ul id....
+                    if (ulId.indexOf('select2-wc_product_match_with_') > -1) {//check if ul is of match products tab then proceed next....
+                        var selectName = $(this).attr('select-name');//get the select-name of scroll event ul to open the select box after append the options....
                         //get the scroll counter value....
                         var scroll_count_app_match_products = $("#scroll_count_app_products").val();
                         //add "1" to set the next value...
@@ -1100,14 +1102,16 @@
                         $("#scroll_count_app_products").val(count_updated_value);
                         //compare scroll counter value......
                         if(count_updated_value !== 1){
-                            matchProductsOffser = parseInt(matchProductsOffser) + 1;
+                            loadProductsPageNumber = parseInt(loadProductsPageNumber) + 1;
                         }else{
                             matchProductsLimit = 20;
-                            matchProductsOffser = 1;
+                            loadProductsPageNumber = 1;
                         }
-                        var matchProductsPageNumber = matchProductsOffser;
+                        //set the page number......
+                        var matchProductsPageNumber = loadProductsPageNumber;
                         var dropdownLimit = $("#products_limit_application_match").val();
                         var newDropdownLimit = parseInt(dropdownLimit) + 20;
+                        //set the limit in input hidden.....
                         $("#products_limit_application_match").val(newDropdownLimit);
                         //minus something from scroll top to prevent next ajax request immediately.....
                         var scrollTop = $(this).scrollTop();
@@ -1137,7 +1141,7 @@
                                         $('[name="'+selectName+'"]').select2('open');
                                    });
                                 }else{
-                                    //set the html of li......
+                                    //set the html of li if not products found in ajz response......
                                     $(".loading_products_more").html('No More Products Exist!');
                                 }
                             }
@@ -1145,12 +1149,13 @@
                     }
                 }
             });
-
+            
+            //on select of select2 dropdown add the custom attribute..
             $document.on("select2:open",".application_match_products_dropdown",function(event) {
                 event.preventDefault();
-                var openSelectName = $(this).attr('name');
+                var openSelectName = $(this).attr('name');//get the name of select box.....
                 var openSelectContainer = $(".select2-container .select2-dropdown .select2-results .select2-results__options");
-                openSelectContainer.attr('select-name', openSelectName);
+                openSelectContainer.attr('select-name', openSelectName);//add attribute.....
             });
 
             $document.on("select2:close" , ".application_match_products_dropdown" ,function(event){
