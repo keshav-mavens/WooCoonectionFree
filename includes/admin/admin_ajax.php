@@ -865,8 +865,9 @@ function wc_load_more_products(){
 				//then call the "createMatchProductsHtml" function to get the next products for match products....
 				$moreProductsListing = createMatchProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE,$dropDownLimit);
 			}else if($_POST['tabversion'] == 'table_import_products'){
+				$wooProductsDropdownLimit = $_POST['dropdownLimit'];
 				//then call the "createImportProductsHtml" function to get the next products for import products...
-				$moreProductsListing = createImportProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+				$moreProductsListing = createImportProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE,$wooProductsDropdownLimit);
 			}
 	    }
 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'moreProductsListing'=>$moreProductsListing));
@@ -1634,5 +1635,27 @@ function wc_load_application_products(){
 	}
 	die();
 }
+
+add_action('wp_ajax_wc_load_woo_products','wc_load_woo_product');
+//Function Definiation : wc_load_woo_products
+function wc_load_woo_products(){
+	if(isset($_POST) && !empty($_POST)){
+		$getWooProducts = listExistingDatabaseWooProducts($_POST['wooProLimit'],$_POST['wooProOffset']);
+		$wooProdOptionsData = array();
+		if(isset($getWooProducts) && !empty($getWooProducts)){
+			foreach ($getWooProducts as $key => $value) {
+				if(!empty($value->ID)){
+					$wooProdOptionsData[$key]['ProductName'] = $value->post_title;
+					$wooProdOptionsData[$key]['Id'] = $value->ID;
+				}
+			}
+		}
+		//return response....
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newWooProductsOptions'=>$wooProdOptionsData));
+	}
+	die();
+}
+
+
 ?>
 

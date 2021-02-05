@@ -287,7 +287,16 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                           $productsDropDown = '<input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails['product_name'];
                         }
                       }else{
-                        $productsDropDown = 'Mapped Product Not Exist In App!';
+                        $getProductDetails = getApplicationProductDetail($matchProductId,$access_token);
+                        if(!empty($getProductDetails)){
+                            if(!empty($getProductDetails['product_name'])){
+                              $productsDropDown = $getProductDetails['product_name'];
+                            }else{
+                              $productsDropDown = 'Mapped Product Not Exist In App!';
+                            } 
+                        }else{
+                          $productsDropDown = 'Mapped Product Not Exist In App!';
+                        }
                       }
                     }else{
                       $productsDropDown = 'No mapping exist!'; 
@@ -1334,7 +1343,7 @@ function addOrderItems($access_token,$orderid,$productId,$type,$price,$quan,$des
 
 
 //Main function is used to generate the create products html.....
-function createImportProductsHtml($importProductsLimit='',$importProductsPageNumber='',$importProductHtmlType=''){
+function createImportProductsHtml($importProductsLimit='',$importProductsPageNumber='',$importProductHtmlType='',$woodropdownLimit=''){
     //Define import table html variable or arrays.....
     $isKeapProductsArray = array();
     $applicationProductsArray = array();
@@ -1357,7 +1366,7 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
     $applicationProductsArray = getApplicationProducts($importProductsLimit,$importProductsPageNumber);
     
     //Call the function to get the listing of woocommerce publish products....
-    $existingProductResult = listExistingDatabaseWooProducts();
+    $existingProductResult = listExistingDatabaseWooProducts($woodropdownLimit);
 
     //set html if no products exist in infusionsoft/keap account for import....
     if(empty($applicationProductsArray)){
@@ -1421,6 +1430,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
         }
         foreach ($applicationProductsArray as $key => $value) {
             if(!empty($value['Id'])){
+                $customOptionHtml = '';
                 $wcProductExistId = '';
                 $wcProductSelectHtml = '';
                 $appProductId = $value['Id'];//Define product id...                  
@@ -1447,19 +1457,31 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                 if(!empty($wooCommerceProducts)){
                     //Check product relation is exist....
                     $wcProductExistId = getProductId('is_kp_product_id',$appProductId);
-                    if(empty($wcProductExistId)){
-                      $checkSkuMatchWithWcProducts = checkWcProductExistSku($appProductSku,$wooCommerceProducts);
-                      //if product/multiple products with same sku is exist in woocommerce products then get the last matched product id.... 
-                      if(isset($checkSkuMatchWithWcProducts) && !empty($checkSkuMatchWithWcProducts)){
-                          $matchWcProductId =  end($checkSkuMatchWithWcProducts);
-                          //On the basis of match product id set the product selected and create html.....
-                          if(!empty($matchWcProductId)){
-                            $wcProductExistId = $matchWcProductId;
-                          }
-                      } 
+                    //check the mapped product is exist in woocommerce products array.....
+                    $checkProductExistInArray = array_search($wcProductExistId, array_column($wooCommerceProducts, 'ID'));
+                    //if not exist.....
+                    if($checkProductExistInArray == false){
+                      //get the post title by mapped product id.....
+                      $productTitle = get_the_title($wcProductExistId);
+                      if(!empty($productTitle)){
+                        //create custom option..........
+                        $customOptionHtml = '<option value="'.$wcProductExistId.'" data-id="'.$wcProductExistId.'">'.$productTitle.'</option>';
+                      }
                     }
+                    // if(empty($wcProductExistId)){
+                    //   $checkSkuMatchWithWcProducts = checkWcProductExistSku($appProductSku,$wooCommerceProducts);
+                    //   //if product/multiple products with same sku is exist in woocommerce products then get the last matched product id.... 
+                    //   if(isset($checkSkuMatchWithWcProducts) && !empty($checkSkuMatchWithWcProducts)){
+                    //       $matchWcProductId =  end($checkSkuMatchWithWcProducts);
+                    //       //On the basis of match product id set the product selected and create html.....
+                    //       if(!empty($matchWcProductId)){
+                    //         $wcProductExistId = $matchWcProductId;
+                    //       }
+                    //   } 
+                    // }
+                    
                     //Create final select html.....
-                    $wcProductSelectHtml = '<select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="0">Select woocommerce product</option>'.$wcProductsDropDown.'</select>';
+                    $wcProductSelectHtml = '<input type="hidden" id="scroll_count_wc_products" value="0" class="scroll_counter"><input type="hidden" id="products_limit_wc_import" value="20" class="scroll_counter"><select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="0">Select woocommerce product</option>'.$wcProductsDropDown.$customOptionHtml.'</select>';
                 }else{
                   //Set the html of select if no products exist in application....
                   $wcProductSelectHtml = 'No Woocommerce Products Exist!';
