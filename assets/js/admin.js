@@ -1088,7 +1088,7 @@
             var matchProductsLimit = 20;
             var loadProductsPageNumber = 0;
             //on mousewheel event of select box ul...
-            $document.on('mousewheel',".select2-results__options", function (e) { 
+            $document.on('wheel',".select2-results__options", function (e) { 
                 //check scroll touch to bottom....
                 if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight){
                     var ulId = $(this).attr('id');//get the ul id....
@@ -1135,9 +1135,8 @@
                                            //append new option........
                                            $('.application_match_products_dropdown').append(newOptions);
                                         }
-                                        //apply select two on match products tab.....
-                                        applySelectTwo('application_match_products_dropdown');
                                         //open the select2 by name.......
+                                        $('[name="'+selectName+'"]').select2('close');
                                         $('[name="'+selectName+'"]').select2('open');
                                    });
                                 }else{
