@@ -1654,7 +1654,5 @@ function wc_load_woo_products(){
 	}
 	die();
 }
-
-
 ?>
 
