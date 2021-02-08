@@ -1090,6 +1090,8 @@
                 var openSelectName = $(this).attr('name');//get the name of select box.....
                 var openSelectContainer = $(".select2-container .select2-dropdown .select2-results .select2-results__options");//set the open select container...
                 openSelectContainer.attr('select-name', openSelectName);//add attribute.....
+                var openSearchInputData = $(".select2-search__field");
+                openSearchInputData.attr('select-name',openSelectName);
             });
 
 
@@ -1100,6 +1102,8 @@
                 $('.application_match_products_dropdown').removeClass('customClass');//remove class from application products dropdown...
                 var closeSelectContainer = $(".select2-container .select2-dropdown .select2-results .select2-results__options");//set the close select container
                 closeSelectContainer.removeAttr('select-name');//remove attribute....
+                var closeSearchInputData = $(".select2-search__field");
+                closeSearchInputData.removeAttr('select-name');
             });
 
 
@@ -1177,7 +1181,50 @@
                     }
                 }
             });
+            
 
+            //on key up of select2 search....
+            $document.on('keyup','.select2-search__field',function(){
+                var itemSearch = $(this).val();//get the search value.....
+                var selectName = $(this).attr('select-name');//get the select name....
+                var scrollValue = $('.select2-results__options').scrollTop();//get the scroll value....
+                var newUlScrollTop = scrollValue-100;//minus something to set the new position....
+                //check something is exist in search input.... 
+                if(itemSearch !== '' && typeof itemSearch != "undefined"){
+                    //check if no result fount from dropdown....
+                    if($('.select2-results__options li[role=alert]').length > 0){
+                        $("li[role=alert]").html('');//empty the li html....
+                        $("li[role=alert]").html('Searching More....');//set the new html of li....
+                        //send ajax to get the list of products from database....
+                        jQuery.post(ajax_object.ajax_url+"?action=wc_search_woo_product&jsoncallback=x",{searchItem:itemSearch},function(data){
+                            var responseOfSearch = JSON.parse(data);
+                            //check response....
+                            if(responseOfSearch.status == "1"){
+                                //get the responseoptions.....
+                                var options = responseOfSearch.matchProductsOptions;
+                                //if response data is empty then set the html....
+                                if(options.length === 0){
+                                    $("li[role=alert]").html('');
+                                    $("li[role=alert]").html('No results found');
+                                    $("li[role=alert]").show();
+                                }else{
+                                    //execute the loop on options....
+                                    $(options).each(function(index,value){
+                                        var wcProName = value.ProductName;//get the product name....
+                                        var wcProId = value.Id;//get the product id....
+                                        //create new option.....
+                                        var matchWooOptions = new Option(wcProName,wcProId,false,false);
+                                        $('[name="'+selectName+'"]').append(matchWooOptions);
+                                        $('[name="'+selectName+'"]').select2('close');
+                                        $('[name="'+selectName+'"]').select2('open');
+                                        $('.select2-results__options').scrollTop(newUlScrollTop);
+                                    });
+                                }
+                            }
+                        });
+                    }
+                }
+            });
         });
 }(jQuery));
 
@@ -2161,6 +2208,10 @@ function loadMoreProducts(){
                             if($(".all_products_checkbox_import").is(":checked")){
                                 $(".each_product_checkbox_import").prop("checked",true);
                             }
+                            //code is used to set the woocommerce product selected from dropdowm....
+                            if($(".wcProductsDropdown").length){
+                                applyProductSelected();
+                            }
                         }
                     }else{
                         //minus something from scroll top to prevent next ajax request immediately.....
@@ -2350,4 +2401,10 @@ function applyProductSelected(){
             }
         }
     }); 
+}
+
+
+function selectRefresh(name) {
+  $('[name="wc_product_import_with_622"]').select2({
+  });
 }

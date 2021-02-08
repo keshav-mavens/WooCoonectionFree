@@ -1614,28 +1614,8 @@ function wc_import_application_products()
 }
 
 
-//Wordpress Hook : This hook is used to load the more products of application with limit......
-add_action('wp_ajax_wc_load_application_products','wc_load_application_products');
-//Function Definiation : wc_load_application_products
-function wc_load_application_products(){
-	//first check if post data exist////
-	if(isset($_POST) && !empty($_POST)){
-		//empty variable.....
-		$options = '';
-		$appLimit = 20;//define default limit.....
-		$appPageNumber = $_POST['matchProductsPageNumber'];
-		//get the list of application product by limit and page number.....
-		$applicationProducts = getApplicationProducts($appLimit,$appPageNumber);
-		if(isset($applicationProducts) && !empty($applicationProducts)){
-			$options = $applicationProducts;
-		}
-		//return response....
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newOptions'=>$options));
-	}
-	die();
-}
-
-add_action('wp_ajax_wc_load_woo_products','wc_load_woo_product');
+//Wordpress Hook : This hook is triggered to lod more woocommerce products...
+add_action('wp_ajax_wc_load_woo_products','wc_load_woo_products');
 //Function Definiation : wc_load_woo_products
 function wc_load_woo_products(){
 	if(isset($_POST) && !empty($_POST)){
@@ -1651,6 +1631,30 @@ function wc_load_woo_products(){
 		}
 		//return response....
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newWooProductsOptions'=>$wooProdOptionsData));
+	}
+	die();
+}
+
+//Wordpress Hook : This hook is triggered to search the products from database....
+add_action('wp_ajax_wc_search_woo_product','wc_search_woo_product');
+//Function Definiation : wc_search_woo_product
+function wc_search_woo_product(){
+	if(isset($_POST) && !empty($_POST)){
+		global $wpdb;
+		$searchItem = $_POST['searchItem'];
+		$matchProductsOptions = array();
+		//$wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_sku' AND meta_value='%s' LIMIT 1",$appsku)
+		$getProductsByName = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts WHERE post_title LIKE %s",'%'.$searchItem.'%'));
+		if(isset($getProductsByName) && !empty($getProductsByName)){
+			foreach ($getProductsByName as $key => $value) {
+				if(!empty($value->ID)){
+					$matchProductsOptions[$key]['ProductName'] = $value->post_title;
+					$matchProductsOptions[$key]['Id'] = $value->ID;
+				}
+			}
+		}
+		//return response
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'matchProductsOptions'=>$matchProductsOptions));
 	}
 	die();
 }

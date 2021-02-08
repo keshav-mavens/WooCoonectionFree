@@ -1440,28 +1440,42 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                 if(!empty($wooCommerceProducts)){
                     //Check product relation is exist....
                     $wcProductExistId = getProductId('is_kp_product_id',$appProductId);
-                    //check the mapped product is exist in woocommerce products array.....
-                    $checkProductExistInArray = array_search($wcProductExistId, array_column($wooCommerceProducts, 'ID'));
-                    //if not exist.....
-                    if($checkProductExistInArray == false){
-                      //get the post title by mapped product id.....
-                      $productTitle = get_the_title($wcProductExistId);
-                      if(!empty($productTitle)){
-                        //create custom option..........
-                        $customOptionHtml = '<option value="'.$wcProductExistId.'" data-id="'.$wcProductExistId.'">'.$productTitle.'</option>';
+                    //then check relation id is not empty.....
+                    if(isset($wcProductExistId) && !empty($wcProductExistId)){
+                      //check the mapped product is exist in woocommerce products array.....
+                      $checkProductExistInArray = array_search($wcProductExistId, array_column($wooCommerceProducts, 'ID'));
+                      //if not exist.....
+                      if($checkProductExistInArray == false){
+                        //get the post title by mapped product id.....
+                        $productTitle = get_the_title($wcProductExistId);
+                        if(!empty($productTitle)){
+                          //create custom option..........
+                          $customOptionHtml = '<option value="'.$wcProductExistId.'" data-id="'.$wcProductExistId.'">'.$productTitle.'</option>';
+                        }
                       }
                     }
-                    // if(empty($wcProductExistId)){
-                    //   $checkSkuMatchWithWcProducts = checkWcProductExistSku($appProductSku,$wooCommerceProducts);
-                    //   //if product/multiple products with same sku is exist in woocommerce products then get the last matched product id.... 
-                    //   if(isset($checkSkuMatchWithWcProducts) && !empty($checkSkuMatchWithWcProducts)){
-                    //       $matchWcProductId =  end($checkSkuMatchWithWcProducts);
-                    //       //On the basis of match product id set the product selected and create html.....
-                    //       if(!empty($matchWcProductId)){
-                    //         $wcProductExistId = $matchWcProductId;
-                    //       }
-                    //   } 
-                    // }
+                    
+                    //first check if product relation is not exist in database...
+                    if(empty($wcProductExistId) && !empty($appProductSku)){
+                      //then try to find product exist with sku or not....
+                      $checkResponse = checkWooProductExistWithSku($appProductSku);
+                      //check product exist in response.....
+                      if(isset($checkResponse) && !empty($checkResponse)){
+                        //check mapped product is in woocommerce products array......
+                        $checkProductExistResponse = array_search($checkResponse,array_column($wooCommerceProducts,'ID'));
+                        //it means relation of product id is not exist in array...then needs to create custom option tag....
+                        if($checkProductExistResponse == false){
+                          //get the product title...
+                          $postTitle = get_the_title($checkResponse);
+                          if(!empty($postTitle)){
+                            //create custom option....
+                            $customOptionHtml = '<option value="'.$checkResponse.'" data-id="'.$checkResponse.'">'.$postTitle.'</option>';
+                          }
+                        }
+                        //set the product id which is already exist.....
+                        $wcProductExistId = $checkResponse;
+                      }
+                    }
                     
                     //Create final select html.....
                     $wcProductSelectHtml = '<input type="hidden" id="scroll_count_wc_products" value="0" class="scroll_counter"><input type="hidden" id="products_limit_wc_import" value="20" class="scroll_counter"><select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="0">Select woocommerce product</option>'.$wcProductsDropDown.$customOptionHtml.'</select>';
@@ -2881,27 +2895,6 @@ function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode
     return $paymentStatus;
 }
 
-//Check product with same sku is exist or not  in woocommerce products, if exist then return match woocommerce products id.....
-function checkWcProductExistSku($appsku,$wcproductsArray){
-  $wcMatchProductsIds = array();//Define array...
-  if(!empty($wcproductsArray)){//check is products array is not empty....
-      //Execute loop on application prdoucts array,......
-      foreach ($wcproductsArray as $key => $value) {
-        if(!empty($value->ID)){//check product id....
-            $product_id = $value->ID;
-            $product = wc_get_product( $product_id );
-            $productSku = $product->get_sku();
-            //compare sku, if match the return the ids..
-            if(isset($productSku) && !empty($productSku)){
-                if($productSku == $appsku){
-                  $wcMatchProductsIds[] = $product_id;
-                }    
-            }
-        }
-      }   
-  }
-}
-
 //Get the list of application products....
 function getApplicationProductDetail($id,$access_token){
     $productsListing = array();
@@ -2975,4 +2968,20 @@ function getApplicationProducts(){
     curl_close($ch);
     return $productsListing;
 }
+
+
+//Common Function : By sku check product is exist in database or not.....
+function checkWooProductExistWithSku($appsku){
+  global $wpdb;
+  $productId = '';//define empty variable....
+  //execute the query to get the product id on the basis of sku of the product.......
+  $productData = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_sku' AND meta_value='%s' LIMIT 1",$appsku));
+  //check if product exist with same sku as given in function parameter....
+  if($productData){
+    $productId = $productData;
+  }
+  //return the product id....
+  return $productId;
+}
+
 ?>
