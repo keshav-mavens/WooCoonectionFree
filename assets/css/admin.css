@@ -583,7 +583,6 @@ span.create-new-group a.btn span:after,span.create-new-override a.btn span:after
   right: -20px;
   transition: 0.5s;
 }
-
 span.create-new-group a.btn:hover span,span.create-new-override a.btn:hover span {
   padding-right: 25px;
 }

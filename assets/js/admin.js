@@ -1171,6 +1171,7 @@
                                         $('[name="'+openSelect2Name+'"]').select2('close');
                                         //then open the same select2 by name of it....
                                         $('[name="'+openSelect2Name+'"]').select2('open');
+                                        $('.select2-container.select2-container--default.select2-container--open:last').hide();
                                     }else{
                                         //set the message of loading products......
                                         $(".loading_woo_products_more").html('No More Products Exist!');
@@ -1215,8 +1216,11 @@
                                         //create new option.....
                                         var matchWooOptions = new Option(wcProName,wcProId,false,false);
                                         $('[name="'+selectName+'"]').append(matchWooOptions);
+                                        //first close the current select by name of select box.....
                                         $('[name="'+selectName+'"]').select2('close');
+                                        //then open the same select2 by name of it....
                                         $('[name="'+selectName+'"]').select2('open');
+                                        $('.select2-container.select2-container--default.select2-container--open:last').hide();
                                         $('.select2-results__options').scrollTop(newUlScrollTop);
                                     });
                                 }
