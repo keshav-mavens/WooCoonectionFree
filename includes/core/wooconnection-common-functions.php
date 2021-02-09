@@ -964,9 +964,26 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEditi
           $checkAlreadyExist = get_post_meta($parent_product_id, 'is_kp_product_id', true);
       }
     }
+
+    //set default mapped product exist in application or not.....
+    $productExistStatus= true;
+    //check mapping exist in database...
+    if(!empty($checkAlreadyExist)){
+      //get the application product details by product id.....
+      $checkAppProduct = getApplicationProductDetail($checkAlreadyExist,$access_token);
+      //check api return the product details....
+      if(!empty($checkAppProduct)){
+        if(!empty($checkAppProduct['product_name'])){
+          $productExistStatus = true;
+        }else{
+          $productExistStatus = false;
+        }
+      }
+    }
+    
     $wooconnectionLogger = new WC_Logger();
     //check product mapping exist else create new product and return the id newly created product.....
-    if(isset($checkAlreadyExist) && !empty($checkAlreadyExist)){
+    if(isset($checkAlreadyExist) && !empty($checkAlreadyExist) && $productExistStatus == true){
        $currentProductID = $checkAlreadyExist; 
     }else{
       $wcproductSku = $item->get_sku();//get product sku....
@@ -1319,40 +1336,6 @@ function addOrderItems($access_token,$orderid,$productId,$type,$price,$quan,$des
     }
 }
 
-//Function is used to get the product information from the the authenticate application.....
-function getApplicationProductDetails($access_token,$productId){
-    $productName = '';
-    if(!empty($access_token) && !empty($productId))
-    {
-        $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$productId;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url); //using the setopt function to send request to the url
-        $header = array(
-            'Accept: application/json',
-            'Content-Type: application/json',
-            'Authorization: Bearer '. $access_token
-        );
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
-        $response = curl_exec($ch); //executing request
-        $err = curl_error($ch);
-        if($err){
-        }else{
-          $sucessData = json_decode($response,true);
-          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
-           
-          }else{
-            if(!empty($sucessData['product_name'])){
-                $productName = $sucessData['product_name'];
-            }
-          }
-          return $productName;
-        }
-        curl_close($ch);  
-    }
-    return $productName;
-}
-
 //get the amount owned by the authoenticate application order.....
 function getOrderAmountOwned($access_token,$orderId,$logger){
   //define empty variable....
@@ -1460,5 +1443,29 @@ function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode
     }
     //return payment status...
     return $paymentStatus;
+}
+
+
+//Get the application product details by product id....
+function getApplicationProductDetail($id,$access_token){
+    $productsListing = array();
+    $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$id;
+    $ch = curl_init($url);
+    $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $access_token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    $matchIdsArray = array();
+    if($err){
+    }else{
+      $sucessData = json_decode($response,true);
+      return $sucessData;
+    }
+    curl_close($ch);
 }
 ?>
