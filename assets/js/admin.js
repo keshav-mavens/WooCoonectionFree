@@ -1218,7 +1218,7 @@
                                         if($("[name='"+selectName+"']  option[value='"+wcProId+"']").length == 0){
                                             //create new option.....
                                             var matchWooOptions = new Option(wcProName,wcProId,false,false);
-                                            
+                                            //append the match options in existing dropdown....
                                             $('[name="'+selectName+'"] option:first').after(matchWooOptions);
                                         }
                                     });
