@@ -1218,7 +1218,8 @@
                                         if($("[name='"+selectName+"']  option[value='"+wcProId+"']").length == 0){
                                             //create new option.....
                                             var matchWooOptions = new Option(wcProName,wcProId,false,false);
-                                            $('[name="'+selectName+'"]').append(matchWooOptions);
+                                            
+                                            $('[name="'+selectName+'"] option:first').after(matchWooOptions);
                                         }
                                     });
                                     //first close the current select by name of select box.....
@@ -1227,6 +1228,7 @@
                                     $('[name="'+selectName+'"]').select2('open');
                                     //hide the extra select2 which is created by the select2 open event....
                                     $('.select2-container.select2-container--default.select2-container--open:last').hide();
+                                    $('.select2-search__field').val(itemSearch);
                                     $('.select2-results__options').scrollTop(newUlScrollTop);
                                 }
                             }
