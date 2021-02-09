@@ -622,7 +622,34 @@
 		                }
 		            }
        			}
-       			wc_add_notice("To Process Payment is failed due to ".$orderPaymentResults['Message'], 'error'); 
+
+       			//check application order id exist....
+       			if(!empty($applicationorderId)){
+       				$order_callback_purpose = 'On wooconnecion failed order : Process of add order notes when #'.$order_id.' status changed to failed.';
+
+       				$returnOrderDetails = getApplicationOrderDetails($access_token,$applicationorderId,$order_callback_purpose);
+
+       				if(isset($returnOrderDetails) && !empty($returnOrderDetails)){
+       					$orderItemTitle = 'Items Deleted of order #'.$applicationorderId;//item title..
+		                //exceute loop on product items array to add the notes for current order....
+		                $paymentCurrencySign = get_woocommerce_currency_symbol();//Get currency symbol....
+		                $order_items_text = array();//array to save the list of order items....
+		                foreach ($returnOrderDetails as $key => $value) {
+		                    $orderNoteText = 'Order item is '.$value['type'].' and name of item is '.$value['name'].' and price of item is '.$paymentCurrencySign.$value['price'].'';
+		                    $order_items_text[] = $orderNoteText;//push item string to array....
+		                }
+		                //once the order status change to failed then need to add notes for contact in infusionsoft/keap application.... 
+		                addContactNotes($access_token,$contactId,$order_items_text,$orderItemTitle,$order_callback_purpose);
+       					//after add notes of order items for order ...then needs to delete the order from infusionsoft/keap application....
+			            $delete_order_callback = 'On Wooconnection Failed order : Process of delete order from infusionsoft/keap application when #'.$order_id.' status changed to failed.';
+			            deleteApplicationOrder($access_token,$applicationorderId,$delete_order_callback);
+			            //once the order is deleted then needs to add note for current order with relative product is deleted...
+			            $noteTextOrder = 'The infusionsoft/keap application relative order #'.$applicationorderId.' of this order is deleted';
+			            $orderData->add_order_note( $noteTextOrder );
+       				}
+       			}
+				
+				wc_add_notice("To Process Payment is failed due to ".$orderPaymentResults['Message'], 'error'); 
 	 			return false; 
             }else{
             	//check whether needs to add subscription for contact or not....
