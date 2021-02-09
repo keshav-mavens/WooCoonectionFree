@@ -334,7 +334,42 @@
 			        
 			        //If the credit card details is invalid then stop the process to proceed next.......
 			        if (!empty($creditCardResult) && $creditCardResult['Valid'] == 'false') {
-			            $failurereason = 'Cedit Card Details are not valid';
+			            $failurereason = 'Credit Card Details are not valid';
+			      		//get the integration name and call name of goal "Order Failed".....
+			      		$getDeclinedTriggerDetails = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_GENERAL,'Card Declined');
+
+			      		//intialize the variables....
+			      		$declinedTriggerIntName = '';
+			      		$declinedTriggerCallName = '';
+			     		
+			     		//set the integration name....
+			     		if(!empty($getDeclinedTriggerDetails[0]->wc_integration_name)){
+			     			$declinedTriggerIntName = $getDeclinedTriggerDetails[0]->wc_integration_name;
+			     		}
+		      			
+			     		//set the call name....
+			     		if(!empty($getDeclinedTriggerDetails[0]->wc_call_name)){
+			     			$declinedTriggerCallName = $getDeclinedTriggerDetails[0]->wc_call_name;
+			     		}
+
+		    			//Concate a error message to store the logs...
+		    			$trigger_callback_purpose = 'Wooconnection Card Declined : Process of declined card trigger';
+
+		       			//check both integration name and call name is exist of "Card Declined" trigger....
+		       			if(!empty($declinedTriggerCallName) && !empty($declinedTriggerIntName)){
+		       				$declinedCardTriggerResponse = achieveTriggerGoal($access_token,$declinedTriggerIntName,$declinedTriggerCallName,$paymentContactId,$trigger_callback_purpose);
+		   					if(!empty($declinedCardTriggerResponse)){
+				                if(empty($declinedCardTriggerResponse[0]['success'])){
+				                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+				                    if(isset($declinedCardTriggerResponse[0]['message']) && !empty($declinedCardTriggerResponse[0]['message'])){
+				                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Declined Card : Process of wooconnection declined card trigger is failed where contact id is '.$paymentContactId.' because '.$declinedCardTriggerResponse[0]['message'].'');    
+				                    }else{
+				                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Declined Card : Process of wooconnection declined card trigger is failed where contact id is '.$paymentContactId.'');
+				                    }
+				                    
+				                }
+				            }
+		       			}
 			            wc_add_notice('Process payment failed due to '.$failurereason, 'error'); 
 		        		return false; 
 			        }else{
@@ -412,6 +447,7 @@
 		        $orderDiscountDesc = "Discount generated from coupons ".$orderDiscountDesc;
 		    }
 
+		    $callback_purpose = 'Process order with custom payment gateway';
 		    //get the application authentication details ......
 		    $applicationAuthenticationDetails = getAuthenticationDetails();
 
@@ -552,7 +588,41 @@
 
             //check if order payment results if empty the it means something is miss like application order id , merchant id or access token.....
             if($paymentMode != PAYMENT_MODE_TEST && $paymentMode != PAYMENT_MODE_SKIPPED && ($orderPaymentResults['Successful'] != true)){
-            	wc_add_notice("To Process Payment is failed due to ".$orderPaymentResults['Message'], 'error'); 
+       			//get the call name and integration name of goal "Order Failed"....
+       			$getFailedOrderTriggerDetails = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_GENERAL,'Order Failed');
+       			//define the empty variables......
+       			$failedOrderTriggerIntName = '';
+       			$failedOrderTriggerCallName = '';
+      			
+      			//set the integration name.... 
+       			if(!empty($getFailedOrderTriggerDetails[0]->wc_integration_name)){
+       				$failedOrderTriggerIntName = $getFailedOrderTriggerDetails[0]->wc_integration_name;
+       			}
+
+       			//set the call name.....
+       			if(!empty($getFailedOrderTriggerDetails[0]->wc_call_name)){
+       				$failedOrderTriggerCallName = $getFailedOrderTriggerDetails[0]->wc_call_name;
+       			}
+
+       			//Concate a error message to store the logs...
+    			$trigger_callback_purpose = 'Wooconnection Failed order : Process of failed order trigger';
+
+       			//check both integration name and call name is exist of "Order Failed" trigger....
+       			if(!empty($failedOrderTriggerIntName) && !empty($failedOrderTriggerIntName)){
+       				$orderFailedTriggerResponse = achieveTriggerGoal($access_token,$failedOrderTriggerIntName,$failedOrderTriggerCallName,$contactId,$trigger_callback_purpose);
+   					if(!empty($orderFailedTriggerResponse)){
+		                if(empty($orderFailedTriggerResponse[0]['success'])){
+		                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+		                    if(isset($orderFailedTriggerResponse[0]['message']) && !empty($orderFailedTriggerResponse[0]['message'])){
+		                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$contactId.' because '.$orderFailedTriggerResponse[0]['message'].'');    
+		                    }else{
+		                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$contactId.'');
+		                    }
+		                    
+		                }
+		            }
+       			}
+       			wc_add_notice("To Process Payment is failed due to ".$orderPaymentResults['Message'], 'error'); 
 	 			return false; 
             }else{
             	//check whether needs to add subscription for contact or not....
