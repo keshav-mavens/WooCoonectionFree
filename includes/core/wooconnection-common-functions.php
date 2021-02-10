@@ -920,9 +920,26 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEditi
           $checkAlreadyExist = get_post_meta($parent_product_id, 'is_kp_product_id', true);
       }
     }
+
+    //set default mapped product exist in application or not.....
+    $productExistStatus= true;
+    //check mapping exist in database...
+    if(!empty($checkAlreadyExist)){
+      //get the application product details by product id.....
+      $checkAppProduct = getApplicationProductDetail($checkAlreadyExist,$access_token);
+      //check api return the product details....
+      if(!empty($checkAppProduct)){
+        if(!empty($checkAppProduct['product_name'])){
+          $productExistStatus = true;
+        }else{
+          $productExistStatus = false;
+        }
+      }
+    }
+
     $wooconnectionLogger = new WC_Logger();
     //check product mapping exist else create new product and return the id newly created product.....
-    if(isset($checkAlreadyExist) && !empty($checkAlreadyExist)){
+    if(isset($checkAlreadyExist) && !empty($checkAlreadyExist) && $productExistStatus == true){
        $currentProductID = $checkAlreadyExist; 
     }else{
       $wcproductSku = $item->get_sku();//get product sku....
