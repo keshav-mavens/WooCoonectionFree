@@ -1,6 +1,8 @@
 <!--Campaign Bundle SETUP-->
-<?php //check the application authentication status if authorized then give access to configure campaign goals....
-		$checkAuthenticationStatus = applicationAuthenticationStatus(); ?>
+<?php 
+	//check the application authentication status if authorized then give access to configure campaign goals....
+	$checkAuthenticationStatus = applicationAuthenticationStatus();
+?>
 <div class="info-header">
   <p>Campaign Bundle</p>
 </div>
