@@ -128,14 +128,15 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
 <!--Below model is used to show the list of products with their sku with copy feature for specific product purchase trigger,item added to cart, review left for product trigger-->
 <div class="modal" role="dialog" id="productsListing">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content">
+  <div class="modal-content productsModelBody" onscroll="loadProductsWithSku()" style="overflow-y:scroll;max-height:500px;">
       <div class="modal-header">
         <h4 class="modal-title">Products With Sku</h4>
         <button type="button" class="close" onclick="hideCustomModel('productsListing')">&times;</button>
       </div>
       <div class="modal-body">
         <div class="table-responsive">
-          <table class="table table-striped common-table-class">
+          <input type="hidden" id="products_scroll_count" value="0">
+          <table class="table table-striped common-table-class" id="table_products_lisitng_with_sku">
             <thead>
               <tr>
                 <th>Product Name</th>
@@ -146,6 +147,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
             <tbody id="products_sku_listing">
             </tbody>
           </table>
+          <div class="load_products_listing_with_sku" style="text-align: center;display: none;margin-top:10px;margin-bottom: 10px;"></div>
         </div>
       </div>
     </div>
@@ -155,17 +157,19 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
 <!--Below model is used to show the list of coupons with their code with copy feature-->
 <div class="modal" role="dialog" id="couponsListing">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
+  <div class="modal-content couponsLisingContent" onscroll="loadMoreCoupons()" style="overflow-y:scroll;max-height:500px;">
+  <div class="modal-header">
         <h4 class="modal-title">Coupons Code Listing</h4>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
        <div class="table-responsive">
+          <input type="hidden" id="coupons_scroll_count" value="0">
           <table class="table table-striped" id="coupon_listing_with_sku">
                 <thead><tr><th>Coupon Code</th><th>Coupon Desc</th><th>Action</th></tr></thead>
                 <tbody><?php echo get_coupons_listing(); ?></tbody>
           </table>
+          <div class="load_coupons_listing" style="display: none;text-align:center;margin-top:10;margin-bottom:10px;"></div>
         </div>
       </div>
     </div>

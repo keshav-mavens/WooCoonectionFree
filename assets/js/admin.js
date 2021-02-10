@@ -38,13 +38,6 @@
                                 $(".tab_related_content").html('');
                                 $(".tab_related_content").html(data);
                                 jQuery(".tab_related_content").removeClass('overlay');
-                                if(jQuery("#export_products_listing").length){
-                                    applyDatables("export_products_listing");
-                                }
-                                //add select 2 for woocommerce products field
-                                if($(".wc_iskp_products_dropdown").length){
-                                    applySelectTwo('wc_iskp_products_dropdown');
-                                }
                             });
                         }
                         //Check if "response" done....
@@ -170,11 +163,6 @@
                             sortabledivs('override_product_category_rule');
                         }
 
-                        //apply data tables on coupons listing with coupon code...
-                        if(jQuery("#coupon_listing_with_sku").length){
-                            applyDatables("coupon_listing_with_sku");
-                        }
-                        
                         //apply change icon rule on referral partner "How this works" button..
                         if($("#collapseReferralPartner").length){
                             applyCollapseRules('collapseReferralPartner');
@@ -267,9 +255,14 @@
                 if(target_tab_id != ""){
                     jQuery(".ajax_loader").show();
                     jQuery(".tab_related_content").addClass('overlay');
+                    if(target_tab_id == '#table_export_products'){
+                        var newExportLimit = $("#products_limit_export").val();
+                    }else if(target_tab_id == '#table_match_products'){
+                        var newMatchLimit = $("#products_limit_match").val();
+                    }
                     $(target_tab_id+"_listing").html('');
                     $(target_tab_id+"_listing").html('<p class="heading-text" style="text-align:center;">Loading Data....</p>');
-                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id}, function(data) {
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id,newLimitExport:newExportLimit,newLimitMatch:newMatchLimit}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
                             jQuery(".ajax_loader").hide();
@@ -278,27 +271,11 @@
                                 if (target_tab_id == '#table_export_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    //apply datatable on export products listing
-                                    if(jQuery("#export_products_listing").length){
-                                        applyDatables("export_products_listing");
-                                    }
-                                    //add select 2 for woocommerce products field
-                                    if($(".wc_iskp_products_dropdown").length){
-                                        applySelectTwo('wc_iskp_products_dropdown');
-                                    }
                                 }else if (target_tab_id == '#table_match_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    //apply datatable on export products listing
-                                    if(jQuery("#match_products_listing").length){
-                                        applyDatables("match_products_listing");
-                                    }
-                                    //add select 2 for woocommerce products field
-                                    if($(".application_match_products_dropdown").length){
-                                        applySelectTwo('application_match_products_dropdown');
-                                    }
-                                }
-                                else if (target_tab_id == '#table_standard_fields_mapping') {
+                                    applySelectTwo('application_match_products_dropdown');
+                                }else if (target_tab_id == '#table_standard_fields_mapping') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     
@@ -319,12 +296,11 @@
                                         }
                                     });
 
-                                }    
+                                }     
+                                
                             }
-                            else{
-                                $('.custom_fields_main_html').show();//toggle the form and show listing....
-                                $('.hide').hide();//hide the form whether it is custom field group form or custom field form....
-                            }
+                            //hide the loader div and "error message" on tab change.....
+                            $(".loading_products").hide();
                         }
                     });
                 }
@@ -415,6 +391,7 @@
             $document.on("change",".application_match_products_dropdown", function(event)
             {
                 event.stopPropagation();
+                $(".load_table_match_products loading_products").hide();
                 //get woocommerce product id....
                 var wcProductId = $(this).data('id');
                 //get application product id with woocommerce product mapping set.........
@@ -459,6 +436,8 @@
                                 if(responsedata.variationsHtml != ""){
                                     $("#table_row_"+productId).after(responsedata.variationsHtml);
                                     applySelectTwo('application_match_products_dropdown');
+                                }else{
+                                    $("#table_row_"+productId).after('<tr class="customvariations_'+productId+' custom_tr"><td colspan="5" style="text-align: center; vertical-align: middle;">No Product Variations Exist!</td></tr>');
                                 }
                             }
                         });
@@ -1077,6 +1056,50 @@
                 } 
             });
 
+            //Custom Fields Tab : On click of standard fields mapping tab in custom fields tab load the content of standard fields mapping..
+            $document.on("click",".custom-fields-tabs a",function(event){
+                var targetTabId = $(this).attr('href');
+                if(targetTabId != '' && typeof targetTabId !== 'undefined' ){
+                    jQuery(".ajax_loader").show();
+                    jQuery(".tab_related_content").addClass('overlay');
+                    $(targetTabId+"_listing").html('');
+                    $(targetTabId+"_listing").html('<p class="heading-text" style="text-align:center;">Loading Data....</p>');
+                    jQuery.post(ajax_object.ajax_url + "?action=wc_load_custom_fields_tab_data",{targetTabId:targetTabId},function(data){
+                        var responseData = JSON.parse(data);
+                        if(responseData.status == "1"){
+                            jQuery(".ajax_loader").hide();
+                            jQuery(".tab_related_content").removeClass("overlay");
+                            if(responseData.responseHtml != ""){
+                                if(targetTabId == '#table_standard_fields_mapping'){
+                                    $(targetTabId+"_listing").html('');
+                                    $(targetTabId+"_listing").html(responseData.responseHtml);
+                                    
+                                    //add select 2 for infusionsoft/keap fields....
+                                    if($(".standardcfieldmappingwith").length){
+                                        applySelectTwo('standardcfieldmappingwith');
+                                    }
+
+                                    //code is used to set the infusionsoft/keap field selected from dropdown....
+                                    $(".standardcfrows").each(function() {
+                                        var standardcfId = $(this).attr('id');//get the standard field id....
+                                        var standardcdmapp = $(this).attr("data-id");//get the standard field mapped with....
+                                        if(standardcfId != ''){
+                                            if(standardcdmapp != ""){
+                                                //set field selected....
+                                                $('#standard_cfield_mapping_'+standardcfId).val(standardcdmapp).trigger('change.select2');
+                                            }
+                                        }
+                                    });
+                                }
+                            }else{
+                                $('.custom_fields_main_html').show();//toggle the form and show listing....
+                                $('.hide').hide();//hide the form whether it is custom field group form or custom field form....
+                            }
+                        }
+                    });
+                }
+            });
+            
             //Referral Partner Tab : On change of enable/disable referral partner tracking send ajax to update start of referral partner tracking in database...
             $document.on("click","#referral_tracking",function(event){
                 event.stopPropagation();
@@ -1327,7 +1350,10 @@ function validateForms(form){
 //save application settings
 function saveApplicationSettings(){
     var activationEmail = $("#activationEmail").val();
-    var activationKey = $("#activationKey").val();siteUrl
+    if (activationEmail.indexOf('+') > -1) {
+        var activationEmail = activationEmail.replace("+", "$");
+    }
+    var activationKey = $("#activationKey").val();
     var currentSiteUrl = $("#siteUrl").val();
     var connectionType = $('input[name=applicationtype]:checked', '#application_settings_form').val();
     var formData = {userEmail:activationEmail,userPluginKey:activationKey,requestWebUrl:currentSiteUrl,connectionType:connectionType}; //Array 
@@ -1483,79 +1509,19 @@ function getQueryParameter(qspar){
     return email;
 }
 
+
 //hide model by model id....
 function hideCustomModel(modelId){
     if(modelId != ""){
+        //if div of scroll is exist then set the scroll top position to zero.....
+        if($(".scroll_div_products").length){
+            $(".scroll_div_products").scrollTop(0);
+        }
         $("#"+modelId).hide();
         //reset form values and validation rules....
         if($("#addcfieldapp").length){
             $("#addcfieldapp")[0].reset();
             $("#addcfieldapp").validate().resetForm();
-        }
-    }
-}
-
-//comon function is used to apply a datatables by table id.....
-function applyDatables(tabel_id){
-    if(tabel_id != ""){
-        //Export Tab: apply datatables on products listing..
-        if (tabel_id == 'export_products_listing') {
-            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-            {
-                $('#'+tabel_id).DataTable({
-                    "pagingType": "simple_numbers",
-                    "pageLength": 10,
-                    "searching": false,
-                    "bLengthChange" : false,
-                    "bInfo":false,
-                    "scrollX": false,
-                    "ordering": false,
-                    drawCallback: function(dt) {
-                      applySelectTwo('wc_iskp_products_dropdown');
-                        if ($('.all_products_checkbox_export').is(":checked"))
-                        {
-                            $('.all_products_checkbox_export').prop("checked", false);
-                        }
-                        $('.each_product_checkbox_export').prop("checked", false);
-                    }
-                });
-            }
-        }
-        //Match Tab: apply datatables on products listing..
-        else if (tabel_id == 'match_products_listing') {
-            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-            {
-                $('#'+tabel_id).DataTable({
-                    "pagingType": "simple_numbers",
-                    "pageLength": 10,
-                    "searching": false,
-                    "bLengthChange" : false,
-                    "bInfo":false,
-                    "scrollX": false,
-                    "ordering": false,
-                    drawCallback: function(dt) {
-                      applySelectTwo('application_match_products_dropdown');
-                    }
-                });
-            }
-        }
-        //Campaign Goals Tab: apply datatables on products listing with sku..
-        else if(tabel_id == 'products_listing_with_sku_34' 
-                || tabel_id == 'products_listing_with_sku_35' 
-                    || tabel_id == 'products_listing_with_sku_40' 
-                        || tabel_id == 'coupon_listing_with_sku' || tabel_id == 'products_listing_with_affiliate_links') {
-            if(!$.fn.DataTable.isDataTable('#'+tabel_id))
-            {
-                $('#'+tabel_id).DataTable({
-                    "pagingType": "simple_numbers",
-                    "pageLength": 5,
-                    "searching": false,
-                    "bLengthChange" : false,
-                    "bInfo":false,
-                    "scrollX": false,
-                    "ordering": false,
-                });
-            }   
         }
     }
 }
@@ -1617,6 +1583,15 @@ function applySelectTwo(element){
 
 //On click of export products button send ajax to export products and on sucess update the html....
 function wcProductsExport(){
+    //get the scroll top....
+    var scrollTop = $(".righttextInner").scrollTop();
+    //minus 100px from it....
+    var newScrollTopValue = scrollTop-100;
+    //set the new scroll top with latest value....
+    $(".righttextInner").scrollTop(newScrollTopValue);
+    $(".loading_products").hide();
+    //get the input type hidden value....
+    var limitAfterExport = $("#products_limit_export").val();
     var checkProducts = checkSelectedProducts('export_products_listing_class','allproductsexport');
     var checkSelectedProductsCount = checkProducts.length;//console.log(checkProducts);
     if(checkSelectedProductsCount == 0){
@@ -1626,7 +1601,7 @@ function wcProductsExport(){
         $(".export-products-error").hide();
         $(".exportProducts").show();
         $('.export_products_btn').addClass("disable_anchor");
-        jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize(), function(data) {
+        jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize()+"&newLimit="+limitAfterExport, function(data) {
             var responsedata = JSON.parse(data);
             $(".exportProducts").hide();
             if(responsedata.status == "1") {
@@ -1634,15 +1609,6 @@ function wcProductsExport(){
                 if(responsedata.latestExportProductsHtml != ""){
                      $('.export_products_listing_class').html();
                      $('.export_products_listing_class').html(responsedata.latestExportProductsHtml);
-                }
-                //apply datatable on export products listing
-                if(jQuery("#export_products_listing").length){
-                    applyDatables("export_products_listing");
-                }
-
-                //add select 2 for woocommerce products field
-                if($(".wc_iskp_products_dropdown").length){
-                    applySelectTwo('wc_iskp_products_dropdown');
                 }
                 swal("Saved!", 'Products exported successfully.', "success");
             }else{
@@ -1654,6 +1620,8 @@ function wcProductsExport(){
                     $('.export_products_btn').removeClass("disable_anchor");
                 }, 3000);
             }
+            //after export products set the scroll top to 0...
+            $(".righttextInner").scrollTop(0);
         });
     }
     setTimeout(function()
@@ -1810,16 +1778,21 @@ function copyContent(elementid) {
 //Referral Partner Tab : On click on view products link show the popup and send the ajax request to get the products listing by category id.....
 function showProductsByCat($catId){
     if($catId != ""){
+        //get the limit of products by category if exist........
+        var latestLimitProducts = $("#cat_products_limit_"+$catId).val();
+        //set the if products popup....
+        $(".scroll_div_products").attr('id',$catId);
+        //hide the load more proucts message.....
+        $(".load_products_cat_basis").hide();
         $("#productsAffiliateLinks").html('');
         $("#productsAffiliateLinks").html('<tr><td colspan="3" style="text-align: center; vertical-align: middle;">Loading Products.....</td></tr>');
         $("#productsWithAffiliateLInks").show();
-        jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{categoryId:$catId}, function(data) {
+        jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{categoryId:$catId,newCatProLimit:latestLimitProducts}, function(data) {
             var responsedata = JSON.parse(data);
             if(responsedata.status == "1") {
                 if(responsedata.productLisingWithAffiliateLinks != "") {
                     $("#productsAffiliateLinks").html('');
                     $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
-                    applyDatables("products_listing_with_affiliate_links");
                 }
             }
         });  
@@ -2097,6 +2070,9 @@ function showProductsListing(length){
     jQuery("#products_sku_listing").html('<tr class="text-center"><td colspan="3">Loading Records...</td></tr>');
     $("#productsListing").show();
     $(".common-table-class").attr("id", "products_listing_with_sku_"+length);
+    $("#products_scroll_count").val(0);
+    $(".load_products_listing_with_sku").hide();
+    $(".load_coupons_listing").hide();
     jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length}, function(data) {
         var responsedata = JSON.parse(data);
         if(responsedata.status == "1") {
@@ -2104,12 +2080,192 @@ function showProductsListing(length){
                 jQuery("#products_sku_listing").html('');
                 jQuery("#products_sku_listing").html(responsedata.productsListing);
             }
-            //apply data tables on products listing with sku...
-            if(jQuery("#products_listing_with_sku_"+length).length){
-                applyDatables("products_listing_with_sku_"+length);
-            }
         }
     });
+}
+
+//define the intial values....
+var productsLimit = 20;
+var productsOffsetExport = 20;
+var productsOffsetMatch = 20;
+var customLimitExport = 20;
+var customLimitMatch = 20;
+
+//on scroll load more products...
+function loadMoreProducts(){
+    //check scroll touch to botton...then proceed next...
+    if($(".righttextInner").scrollTop() + $(".righttextInner").innerHeight() >= $(".righttextInner")[0].scrollHeight)
+    {
+        //get the href to identify for which tab scroll request is hit....
+        var tabType = $(".nav-link.active").attr('href');
+        //remove '#' from tab href....
+        var tabId = tabType.split('#');
+        //get the first element after split....
+        if(tabId[1] != ""){
+            //get the scroll counter value....
+            var scroll_counter_value = $("#scroll_count_"+tabId[1]).val();
+            //add "1" to set the next value...
+            var scroll_counter_updated_value = parseInt(scroll_counter_value) + 1;
+            //set the latest value....
+            $("#scroll_count_"+tabId[1]).val(scroll_counter_updated_value);
+            if(tabId[1] == 'table_export_products'){
+                //compare scroll counter value......
+                if(scroll_counter_updated_value !== 1){
+                    productsOffsetExport = parseInt(productsOffsetExport) + parseInt(productsLimit);
+                }else{
+                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                    productsOffsetExport = PRODUCT_LAZY_LOADING_OFFSET;
+                }
+                var productsOffset = productsOffsetExport;
+                customLimitExport = parseInt(productsOffsetExport)+parseInt(productsLimit);
+            }else if(tabId[1] == 'table_match_products'){
+                //compare scroll counter value......
+                if(scroll_counter_updated_value !== 1){
+                    productsOffsetMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+                }else{
+                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                    productsOffsetMatch = PRODUCT_LAZY_LOADING_OFFSET;
+                }
+                var productsOffset = productsOffsetMatch;
+                customLimitMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+            }
+            //set the input hidden value to fetch the same list of records after export process done....
+            $("#products_limit_export").val(customLimitExport);
+            $("#products_limit_match").val(customLimitMatch);
+            //set the loader image....
+            $(".load_"+tabId[1]).html('');
+            $(".load_"+tabId[1]).html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+            $(".load_"+tabId[1]).show();
+            $('.export_products_btn').addClass("disable_anchor");
+            //send ajax to get the latest products of wc with updated offset....
+            jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
+                var responsedata = JSON.parse(data);
+                //hide the loader...
+                $(".load_"+tabId[1]).hide();
+                if(responsedata.status == "1") {
+                    $('.export_products_btn').removeClass("disable_anchor");
+                    if(responsedata.moreProductsListing != ""){
+                        //check the tab if then append the next products html.....
+                        if(tabId[1] == 'table_export_products'){
+                            $("table#export_products_listing tbody").append(responsedata.moreProductsListing);
+                            //first check checkbox of all checkbox is checked or not....
+                            if($(".all_products_checkbox_export").is(":checked")){
+                                $(".each_product_checkbox_export").prop("checked",true);
+                            }
+                        }else{
+                            $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
+                            //apply select two on match products tab.....
+                            applySelectTwo('application_match_products_dropdown');
+                        }
+                    }else{
+                        //minus something from scroll top to prevent next ajax request immediately.....
+                        var scrollTop = $(".righttextInner").scrollTop();
+                        var newScrollTopValue = scrollTop-100;//minus 100 to set the new scroll top value....
+                        $(".righttextInner").scrollTop(newScrollTopValue);//set scroll top to up on the basis of new value....
+                        //set the html to no products if response html is empty.....
+                        $(".load_"+tabId[1]).html('');
+                        $(".load_"+tabId[1]).html('No More Products Exist!');
+                        $(".load_"+tabId[1]).show();
+                    }
+                }
+            });
+        }
+    }
+}
+
+//define the intial values for products listing with sku popup...
+var productsListingLimit = 20;
+var productsListingOffset = 20;
+
+//On scroll touch to bottom in products listing with sku popup
+function loadProductsWithSku(){
+    //check scroll touch to bottom then proceed next....
+    if($(".productsModelBody").scrollTop() + $(".productsModelBody").innerHeight() >= $(".productsModelBody")[0].scrollHeight){
+        //get the scroll counter value....
+        var products_scroll_counter_value = $("#products_scroll_count").val();
+        //add "1" to set the next value...
+        var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
+        //set the latest value....
+        $("#products_scroll_count").val(products_scroll_counter_updated_value);
+        //compare products listing scroll counter value......
+        if(products_scroll_counter_updated_value !== 1){
+            productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+        }else{
+            productsListingLimit = 20;
+            productsListingOffset = 20;
+        }
+
+        //set the loader image....
+        $(".load_products_listing_with_sku").html('');
+        $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+        $(".load_products_listing_with_sku").show();
+        var popupTableId = $(".common-table-class").attr('id');
+        var explodedId = popupTableId.split('products_listing_with_sku_');
+        var skuLength = explodedId[1];
+        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
+            var responseData = JSON.parse(data);
+            $(".load_products_listing_with_sku").hide();
+            if(responseData.status == "1"){
+                if(responseData.productsListingWithSku != ""){
+                    $("#products_sku_listing").append(responseData.productsListingWithSku);
+                }else{
+                    $(".load_products_listing_with_sku").html('');
+                    $(".load_products_listing_with_sku").html('No More Products Exist!');
+                    $(".load_products_listing_with_sku").show();
+                    //minus something from scroll top to prevent next ajax request immediately.....
+                    var listingScrollTop = $(".productsModelBody").scrollTop();
+                    var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
+                    $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
+                }
+            }
+        });
+    }
+}
+
+//define the intial values for coupons listing in popup....
+var couponsListingLimit = 20;
+var couponsListingOffset = 20;
+
+//On scroll touch to botton in coupons listing popup....
+function loadMoreCoupons(){
+    //check scroll touch to bottom....
+    if($(".couponsLisingContent").scrollTop() + $(".couponsLisingContent").innerHeight() >= $(".couponsLisingContent")[0].scrollHeight){
+        //get the scroll counter value....
+        var coupons_scroll_counter_value = $("#coupons_scroll_count").val();
+        //add "1" to set the next value...
+        var coupons_scroll_counter_updated_value = parseInt(coupons_scroll_counter_value)+1;
+        //set the latest value....
+        $("#coupons_scroll_count").val(coupons_scroll_counter_updated_value);
+        //compare products listing scroll counter value......
+        if(coupons_scroll_counter_updated_value !== 1){
+            couponsListingOffset = parseInt(couponsListingOffset) + parseInt(couponsListingLimit);
+        }else{
+            couponsListingLimit = 20;
+            couponsListingOffset = 20;
+        }
+        
+        //set the loader image.....
+        $(".load_coupons_listing").html('');
+        $(".load_coupons_listing").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+        $(".load_coupons_listing").show();
+        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_coupons",{couponsListingLimit:couponsListingLimit,couponsListingOffset:couponsListingOffset},function(data){
+            var responseData = JSON.parse(data);
+            $(".load_coupons_listing").hide();
+            if(responseData.status == "1"){
+                if(responseData.couponsListingHtml != ""){
+                    $("#coupon_listing_with_sku").append(responseData.couponsListingHtml);
+                }else{
+                    $(".load_coupons_listing").html('');
+                    $(".load_coupons_listing").html('No More Coupons Exist!');
+                    $(".load_coupons_listing").show();
+                    //minus something from scroll top to prevent next ajax request immediately.....
+                    var couponsListingScrollTop = $(".couponsLisingContent").scrollTop();
+                    var newCouponsListingScrollTopValue = couponsListingScrollTop-100;//minus 100 to set the new scroll top value....
+                    $(".couponsLisingContent").scrollTop(newCouponsListingScrollTopValue);//set scroll top to up on the basis of new value....
+                }
+            }
+        });
+    }
 }
 
 //Referral Partner Tab : On click of save buttons send ajax request to update the slug of affiliate redirect page......
@@ -2147,4 +2303,56 @@ function saveAffiliateRedirectSlug(){
             $('.affiliate-redirect-success').fadeOut("slow");
         }, 3000);
     }  
+}
+
+//Referral Partner Tab : set default variables to handle the process of load more prod
+var productsLimitWithCat = 20;
+var productsOffsetWithCat = 20;
+var customCatProductsLimit = 20;
+//Function : This function is called on scroll of products listing(on the basis of category) popup...
+function loadMoreProductByCat(){
+    //check scroll of popup is touch to bottom or not.....
+    if($(".scroll_div_products").scrollTop() + $(".scroll_div_products").innerHeight() >= $('.scroll_div_products')[0].scrollHeight){
+        //then check popup is visible or not.....If visible then proceed next.......
+        if($('#productsWithAffiliateLInks').is(':visible')){
+            var getScrollTop = $('.scroll_div_products').scrollTop();//get the scroll top position....
+            var updatedTopScrollValue = getScrollTop-100;//miuns something.....
+            var categoryId = $(".scroll_div_products").attr('id');//get the id of popup to get popup link to whick category...
+            var affiliatePath = $("[name=affiliate_path]").val();//get the affiliate link from hidden value....
+            //then check category id is exist or not...
+            if(categoryId != "" && typeof categoryId  != "undefined"){
+                var cat_products_scroll_count = $("#scroll_count_cat_products_"+categoryId).val();//get the scroll counter....
+                var cat_pro_counter_updated_value = parseInt(cat_products_scroll_count)+1;//update the counter value....
+                $("#scroll_count_cat_products_"+categoryId).val(cat_pro_counter_updated_value);//set updated value.....
+                //check counter value and set the limit and offset on the basis of it....
+                if(cat_pro_counter_updated_value !== 1){
+                    productsOffsetWithCat = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
+                }else{
+                    productsLimitWithCat = 20;
+                    productsOffsetWithCat = 20;
+                }
+                //update the new limit........
+                customCatProductsLimit = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
+                $("#cat_products_limit_"+categoryId).val(customCatProductsLimit);
+                $(".load_products_cat_basis").html('');
+                $(".load_products_cat_basis").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+                $(".load_products_cat_basis").show();
+                jQuery.post(ajax_object.ajax_url+"?action=wc_more_products_with_cat",{catId:categoryId,catProLimit:productsLimitWithCat,catProOffset:productsOffsetWithCat,appAffiliatPath:affiliatePath},function(data){
+                    var productResponse = JSON.parse(data);
+                    $(".load_products_cat_basis").hide();
+                    if(productResponse.status == "1"){
+                        if(productResponse.newProductListingWithCat != ""){
+                            var newlyLoadedProducts = productResponse.newProductListingWithCat;
+                            $('#productsAffiliateLinks tr:last').after(newlyLoadedProducts);//append mew products...
+                        }else{
+                            $(".load_products_cat_basis").html('');
+                            $(".load_products_cat_basis").html('No More Products Exist!');
+                            $(".load_products_cat_basis").show();
+                            $('.scroll_div_products').scrollTop(updatedTopScrollValue);//update the scroll top value to prevent ajax hit....
+                        }
+                    }
+                });
+            } 
+        }
+    }
 }

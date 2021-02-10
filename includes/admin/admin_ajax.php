@@ -184,12 +184,17 @@ function wc_load_import_export_tab_main_content(){
 	//First check the target tab id the call the html function for latest html.....
 	if(isset($_POST['target_tab_id']) && !empty($_POST['target_tab_id'])){
 		$latestHtml = '';
+		$offset = 0;
 		if ($_POST['target_tab_id'] == '#table_export_products') {
-			$latestHtml = createExportProductsHtml();
+			if(isset($_POST['newLimitExport']) && !empty($_POST['newLimitExport'])){
+				$limit = $_POST['newLimitExport'];
+			}
+			$latestHtml = createExportProductsHtml($limit,$offset);
 		}else if ($_POST['target_tab_id'] == '#table_match_products') {
-			$latestHtml = createMatchProductsHtml();
-		}else if ($_POST['target_tab_id'] == '#table_standard_fields_mapping') {
-			$latestHtml = createStandardFieldsMappingHtml();
+			if(isset($_POST['newLimitMatch']) && !empty($_POST['newLimitMatch'])){
+				$limit = $_POST['newLimitMatch'];
+			}
+			$latestHtml = createMatchProductsHtml($limit,$offset);
 		}
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestHtml'=>$latestHtml));
 	}
@@ -207,10 +212,14 @@ function wc_export_wc_products()
         $applicationAuthenticationDetails = getAuthenticationDetails();
         //get the access token....
         $access_token = '';
+        $applicationEdition = '';
         if(!empty($applicationAuthenticationDetails)){//check authentication details......
             if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
                 $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
             }
+            
+            //set the value of application edition such as keap, infusionsoft.....
+        	$applicationEdition = $applicationAuthenticationDetails[0]->user_application_edition;
         }
         //Define the exact position of process to store the logs...
         $callback_purpose = 'Export Woocommerce Product : Process of export woocommerce product to infusionsoft/keap application';
@@ -251,14 +260,37 @@ function wc_export_wc_products()
                     $wcproductName = $wcproductdetails->get_name();//get product name....
                     $wcproductDesc = $wcproductdetails->get_description();//get product description....
                     if(isset($wcproductDesc) && !empty($wcproductDesc)){
-                        $wcproductDesc = $wcproductDesc;
+                    	//check if application edition is keap...
+		              	if($applicationEdition == APPLICATION_TYPE_KEAP){
+		                  //then strip tags of description because keap application description section is simple textarea......
+		                  $wcproductDesc = strip_tags($wcproductDesc);
+		              	}
+		              	else{
+		                  //if application edition is infusionsoft then pass description same set in wp product....
+		                  $wcproductDesc = $wcproductDesc;
+		              	}
                     }else{
                         $wcproductDesc = "";
                     }
                     $wcproductShortDesc = $wcproductdetails->get_short_description();//get product short description....
                     if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
-                        $wcproductShortDesc = $wcproductShortDesc;
-                    }else{
+                        $wcproductShortDesc = strip_tags($wcproductShortDesc);
+               			$shortDescriptionLen = strlen($wcproductShortDesc);
+               			//check if application edition is keap....
+		              	if($applicationEdition == APPLICATION_TYPE_KEAP){
+			                //then check if description is empty......
+			                if(empty($wcproductDesc)){
+			                  //then set short description as description....
+			                  $wcproductDesc = $wcproductShortDesc;
+			                }
+			            }else{
+			                if($shortDescriptionLen > 250){
+			                  $wcproductShortDesc = substr($wcproductShortDesc,0,250);
+			                }else{
+			                  $wcproductShortDesc = $wcproductShortDesc;
+			                }
+			            }
+               		}else{
                         $wcproductShortDesc = "";
                     }
                     //create final array with values.......
@@ -300,8 +332,16 @@ function wc_export_wc_products()
                     
                 }
             }
+            //set default offset and limit....
+            $exportOffset = 0;
+            $exportLimit = 20;
+            //check limit exist in post data or not......
+            if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
+            	//set the latest limit to fetch the records...
+            	$exportLimit = $_POST['newLimit'];
+            }
             //then call the "createExportProductsHtml" function to get the latest html...
-            $latestExportProductsHtml = createExportProductsHtml();
+            $latestExportProductsHtml = createExportProductsHtml($exportLimit,$exportOffset);
             echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestExportProductsHtml'=>$latestExportProductsHtml));
         }
     }
@@ -802,11 +842,28 @@ function wc_save_cfield_app(){
 	    }else{
 			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>'Authentication Error'));
 	    }
-		
+	}
+}		
+
+//Wordpress Hook : This hook is triggered to load the more product either for match products tab or export products tab.....
+add_action('wp_ajax_wc_load_more_products','wc_load_more_products');
+//Function Definition : wc_load_more_products
+function wc_load_more_products(){
+	if(isset($_POST) && !empty($_POST)){
+		$moreProductsListing = '';
+		if(!empty($_POST['tabversion']) && !empty($_POST['productsLimit']) && !empty($_POST['productsOffset'])){
+			if($_POST['tabversion'] == 'table_export_products'){
+				//then call the "createExportProductsHtml" function to get the next products for export products...
+        		$moreProductsListing = createExportProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+			}else if ($_POST['tabversion'] == 'table_match_products') {
+				//then call the "createMatchProductsHtml" function to get the next products for match products....
+				$moreProductsListing = createMatchProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+			}
+	    }
+	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'moreProductsListing'=>$moreProductsListing));
 	}
 	die();
 }
-
 
 //Custom fields Tab : wordpress hook is call to get the custom fields tab on change custom field type e.g contact, order at the time of custom field creation....
 add_action( 'wp_ajax_wc_cfield_app_tabs', 'wc_cfield_app_tabs');
@@ -1375,8 +1432,64 @@ function wc_get_products_listing()
 			$productsListing = get_products_listing($skuLength);
 	    }
 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListing'=>$productsListing));
-		die();
 	}	    
+	die();
+}
+
+//Wordpress Hook : This action is triggered when user change the inner tabs of custom fields tab..
+add_action('wp_ajax_wc_load_custom_fields_tab_data','wc_load_custom_fields_tab_data');
+//Function Definiation : wc_load_custom_fields_tab_data
+function wc_load_custom_fields_tab_data(){
+	//First check the target tab exist then call the function to get the standard fields mapping listing..
+	if(isset($_POST['targetTabId']) && !empty($_POST['targetTabId'])){
+		$listingHtml = '';
+		if($_POST['targetTabId'] == '#table_standard_fields_mapping'){
+			$listingHtml  = createStandardFieldsMappingHtml();
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'responseHtml'=>$listingHtml));
+	}
+	die();
+}
+
+//Wordpress Hook : This action is trigged to load more products with sku....
+add_action('wp_ajax_wc_load_more_products_with_sku','wc_load_more_products_with_sku');
+//Function Definition : wc_load_more_products_with_sku
+function wc_load_more_products_with_sku(){
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		$productsListing = '';
+		$productsListing = get_products_listing($_POST['productSkuLength'],$_POST['productsListingLimit'],$_POST['productsListingOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListingWithSku'=>$productsListing));
+	}
+	die();
+}
+
+
+//Wordpress Hook : This action is triggered when user try to enable disable referral partner tracking in infusionsoft application....
+add_action('wp_ajax_wc_update_referral_tracking','wc_update_referral_tracking');
+//Function Definition : wc_update_referral_tracking
+function wc_update_referral_tracking(){
+	if(isset($_POST) && !empty($_POST)){
+		if(isset($_POST['actionStatus']) && !empty($_POST['actionStatus'])){
+			update_option('referral_partner_tracking_status',$_POST['actionStatus']);
+		}
+		//return response with html.....
+	  	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
+
+//Wordpress Hook : This action is triggered to load more coupons
+add_action('wp_ajax_wc_load_more_coupons','wc_load_more_coupons');
+//Function Definition : wc_load_more_coupons
+function wc_load_more_coupons(){
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		$couponsListingHtml = '';
+		$couponsListingHtml = get_coupons_listing($_POST['couponsListingLimit'],$_POST['couponsListingOffset'],COUPONS_HTML_WITH_LOAD_MORE);
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'couponsListingHtml'=>$couponsListingHtml));
+	}
+	die();
 }
 
 //Referral Partner Tab : wordpress hook is triggered to get the list of products with their affiliate links on the basis of categorty id.........
@@ -1402,9 +1515,18 @@ function wc_load_products()
 		    } 
 	  	}
 
-	  	//get the products listing on the basis of category id.......
-	  	$wcProductsListing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999,'tax_query' => array(array('taxonomy'=>'product_cat','field'=>'term_id','terms' => $_POST['categoryId']))));
+	  	//get the category id from post data....
+	  	$catId = $_POST['categoryId'];
 
+	  	//get and set the limit if products is already loaded by the popup with scroll limit......
+	  	$defaultLimit = '';
+	  	if(isset($_POST['newCatProLimit']) && !empty($_POST['newCatProLimit'])){
+	  		$defaultLimit = $_POST['newCatProLimit'];
+	  	}
+
+	  	//get the products listing on the basis of category id.......
+	  	$wcProductsListing = getProductByCat($catId,$defaultLimit);
+	  	
 	  	//check products data exist or not.....
 	  	if(isset($wcProductsListing) && !empty($wcProductsListing)){
 	  		//execute loop and create the html.......
@@ -1412,10 +1534,7 @@ function wc_load_products()
 	  			$url = get_permalink( $value->ID );//get product url by product id......
 	  			$currentProductAffiliateLink = $productAffiliateLink.$url;
 	  			//concate products listing......
-	  			$productLisingWithAffiliateLinks .= '<tr>
-	  												<td  class="skucss">'.$value->post_title.'</td>
-	  												<td id="product_'.$value->ID.'_affiliate_link"  class="skucss">'.$currentProductAffiliateLink.'</td>
-	  												<td><i class="fa fa-copy" style="cursor:pointer" 
+	  			$productLisingWithAffiliateLinks .= '<input type="hidden" name="affiliate_path" value="'.$productAffiliateLink.'"><tr><td  class="skucss">'.$value->post_title.'</td><td id="product_'.$value->ID.'_affiliate_link"  class="skucss">'.$currentProductAffiliateLink.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
 	                                      onclick="copyContent(\'product_'.$value->ID.'_affiliate_link\')"></td></tr>';
 	  		}
 	  	}else{
@@ -1426,7 +1545,6 @@ function wc_load_products()
 	}
 	die();
 }
-
 
 //Referral Partner Tab : wordpress hook is triggered to add custom page for affiliate tracking purpose....
 add_action( 'wp_ajax_wc_add_affiliate_page', 'wc_add_affiliate_page');
@@ -1477,16 +1595,31 @@ function wc_save_affiliate_redirect_slug()
 	die();
 }
 
-//Wordpress Hook : This action is triggered when user try to enable disable referral partner tracking in infusionsoft application....
-add_action('wp_ajax_wc_update_referral_tracking','wc_update_referral_tracking');
-//Function Definition : wc_update_referral_tracking
-function wc_update_referral_tracking(){
+
+//Wordpress hook : This action is triggered to load products on the basis of category....
+add_action('wp_ajax_wc_more_products_with_cat','wc_more_products_with_cat');
+//Function Definiation : wc_more_products_with_cat...
+function wc_more_products_with_cat(){
 	if(isset($_POST) && !empty($_POST)){
-		if(isset($_POST['actionStatus']) && !empty($_POST['actionStatus'])){
-			update_option('referral_partner_tracking_status',$_POST['actionStatus']);
+		//call the common function to get the products on the basis of category.....
+		$productsByCat = getProductByCat($_POST['catId'],$_POST['catProLimit'],$_POST['catProOffset']);
+		$productWithAffiliateHtml = '';//set empty variable for html......
+		if(isset($productsByCat) && !empty($productsByCat)){
+			foreach ($productsByCat as $key => $value) {
+				$productLink = get_permalink($value->ID);//get the product link.....
+				//get application affiliate link from post data....
+				$appAffiliateLink = '';
+				if(!empty($_POST['appAffiliatPath'])){
+					$appAffiliateLink  = $_POST['appAffiliatPath'];
+				}
+				//append the each row in empty variable.....
+				$productWithAffiliateHtml .= '<tr><td class="skucss">'.$value->post_title.'</td><td id="product_'.$value->ID.'_affiliate_link">'.$appAffiliateLink.$productLink.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_'.$value->ID.'_affiliate_link\')"></i></td></tr>';
+			}
+		}else{
+			$productWithAffiliateHtml = '';
 		}
-		//return response with html.....
-	  	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+		//return the repsonse....
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newProductListingWithCat'=>$productWithAffiliateHtml));
 	}
 	die();
 }

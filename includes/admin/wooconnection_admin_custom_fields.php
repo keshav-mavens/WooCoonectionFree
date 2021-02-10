@@ -31,7 +31,7 @@ span.closeCfModel {
 	      	</p>
 
 	      	<nav>
-		        <div class="nav nav-tabs nav-fill custom-nav-tabs" id="nav-tab" role="tablist">
+		        <div class="nav nav-tabs nav-fill custom-fields-tabs" id="nav-tab" role="tablist">
 		          <a class="nav-item nav-link active" id="nav-profile-tab" data-toggle="tab" href="#table_contact_custom_fields" role="tab" aria-controls="nav-profile" aria-selected="false">Checkout Custom Fields</a>
 				  <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#table_standard_fields_mapping" role="tab" aria-controls="nav-profile" aria-selected="false">Woocommerce Standard Fields Mapping</a>
 		        </div>

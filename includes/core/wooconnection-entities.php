@@ -82,6 +82,17 @@
 	//override link yes no...
 	define('REDIRECT_OVERRIDE_TRUE', 1);
 	define('REDIRECT_OVERRIDE_FALSE', 0);
+	//limit and offset entities for lazy loading of products..
+	define("PRODUCT_LAZY_LOADING_LIMIT", 20);
+	define("PRODUCT_LAZY_LOADING_OFFSET", 20);
+	//set the products html.....
+	define("PRODUCTS_HTML_TYPE_LOAD_MORE", 1);
+	//set the coupon listing html type...
+	define("COUPONS_HTML_WITH_LOAD_MORE", 1);
+	//payment modes....
+	define('PAYMENT_MODE_TEST',1);
+	define('PAYMENT_MODE_SKIPPED',2);
+	define('PAYMENT_MODE_LIVE',3);
 	//sku on the basis of campaign goals....
 	define('SKU_LENGHT_SPECIFIC_PRODUCT', 40);
 	define('SKU_LENGHT_REVIEW', 34);

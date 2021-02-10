@@ -126,7 +126,7 @@ if(isset($pageDetails['pageUrl']) && !empty($pageDetails['pageUrl'])){
         <h4 class="modal-title">Products Listing With Affiliate Links</h4>
         <button type="button" class="close" onclick="hideCustomModel('productsWithAffiliateLInks')">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body scroll_div_products" id="" style="max-height:500px; overflow-y:auto;" onscroll="loadMoreProductByCat()">
       	<div class="table-responsive">
 			<table class="table table-striped" id="products_listing_with_affiliate_links">
 			    <thead>
@@ -141,6 +141,7 @@ if(isset($pageDetails['pageUrl']) && !empty($pageDetails['pageUrl'])){
 			    </tbody>
 			</table>
       	</div>
+      	<div class="load_products_cat_basis" style="text-align: center;display: none;"></div>
       </div>
     </div>
   </div>

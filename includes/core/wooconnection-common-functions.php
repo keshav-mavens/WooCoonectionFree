@@ -101,6 +101,14 @@ function getAuthenticationDetails(){
   if(isset($pluginDetails) && !empty($pluginDetails)){
       if(!empty($pluginDetails['activation_email'])){
         $email = $pluginDetails['activation_email'];
+        if(strpos($email, "+") !== false)
+        {
+            $email = str_replace("+", "$", $email);
+        }
+        else 
+        {
+            $email = $email; 
+        }
       }
       if(!empty($pluginDetails['activation_key'])){
         $key = $pluginDetails['activation_key'];
@@ -131,11 +139,11 @@ function getAuthenticationDetails(){
 }
 
 //Main function is used to generate the export products html.....
-function createExportProductsHtml(){
+function createExportProductsHtml($limit='',$offset='',$htmlType=''){
   //Define export table html variable.....
   $table_export_products_html = "";
   //call the common function to get the list of woocommerce publish products...
-  $woocommerceProducts = listExistingDatabaseWooProducts();
+  $woocommerceProducts = listExistingDatabaseWooProducts($limit,$offset);
   //Get the application type and set the lable on the basis of it....
   $configurationType = applicationType();
   $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;//Default....
@@ -153,24 +161,32 @@ function createExportProductsHtml(){
   
   //set html if no products exist in woocommerce for export....
   if(empty($woocommerceProducts)){
-      $table_export_products_html = '<p class="heading-text" style="text-align:center">No products exist in woocommerce for export to '.$applicationLabel.' application.</p>';
+      if(empty($htmlType)){
+        $table_export_products_html = '<p class="heading-text" style="text-align:center">No products exist in woocommerce for export to '.$applicationLabel.' application.</p>';
+      }
   }else{
       //Compare woocommerce publish products with application products
-      $exportProductsData = exportProductsListingApplication($woocommerceProducts,$applicationProductsArray,$applicationLabel);
+      $exportProductsData = exportProductsListingApplication($woocommerceProducts,$applicationProductsArray,$applicationLabel,$htmlType);
       if(isset($exportProductsData) && !empty($exportProductsData)){
           //Get the export products table html and append to table
           if(!empty($exportProductsData['exportTableHtml'])){
-            $table_export_products_html .= '<form action="" method="post" id="wc_export_products_form" onsubmit="return false">  
-              <table class="table table-striped export_products_listing_class" id="export_products_listing">
-                '.$exportProductsData['exportTableHtml'].'
-              </table>
-              <div class="form-group col-md-12 text-center m-t-60">
-                <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Process Export Products....</div>
-                <div class="alert-error-message export-products-error" style="display: none;"></div>
-                <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
-                <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
-              </div>
-            </form>';
+            if(!empty($htmlType) && $htmlType == PRODUCTS_HTML_TYPE_LOAD_MORE){
+                $table_export_products_html = $exportProductsData['exportTableHtml'];
+            }
+            else{
+              $table_export_products_html .= '<form action="" method="post" id="wc_export_products_form" onsubmit="return false">  
+                <table class="table table-striped export_products_listing_class" id="export_products_listing">
+                  '.$exportProductsData['exportTableHtml'].'
+                </table>
+                <div class="form-group col-md-12 text-center m-t-25">
+                  <div class="load_table_export_products loading_products" style="display:none;"></div>
+                  <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Exporting products to your '.$applicationLabel.' account.</div>
+                  <div class="alert-error-message export-products-error" style="display: none;"></div>
+                  <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
+                  <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
+                </div>
+              </form>';
+            }
           }
       }
   }
@@ -179,9 +195,17 @@ function createExportProductsHtml(){
 }
 
 //list of existing woocommerce products from database and then return...
-function listExistingDatabaseWooProducts(){
+function listExistingDatabaseWooProducts($limit='',$offset=''){
+    $productsLimit = 20;
+    $productsOffset = 0;
+    if(!empty($limit)){
+      $productsLimit = $limit;
+    }
+    if(!empty($offset)){
+      $productsOffset = $offset;
+    }
     $productsListing = array();
-    $existProductsDetails = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+    $existProductsDetails = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'=>$productsLimit,'offset'=>$productsOffset));
     if(!empty($existProductsDetails)){
       $productsListing = $existProductsDetails;
     }
@@ -189,7 +213,7 @@ function listExistingDatabaseWooProducts(){
 }
 
 //create products listing if infusionsoft/keap products are exist...
-function exportProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
+function exportProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$htmlType=''){
     $exportTableHtml  = '';//Define variable..
     $exportProductsData = array();//Define array...
     //first need to check connection is created or not infusionsoft/keap application then next process need to done..
@@ -204,11 +228,13 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
 
     //First check if wooproducts exist...
     if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
-        //Create first table....
-        $exportTableHtml .= '<thead>';
-        $exportTableHtml .= '<tr><th style="text-align: center;"><input type="checkbox" id="export_products_all" name="export_products_all" class="all_products_checkbox_export" value="allproductsexport"></th><th>WooCommerce Product Name</th><th>WooCommerce Product SKU</th><th>WooCommerce Product Price</th><th>'.$applicationType.' Product</th></tr>';
-        $exportTableHtml .= '</thead>';
-        $exportTableHtml .= '<tbody>';
+        if(empty($htmlType)){
+          //Create first table....
+          $exportTableHtml .= '<thead>';
+          $exportTableHtml .= '<tr><th style="text-align: center;"><input type="checkbox" id="export_products_all" name="export_products_all" class="all_products_checkbox_export" value="allproductsexport"></th><th>WooCommerce Product Name</th><th>WooCommerce Product SKU</th><th>WooCommerce Product Price</th><th>'.$applicationType.' Product</th></tr>';
+          $exportTableHtml .= '</thead>';
+          $exportTableHtml .= '<tbody>';
+        }
         $productSelectHtml = '';
         foreach ($wooCommerceProducts as $key => $value) {
             if(!empty($value->ID)){
@@ -434,14 +460,14 @@ function updateExistingProduct($alreadyExistProductId,$access_token,$productDeta
 }
 
 //Main function is used to generate the match products html.....
-function createMatchProductsHtml(){
+function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',$matchProductHtmlType=''){
   global $wpdb;
   //Define match table html variable.....
   $table_match_products_html = "";
   //Define array to manage the sorting.....
   $wcproductsArray = array();
   //call the common function to get the list of woocommerce products they are in relation with application products.......
-  $wooCommerceProducts = listExistingDatabaseWooProducts();
+  $wooCommerceProducts = listExistingDatabaseWooProducts($matchProductsLimit,$matchProductsOffset);
   
   //Get the application type and set the lable on the basis of it.... 
   $configurationType = applicationType();
@@ -461,18 +487,25 @@ function createMatchProductsHtml(){
   
   //set html if no products exist in woocommerce they are in relation with applcation products....
   if(empty($wooCommerceProducts)){
-    $table_match_products_html = '<p class="heading-text" style="text-align:center">No products mapping exist.</p>';
+    if(empty($matchProductHtmlType)){
+      $table_match_products_html = '<p class="heading-text" style="text-align:center">No products mapping exist.</p>';
+    }
   }else{
       //Compare woocommerce publish products application products....
-      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel);
+      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel,$matchProductHtmlType);
       //Check export products data....
       if(isset($matchProductsData) && !empty($matchProductsData)){
           //Get the match products table html and append to table
           if(!empty($matchProductsData['matchTableHtml'])){
-            $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
-              <table class="table table-striped match_products_listing_class" id="match_products_listing">
-                '.$matchProductsData['matchTableHtml'].'
-              </table></form>';
+            if(!empty($matchProductHtmlType) && $matchProductHtmlType == PRODUCTS_HTML_TYPE_LOAD_MORE){
+                $table_match_products_html = $matchProductsData['matchTableHtml'];
+            }
+            else{
+              $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
+                <table class="table table-striped match_products_listing_class" id="match_products_listing">
+                  '.$matchProductsData['matchTableHtml'].'
+                </table></form>';
+            }
           }
       }
   }
@@ -481,22 +514,24 @@ function createMatchProductsHtml(){
 }
 
 //Create the match products table listing....
-function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType){
+function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$matchProductHtmlType=''){
     $matchTableHtml  = '';//Define variable..
     $matchProductsData = array();//Define array...
     //First check if wooproducts exist...
     if(isset($wooCommerceProducts) && !empty($wooCommerceProducts)){
-        //Create first table....
-        $matchTableHtml .= '<thead>';
-        $matchTableHtml .= '<tr>
-                        <th></th>
-                        <th>WooCommerce Product Name</th>
-                        <th>WooCommerce Product SKU</th>
-                        <th>WooCommerce Product Price</th>
-                        <th>'.$applicationType.' Product</th>
-                      </tr>';
-        $matchTableHtml .= '</thead>';
-        $matchTableHtml .= '<tbody>';
+        if(empty($matchProductHtmlType)){
+          //Create first table....
+          $matchTableHtml .= '<thead>';
+          $matchTableHtml .= '<tr>
+                          <th></th>
+                          <th>WooCommerce Product Name</th>
+                          <th>WooCommerce Product SKU</th>
+                          <th>WooCommerce Product Price</th>
+                          <th>'.$applicationType.' Product</th>
+                        </tr>';
+          $matchTableHtml .= '</thead>';
+          $matchTableHtml .= '<tbody>';
+        }
         $productExistId = '';
         foreach ($wooCommerceProducts as $key => $value) {
             if(!empty($value)){
@@ -869,7 +904,7 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token,$lead_aff
 }
 
 //add product to infusionsoft/keap account..
-function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
+function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEdition=''){
     //define empty variables......
     $currentProductID = '';
     $checkAlreadyExist = '';
@@ -884,9 +919,26 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
           $checkAlreadyExist = get_post_meta($parent_product_id, 'is_kp_product_id', true);
       }
     }
+    
+    //set default mapped product exist in application or not.....
+    $productExistStatus= true;
+    //check mapping exist in database...
+    if(!empty($checkAlreadyExist)){
+      //get the application product details by product id.....
+      $checkAppProduct = getApplicationProductDetail($checkAlreadyExist,$access_token);
+      //check api return the product details....
+      if(!empty($checkAppProduct)){
+        if(!empty($checkAppProduct['product_name'])){
+          $productExistStatus = true;
+        }else{
+          $productExistStatus = false;
+        }
+      }
+    }
+
     $wooconnectionLogger = new WC_Logger();
     //check product mapping exist else create new product and return the id newly created product.....
-    if(isset($checkAlreadyExist) && !empty($checkAlreadyExist)){
+    if(isset($checkAlreadyExist) && !empty($checkAlreadyExist) && $productExistStatus == true){
        $currentProductID = $checkAlreadyExist; 
     }else{
       $wcproductSku = $item->get_sku();//get product sku....
@@ -894,13 +946,36 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id=''){
       $wcproductName = $item->get_name();//get product name....
       $wcproductDesc = $item->get_description();//get product description....
       if(isset($wcproductDesc) && !empty($wcproductDesc)){
-          $wcproductDesc = $wcproductDesc;
+          //check if application edition is keap...
+          if($appEdition == APPLICATION_TYPE_KEAP){
+              //then strip tags of description because keap application description section is simple textarea......
+              $wcproductDesc = strip_tags($wcproductDesc);
+          }
+          else{
+              //if application edition is infusionsoft then pass description same set in wp product....
+              $wcproductDesc = $wcproductDesc;
+          }
       }else{
           $wcproductDesc = "";
       }
       $wcproductShortDesc = $item->get_short_description();//get product short description....
       if(isset($wcproductShortDesc) && !empty($wcproductShortDesc)){
-          $wcproductShortDesc = $wcproductShortDesc;
+          $wcproductShortDesc = strip_tags($wcproductShortDesc);
+          $shortDescriptionLen = strlen($wcproductShortDesc);
+          //check if application edition is keap....
+          if($appEdition == APPLICATION_TYPE_KEAP){
+            //then check if description is empty......
+            if(empty($wcproductDesc)){
+              //then set short description as description....
+              $wcproductDesc = $wcproductShortDesc;
+            }
+          }else{
+            if($shortDescriptionLen > 250){
+              $wcproductShortDesc = substr($wcproductShortDesc,0,250);
+            }else{
+              $wcproductShortDesc = $wcproductShortDesc;
+            }
+          }
       }else{
           $wcproductShortDesc = "";
       }
@@ -1220,40 +1295,6 @@ function addOrderItems($access_token,$orderid,$productId,$type,$price,$quan,$des
     }
 }
 
-//Function is used to get the product information from the the authenticate application.....
-function getApplicationProductDetails($access_token,$productId){
-    $productName = '';
-    if(!empty($access_token) && !empty($productId))
-    {
-        $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$productId;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url); //using the setopt function to send request to the url
-        $header = array(
-            'Accept: application/json',
-            'Content-Type: application/json',
-            'Authorization: Bearer '. $access_token
-        );
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
-        $response = curl_exec($ch); //executing request
-        $err = curl_error($ch);
-        if($err){
-        }else{
-          $sucessData = json_decode($response,true);
-          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
-           
-          }else{
-            if(!empty($sucessData['product_name'])){
-                $productName = $sucessData['product_name'];
-            }
-          }
-          return $productName;
-        }
-        curl_close($ch);  
-    }
-    return $productName;
-}
-
 //Custom fields Tab :  Get all latest custom fields from infusionsoft/keap application related to orders/contacts..........
 function getPredefindCustomfields(){
   //first need to check whether the application authentication is done or not..
@@ -1273,6 +1314,7 @@ function getPredefindCustomfields(){
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Nickname'] = "Contact Nick Name";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantName'] = "Contact Assistant Name";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':AssistantPhone'] = "Contact Assistant Phone";
+  $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Email'] = "Contact Email Address 1";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress2'] = "Contact Email Address 2";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':EmailAddress3'] = "Contact Email Address 3";
   $predefinedcfields["Contact Basic Infomation"]["FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.':Phone1'] = "Contact Phone 1";
@@ -1654,7 +1696,7 @@ function wc_standard_categories_listing(){
               }else{
                 $termName = $value->name;
               }
-              $categoriesLising .= '<tr><td>'.$termName.'</td><td><a href="javascript:void(0);" onclick="showProductsByCat('.$termId.')">View Products</a></td></tr>';
+              $categoriesLising .= '<tr><input type="hidden" id="scroll_count_cat_products_'.$termId.'" value="0"><input type="hidden" value="20" id="cat_products_limit_'.$termId.'"><td>'.$termName.'</td><td><a href="javascript:void(0);" onclick="showProductsByCat('.$termId.')">View Products</a></td></tr>';
           }
         }
     }else{
@@ -2343,9 +2385,20 @@ function getOrderTriggers(){
 }
 
 //get the list of products with sku...
-function get_products_listing($length){
+function get_products_listing($length,$limit='',$offset='',$htmlType = ''){
+  //set default limit and offset....
+  $listingLimit = 20;
+  $listingOffset = 0;
+  //check if limit exist in function parameter...
+  if(!empty($limit)){
+    $listingLimit = $limit;
+  }
+  //check if offset exist in function parameter....
+  if(!empty($offset)){
+    $listingOffset = $offset;
+  }
   $productLisingWithSku = "";
-  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  $woo_products_listing = get_posts(array('post_type' => 'product','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => $listingLimit,'offset'=>$listingOffset));
   if(isset($woo_products_listing) && !empty($woo_products_listing)){
     foreach ($woo_products_listing as $key => $value)
     {
@@ -2357,16 +2410,30 @@ function get_products_listing($length){
                               </tr>';
     }
   }else{
-    $productLisingWithSku .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Products Exist!</td></tr>';
+    //if html type is empty then return table with message...else return empty....
+    if(empty($htmlType)){
+      $productLisingWithSku .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Products Exist!</td></tr>';
+    }
   }
   return $productLisingWithSku;
 }
 
 
 //get the list of coupons with coupon code...
-function get_coupons_listing(){
+function get_coupons_listing($couponListingLimit='',$couponListingOffset='',$couponListingType=''){
+  //set default limit and offset.....
+  $couponsListingLimit = 20;
+  $couponsListingOffset = 0;
+  //check if coupon limit exist in function parameter.....
+  if(!empty($couponListingLimit)){
+    $couponsListingLimit = $couponListingLimit;
+  }
+  //check if offset exist in function parameter.......
+  if(!empty($couponListingOffset)){
+    $couponsListingOffset = $couponListingOffset;
+  }
   $couponsLisingWithCode = "";
-  $woo_coupons_listing = get_posts(array('post_type' => 'shop_coupon','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'   => 999999));
+  $woo_coupons_listing = get_posts(array('post_type' => 'shop_coupon','post_status'=>'publish','orderby' => 'post_date','order' => 'DESC','posts_per_page'=>$couponsListingLimit,'offset'=>$couponsListingOffset));
   if(isset($woo_coupons_listing) && !empty($woo_coupons_listing)){
     foreach ($woo_coupons_listing as $key => $value)
     {
@@ -2385,7 +2452,9 @@ function get_coupons_listing(){
         $couponsLisingWithCode.='<tr><td id="coupon_'.$value->ID.'_code" class="skucss">'.substr($value->post_name, 0, 34).'</td><td class="skucss">'.$couponDescription.'</td><td><i class="fa fa-copy" onclick = "copyContent(\'coupon_'.$value->ID.'_code\')" style="cursor:pointer"></i></td></tr>';
     }
   }else{
-    $couponsLisingWithCode .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Coupons Exist!</td></tr>';
+    if(empty($couponListingType)){
+      $couponsLisingWithCode .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Coupons Exist!</td></tr>';
+    }
   }
   return $couponsLisingWithCode;
 }
@@ -2621,6 +2690,137 @@ function affiliateListing(){
   return $listing;
 }
 
+//get the amount owned by the authoenticate application order.....
+function getOrderAmountOwned($access_token,$orderId,$logger){
+  //define empty variable....
+  $amountOwned = '';
+  //check access token and application order id exist......
+  if(!empty($access_token) && !empty($orderId)){
+    //set xmlrpc api link to get the amount owned by the application order.....
+    $curlUrl = "https://api.infusionsoft.com/crm/xmlrpc/v1";
+    $ch = curl_init($curlUrl);
+    curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
+    $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$access_token);
+    
+    //create xml to hit curl request to get the amount owned by application order......
+    $loadAmountXml = "<?xml version='1.0' encoding='UTF-8'?><methodCall><methodName>InvoiceService.calculateAmountOwed</methodName><params><param><value><string></string></value></param><param><value><int>".$orderId."</int></value></param></params></methodCall>";
+    
+    //curl setup....
+    curl_setopt($ch,CURLOPT_HTTPHEADER,$header);
+    curl_setopt($ch,CURLOPT_CUSTOMREQUEST,"POST");
+    curl_setopt($ch,CURLOPT_POSTFIELDS,$loadAmountXml);
+    
+    //get the curl request error and response......
+    $amountOwnedResponse = curl_exec($ch);
+    $amountOwnedErr = curl_error($ch);
+    //check error exist....
+    if($amountOwnedErr){
+        $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ".$amountOwnedErr;
+        $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($amountOwnedErrorMessage));
+    }else{
+      //Convert/Decode response to xml....
+      $amountOwnedResponseData = xmlrpc_decode($amountOwnedResponse);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($amountOwnedResponseData) && xmlrpc_is_fault($amountOwnedResponseData)) {
+          if(isset($amountOwnedResponseData['faultString']) && !empty($amountOwnedResponseData['faultString'])){
+              $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ". $amountOwnedResponseData['faultString']; 
+              $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($amountOwnedErrorMessage, true));
+          }
+      }else{
+        //set the amount value owned by application order.....
+        $amountOwned = $amountOwnedResponseData;
+      }
+    }
+    curl_close($ch);
+  }
+  //return actual amount owned by application order
+  return $amountOwned;
+}
+
+//charge a manual payment...
+function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode,$logger){
+    //define empty variables....
+    $paymentStatus = '';
+    //check access token,order id exist then proceed next.....
+    if(!empty($accessToken) && !empty($orderId)){
+        //set xmlrpc api link to charge the amount owned for application order manually......
+        $url = "https://api.infusionsoft.com/crm/xmlrpc/v1";
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$accessToken);
+        //check mode and on the basis of it set the payment type of custom payment gateway......
+        if(!empty($mode)){
+          if($mode == PAYMENT_MODE_TEST){
+            $paymentType = 'Payment of Test Mode';
+          }else if($mode == PAYMENT_MODE_SKIPPED ){
+            $paymentType = 'Payment of zero amount';
+          }else{
+            $paymentType = $mode;
+          }
+        }else{
+          $paymentType = 'Credit Card';
+        }
+        //get/set the current date time for application order....
+        $currentDateTime = new DateTime("now",new DateTimeZone('America/New_York'));
+        $paymentDateTime = $currentDateTime->format('Ymd\TH:i:s');
+        //create xml to hit the curl request to done payment manually.....
+        $chargePaymentXml = "<methodCall><methodName>InvoiceService.addManualPayment</methodName><params>
+                                  <param><value><string></string></value></param><param><value><int>".$orderId."</int></value></param><param><value><double>".$amountDue."</double></value></param><param><value><dateTime.iso8601>".$paymentDateTime."</dateTime.iso8601></value></param><param><value><string>".$paymentType."</string></value></param><param><value><string>Woocommerce Payment With ".$description." Method.</string></value></param><param><value><boolean>0</boolean></value></param></params></methodCall>";
+        //curl setup....
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $chargePaymentXml);
+        
+        //get the curl repsone and curl error..
+        $chargePaymentResponse = curl_exec($ch);
+        $chargePaymentErr = curl_error($ch);
+        //first check curl error exist.........
+        if($chargePaymentErr){
+          $chargePaymentErrorMessage = "Process to get order amount owned is failed due to ".$chargePaymentErr; 
+          $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($chargePaymentErrorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $chargePaymentResponseData = xmlrpc_decode($chargePaymentResponse);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($chargePaymentResponseData) && xmlrpc_is_fault($chargePaymentResponseData)) {
+              if(isset($chargePaymentResponseData['faultString']) && !empty($chargePaymentResponseData['faultString'])){
+                  $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ". $chargePaymentResponseData['faultString']; 
+                  $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($amountOwnedErrorMessage, true));
+              }
+          }else{
+            //set payment status....
+            $paymentStatus = $chargePaymentResponseData;
+          }
+        }
+        curl_close($ch);
+    }
+    //return payment status...
+    return $paymentStatus;
+}
+
+//Get the application product details by product id....
+function getApplicationProductDetail($id,$access_token){
+    $productsListing = array();
+    $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$id;
+    $ch = curl_init($url);
+    $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $access_token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    $matchIdsArray = array();
+    if($err){
+    }else{
+      $sucessData = json_decode($response,true);
+      return $sucessData;
+    }
+    curl_close($ch);
+}
+
 //Function is used to get the cookie values....
 function getCookieValue($name) {
     $cookies = [];
@@ -2680,6 +2880,33 @@ function orderTriggerReferralPartner($accessToken,$refId,$orderContactId,$object
         }
     }
     return true;
+}
+
+//get the products listing by category id....
+function getProductByCat($catId,$proCatLimit='',$proCatOffset=''){
+  global $wpdb;
+  $productData = '';//define empty variable...
+  //set default limit and offset
+  $catProLimit = 20;
+  $catProOffset = 0;
+  //update limit...
+  if(!empty($proCatLimit)){
+    $catProLimit = $proCatLimit;
+  }
+  //update offset...
+  if(!empty($proCatOffset)){
+    $catProOffset = $proCatOffset;
+  }
+  
+  //check category id exist then proceed next....
+  if(!empty($catId)){
+      $wcProductListing = get_posts(array('post_type'=>'product','post_status'=>'publish','orderby'=>'post_date','order'=>'DESC','posts_per_page'=>$catProLimit,'offset'=>$catProOffset,'tax_query' => array(array('taxonomy'=>'product_cat','field'=>'term_id','terms' => $catId))));
+      //check reponse return from it after get the posts from database....
+      if(isset($wcProductListing) && !empty($wcProductListing)){
+        $productData = $wcProductListing;
+      }
+  }
+  return $productData;
 }
 
 ?>

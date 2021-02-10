@@ -58,11 +58,6 @@ class WooConnection_Admin {
                 wp_enqueue_script('jquery_ui_js');
 
                 //Wooconnection Scripts : Resgister the wooconnection scripts..
-                wp_register_script('jquery_datatables_js', (WOOCONNECTION_PLUGIN_URL.'assets/js/jquery.dataTables.min.js'),WOOCONNECTION_VERSION, true);
-                //Wooconnection Scripts : Enqueue the wooconnection scripts..
-                wp_enqueue_script('jquery_datatables_js');
-                
-                //Wooconnection Scripts : Resgister the wooconnection scripts..
                 wp_register_script('wooconnection_admin_js', (WOOCONNECTION_PLUGIN_URL.'assets/js/admin.js'),WOOCONNECTION_VERSION, true);
                 wp_localize_script('wooconnection_admin_js', 'ajax_object',array( 'ajax_url' => admin_url( 'admin-ajax.php')));
                 //Wooconnection Scripts : Enqueue the wooconnection scripts..
@@ -81,7 +76,6 @@ class WooConnection_Admin {
                 wp_enqueue_style('bootstrap_min_css', WOOCONNECTION_PLUGIN_URL.'assets/css/bootstrap.min.css', array(), WOOCONNECTION_VERSION);//Wooconnection Styles : Enqueue the wooconnection styles..
                 wp_enqueue_style('fontawesome_min_css', WOOCONNECTION_PLUGIN_URL.'assets/css/font-awesome.min.css', array(), WOOCONNECTION_VERSION);//Wooconnection Styles : Enqueue the wooconnection styles..
                 wp_enqueue_style('select_two_min_css', WOOCONNECTION_PLUGIN_URL.'assets/css/select2.min.css', array(), WOOCONNECTION_VERSION);//Wooconnection Styles : Enqueue the wooconnection styles..   
-                wp_enqueue_style('wooconnection_dataTables_style', WOOCONNECTION_PLUGIN_URL.'assets/css/jquery.dataTables.min.css', array(), WOOCONNECTION_VERSION);//Wooconnection Styles : Enqueue the wooconnection styles..
                 wp_enqueue_style('sweetalert_min_css', WOOCONNECTION_PLUGIN_URL.'assets/css/sweetalert.min.css', array(), WOOCONNECTION_VERSION);//Wooconnection Styles : Enqueue the wooconnection styles..
 
             }else{

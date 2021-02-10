@@ -25,10 +25,10 @@
 		 	//check remote details and compare the verison of it.....
 		 	if( $remoteDetails && version_compare( WOOCONNECTION_VERSION, $remoteDetails->version, '<' ) ) {
 		      $res = new stdClass();
-		      $res->slug = 'wooconnection-WPplugin-i8cwye';
-		      $res->plugin = 'wooconnection-WPplugin-i8cwye/wooconnection.php';
+			  $res->slug = 'wooconnection-master';
+		      $res->plugin = 'wooconnection-master/wooconnection.php';
 		      $res->new_version = $remoteDetails->version;
-		      $res->tested = $remoteDetails->tested;
+			  $res->tested = $remoteDetails->tested;
 		      $res->package = $remoteDetails->download_url;
 		      $plugin_transient->response[$res->plugin] = $res;
 		    }
@@ -43,7 +43,7 @@
 	function wooconnection_plugin_info( $result, $trigger_action, $arguments ){
 	 
 	  //define plugin slug to compare...
-	  $wc_plugin_slug = 'wooconnection-WPplugin-i8cwye'; 
+	  $wc_plugin_slug = 'wooconnection-master';
 
 	  //stop process if trigger_action is not for plugin information.....
 	  if('plugin_information' !== $trigger_action) {return false;}
@@ -93,10 +93,12 @@
  	//Function Definiation : wooconnection_after_update
 	function wooconnection_after_update( $upgrader_object, $options ) {
 		if ( $options['action'] == 'update' && $options['type'] === 'plugin' )  {
+			//define plugin slug to compare...
+	  		$wc_plugin_slug = 'wooconnection-master'; 
 			// just clean the cache when new plugin version is installed
 			delete_transient( 'plugin_upgrade_wooconnection' );
 			// just clean the cache when new plugin version is installed
-			delete_transient( 'plugin_upgrade_wooconnection_wooconnection-WPplugin-i8cwye' );
+			delete_transient( 'plugin_upgrade_wooconnection_'.$wc_plugin_slug );
 		}
 	}
 ?>

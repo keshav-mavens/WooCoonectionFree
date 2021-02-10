@@ -176,6 +176,7 @@ function wooconnection_cart_product_add_trigger(){
         {
             $productSku=$productSku;
         }
+        
         $productSku = 'added'.substr($productSku, 0,SKU_LENGHT_CART_ITEM);
         if(!empty($standardAddItemCartIntegrationName))
         {
@@ -281,6 +282,7 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
             {
                 $productSku=$productSku;
             }
+            
             $productSku = 'review'.substr($productSku, 0,SKU_LENGHT_REVIEW);
             if(!empty($standardReviewItemCartIntegrationName))
             {
