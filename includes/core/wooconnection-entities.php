@@ -42,6 +42,7 @@
 	define("LOG_TYPE_BACK_END", 'BackendLogs');
 	//Set the label export page.....
 	define("IMPORT_EXPORT_LABEL_FREE",'Export');
+	define("IMPORT_EXPORT_LABEL_PAID",'Import/Export');
 	//order item types.....
 	define("ITEM_TYPE_TAX", 2);
 	define("ITEM_TYPE_DISCOUNT", 7);
