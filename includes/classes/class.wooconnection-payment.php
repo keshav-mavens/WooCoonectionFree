@@ -445,6 +445,29 @@
 		    if(!empty($orderCoupons)){
 		        $orderDiscountDesc = implode(",", $orderCoupons);
 		        $orderDiscountDesc = "Discount generated from coupons ".$orderDiscountDesc;
+		        //check referral partner tracking is exist or not....
+		        $getRefEnableStatus = get_option('referral_partner_tracking_status',true);
+		        //check referral tracking option is enable then proceed next....
+		        if(isset($getRefEnableStatus) && !empty($getRefEnableStatus) && $getRefEnableStatus == 'On'){
+		        	//execute loop on coupons...
+		        	foreach ($orderCoupons as $couponkey => $couponvalue) {
+		        		$orderCouponData = new WC_Coupon($couponvalue);//get the coupon details by coupon name....
+		        		$orderCouponId = $orderCouponData->id;//get the coupon id..
+		        		//check coupon id exist or not....
+		        		if(!empty($orderCouponId)){
+		        			//get checkbox of contact assoication is enable or not.....
+		        			$getCouponAssociationEnable = get_post_meta($orderCouponId,'enable_referral_association',true);
+		        			//get the associated referral partner id.....
+		        			$getAssRefId = get_post_meta($orderCouponId,'associated_referral_partner',true);
+		        			//set the affiliate id in cookies...
+		        			if(isset($getCouponAssociationEnable) && !empty($getCouponAssociationEnable) && $getCouponAssociationEnable == 'yes' && !empty($getAssRefId) && !headers_sent()){
+		        				setcookie('affiliateId',$getAssRefId,time()+3600,"/",$_SERVER['
+		        					SERVER_NAME']);
+		        				break;
+		        			}
+		        		}
+		        	}
+		        }
 		    }
 
 		    $callback_purpose = 'Process order with custom payment gateway';
@@ -496,15 +519,15 @@
          	if(!empty($affCookieDetails)){
          		$affDetailsArray = explode(';', $affCookieDetails);
          		if(!empty($affDetailsArray)){
-         			$refAffId = $affDetailsArray[0];
+					$refAffId = $affDetailsArray[0];
          		}
-         	}else{
+         	}else{//if empty then set the referral partner id from cookie value....
          		if(isset($_COOKIE['affiliateId'])){
          			$refAffId = $_COOKIE['affiliateId'];
          		}
          	}
 
-         	//Get the order items from order then execute loop to create the order items array....
+			//Get the order items from order then execute loop to create the order items array....
             if ( sizeof( $orderProductsItems = $orderData->get_items() ) > 0 ) {
                 foreach($orderProductsItems as $itemId => $item)
                 {
