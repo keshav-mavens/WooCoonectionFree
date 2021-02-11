@@ -16,8 +16,12 @@
     <div class="content-body-row">
       <div class="body-container">
         <div class="row">
-          <?php require_once('wooconnection_admin_menus.php'); ?>
+          <?php
+          require_once('wooconnection_admin_menus.php');
+          $affiliate_referral_page_id = get_option('affiliate_redirect_page_id');
+          ?>
   		  	<div class="col-lg-9 col-md-8 col-sm-8 col-12 p-l-0 p-r-0 tab_related_content">
+          <input type="hidden" name="affiliate_referral_page_id" id="affiliate_referral_page_id" value="<?php echo $affiliate_referral_page_id; ?>">
   		  	<?php
             //check the application authentication status if authorized then show the campaign goals page content else show the getting started tab content....
             $checkAuthenticationStatus = applicationAuthenticationStatus();

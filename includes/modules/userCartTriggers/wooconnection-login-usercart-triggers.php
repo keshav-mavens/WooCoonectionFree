@@ -79,6 +79,21 @@ function wooconnection_cart_empty_trigger(){
                 }
             }
         }
+
+        //Below code is used to push user in empty cart trigger to remove from cart abandon follow up process.....
+        $callback_empty_cart_follow_up = 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence';
+        $standardEmptiedCartFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_EMPTY_CART_CALL_NAME,$emptiedCartContactId,$callback_empty_cart_follow_up);
+        if(!empty($standardEmptiedCartFollowUpResponse)){
+            if(empty($standardEmptiedCartFollowUpResponse[0]['success'])){
+                //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                if(isset($standardEmptiedCartFollowUpResponse[0]['message']) && !empty($standardEmptiedCartFollowUpResponse[0]['message'])){
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence is failed where contact id is '.$emptiedCartContactId.' because '.$standardEmptiedCartFollowUpResponse[0]['message'].'');    
+                }else{
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence is failed where contact id is '.$emptiedCartContactId.'');
+                }
+                
+            }
+        }
     }
 	return true;
 }
@@ -161,7 +176,8 @@ function wooconnection_cart_product_add_trigger(){
         {
             $productSku=$productSku;
         }
-        $productSku = 'added'.substr($productSku, 0,35);
+        
+        $productSku = 'added'.substr($productSku, 0,SKU_LENGHT_CART_ITEM);
         if(!empty($standardAddItemCartIntegrationName))
         {
             $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardAddItemCartIntegrationName,$productSku,$itemAddCartContactId,$callback_purpose);
@@ -266,7 +282,8 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
             {
                 $productSku=$productSku;
             }
-            $productSku = 'review'.substr($productSku, 0,34);
+            
+            $productSku = 'review'.substr($productSku, 0,SKU_LENGHT_REVIEW);
             if(!empty($standardReviewItemCartIntegrationName))
             {
                 $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardReviewItemCartIntegrationName,$productSku,$reviewLeftCartContactId,$callback_purpose);
@@ -288,12 +305,47 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
                 $productName = get_the_title($comment_parent_product);//get the product name....
                 $itemTitle = 'Review posted for product '.$productName;//set notes title....
                 //Add note for contact with comment text or product name.....
-                addContactNotes($access_token,$reviewLeftCartContactId,$comment_text,$itemTitle,$callback_purpose);
+                addContactNotes($access_token,$reviewLeftCartContactId,$comment_text,$itemTitle,$callback_purpose,NOTE_TYPE_REVIEW);
             }
         }
     }
     return true;
 }
 
+//Woocommerce Hook : This action is triggered when to show the saved cart products...
+add_action('template_redirect','redirect_user_cart');
 
+//Function Definition : redirect_user_cart.
+function redirect_user_cart(){
+    //on template redirect first check whether the page is caty or not if cart then start the process of saved cart items...
+    if(is_page('cart') || is_cart()){
+        //check user email is exist in query string or not if try then try to find the saved cart items.....
+        if(isset($_GET['user_email'])){
+            $userEmail = $_GET['user_email'];
+            //get the user details by email id....
+            $userDetails = get_user_by('email',$userEmail);
+            if(isset($userDetails) && !empty($userDetails)){
+                //get the user id from user details array..
+                $userId = $userDetails->ID;
+                if(isset($userId) && !empty($userId)){
+                    //get the user cart details from the user meta on the basis of user id....
+                    $userCartDetails = get_user_meta($userId,'_woocommerce_persistent_cart_1',false);
+                    //then check the cart data exist in user meta array or not, if not exist then set the cart data in session...
+                    if(isset($userCartDetails[0]['cart']) && !empty($userCartDetails[0]['cart'])){
+                        if(isset(WC()->session) && !WC()->session->has_session()){
+                            WC()->session->set_customer_session_cookie(true);
+                            WC()->session->set('cart',$userCartDetails[0]['cart']);
+                            WC()->session->set('session_email',$_GET['user_email']);
+                        }
+                    }
+                }
+                //get the cart page url...
+                $headTo = wc_get_cart_url();
+                //call the header location function to redirect it on the cart page.....
+                Header("Location: ".$headTo);
+                exit();
+            }
+        }
+    }
+}
 ?>

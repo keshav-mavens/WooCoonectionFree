@@ -93,3 +93,15 @@
 	define('PAYMENT_MODE_TEST',1);
 	define('PAYMENT_MODE_SKIPPED',2);
 	define('PAYMENT_MODE_LIVE',3);
+	//sku on the basis of campaign goals....
+	define('SKU_LENGHT_SPECIFIC_PRODUCT', 40);
+	define('SKU_LENGHT_REVIEW', 34);
+	define('SKU_LENGHT_CART_ITEM', 35);
+	//contact note type entities....
+	define('NOTE_TYPE_PRODUCT', 1);
+	define('NOTE_TYPE_REVIEW', 2);
+	//follow up related entities....
+	define('FOLLOW_UP_INTEGRATION_NAME', 'wooconnection');
+	define('FOLLOW_UP_CHECKOUT_CALL_NAME', 'reachedcheckoutpage');
+	define('FOLLOW_UP_PURCHASE_CALL_NAME', 'purchaseany');
+	define('FOLLOW_UP_EMPTY_CART_CALL_NAME', 'cartempty');

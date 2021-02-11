@@ -863,19 +863,19 @@ function getCountryName($code){
 }
 
 //Create order in infusionsoft/keap application at the time checkout......
-function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
+function createOrder($orderid,$contactId,$jsonOrderItems,$access_token,$lead_affiliate_id=''){
     $newOrderId = "";
     if(!empty($contactId) && !empty($orderid) && !empty($access_token)){
         $orderTitle = "New Order Generated where order number is #" . $orderid . " and generated from " . site_url();
         $url = "https://api.infusionsoft.com/crm/rest/v1/orders";
         $current_time = date("Y-m-d")."T".date("H:i:s")."Z"; 
-        $jsonArray = '{
-                        "contact_id": '.$contactId.',
-                        "order_items": '.$jsonOrderItems.',
-                        "order_date": "'.$current_time.'",
-                        "order_title": "'.$orderTitle.'",
-                        "order_type": "Offline"
-                      }';
+        if(empty($lead_affiliate_id)){
+          $jsonArray = '{"contact_id": '.$contactId.',"order_items": '.$jsonOrderItems.',"order_date": "'.$current_time.'",
+                        "order_title": "'.$orderTitle.'","order_type": "Offline"}';
+        }else{
+          $jsonArray = '{"contact_id": '.$contactId.',"lead_affiliate_id":'.$lead_affiliate_id.',"order_items": '.$jsonOrderItems.',"order_date": "'.$current_time.'",
+                        "order_title": "'.$orderTitle.'","order_type": "Offline"}';
+        }
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $header = array(
@@ -901,7 +901,6 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
         curl_close($ch);  
     }
     return $newOrderId;
-    
 }
 
 //add product to infusionsoft/keap account..
@@ -1168,15 +1167,19 @@ function getApplicationOrderDetails($access_token,$orderRelationId,$callback_pur
 }
 
 //add notes for contact in infusionsoft/keap application....
-function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle,$callback_purpose){
+function addContactNotes($access_token,$orderContactId,$noteText,$itemTitle,$callback_purpose,$noteType=''){
     if(!empty($access_token) && !empty($orderContactId) && !empty($noteText)){
         // Create instance of our wooconnection logger class to use off the whole things.
         $wooconnectionLogger = new WC_Logger();
         $logtype = LOG_TYPE_FRONT_END;
         //create json array to push ocde in infusionsoft...
-        if (strpos($noteText, ",") !== false)
-        {
-          $comma_separated = implode(",", $noteText);
+        if(empty($noteType)){
+          if (strpos($noteText, ",") !== false)
+          {
+            $comma_separated = implode(",", $noteText);
+          }else{
+            $comma_separated = $noteText;
+          }
         }else{
           $comma_separated = $noteText;
         }
@@ -1618,6 +1621,152 @@ function getHeaders($access_token,$tab_type_id){
 function validateDatecField($dateValue, $dateFormat = 'm/d/Y'){
     $date = DateTime::createFromFormat($dateFormat, $dateValue);
     return $date && $date->format($dateFormat) === $dateValue;
+}
+
+//Referral Partner Tab : This function is used to create the standard pages listing with their affiliate links.....
+function wc_standard_pages_listing(){
+  //get the authenticate application details first.....
+  $authenticateAppdetails = getAuthenticationDetails();
+  //define empty variables.....
+  $authenticate_application_name = "";
+  $pageAffiliateLink = '';
+  //check authenticate details....
+  if(isset($authenticateAppdetails) && !empty($authenticateAppdetails)){
+    //check authenticate  name is exist......
+    if(isset($authenticateAppdetails[0]->user_authorize_application)){
+        $authenticate_application_name = $authenticateAppdetails[0]->user_authorize_application;
+        $pageAffiliateLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
+    } 
+  }
+  //define empty variables.....
+  $pagesLisingWithAffiliateLinks = "";
+  
+  //check application name is exist or not, if exist then proceed next else show the message no authentication...
+  if(!empty($authenticate_application_name)){
+      $getRegistationEnable = get_option('woocommerce_enable_myaccount_registration');
+      //get shop page url.....
+      $shopPageUrl = $pageAffiliateLink.wc_get_page_permalink('shop');
+      //get cart page url.....
+      $cartPageUrl = $pageAffiliateLink.wc_get_page_permalink('cart');
+      //get checkout page url.....
+      $checkoutPageUrl = $pageAffiliateLink.wc_get_page_permalink('checkout');
+      //get myaccount page url.....
+      $myaccountPageUrl = $pageAffiliateLink.wc_get_page_permalink('myaccount');
+      if($getRegistationEnable == 'yes'){
+        $registerPageUrl = $myaccountPageUrl;
+      }else{
+        $registerPageUrl = $myaccountPageUrl;
+      }
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Shop Page</td><td id="product_shop_page_link">'.$shopPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_shop_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Cart Page</td><td id="product_cart_page_link">'.$cartPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_cart_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Checkout Page</td><td id="product_checkout_page_link">'.$checkoutPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_checkout_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Login Page</td><td id="product_login_page_link">'.$myaccountPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_login_page_link\')">
+                                          </i></td></tr>';
+      $pagesLisingWithAffiliateLinks .= '<tr><td>Create Account Page</td><td id="product_create_account_page_link">'.$registerPageUrl.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_create_account_page_link\')"></i></td></tr>';
+  }else{//if application name is not exist it means no authentication is done.....
+     $pagesLisingWithAffiliateLinks .='<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No affiliate tracking links available</td></tr>';
+  }
+  
+  return $pagesLisingWithAffiliateLinks;//returm html....
+}
+
+
+//Referral Partner Tab : This function is used to get the product categories then create html.....
+function wc_standard_categories_listing(){
+    global $wpdb;
+    //define empty variable.....
+    $categoriesLising = '';
+    //query to get the categories....
+    $wccategories = $wpdb->get_results("SELECT * FROM wp_terms t LEFT JOIN wp_term_taxonomy tt ON t.term_id = tt.term_id WHERE tt.taxonomy = 'product_cat'");
+    if(isset($wccategories) && !empty($wccategories)){  
+        foreach ($wccategories as $key => $value) {
+          //get/set the products count...
+          $catProductsCount = $value->count;
+          //check product exist in category...
+          if($catProductsCount > 0){
+              $termId = $value->term_id;
+              //check cat parent exist....
+              $catParentId = $value->parent;
+              if($catParentId > 0){
+                  $termDetails = get_term($value->parent);
+                  $termName = $termDetails->name.'('.$value->name.')';
+              }else{
+                $termName = $value->name;
+              }
+              $categoriesLising .= '<tr><input type="hidden" id="scroll_count_cat_products_'.$termId.'" value="0"><input type="hidden" value="20" id="cat_products_limit_'.$termId.'"><td>'.$termName.'</td><td><a href="javascript:void(0);" onclick="showProductsByCat('.$termId.')">View Products</a></td></tr>';
+          }
+        }
+    }else{
+        $categoriesLising .='<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No categories available with products</td></tr>';
+    }
+    return $categoriesLising;
+}
+
+//Referral Partner Tab : This function is used to get the affiliate page slug by page id.....
+function affiliatePageDetails(){
+  $affiliatePageData = array();
+  $affiliatePageId = get_option('affiliate_redirect_page_id');
+  if(isset($affiliatePageId) && !empty($affiliatePageId)){
+    $affiliatePageDetails = get_post($affiliatePageId);
+    if($affiliatePageDetails->post_status == 'publish'){
+      $affiliatePageData['affiliatePageSlug'] = $affiliatePageDetails->post_name;  
+    }
+    $url = get_permalink($affiliatePageId);//get page url by page id......
+    $affiliatePageData['pageUrl'] = $url;  
+  }
+  return $affiliatePageData;
+}
+
+//Referral Partner Tab : This function is used to create the slug of page......
+function createAffiliatePageSlug($pageslug)
+{ 
+    $latestSlug = '';
+    if(isset($pageslug) && !empty($pageslug)){
+      $latestSlug = preg_replace('~[^\\pL\d]+~u', '-', $pageslug);
+      $latestSlug = trim($latestSlug, '-');
+      if(function_exists('iconv')){
+        $latestSlug = iconv('utf-8', 'us-ascii//TRANSLIT', $latestSlug);
+      }
+      $latestSlug = strtolower($latestSlug);
+      $latestSlug = preg_replace('~[^-\w]+~', '', $latestSlug);  
+    }
+    return $latestSlug;
+}
+
+//Referral Partner Tab : Function is used to get affiliate code by affiliate id.....
+function getAffiliateDetails($access_token,$referralAffiliateId){
+    $affiliateCode = '';
+    if(!empty($access_token) && !empty($referralAffiliateId))
+    {
+        $url = "https://api.infusionsoft.com/crm/rest/v1/affiliates/".$referralAffiliateId;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url); //using the setopt function to send request to the url
+        $header = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $access_token
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //response returned but stored not displayed in browser
+        $response = curl_exec($ch); //executing request
+        $err = curl_error($ch);
+        if($err){
+        }else{
+          $sucessData = json_decode($response,true);
+          if(isset($sucessData['fault']) && !empty($sucessData['fault'])){
+          }else{
+            if(!empty($sucessData['code'])){
+                $affiliateCode = $sucessData['code'];
+            }
+          }
+          return $affiliateCode;
+        }
+        curl_close($ch);  
+    }
+    return $affiliateCode;
 }
 
 //Checkout Custom fields : Code is used to update contact custom fields with contact id...  
@@ -2182,6 +2331,8 @@ function get_set_user_email(){
       }else{
         $useremail = get_user_meta($currentLoginUser->ID, 'billing_email', true);
       }
+    } else if(WC()->session){
+      $useremail = WC()->session->get('session_email');
     }
     return $useremail;
 }
@@ -2586,7 +2737,6 @@ function getOrderAmountOwned($access_token,$orderId,$logger){
   return $amountOwned;
 }
 
-
 //charge a manual payment...
 function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode,$logger){
     //define empty variables....
@@ -2669,6 +2819,94 @@ function getApplicationProductDetail($id,$access_token){
       return $sucessData;
     }
     curl_close($ch);
+}
+
+//Function is used to get the cookie values....
+function getCookieValue($name) {
+    $cookies = [];
+    $headers = headers_list();
+    // see http://tools.ietf.org/html/rfc6265#section-4.1.1
+    foreach($headers as $header) {
+        if (strpos($header, 'Set-Cookie: ') === 0) {
+            $value = str_replace('&', urlencode('&'), substr($header, 12));
+            parse_str(current(explode(';', $value, 1)), $pair);
+            $cookies = array_merge_recursive($cookies, $pair);
+        }
+    }
+    return $cookies[$name];
+}
+
+//Function is used to apply the referral partner order trigger......
+function orderTriggerReferralPartner($accessToken,$refId,$orderContactId,$objectLogger){
+    //first check required data exist.....
+    if(!empty($accessToken) && !empty($refId) && !empty($orderContactId)){
+        
+        //Define the purpose of function to define the logs.....
+        $orderTriggerPurpose = "WooCommerce Order Trigger : Process of hit referral partner trigger";
+        
+        //Woocommerce Order Trigger : Get the integraton name and the call name of trigger "Referral Partner Order"
+        $referralPartnerOrderTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_ORDER,'Referral Partner Order');
+
+        //Define Empty Variables.....
+        $refPartnerTriggerIntName = '';
+        //Define referral partner order trigger call name by appending the referral partner id....
+        $refPartnerTriggerCallName = 'refferal'.$refId;
+
+        //check referral partner trigger exist in triggers listing, then proceed next......
+        if(isset($referralPartnerOrderTrigger) && !empty($referralPartnerOrderTrigger)){
+            //Get and set the referral partner order trigger "Integration Name"....
+            if(isset($referralPartnerOrderTrigger[0]->wc_integration_name) && !empty($referralPartnerOrderTrigger[0]->wc_integration_name)){
+                $refPartnerTriggerIntName = trim($referralPartnerOrderTrigger[0]->wc_integration_name);
+            }
+        }
+
+        //Check referral partner order trigger integration name and call name of goal is exist or not, if exist then hit the achieveGoal.
+        if(!empty($refPartnerTriggerIntName) && !empty($refPartnerTriggerCallName)){
+            
+            //hit the common function "achieveTriggerGoal" to hit the api goal.....
+            $orderRefPartnerTriggerResponse = achieveTriggerGoal($accessToken,$refPartnerTriggerIntName,$refPartnerTriggerCallName,$orderContactId,$orderTriggerPurpose);
+            
+            //check trigger response.....
+            if(!empty($orderRefPartnerTriggerResponse)){
+                if(empty($orderRefPartnerTriggerResponse[0]['success'])){
+                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                    if(isset($orderRefPartnerTriggerResponse[0]['message']) && !empty($orderRefPartnerTriggerResponse[0]['message'])){
+                        $wooconnection_logs_entry = $objectLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.' because '.$orderRefPartnerTriggerResponse[0]['message'].'');    
+                    }else{
+                        $wooconnection_logs_entry = $objectLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.'');
+                    }
+                }
+            } 
+        }
+    }
+    return true;
+}
+
+//get the products listing by category id....
+function getProductByCat($catId,$proCatLimit='',$proCatOffset=''){
+  global $wpdb;
+  $productData = '';//define empty variable...
+  //set default limit and offset
+  $catProLimit = 20;
+  $catProOffset = 0;
+  //update limit...
+  if(!empty($proCatLimit)){
+    $catProLimit = $proCatLimit;
+  }
+  //update offset...
+  if(!empty($proCatOffset)){
+    $catProOffset = $proCatOffset;
+  }
+  
+  //check category id exist then proceed next....
+  if(!empty($catId)){
+      $wcProductListing = get_posts(array('post_type'=>'product','post_status'=>'publish','orderby'=>'post_date','order'=>'DESC','posts_per_page'=>$catProLimit,'offset'=>$catProOffset,'tax_query' => array(array('taxonomy'=>'product_cat','field'=>'term_id','terms' => $catId))));
+      //check reponse return from it after get the posts from database....
+      if(isset($wcProductListing) && !empty($wcProductListing)){
+        $productData = $wcProductListing;
+      }
+  }
+  return $productData;
 }
 
 ?>

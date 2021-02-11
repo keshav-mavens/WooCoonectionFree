@@ -162,6 +162,26 @@
                         if($(".override_product_category_rule").length){
                             sortabledivs('override_product_category_rule');
                         }
+
+                        //apply change icon rule on referral partner "How this works" button..
+                        if($("#collapseReferralPartner").length){
+                            applyCollapseRules('collapseReferralPartner');
+                        }
+
+                        //validate a affiliate_redirect_form.....
+                        if($('#affiliate_redirect_form').length){
+                            validateForms('affiliate_redirect_form');
+                        }
+                        
+                        //check if referral tracking is exist it means tab is referral partner
+                        if($("#referral_tracking").length){
+                            //check referral tracking status.....
+                            if($("#referral_tracking").val() != '' && $("#referral_tracking").val() == 'On'){
+                                $(".conditional_data").css("display","block");
+                            }else{
+                                $(".conditional_data").hide("display","none");
+                            }
+                        }
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -209,7 +229,7 @@
                 }
             });
 
-             //Export Tab : check all products checkbox rule....
+            //Export Tab : check all products checkbox rule....
             $document.on("click",".all_products_checkbox_export",function(event) {
                 if ($(this).is(":checked"))
                 {
@@ -289,6 +309,14 @@
             //Check if "response" done....
             var checkResponse = getQueryParameter('response');
             if(checkResponse != "" && checkResponse == "1"){
+                //get input hidden value to stop the duplication of page creation.....
+                var affiliateReferralPageId = $("#affiliate_referral_page_id").val();
+                var configurationType =  $(".configurationType").attr('id');
+                //if value of input hidden is empty so we need to add new page....
+                if(affiliateReferralPageId == '' && configurationType == 'Infusionsoft'){
+                    addNewPageAffiliate();//call the function....
+                }
+            
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
                 swal({
                   title: "Authorization!",
@@ -338,6 +366,16 @@
                     }
                 }
             });
+
+            //Below code is used to check whether a application type is infusionsoft/keap, if keap then hide some feature menus like leadsource,refferal partner..
+            if($(".configurationType").attr('id') != ""){
+                var configurationType =  $(".configurationType").attr('id');
+                if(configurationType == 'Infusionsoft'){//if application type is infusionsoft.......
+                    $("#referral_partner").show();
+                }else if (configurationType == 'Keap'){//if application type is keap.....
+                    $("#referral_partner").hide();
+                }
+            }
 
             //this code is used to check whether the plugin is activated or not if activated then add "tick" icon in next of activation menu......
             if ($(".activated").length ) {
@@ -1061,7 +1099,35 @@
                     });
                 }
             });
-
+            
+            //Referral Partner Tab : On change of enable/disable referral partner tracking send ajax to update start of referral partner tracking in database...
+            $document.on("click","#referral_tracking",function(event){
+                event.stopPropagation();
+                var actionValue = '';
+                if (this.checked) {
+                    actionValue = 'On';
+                }else{
+                    actionValue = 'Off';
+                }
+                if(actionValue != "" && typeof actionValue !== "undefined"){
+                    jQuery(".referral_partner_main_html").addClass('overlay');
+                    jQuery(".ajax_loader").show();
+                    jQuery.post(ajax_object.ajax_url+"?action=wc_update_referral_tracking&jsoncallback=x",{actionStatus:actionValue},function(data){
+                        jQuery(".ajax_loader").hide();
+                        jQuery(".referral_partner_main_html").removeClass('overlay');
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == '1'){
+                            if(actionValue == 'On'){
+                                $(this).prop('checked',true);
+                                $(".conditional_data").css("display","block");
+                            }else{
+                                $(this).prop('checked',false);
+                                $(".conditional_data").css("display","none");
+                            }   
+                        }
+                    });
+                }
+            });
         });
 }(jQuery));
 
@@ -1120,6 +1186,7 @@ function validateForms(form){
                 }
             });
         }
+
 
         //check form is custom field form for application then validate it..
         if(form == "addcfieldapp"){
@@ -1262,6 +1329,20 @@ function validateForms(form){
                     },
                 }
             }); 
+        }
+        
+        //check form is custom affiliate redirect form then validate it..
+        if(form == "affiliate_redirect_form"){
+            $("#"+form).validate({
+                rules:{
+                        affiliateredirectslug: "required",
+                },
+                messages:{
+                    affiliateredirectslug: {
+                        required: 'Please enter the affiliate redirect slug!'
+                    }
+                }
+            });
         }
     }
 }
@@ -1432,6 +1513,10 @@ function getQueryParameter(qspar){
 //hide model by model id....
 function hideCustomModel(modelId){
     if(modelId != ""){
+        //if div of scroll is exist then set the scroll top position to zero.....
+        if($(".scroll_div_products").length){
+            $(".scroll_div_products").scrollTop(0);
+        }
         $("#"+modelId).hide();
         //reset form values and validation rules....
         if($("#addcfieldapp").length){
@@ -1553,7 +1638,7 @@ function checkSelectedProducts($class,$except){
     return checkProducts;
 }
 
-//on collapse div change the icon of button done.....
+//on collapse div change the icon of "How This Works" button done.....
 function applyCollapseRules(div_id){
     if(div_id != ""){
         $('#'+div_id).on('shown.bs.collapse', function() {
@@ -1671,6 +1756,62 @@ function loadingCustomFields(){
     });
 }
 
+//This function is used to perform the copy clipboard content action........
+function copyContent(elementid) {
+  var elementDetails = document.getElementById(elementid);
+  if(window.getSelection) {
+    var selectWindow = window.getSelection();
+    var eleTextRange = document.createRange();
+    eleTextRange.selectNodeContents(elementDetails);
+    selectWindow.removeAllRanges();
+    selectWindow.addRange(eleTextRange);
+    document.execCommand("Copy");
+    var executeCommand = document.execCommand('copy',true);
+  }else if(document.body.createTextRange) {
+    var eleTextRange = document.body.createTextRange();
+    eleTextRange.moveToElementText(elementDetails);
+    eleTextRange.select();
+    var executeCommand = document.execCommand('copy',true);
+  }
+}
+
+//Referral Partner Tab : On click on view products link show the popup and send the ajax request to get the products listing by category id.....
+function showProductsByCat($catId){
+    if($catId != ""){
+        //get the limit of products by category if exist........
+        var latestLimitProducts = $("#cat_products_limit_"+$catId).val();
+        //set the if products popup....
+        $(".scroll_div_products").attr('id',$catId);
+        //hide the load more proucts message.....
+        $(".load_products_cat_basis").hide();
+        $("#productsAffiliateLinks").html('');
+        $("#productsAffiliateLinks").html('<tr><td colspan="3" style="text-align: center; vertical-align: middle;">Loading Products.....</td></tr>');
+        $("#productsWithAffiliateLInks").show();
+        jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{categoryId:$catId,newCatProLimit:latestLimitProducts}, function(data) {
+            var responsedata = JSON.parse(data);
+            if(responsedata.status == "1") {
+                if(responsedata.productLisingWithAffiliateLinks != "") {
+                    $("#productsAffiliateLinks").html('');
+                    $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
+                }
+            }
+        });  
+    }
+}
+
+//Referral Partner Tab : On application authentication send ajax request to add new page to website......
+function addNewPageAffiliate(){
+    jQuery.post( ajax_object.ajax_url + "?action=wc_add_affiliate_page",{}, function(data) {
+        var responsedata = JSON.parse(data);
+        //check response....
+        if(responsedata.status == "1") {
+            //check affiliate page id exist in response if yes then update the value of hidden field...
+            if(responsedata.affiliate_redirect_page_id != '' && responsedata.affiliate_redirect_page_id !== null ){
+                $("#affiliate_referral_page_id").val(responsedata.affiliate_redirect_page_id);
+            }
+        }
+    });
+}
 
 //Custom fields Tab : when user click on save button of custom field form.....
 function savegroupcfield(){
@@ -2124,5 +2265,94 @@ function loadMoreCoupons(){
                 }
             }
         });
+    }
+}
+
+//Referral Partner Tab : On click of save buttons send ajax request to update the slug of affiliate redirect page......
+function saveAffiliateRedirectSlug(){
+    if($('#affiliate_redirect_form').valid()){
+        $(".affiliate-redirect-success").hide();
+        $(".affiliate-redirect-error").hide();
+        $(".affiliateRedirectUrl").show();
+        $('.affiliate_redirect_btn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_save_affiliate_redirect_slug",$('#affiliate_redirect_form').serialize(), function(data) {
+            var responsedata = JSON.parse(data);
+            $(".affiliateRedirectUrl").hide();
+            if(responsedata.status == "1") {
+                $('.affiliate_redirect_btn').removeClass("disable_anchor");
+                if(responsedata.latest_affiliate_redirect_url != ""){
+                    $("#custom_affiliate_redirect_url").html('');
+                    $("#custom_affiliate_redirect_url").html(responsedata.latest_affiliate_redirect_url);
+                }
+                if(responsedata.affiliateredirectslug != ""){
+                    $("#affiliateredirectslug").val(responsedata.affiliateredirectslug);
+                }
+                $(".affiliate-redirect-success").show();
+            }else{
+                $(".affiliate-redirect-error").show();
+                $(".affiliate-redirect-error").html('Something Went Wrong.');
+                setTimeout(function()
+                {
+                    $('.affiliate-redirect-error').fadeOut("slow");
+                    $('.affiliate_redirect_btn').removeClass("disable_anchor");
+                }, 3000);
+            }
+        });
+        setTimeout(function()
+        {
+            $('.affiliate-redirect-success').fadeOut("slow");
+        }, 3000);
+    }  
+}
+
+//Referral Partner Tab : set default variables to handle the process of load more prod
+var productsLimitWithCat = 20;
+var productsOffsetWithCat = 20;
+var customCatProductsLimit = 20;
+//Function : This function is called on scroll of products listing(on the basis of category) popup...
+function loadMoreProductByCat(){
+    //check scroll of popup is touch to bottom or not.....
+    if($(".scroll_div_products").scrollTop() + $(".scroll_div_products").innerHeight() >= $('.scroll_div_products')[0].scrollHeight){
+        //then check popup is visible or not.....If visible then proceed next.......
+        if($('#productsWithAffiliateLInks').is(':visible')){
+            var getScrollTop = $('.scroll_div_products').scrollTop();//get the scroll top position....
+            var updatedTopScrollValue = getScrollTop-100;//miuns something.....
+            var categoryId = $(".scroll_div_products").attr('id');//get the id of popup to get popup link to whick category...
+            var affiliatePath = $("[name=affiliate_path]").val();//get the affiliate link from hidden value....
+            //then check category id is exist or not...
+            if(categoryId != "" && typeof categoryId  != "undefined"){
+                var cat_products_scroll_count = $("#scroll_count_cat_products_"+categoryId).val();//get the scroll counter....
+                var cat_pro_counter_updated_value = parseInt(cat_products_scroll_count)+1;//update the counter value....
+                $("#scroll_count_cat_products_"+categoryId).val(cat_pro_counter_updated_value);//set updated value.....
+                //check counter value and set the limit and offset on the basis of it....
+                if(cat_pro_counter_updated_value !== 1){
+                    productsOffsetWithCat = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
+                }else{
+                    productsLimitWithCat = 20;
+                    productsOffsetWithCat = 20;
+                }
+                //update the new limit........
+                customCatProductsLimit = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
+                $("#cat_products_limit_"+categoryId).val(customCatProductsLimit);
+                $(".load_products_cat_basis").html('');
+                $(".load_products_cat_basis").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+                $(".load_products_cat_basis").show();
+                jQuery.post(ajax_object.ajax_url+"?action=wc_more_products_with_cat",{catId:categoryId,catProLimit:productsLimitWithCat,catProOffset:productsOffsetWithCat,appAffiliatPath:affiliatePath},function(data){
+                    var productResponse = JSON.parse(data);
+                    $(".load_products_cat_basis").hide();
+                    if(productResponse.status == "1"){
+                        if(productResponse.newProductListingWithCat != ""){
+                            var newlyLoadedProducts = productResponse.newProductListingWithCat;
+                            $('#productsAffiliateLinks tr:last').after(newlyLoadedProducts);//append mew products...
+                        }else{
+                            $(".load_products_cat_basis").html('');
+                            $(".load_products_cat_basis").html('No More Products Exist!');
+                            $(".load_products_cat_basis").show();
+                            $('.scroll_div_products').scrollTop(updatedTopScrollValue);//update the scroll top value to prevent ajax hit....
+                        }
+                    }
+                });
+            } 
+        }
     }
 }

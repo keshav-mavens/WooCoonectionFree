@@ -744,6 +744,9 @@ span.wc_thankyou_override_name.override_name_inner {
     padding-bottom: 8px;
     height: 41px;
 }
+.modal-dialog {
+    margin: 5.75rem auto !important;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;
