@@ -863,7 +863,7 @@ function getCountryName($code){
 }
 
 //Create order in infusionsoft/keap application at the time checkout......
-function createOrder($orderid,$contactId,$jsonOrderItems,$access_token,$lead_affiliate_id){
+function createOrder($orderid,$contactId,$jsonOrderItems,$access_token,$lead_affiliate_id=''){
     $newOrderId = "";
     if(!empty($contactId) && !empty($orderid) && !empty($access_token)){
         $orderTitle = "New Order Generated where order number is #" . $orderid . " and generated from " . site_url();
