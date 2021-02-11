@@ -46,6 +46,8 @@
 	//order item types.....
 	define("ITEM_TYPE_TAX", 2);
 	define("ITEM_TYPE_DISCOUNT", 7);
+	define("ITEM_TYPE_PRODUCT",4);
+	define("ITEM_TYPE_SUBSCRIPTION",9);
 	//Non product....
 	define("NON_PRODUCT_ID", 0);
 	//Order item quantity
@@ -83,6 +85,10 @@
 	//override link yes no...
 	define('REDIRECT_OVERRIDE_TRUE', 1);
 	define('REDIRECT_OVERRIDE_FALSE', 0);
+	//payment modes....
+	define('PAYMENT_MODE_TEST',1);
+	define('PAYMENT_MODE_SKIPPED',2);
+	define('PAYMENT_MODE_LIVE',3);
 	//limit and offset entities for lazy loading of products..
 	define("PRODUCT_LAZY_LOADING_LIMIT", 20);
 	define("PRODUCT_LAZY_LOADING_OFFSET", 20);
@@ -90,10 +96,6 @@
 	define("PRODUCTS_HTML_TYPE_LOAD_MORE", 1);
 	//set the coupon listing html type...
 	define("COUPONS_HTML_WITH_LOAD_MORE", 1);
-	//payment modes....
-	define('PAYMENT_MODE_TEST',1);
-	define('PAYMENT_MODE_SKIPPED',2);
-	define('PAYMENT_MODE_LIVE',3);
 	//sku on the basis of campaign goals....
 	define('SKU_LENGHT_SPECIFIC_PRODUCT', 40);
 	define('SKU_LENGHT_REVIEW', 34);
@@ -106,3 +108,14 @@
 	define('FOLLOW_UP_CHECKOUT_CALL_NAME', 'reachedcheckoutpage');
 	define('FOLLOW_UP_PURCHASE_CALL_NAME', 'purchaseany');
 	define('FOLLOW_UP_EMPTY_CART_CALL_NAME', 'cartempty');
+	//subscription amount update status.....
+	define('SUBSCRIPTION_AMOUNT_UPDATED_FALSE',0);
+	define('SUBSCRIPTION_AMOUNT_UPDATED_TRUE', 1);
+	//discount/free trial duration entities....
+	define('DURATION_TYPE_DAY', 1);
+	define('DURATION_TYPE_WEEK', 2);
+	define('DURATION_TYPE_MONTH', 3);
+	define('DURATION_TYPE_YEAR',4);
+	//subscription discount type....
+	define('SUBSCRIPTION_DISCOUNT_TYPE_AMOUNT', 1);
+	define('SUBSCRIPTION_DISCOUNT_TYPE_PERCENT', 2);
