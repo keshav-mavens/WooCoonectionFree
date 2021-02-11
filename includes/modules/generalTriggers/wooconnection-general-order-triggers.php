@@ -123,7 +123,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
             //first check "affiliateId" exist in cookie....
             $cookieDetail = getCookieValue('affiliateId');
             if(!empty($cookieDetail)){
-                $cookieDetailsArray = explode(';', $cookieDetail);
+                $cookieDetailsArray = explode(';', $cookieDetail[0]);
                 if(isset($cookieDetailsArray) && !empty($cookieDetailsArray)){
                     $referralAffiliateId = $cookieDetailsArray[0];
                 }
@@ -346,12 +346,21 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
         $affiliateCode = '';
         $customField = array();
 
-        //first check "affiliateId" exist in cookie....
-        if(isset($_COOKIE["affiliateId"])){
-            $referralAffiliateId = $_COOKIE["affiliateId"];
+        $cookieData = getCookieValue('affiliateId');//get the cookie details....
+        if(isset($cookieData) && !empty($cookieData)){
+            $cookieDataArray = explde(';',$cookieData[0]);//explode the cookie....
+            if(isset($cookieDataArray) && !empty($cookieDataArray)){
+                $referralAffiliateId = $cookieDataArray[0];
+            }
+        }else{
+            if(isset($_COOKIE['affiliateId'])){
+                $referralAffiliateId = $_COOKIE['affiliateId'];
+            }
         }
 
+        //check affiliate id exist....
         if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
+            //then get the details of it by id.....
             $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
         }
         

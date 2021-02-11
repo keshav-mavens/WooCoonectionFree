@@ -461,8 +461,7 @@
 		        			$getAssRefId = get_post_meta($orderCouponId,'associated_referral_partner',true);
 		        			//set the affiliate id in cookies...
 		        			if(isset($getCouponAssociationEnable) && !empty($getCouponAssociationEnable) && $getCouponAssociationEnable == 'yes' && !empty($getAssRefId) && !headers_sent()){
-		        				setcookie('affiliateId',$getAssRefId,time()+3600,"/",$_SERVER['
-		        					SERVER_NAME']);
+		        				setcookie('affiliateId', $getAssRefId, time() + 3600, "/", $_SERVER['SERVER_NAME']);
 		        				break;
 		        			}
 		        		}
@@ -517,7 +516,7 @@
          	$affCookieDetails = getCookieValue('affiliateId');
          	//check if cookie details are not empty....
          	if(!empty($affCookieDetails)){
-         		$affDetailsArray = explode(';', $affCookieDetails);
+         		$affDetailsArray = explode(';', $affCookieDetails[0]);
          		if(!empty($affDetailsArray)){
 					$refAffId = $affDetailsArray[0];
          		}
