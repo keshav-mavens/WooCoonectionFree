@@ -487,8 +487,24 @@
 	             	$subscriptionDetailsArray[$cart_item['product_id']] = array('subscription_quantity'=>$cart_item['quantity'],'subscription_price'=>$finalProductPrice,'subscription_discount'=>$eachItemDis*$cart_item['quantity']);
 	            }
          	}
-         		
-			//Get the order items from order then execute loop to create the order items array....
+
+         	//define variable...
+         	$refAffId = '';
+         	//get the cookie details....
+         	$affCookieDetails = getCookieValue('affiliateId');
+         	//check if cookie details are not empty....
+         	if(!empty($affCookieDetails)){
+         		$affDetailsArray = explode(';', $affCookieDetails);
+         		if(!empty($affDetailsArray)){
+         			$refAffId = $affDetailsArray[0];
+         		}
+         	}else{
+         		if(isset($_COOKIE['affiliateId'])){
+         			$refAffId = $_COOKIE['affiliateId'];
+         		}
+         	}
+
+         	//Get the order items from order then execute loop to create the order items array....
             if ( sizeof( $orderProductsItems = $orderData->get_items() ) > 0 ) {
                 foreach($orderProductsItems as $itemId => $item)
                 {
@@ -536,7 +552,7 @@
                 if(isset($itemsDetailsArray) && !empty($itemsDetailsArray)){
                 	$jsonOrderItemsData = json_encode($itemsDetailsArray);//create order items json....
 	                //create order in infusionsoft/keap application.....
-	                $applicationorderId = createOrder($order_id,$contactId,$jsonOrderItemsData,$access_token);
+	                $applicationorderId = createOrder($order_id,$contactId,$jsonOrderItemsData,$access_token,$refAffId);
 	                //update order relation between woocommerce order and infusionsoft/keap application order.....
 	                if(!empty($applicationorderId)){
 	                    //Update relation .....
