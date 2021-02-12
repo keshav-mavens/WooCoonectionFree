@@ -39,7 +39,7 @@ $applicationLabel = applicationLabel($type);
 				<div class="tab-pane fade show active" id="table_import_products" role="tabpanel" aria-labelledby="nav-home-tab">
 		       		<p class="heading-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
 		       		<input type="hidden" id="scroll_count_table_import_products" value="0" class="scroll_counter">
-		        	<input type="hidden" id="products_limit_export" value="20" class="scroll_counter">
+		        	<input type="hidden" id="products_limit_import" value="20" class="scroll_counter">
 		       		<div class="table-responsive import_products_listing_class" id="table_import_products_listing">
 						<?php echo createImportProductsHtml(); ?>
 					</div>
@@ -47,7 +47,7 @@ $applicationLabel = applicationLabel($type);
 				<div class="tab-pane fade show" id="table_export_products" role="tabpanel" aria-labelledby="nav-home-tab">
 		       		<p class="heading-text">Select the WooCommerce products below that you would like to add to your <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> account and press the Export Products button (you may need to scroll to the bottom of the list to see it).</p>
 		       		<input type="hidden" id="scroll_count_table_export_products" value="0" class="scroll_counter">
-		       		<input type="hidden" id="products_limit_import" value="20" class="scroll_counter">
+		       		<input type="hidden" id="products_limit_export" value="20" class="scroll_counter">
 		       		<div class="table-responsive export_products_listing_class" id="table_export_products_listing"></div>
 				</div>
 		        <div class="tab-pane fade" id="table_match_products" role="tabpanel" aria-labelledby="nav-home-tab">

@@ -2317,7 +2317,8 @@ function loadMoreProducts(){
                     productsOffsetImport = 1;
                 }
                 var productsOffset = productsOffsetImport;
-                customLimitImport = parseInt(productsLimit) + 20;
+                var existingLimitImport = $("#products_limit_import").val();
+                customLimitImport = parseInt(existingLimitImport) + 20;
                 var dropdownAppProducts = $("#products_limit_wc_import").val();
             }
             
@@ -2325,6 +2326,7 @@ function loadMoreProducts(){
             $("#products_limit_export").val(customLimitExport);
             $("#products_limit_match").val(customLimitMatch);
             $("#products_limit_import").val(customLimitImport);
+
             //set the loader image....
             $(".load_"+tabId[1]).html('');
             $(".load_"+tabId[1]).html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
