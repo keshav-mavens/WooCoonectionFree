@@ -2293,14 +2293,14 @@ function getCartTriggers(){
         $trigger_call_name = $value->wc_call_name;
         if($trigger_goal_name == 'Item Added to Cart'){
             $call_name = explode('added', $trigger_call_name);
-            $length = 35;
+            $length = SKU_LENGHT_CART_ITEM;
             $callName = 'added'.'<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$call_name[1].'</a>';
             $class = 'readonly';
             $hiddenCallName = 'added'.$call_name[1];
         }
         else if($trigger_goal_name == 'Review Left'){
             $call_name = explode('review', $trigger_call_name);
-            $length = 34;
+            $length = SKU_LENGHT_REVIEW;
             $callName = 'review'.'<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$call_name[1].'</a>';
             $class = 'readonly';
             $hiddenCallName = 'review'.$call_name[1];
@@ -2355,7 +2355,7 @@ function getOrderTriggers(){
         $trigger_integration_name = $value->wc_integration_name;
         $trigger_call_name = $value->wc_call_name;
         if($trigger_goal_name == 'Specific Product'){
-            $length = 40;
+            $length = SKU_LENGHT_SPECIFIC_PRODUCT;
             $callName = '<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$trigger_call_name.'</a>';
             $class = 'readonly';
             $hiddenCallName = $trigger_call_name;
