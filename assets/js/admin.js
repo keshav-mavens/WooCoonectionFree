@@ -1429,36 +1429,29 @@ function activateWcPlugin(){
 function popupEditDetails(triggerid){
     if(triggerid != ""){
         $checkClass = $("#trigger_tr_"+triggerid).attr('class');
-        jQuery.post( ajax_object.ajax_url + "?action=wc_get_trigger_details",{triggerid:triggerid}, function(data) {
-            var responsedata = JSON.parse(data);
-            if(responsedata.status == "1") {
-                jQuery("label.error").hide();
-                jQuery("#edittriggerid").val(triggerid);
-                jQuery("#edittriggerid").val(triggerid);
-                if(responsedata.triggerGoalName != ""){
-                    jQuery(".trigger_goal_name").html('');
-                    jQuery(".trigger_goal_name").html('Edit ' + responsedata.triggerGoalName + ' Trigger');
-                }
-                if(responsedata.triggerIntegrationName != ""){
-                    jQuery("#integrationname").val(responsedata.triggerIntegrationName);
-                }
-                if(responsedata.triggerCallName != ""){
-                    jQuery("#callname").val(responsedata.triggerCallName);
-                    if($checkClass!="" && $checkClass == 'readonly'){
-                        $('#callname').attr('readonly', true);
-                        $('#callname').addClass('ignore');
-                    }else{
-                        $('#callname').attr('readonly', false);
-                        $('#callname').removeClass('ignore');
-                    }
-                }
-                $("#editTriggerDetails").show();
-                //validate a application_settings_form form.....
-                if($('#trigger_details_form').length){
-                    validateForms('trigger_details_form');
-                }
-            }
-        });
+        jQuery("#edittriggerid").val(triggerid);
+        jQuery("#edittriggerid").val(triggerid);
+        var triggerGoalName = $("#trigger_hidden_name_"+triggerid).val();
+        var triggerIntName = $("#trigger_hidden_int_name_"+triggerid).val();
+        var triggerCallName = $("#trigger_hidden_call_name_"+triggerid).val();
+        jQuery(".trigger_goal_name").html('');
+        jQuery(".trigger_goal_name").html('Edit ' + triggerGoalName + ' Trigger');
+        jQuery("#edittriggername").val(triggerGoalName);
+        jQuery("#integrationname").val(triggerIntName);
+        jQuery("#callname").val(triggerCallName);
+        if($checkClass!="" && $checkClass == 'readonly'){
+            $('#callname').attr('readonly', true);
+            $('#callname').addClass('ignore');
+        }else{
+            $('#callname').attr('readonly', false);
+            $('#callname').removeClass('ignore');
+        }
+        $("#editTriggerDetails").show();
+        jQuery("label.error").hide();
+        //validate a application_settings_form form.....
+        if($('#trigger_details_form').length){
+            validateForms('trigger_details_form');
+        }
     }
 }
 
@@ -1482,9 +1475,12 @@ function updateTriggerdetails(){
                 $("#editTriggerDetails").hide();
                 swal("Saved!", 'Trigger details updated Successfully.', "success");
                 if(responsedata.triggerIntegrationName != ""){
+                   jQuery("#trigger_hidden_int_name_"+trigger_id).val(responsedata.triggerIntegrationName);
                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_integration_name_'+trigger_id).html(responsedata.triggerIntegrationName);
                 }
                 if(responsedata.displayCallName != ""){
+                    var hiddenCallValue = $(responsedata.displayCallName).text();
+                    jQuery("#trigger_hidden_call_name_"+trigger_id).val(responsedata.displayCallName);
                     jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.displayCallName);
                 }
             }else{

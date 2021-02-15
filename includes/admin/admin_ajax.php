@@ -90,41 +90,6 @@ function activate_wooconnection_plugin()
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to update trigger details then return the trigger existing values.....
-add_action( 'wp_ajax_wc_get_trigger_details', 'wc_get_trigger_details');
-//Function Definiation : wc_get_trigger_details
-function wc_get_trigger_details()
-{
-	if(!empty($_POST['triggerid']) && !empty($_POST['triggerid'])){
-		global $wpdb,$table_prefix;
-		$table_name = 'wooconnection_campaign_goals';
-		$wp_table_name = $table_prefix . "$table_name";
-		$triggerid = $_POST['triggerid'];
-    	$triggerDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE id=".$triggerid);
-    	$triggerGoalName = "";
-        $triggerIntegrationName = "";
-        $triggerCallName = "";
-    	if(isset($triggerDetails) && !empty($triggerDetails)){
-    		if(!empty($triggerDetails[0]->wc_goal_name)){
-    			$triggerGoalName = $triggerDetails[0]->wc_goal_name;
-    		}
-    		if(!empty($triggerDetails[0]->wc_integration_name)){
-    			$triggerIntegrationName = strtolower($triggerDetails[0]->wc_integration_name);	
-    		}
-	        if(!empty($triggerDetails[0]->wc_call_name)){
-    			if($triggerGoalName == 'Specific Product' || $triggerGoalName == 'Item Added to Cart' || $triggerGoalName == 'Review Left' || $triggerGoalName == 'Coupon Code Applied' || $triggerGoalName == 'Referral Partner Order'){
-		            $triggerCallName = $triggerDetails[0]->wc_call_name;
-		        }
-		        else{
-		            $triggerCallName = strtolower($triggerDetails[0]->wc_call_name);
-		        }
-    		}
-	    }
-    	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerGoalName'=>$triggerGoalName,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName));
-	}
-	die();
-}
-
 //Wordpress hook : This action is triggered when user try to update the trigger details.....
 add_action( 'wp_ajax_wc_update_trigger_details', 'wc_update_trigger_details');
 //Function Definiation : wc_update_trigger_details
