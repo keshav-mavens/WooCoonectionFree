@@ -1429,16 +1429,18 @@ function activateWcPlugin(){
 function popupEditDetails(triggerid){
     if(triggerid != ""){
         $checkClass = $("#trigger_tr_"+triggerid).attr('class');
+        //set the trigger id in input hidden field...
         jQuery("#edittriggerid").val(triggerid);
-        jQuery("#edittriggerid").val(triggerid);
-        var triggerGoalName = $("#trigger_hidden_goal_name_"+triggerid).val();
-        var triggerIntName = $("#trigger_hidden_int_name_"+triggerid).val();
-        var triggerCallName = $("#trigger_hidden_call_name_"+triggerid).val();
+        var triggerGoalName = $("#trigger_hidden_goal_name_"+triggerid).val();//get the trigger goal name...
+        var triggerIntName = $("#trigger_hidden_int_name_"+triggerid).val();//get the trigger integration name..
+        var triggerCallName = $("#trigger_hidden_call_name_"+triggerid).val();//get the trigger call name....
+        //empty the popup header html.....
         jQuery(".trigger_goal_name").html('');
+        //then set with new value.....
         jQuery(".trigger_goal_name").html('Edit ' + triggerGoalName + ' Trigger');
-        jQuery("#edittriggername").val(triggerGoalName);
-        jQuery("#integrationname").val(triggerIntName);
-        jQuery("#callname").val(triggerCallName);
+        jQuery("#edittriggername").val(triggerGoalName);//set the trigger goal name in input hidden....
+        jQuery("#integrationname").val(triggerIntName);//set the input value with integration name...
+        jQuery("#callname").val(triggerCallName);//set the input value with call name....
         if($checkClass!="" && $checkClass == 'readonly'){
             $('#callname').attr('readonly', true);
             $('#callname').addClass('ignore');
@@ -1446,7 +1448,7 @@ function popupEditDetails(triggerid){
             $('#callname').attr('readonly', false);
             $('#callname').removeClass('ignore');
         }
-        $("#editTriggerDetails").show();
+        $("#editTriggerDetails").show();//show the popup..
         jQuery("label.error").hide();
         //validate a application_settings_form form.....
         if($('#trigger_details_form').length){
@@ -1475,11 +1477,14 @@ function updateTriggerdetails(){
                 $("#editTriggerDetails").hide();
                 swal("Saved!", 'Trigger details updated Successfully.', "success");
                 if(responsedata.triggerIntegrationName != ""){
+                   //set the integration name in hidden field........
                    jQuery("#trigger_hidden_int_name_"+trigger_id).val(responsedata.triggerIntegrationName);
                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_integration_name_'+trigger_id).html(responsedata.triggerIntegrationName);
                 }
                 if(responsedata.displayCallName != ""){
+                    //get the only text from call name....
                     var hiddenCallValue = $('<p>'+responsedata.displayCallName+'</p>').text();
+                    //then set in hidden field....
                     jQuery("#trigger_hidden_call_name_"+trigger_id).val(hiddenCallValue);
                     jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.displayCallName);
                 }
@@ -1513,6 +1518,7 @@ function hideCustomModel(modelId){
         if($(".scroll_div_products").length){
             $(".scroll_div_products").scrollTop(0);
         }
+        //check if product listing popup scroll is exist then set the scroll top to "0" to prevent the load more product request...
         if($(".productsModelBody").length){
             $(".productsModelBody").scrollTop(0);
         }
@@ -2195,8 +2201,9 @@ function loadProductsWithSku(){
                 productsListingLimit = 20;
                 productsListingOffset = 20;
             }
+            //update the limit by adding offset.....
             productsSkuCustomLimit = parseInt(productsListingOffset) + parseInt(productsListingLimit);
-            $("#products_sku_listing_limit").val(productsSkuCustomLimit);
+            $("#products_sku_listing_limit").val(productsSkuCustomLimit);//set the input hidden value....
             //set the loader image....
             $(".load_products_listing_with_sku").html('');
             $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');

@@ -183,7 +183,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
         <h4 class="modal-title">Refferal Listing</h4>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="max-height:500px;overflow-y:scroll;">
        <div class="table-responsive">
           <table class="table table-striped" id="refferal_partners_listing">
                 <thead><tr><th>Id</th><th>Referral Partner Name</th><th>Referral Partner Code</th><th>Action</th></tr></thead>
