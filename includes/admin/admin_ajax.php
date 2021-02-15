@@ -1511,7 +1511,7 @@ function wc_load_products()
 		    //check authenticate  name is exist......
 		    if(isset($authenticateAppdetails[0]->user_authorize_application)){
 		        $authenticate_application_name = $authenticateAppdetails[0]->user_authorize_application;
-		        $productAffiliateLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
+		        $productAffiliateLink = 'https://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
 		    } 
 	  	}
 

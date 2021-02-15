@@ -1635,7 +1635,7 @@ function wc_standard_pages_listing(){
     //check authenticate  name is exist......
     if(isset($authenticateAppdetails[0]->user_authorize_application)){
         $authenticate_application_name = $authenticateAppdetails[0]->user_authorize_application;
-        $pageAffiliateLink = 'http://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
+        $pageAffiliateLink = 'https://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
     } 
   }
   //define empty variables.....
