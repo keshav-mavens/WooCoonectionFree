@@ -135,6 +135,7 @@ function wc_update_trigger_details()
 		        }
 
     		}
+    		$data = array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName);
     		$updateResult = $wpdb->update($wp_table_name, array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName),array('id' => $_POST['edittriggerid']));
     		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName,'displayCallName'=>$displayCallName));
     	}

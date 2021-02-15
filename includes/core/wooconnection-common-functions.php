@@ -77,7 +77,7 @@ function getGeneralTriggers(){
         $trigger_goal_name = $value->wc_goal_name;
         $trigger_integration_name = $value->wc_integration_name;
         $trigger_call_name = $value->wc_call_name;
-        $wcGeneralTriggers.='<input type="hidden" id="trigger_hidden_name_'.$trigger_id.'" value="'.$trigger_goal_name.'"><input type="hidden" id="trigger_hidden_int_name_'.$trigger_id.'" value="'.strtolower($trigger_integration_name).'"><input type="hidden" id="trigger_hidden_call_name_'.$trigger_id.'" value="'.strtolower($trigger_call_name).'"><tr id="trigger_tr_'.$trigger_id.'">
+        $wcGeneralTriggers.='<input type="hidden" id="trigger_hidden_goal_name_'.$trigger_id.'" value="'.$trigger_goal_name.'"><input type="hidden" id="trigger_hidden_int_name_'.$trigger_id.'" value="'.strtolower($trigger_integration_name).'"><input type="hidden" id="trigger_hidden_call_name_'.$trigger_id.'" value="'.strtolower($trigger_call_name).'"><tr id="trigger_tr_'.$trigger_id.'">
                                 <td>'.$trigger_goal_name.'</td>
                                 <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
                                 <td id="trigger_call_name_'.$trigger_id.'">'.strtolower($trigger_call_name).'</td>
@@ -2377,7 +2377,7 @@ function getOrderTriggers(){
             $class = '';
             $hiddenCallName = $callName;
         }
-        $wcGeneralTriggers.='<input type="hidden" id="trigger_hidden_name_'.$trigger_id.'" value="'.$trigger_goal_name.'"><input type="hidden" id="trigger_hidden_int_name_'.$trigger_id.'" value="'.strtolower($trigger_integration_name).'"><input type="hidden" id="trigger_hidden_call_name_'.$trigger_id.'" value="'.$hiddenCallName.'"><tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
+        $wcGeneralTriggers.='<input type="hidden" id="trigger_hidden_goal_name_'.$trigger_id.'" value="'.$trigger_goal_name.'"><input type="hidden" id="trigger_hidden_int_name_'.$trigger_id.'" value="'.strtolower($trigger_integration_name).'"><input type="hidden" id="trigger_hidden_call_name_'.$trigger_id.'" value="'.$hiddenCallName.'"><tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
                                 <td>'.$trigger_goal_name.'</td>
                                 <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
                                 <td id="trigger_call_name_'.$trigger_id.'">'.$callName.'</td>

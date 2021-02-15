@@ -1431,7 +1431,7 @@ function popupEditDetails(triggerid){
         $checkClass = $("#trigger_tr_"+triggerid).attr('class');
         jQuery("#edittriggerid").val(triggerid);
         jQuery("#edittriggerid").val(triggerid);
-        var triggerGoalName = $("#trigger_hidden_name_"+triggerid).val();
+        var triggerGoalName = $("#trigger_hidden_goal_name_"+triggerid).val();
         var triggerIntName = $("#trigger_hidden_int_name_"+triggerid).val();
         var triggerCallName = $("#trigger_hidden_call_name_"+triggerid).val();
         jQuery(".trigger_goal_name").html('');
@@ -1479,8 +1479,8 @@ function updateTriggerdetails(){
                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_integration_name_'+trigger_id).html(responsedata.triggerIntegrationName);
                 }
                 if(responsedata.displayCallName != ""){
-                    var hiddenCallValue = $(responsedata.displayCallName).text();
-                    jQuery("#trigger_hidden_call_name_"+trigger_id).val(responsedata.displayCallName);
+                    var hiddenCallValue = $('<p>'+responsedata.displayCallName+'</p>').text();
+                    jQuery("#trigger_hidden_call_name_"+trigger_id).val(hiddenCallValue);
                     jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.displayCallName);
                 }
             }else{
