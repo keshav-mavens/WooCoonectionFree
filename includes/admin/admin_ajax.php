@@ -90,41 +90,6 @@ function activate_wooconnection_plugin()
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to update trigger details then return the trigger existing values.....
-add_action( 'wp_ajax_wc_get_trigger_details', 'wc_get_trigger_details');
-//Function Definiation : wc_get_trigger_details
-function wc_get_trigger_details()
-{
-	if(!empty($_POST['triggerid']) && !empty($_POST['triggerid'])){
-		global $wpdb,$table_prefix;
-		$table_name = 'wooconnection_campaign_goals';
-		$wp_table_name = $table_prefix . "$table_name";
-		$triggerid = $_POST['triggerid'];
-    	$triggerDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE id=".$triggerid);
-    	$triggerGoalName = "";
-        $triggerIntegrationName = "";
-        $triggerCallName = "";
-    	if(isset($triggerDetails) && !empty($triggerDetails)){
-    		if(!empty($triggerDetails[0]->wc_goal_name)){
-    			$triggerGoalName = $triggerDetails[0]->wc_goal_name;
-    		}
-    		if(!empty($triggerDetails[0]->wc_integration_name)){
-    			$triggerIntegrationName = strtolower($triggerDetails[0]->wc_integration_name);	
-    		}
-	        if(!empty($triggerDetails[0]->wc_call_name)){
-    			if($triggerGoalName == 'Specific Product' || $triggerGoalName == 'Item Added to Cart' || $triggerGoalName == 'Review Left' || $triggerGoalName == 'Coupon Code Applied' || $triggerGoalName == 'Referral Partner Order'){
-		            $triggerCallName = $triggerDetails[0]->wc_call_name;
-		        }
-		        else{
-		            $triggerCallName = strtolower($triggerDetails[0]->wc_call_name);
-		        }
-    		}
-	    }
-    	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerGoalName'=>$triggerGoalName,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName));
-	}
-	die();
-}
-
 //Wordpress hook : This action is triggered when user try to update the trigger details.....
 add_action( 'wp_ajax_wc_update_trigger_details', 'wc_update_trigger_details');
 //Function Definiation : wc_update_trigger_details
@@ -170,6 +135,7 @@ function wc_update_trigger_details()
 		        }
 
     		}
+    		$data = array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName);
     		$updateResult = $wpdb->update($wp_table_name, array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName),array('id' => $_POST['edittriggerid']));
     		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName,'displayCallName'=>$displayCallName));
     	}
@@ -1468,7 +1434,8 @@ function wc_get_products_listing()
 		//check select products exist in post data to import.....
 		if(isset($_POST['length']) && !empty($_POST['length'])){
 			$skuLength = $_POST['length'];
-			$productsListing = get_products_listing($skuLength);
+			$newLimitProductsSku = $_POST['productLimitSku'];
+			$productsListing = get_products_listing($skuLength,$newLimitProductsSku);
 	    }
 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListing'=>$productsListing));
 	}	    
