@@ -1395,7 +1395,8 @@ function wc_get_products_listing()
 		//check select products exist in post data to import.....
 		if(isset($_POST['length']) && !empty($_POST['length'])){
 			$skuLength = $_POST['length'];
-			$productsListing = get_products_listing($skuLength);
+			$newLimitProductsSku = $_POST['productLimitSku'];
+			$productsListing = get_products_listing($skuLength,$newLimitProductsSku);
 	    }
 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListing'=>$productsListing));
 	}	    
