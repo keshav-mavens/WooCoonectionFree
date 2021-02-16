@@ -511,12 +511,16 @@
          	}
 
          	//define variable...
-         	$refAffId = '';
+         	$refAffiliateId = '';
          	//get the cookie details....
          	$affCookieDetails = getCookieValue('affiliateId');
          	//check if cookie details are not empty....
          	if(!empty($affCookieDetails)){
-         		$affDetailsArray = explode(';', $affCookieDetails[0]);
+         		if(is_array($affCookieDetails)){
+         			$affDetailsArray = explode(';', $affCookieDetails[0]);
+         		}else{
+         			$affDetailsArray = explode(';', $affCookieDetails);
+         		}
          		if(!empty($affDetailsArray)){
 					$refAffId = $affDetailsArray[0];
          		}
@@ -525,6 +529,17 @@
          			$refAffId = $_COOKIE['affiliateId'];
          		}
          	}
+         	//check if referral affiliate id is exist...
+         	if(!empty($refAffId)){
+	         	//get the affiliate details by id....
+	         	$affiliateCode = getAffiliateDetails($access_token,$refAffId);
+	         	//then check referral affiliate exist...
+	         	if(isset($affiliateCode) && !empty($affiliateCode)){
+	         		$refAffiliateId = $refAffId;
+	         	}else{//if not exist then empty the referral partner id to stop to go with create order.....
+	         		$refAffiliateId = '';
+	         	}
+	        }
 
 			//Get the order items from order then execute loop to create the order items array....
             if ( sizeof( $orderProductsItems = $orderData->get_items() ) > 0 ) {
@@ -574,7 +589,7 @@
                 if(isset($itemsDetailsArray) && !empty($itemsDetailsArray)){
                 	$jsonOrderItemsData = json_encode($itemsDetailsArray);//create order items json....
 	                //create order in infusionsoft/keap application.....
-	                $applicationorderId = createOrder($order_id,$contactId,$jsonOrderItemsData,$access_token,$refAffId);
+	                $applicationorderId = createOrder($order_id,$contactId,$jsonOrderItemsData,$access_token,$refAffiliateId);
 	                //update order relation between woocommerce order and infusionsoft/keap application order.....
 	                if(!empty($applicationorderId)){
 	                    //Update relation .....

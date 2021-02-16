@@ -110,19 +110,19 @@ class WooConnection_Admin {
                     word-break: break-all;
                 }
             </style>
-            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+            <script src="<?php echo WOOCONNECTION_PLUGIN_URL ?>assets/js/jquery.min.js"></script>
             <script type="text/javascript">
                 var WOOCONNECTION_PLUGIN_URL = '<?php echo WOOCONNECTION_PLUGIN_URL ?>';
-                $( document ).ready(function() {
+                jQuery( document ).ready(function() {
                     //change the wooconnection plugin image on hover....
-                    $('.toplevel_page_wooconnection-admin').hover(function () {
-                        $(this).find('img').attr('src', function (i, src) {
+                    jQuery('.toplevel_page_wooconnection-admin').hover(function () {
+                        jQuery(this).find('img').attr('src', function (i, src) {
                             if(src == WOOCONNECTION_PLUGIN_URL+'assets/images/icon-grey-new.png'){
                                 return src.replace('icon-grey-new.png', 'icon-blue.png') 
                             }
                         });
                     },  function () {
-                        $(this).find('img').attr('src', function (i, src) {
+                        jQuery(this).find('img').attr('src', function (i, src) {
                             if(src == WOOCONNECTION_PLUGIN_URL+'assets/images/icon-blue.png'){
                                 return src.replace('icon-blue.png', 'icon-grey-new.png')
                             }

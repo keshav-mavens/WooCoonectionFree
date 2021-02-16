@@ -33,7 +33,7 @@
 	            <div class="woocommerce_product_tabs wc-metaboxes">
 	                <p class="form-field _manage_stock_field show_if_simple show_if_variable" style="padding: 5px 20px 5px 162px!important">
 	                	<label for="_product_subscription" style="float:left;width:150px;margin:0 0 0 -150px;">Sold as subscription?</label>
-	                	<input type="checkbox" class="checkbox" style="" name="_product_subscription" id="_product_subscription" value="<?php echo $checkSoldAsSub ?>" <?php if ($checkSoldAsSub == 'yes') echo "checked='checked'"; ?>> <span class="description">Enable prdouct sold a subscription managed by infusionsoft.</span>
+	                	<input type="checkbox" class="checkbox" style="" name="_product_subscription" id="_product_subscription" value="<?php echo $checkSoldAsSub ?>" <?php if ($checkSoldAsSub == 'yes') echo "checked='checked'"; ?>> <span class="description">Enable product sold a subscription managed by infusionsoft.</span>
 	                </p>
 	            </div>
 	        </div>
