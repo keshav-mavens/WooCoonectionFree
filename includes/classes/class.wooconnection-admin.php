@@ -151,8 +151,8 @@ class WooConnection_Admin {
         <?php
     }
 
-    //Function Definition : everyday_event_custom_function
-    public function everyday_event_custom_function(){
+    //Function Definition : everyday_update_sub_recurring_amount
+    public function everyday_update_sub_recurring_amount(){
         //get the authentication details of plugin....
         $pluginAuthenticationDetails = getAuthenticationDetails();
 

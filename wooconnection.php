@@ -60,7 +60,7 @@ class WooConnectionPro {
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
         //Call the hook to call the custom function to update the recurring amount in authenticate application....
-        add_action('recurring_payment_schedular_everyday','WooConnection_Admin::everyday_event_custom_function');
+        add_action('recurring_payment_schedular_everyday','WooConnection_Admin::everyday_update_sub_recurring_amount');
     }
 
     //Function Definition : woocommerce_plugin_necessary
