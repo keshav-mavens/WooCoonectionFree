@@ -128,14 +128,15 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
 <!--Below model is used to show the list of products with their sku with copy feature for specific product purchase trigger,item added to cart, review left for product trigger-->
 <div class="modal" role="dialog" id="productsListing">
   <div class="modal-dialog modal-lg">
-  <div class="modal-content productsModelBody" onscroll="loadProductsWithSku()" style="overflow-y:scroll;max-height:500px;">
+  <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title">Products With Sku</h4>
         <button type="button" class="close" onclick="hideCustomModel('productsListing')">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body productsModelBody" onscroll="loadProductsWithSku()" style="overflow-y:scroll;max-height:500px;">
         <div class="table-responsive">
           <input type="hidden" id="products_scroll_count" value="0">
+          <input type="hidden" id="products_sku_listing_limit" value="20">
           <table class="table table-striped common-table-class" id="table_products_lisitng_with_sku">
             <thead>
               <tr>
@@ -157,12 +158,12 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
 <!--Below model is used to show the list of coupons with their code with copy feature-->
 <div class="modal" role="dialog" id="couponsListing">
   <div class="modal-dialog modal-lg">
-  <div class="modal-content couponsLisingContent" onscroll="loadMoreCoupons()" style="overflow-y:scroll;max-height:500px;">
+  <div class="modal-content">
   <div class="modal-header">
         <h4 class="modal-title">Coupons Code Listing</h4>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body couponsLisingContent" onscroll="loadMoreCoupons()" style="overflow-y:scroll;max-height:500px;">
        <div class="table-responsive">
           <input type="hidden" id="coupons_scroll_count" value="0">
           <table class="table table-striped" id="coupon_listing_with_sku">
@@ -182,7 +183,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
         <h4 class="modal-title">Refferal Listing</h4>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="max-height:500px;overflow-y:scroll;">
        <div class="table-responsive">
           <table class="table table-striped" id="refferal_partners_listing">
                 <thead><tr><th>Id</th><th>Referral Partner Name</th><th>Referral Partner Code</th><th>Action</th></tr></thead>

@@ -77,7 +77,7 @@ function getGeneralTriggers(){
         $trigger_goal_name = $value->wc_goal_name;
         $trigger_integration_name = $value->wc_integration_name;
         $trigger_call_name = $value->wc_call_name;
-        $wcGeneralTriggers.='<tr id="trigger_tr_'.$trigger_id.'">
+        $wcGeneralTriggers.='<input type="hidden" id="trigger_hidden_goal_name_'.$trigger_id.'" value="'.$trigger_goal_name.'"><input type="hidden" id="trigger_hidden_int_name_'.$trigger_id.'" value="'.strtolower($trigger_integration_name).'"><input type="hidden" id="trigger_hidden_call_name_'.$trigger_id.'" value="'.strtolower($trigger_call_name).'"><tr id="trigger_tr_'.$trigger_id.'">
                                 <td>'.$trigger_goal_name.'</td>
                                 <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
                                 <td id="trigger_call_name_'.$trigger_id.'">'.strtolower($trigger_call_name).'</td>
@@ -2627,21 +2627,24 @@ function getCartTriggers(){
         $trigger_call_name = $value->wc_call_name;
         if($trigger_goal_name == 'Item Added to Cart'){
             $call_name = explode('added', $trigger_call_name);
-            $length = 35;
+            $length = SKU_LENGHT_CART_ITEM;
             $callName = 'added'.'<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$call_name[1].'</a>';
             $class = 'readonly';
+            $hiddenCallName = 'added'.$call_name[1];
         }
         else if($trigger_goal_name == 'Review Left'){
             $call_name = explode('review', $trigger_call_name);
-            $length = 34;
+            $length = SKU_LENGHT_REVIEW;
             $callName = 'review'.'<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$call_name[1].'</a>';
             $class = 'readonly';
+            $hiddenCallName = 'review'.$call_name[1];
         }
         else{
             $callName = strtolower($trigger_call_name);
             $class = '';
+            $hiddenCallName = strtolower($trigger_call_name);
         }
-        $wcGeneralTriggers.='<tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
+        $wcGeneralTriggers.='<input type="hidden" id="trigger_hidden_goal_name_'.$trigger_id.'" value="'.$trigger_goal_name.'"><input type="hidden" id="trigger_hidden_int_name_'.$trigger_id.'" value="'.strtolower($trigger_integration_name).'"><input type="hidden" id="trigger_hidden_call_name_'.$trigger_id.'" value="'.$hiddenCallName.'"><tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
                                 <td>'.$trigger_goal_name.'</td>
                                 <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
                                 <td id="trigger_call_name_'.$trigger_id.'">'.$callName.'</td>
@@ -2686,25 +2689,29 @@ function getOrderTriggers(){
         $trigger_integration_name = $value->wc_integration_name;
         $trigger_call_name = $value->wc_call_name;
         if($trigger_goal_name == 'Specific Product'){
-            $length = 40;
+            $length = SKU_LENGHT_SPECIFIC_PRODUCT;
             $callName = '<a href="javascript:void(0);" onclick="showProductsListing('.$length.')">'.$trigger_call_name.'</a>';
             $class = 'readonly';
+            $hiddenCallName = $trigger_call_name;
         }
         else if($trigger_goal_name == 'Coupon Code Applied'){
             $call_name = explode('coupon', $trigger_call_name);
             $callName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
             $class = 'readonly';
+            $hiddenCallName = 'coupon'.$call_name[1];
         }
         else if($trigger_goal_name == 'Referral Partner Order'){
             $call_name = explode('refferal', $trigger_call_name);
             $callName = 'refferal'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#refferalListing">'.$call_name[1].'</a>';
             $class = 'readonly';
+            $hiddenCallName = 'refferal'.$call_name[1];
         }
         else{
             $callName = strtolower($trigger_call_name);
             $class = '';
+            $hiddenCallName = $callName;
         }
-        $wcGeneralTriggers.='<tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
+        $wcGeneralTriggers.='<input type="hidden" id="trigger_hidden_goal_name_'.$trigger_id.'" value="'.$trigger_goal_name.'"><input type="hidden" id="trigger_hidden_int_name_'.$trigger_id.'" value="'.strtolower($trigger_integration_name).'"><input type="hidden" id="trigger_hidden_call_name_'.$trigger_id.'" value="'.$hiddenCallName.'"><tr class="'.$class.'" id="trigger_tr_'.$trigger_id.'">
                                 <td>'.$trigger_goal_name.'</td>
                                 <td id="trigger_integration_name_'.$trigger_id.'">'.strtolower($trigger_integration_name).'</td>
                                 <td id="trigger_call_name_'.$trigger_id.'">'.$callName.'</td>
