@@ -1017,10 +1017,10 @@
                                 var responsedata = JSON.parse(data);
                                 if(responsedata.status == "1") {
                                     if(current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
-                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
+                                        $(".override_product_rule li#"+current_override_id).remove();
                                         swal("Saved!", 'Product Thankyou page override deleted Successfully.', "success");
                                     }else if (current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
-                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
+                                        $(".override_product_category_rule li#"+current_override_id).remove();
                                         swal("Saved!", 'Product Category Thankyou page override deleted Successfully.', "success");
                                     }
                                 }
@@ -1982,14 +1982,25 @@ function saveThanksProductOverride(){
             $(".savingProductOverrideDetails").show();    
         }
         $('.save_thank_you_product_override').addClass("disable_anchor");
+        //get the product override id.....
+        var checkOverrideId = $("#productoverrideid").val();
         jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_override",$('#thank_override_form_product').serialize(), function(data) {
             var responsedata = JSON.parse(data);
             $(".savingProductOverrideDetails").hide();
             if(responsedata.status == "1") {
+                //if product override id not exist it means add to new li.....
+                if(checkOverrideId == ""){
+                    if(responsedata.newOverrideLi != ""){
+                        $(".override_product_rule").append(responsedata.newOverrideLi);
+                    }
+                }else{//else update the title of li with latest updated title.....
+                    if(responsedata.overrideUpdateTitle){
+                        $("#override_title_"+checkOverrideId).text(responsedata.overrideUpdateTitle);
+                    }
+                }
                 $('.productoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_override').removeClass("disable_anchor");
                 swal("Saved!", 'Product thankyou override details updated successfully.', "success");
-                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');
@@ -2014,14 +2025,25 @@ function saveThanksProductCatOverride(){
             $(".savingProductCatOverrideDetails").show();    
         }
         $('.save_thank_you_product_cat_override').addClass("disable_anchor");
+        //get the category override id....
+        var checkCatOverrideId = $("#productcatoverrideid").val();
         jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_category_override",$('#thank_override_form_product_cat').serialize(), function(data) {
             var responsedata = JSON.parse(data);
             $(".savingProductCatOverrideDetails").hide();
             if(responsedata.status == "1") {
+                //if cat override id is not exist it means need to add new li of category override...
+                if(checkCatOverrideId == ""){
+                    if(responsedata.catNewOverrideLi != ""){
+                        $(".override_product_category_rule").append(responsedata.catNewOverrideLi);
+                    }
+                }else{//else update the title of updated category override....
+                    if(responsedata.catUpdatedOverrTitle){
+                        $("#cat_override_name_"+checkCatOverrideId).text(responsedata.catUpdatedOverrTitle);
+                    }    
+                }
                 $('.productcatoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_cat_override').removeClass("disable_anchor");
                 swal("Saved!", 'Product category thankyou override details updated successfully.', "success");
-                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');

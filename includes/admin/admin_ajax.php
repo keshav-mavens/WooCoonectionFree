@@ -472,6 +472,9 @@ function wc_save_thanks_product_override()
 		}
 		//assign redirect condition product thankyou override.....
 		$override_fields_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS;
+		//define empty variables to return in response....
+		$newOverrideHtml = '';
+		$overrideUpdatedTitle = '';
 		//first check the override id is exist in post data if exist then needs to perform update override process.....
 		if(isset($_POST['productoverrideid']) && !empty($_POST['productoverrideid'])){
 			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_array,array('id' => $_POST['productoverrideid']));
@@ -487,6 +490,8 @@ function wc_save_thanks_product_override()
 	   				}
 	   			}
 	   		}
+	   		//set the latest title of override in variable...
+	   		$overrideUpdatedTitle = $override_fields_array['wc_override_name'];
 	   	}else{//if override is not exist then need to add new product override....
 			//insert the record for custom field group 
 			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_array);
@@ -508,10 +513,12 @@ function wc_save_thanks_product_override()
 							$result_check_group_products = $wpdb->insert($wp_thankyou_override_related_products,$override_products_array_data);
 						}
 					}
+					//set the html of newly created override....
+					$newOverrideHtml .= '<li class="group-field" id="'.$lastInsertId.'"><span class="wc_thankyou_override_name override_name_inner"><span id="override_title_'.$lastInsertId.'">'.$override_fields_array['wc_override_name'].'</span><span class="listing-operators"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$lastInsertId.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$lastInsertId.'"></i></span></span></li>';
 				}
 			}
 		}	
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newOverrideLi'=>$newOverrideHtml,'overrideUpdateTitle'=>$overrideUpdatedTitle));
 	}
 	die();
 }
@@ -546,6 +553,8 @@ function wc_save_thanks_product_category_override()
 		}
 		//assign redirect condition product thankyou override.....
 		$override_fields_cat_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES;
+		$catNewOverrHtml = '';
+		$catUpdatedOverrTitle = '';
 		//first check the override id is exist in post data if exist then needs to perform update override process.....
 		if(isset($_POST['productcatoverrideid']) && !empty($_POST['productcatoverrideid'])){
 			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_cat_array,array('id' => $_POST['productcatoverrideid']));
@@ -561,6 +570,7 @@ function wc_save_thanks_product_category_override()
 	   				}
 	   			}
 	   		}
+	   		$catUpdatedOverrTitle = $override_fields_cat_array['wc_override_name'];
 		}else{//if override is not exist then need to add new product override....
 			//insert the record for custom field group 
 			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_cat_array);
@@ -582,10 +592,12 @@ function wc_save_thanks_product_category_override()
 							$result_check_cat_products = $wpdb->insert($wp_thankyou_override_related_categories,$override_cat_array);
 						}
 					}
+					
+					$catNewOverrHtml .= '<li class="group-field" id="'.$lastInsertId.'"><span class="wc_thankyou_override_name override_name_inner"><span id="cat_override_name_'.$lastInsertId.'">'.$override_fields_cat_array['wc_override_name'].'</span><span class="listing-operators"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$lastInsertId.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$lastInsertId.'"></i></span></span></li>';
 				}
 			}
 		}	
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'catNewOverrideLi'=>$catNewOverrHtml,'catUpdatedOverrTitle'=>$catUpdatedOverrTitle));
 	}
 	die();
 }
