@@ -38,6 +38,16 @@
                                 $(".tab_related_content").html('');
                                 $(".tab_related_content").html(data);
                                 jQuery(".tab_related_content").removeClass('overlay');
+                                
+                                //add select 2 for woocommerce products field in import products tab...
+                                if($(".wc_import_products_dropdown").length){
+                                    applySelectTwo('wc_import_products_dropdown');
+                                }
+                                
+                                //code is used to set the woocommerce product selected from dropdown....
+                                if(jQuery(".wcProductsDropdown").length){
+                                    applyProductSelected();
+                                }
                             });
                         }
                         //Check if "response" done....
@@ -268,10 +278,14 @@
                         var newExportLimit = $("#products_limit_export").val();
                     }else if(target_tab_id == '#table_match_products'){
                         var newMatchLimit = $("#products_limit_match").val();
+                    }else if(target_tab_id == '#table_import_products'){
+                        var newImportLimit = $("#products_limit_import").val();
                     }
                     $(target_tab_id+"_listing").html('');
                     $(target_tab_id+"_listing").html('<p class="heading-text" style="text-align:center;">Loading Data....</p>');
-                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id,newLimitExport:newExportLimit,newLimitMatch:newMatchLimit}, function(data) {
+                    //hide the loader div and "error message" on tab change....,
+                    $(".loading_products").hide();
+                    jQuery.post( ajax_object.ajax_url + "?action=wc_load_import_export_tab_main_content",{target_tab_id:target_tab_id,newLimitExport:newExportLimit,newLimitMatch:newMatchLimit,newLimitImport:newImportLimit}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
                             jQuery(".ajax_loader").hide();
@@ -284,32 +298,20 @@
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     applySelectTwo('application_match_products_dropdown');
-                                }else if (target_tab_id == '#table_standard_fields_mapping') {
+                                }
+                                else if (target_tab_id == '#table_import_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    
-                                    //add select 2 for infusionsoft/keap fields....
-                                    if($(".standardcfieldmappingwith").length){
-                                        applySelectTwo('standardcfieldmappingwith');
+                                    //add select 2 for woocommerce products field in import products tab...
+                                    if($(".wc_import_products_dropdown").length){
+                                        applySelectTwo('wc_import_products_dropdown');
                                     }
-
-                                    //code is used to set the infusionsoft/keap field selected from dropdown....
-                                    $(".standardcfrows").each(function() {
-                                        var standardcfId = $(this).attr('id');//get the standard field id....
-                                        var standardcdmapp = $(this).attr("data-id");//get the standard field mapped with....
-                                        if(standardcfId != ''){
-                                            if(standardcdmapp != ""){
-                                                //set field selected....
-                                                $('#standard_cfield_mapping_'+standardcfId).val(standardcdmapp).trigger('change.select2');
-                                            }
-                                        }
-                                    });
-
-                                }     
-                                
+                                    //code is used to set the woocommerce product selected from dropdown....
+                                    if(jQuery(".wcProductsDropdown").length){
+                                        applyProductSelected();
+                                    }
+                                }    
                             }
-                            //hide the loader div and "error message" on tab change.....
-                            $(".loading_products").hide();
                         }
                     });
                 }
@@ -1144,6 +1146,179 @@
                     });
                 }
             });
+            
+            //Import Products Tab : check all products checkbox rule....
+            $document.on("click",".all_products_checkbox_import",function(event) {
+                if ($(this).is(":checked"))
+                {
+                    $('.each_product_checkbox_import').prop("checked", true);
+                }
+                else
+                {
+                    $('.each_product_checkbox_import').prop("checked", false);
+                }
+            });
+            
+            //Import Products Tab : on change of select box of woocommerce products mark checkbox checked or unchecked on the basis of select value.....
+            $document.on("click",".each_product_checkbox_import",function(event) {
+                if ($('.all_products_checkbox_import').is(":checked"))
+                {
+                    $('.all_products_checkbox_import').prop("checked", false);
+                }
+            });
+            
+            //on open of select2 dropdown add the custom attribute..
+            $document.on("select2:open",".wc_import_products_dropdown",function(event) {
+                event.preventDefault();
+                var openSelectName = $(this).attr('name');//get the name of select box.....
+                var openSelectContainer = $(".select2-container .select2-dropdown .select2-results .select2-results__options");//set the open select container...
+                openSelectContainer.attr('select-name', openSelectName);//add attribute.....
+                var openSearchInputData = $(".select2-search__field");
+                openSearchInputData.attr('select-name',openSelectName);
+            });
+
+
+            //on close of select2 dropdown remove the custom attribute.....
+            $document.on("select2:close" , ".wc_import_products_dropdown" ,function(event){
+                event.preventDefault();
+                $('.wc_import_products_dropdown').removeClass('customClass');//remove class from select boxes of import tab.....
+                $('.application_match_products_dropdown').removeClass('customClass');//remove class from application products dropdown...
+                var closeSelectContainer = $(".select2-container .select2-dropdown .select2-results .select2-results__options");//set the close select container
+                closeSelectContainer.removeAttr('select-name');//remove attribute....
+                var closeSearchInputData = $(".select2-search__field");
+                closeSearchInputData.removeAttr('select-name');
+            });
+
+
+            //set the default limit and offset for import tab dropdown.....
+            var importProductsLimit = 20;
+            var importProductsOffset = 20;
+
+            //on wheel of select ul..... proceed next....
+            $document.on('wheel',".select2-results__options",function(event){
+                //check scroll of woocommerce products dropdown touch to bottom.....
+                if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight){
+                    //get the current select tag ul id.....
+                    var selectUlId = $(this).attr('id');
+                    //check select ul id exists...
+                    if(selectUlId !== ''){
+                        //check if scroll event of import tab.....
+                        if(selectUlId.indexOf('select2-wc_product_import_with_') > -1){
+                            //get the scroll select2 name....
+                            var openSelect2Name = $(this).attr('select-name');
+                            //scroll dropdown counter value.....
+                            var scroll_count_wc_dropdown = $("#scroll_count_wc_products").val();
+                            //increase by i on each hit of scroll......
+                            var import_counter_updated_value = parseInt(scroll_count_wc_dropdown) + 1;
+                            //set the latest value in input type hidden......
+                            $("#scroll_count_wc_products").val(import_counter_updated_value);
+                            if(import_counter_updated_value !== 1){
+                                importProductsOffset = parseInt(importProductsOffset) + parseInt(importProductsLimit);
+                            }else{
+                                importProductsLimit = 20;
+                                importProductsOffset = 20;
+                            }
+                            //get default limit....
+                            var wooDropdownLimit = $("#products_limit_wc_import").val();
+                            var wooNewDropdownLimit = parseInt(wooDropdownLimit) + 20;
+                            //set the latest limit in input hidden.....
+                            $("#products_limit_wc_import").val(wooNewDropdownLimit);
+                            //minus something from scroll top to prevent next ajax request immediately.....
+                            var scrollTopWooDropdown = $(this).scrollTop();
+                            var newScrollTopValueWoo = scrollTopWooDropdown-100;//minus 100 to set the new scroll top value....
+                            $(this).scrollTop(newScrollTopValueWoo);//set scroll top to up on the basis of new value....
+                            $(".loading_woo_products_more").hide();//hide the existing loader html...
+                            $(this).append('<li class="loading_woo_products_more" style="text-align:center"><img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg"></li>');//append new html...
+                            jQuery.post(ajax_object.ajax_url+"?action=wc_load_woo_products&jsoncallback=x",{wooProLimit:importProductsLimit,wooProOffset:importProductsOffset},function(data){
+                                var response = JSON.parse(data);
+                                //check response......
+                                if(response.status == "1"){
+                                    if(response.newWooProductsOptions !== ""){//then check the options exist from response....
+                                        $('[name="'+openSelect2Name+'"]').addClass('customClass');//add class by class name......
+                                        $(".loading_woo_products_more").hide();
+                                        //execute loop on opitons.....
+                                        $(response.newWooProductsOptions).each(function (index, value) {
+                                            var wooProductName = value.ProductName;//set the option title....
+                                            var wooProductId = value.Id;//set the option id.....
+                                            if($("[name='"+openSelect2Name+"'] option[value='"+wooProductId+"']").length == 0){
+                                               //create new option...
+                                               var newWooOptions = new Option(wooProductName,wooProductId,false,false);
+                                               $('[name="'+openSelect2Name+'"]').append(newWooOptions);
+                                            }
+                                            //create new options for another selects just not for current select2.....
+                                            var optionForAllSelect = new Option(wooProductName,wooProductId,false,false);
+                                            //append new woo products options to all select boxes except in current select.....
+                                            $('.wc_import_products_dropdown').not(".customClass").append(optionForAllSelect);
+                                        });
+                                        //first close the current select by name of select box.....
+                                        $('[name="'+openSelect2Name+'"]').select2('close');
+                                        //then open the same select2 by name of it....
+                                        $('[name="'+openSelect2Name+'"]').select2('open');
+                                        //hide the extra select2 which is created by the select2 open event.....
+                                        $('.select2-container.select2-container--default.select2-container--open:last').hide();
+                                    }else{
+                                        //set the message of loading products......
+                                        $(".loading_woo_products_more").html('No More Products Exist!');
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+            
+
+            //on key up of select2 search....
+            $document.on('keyup','.select2-search__field',function(){
+                var itemSearch = $(this).val();//get the search value.....
+                var selectName = $(this).attr('select-name');//get the select name....
+                var scrollValue = $('.select2-results__options').scrollTop();//get the scroll value....
+                var newUlScrollTop = scrollValue-100;//minus something to set the new position....
+                //check something is exist in search input.... 
+                if(itemSearch !== '' && typeof itemSearch != "undefined"){
+                    //check if no result fount from dropdown....
+                    if($('.select2-results__options li[role=alert]').length > 0){
+                        $("li[role=alert]").html('');//empty the li html....
+                        $("li[role=alert]").html('Searching More....');//set the new html of li....
+                        //send ajax to get the list of products from database....
+                        jQuery.post(ajax_object.ajax_url+"?action=wc_search_woo_product&jsoncallback=x",{searchItem:itemSearch},function(data){
+                            var responseOfSearch = JSON.parse(data);
+                            //check response....
+                            if(responseOfSearch.status == "1"){
+                                //get the responseoptions.....
+                                var options = responseOfSearch.matchProductsOptions;
+                                //if response data is empty then set the html....
+                                if(options.length === 0){
+                                    $("li[role=alert]").html('');
+                                    $("li[role=alert]").html('No results found');
+                                    $("li[role=alert]").show();
+                                }else{
+                                    //execute the loop on options....
+                                    $(options).each(function(index,value){
+                                        var wcProName = value.ProductName;//get the product name....
+                                        var wcProId = value.Id;//get the product id....
+                                        //before creating options needs to check option is already exist in select2 or not....
+                                        if($("[name='"+selectName+"']  option[value='"+wcProId+"']").length == 0){
+                                            //create new option.....
+                                            var matchWooOptions = new Option(wcProName,wcProId,false,false);
+                                            //append the match options in existing dropdown....
+                                            $('[name="'+selectName+'"] option:first').after(matchWooOptions);
+                                        }
+                                    });
+                                    //first close the current select by name of select box.....
+                                    $('[name="'+selectName+'"]').select2('close');
+                                    //then open the same select2 by name of it....
+                                    $('[name="'+selectName+'"]').select2('open');
+                                    //hide the extra select2 which is created by the select2 open event....
+                                    $('.select2-container.select2-container--default.select2-container--open:last').hide();
+                                    $('.select2-search__field').val(itemSearch);
+                                    $('.select2-results__options').scrollTop(newUlScrollTop);
+                                }
+                            }
+                        });
+                    }
+                }
+            });
         });
 }(jQuery));
 
@@ -1445,36 +1620,31 @@ function activateWcPlugin(){
 function popupEditDetails(triggerid){
     if(triggerid != ""){
         $checkClass = $("#trigger_tr_"+triggerid).attr('class');
-        jQuery.post( ajax_object.ajax_url + "?action=wc_get_trigger_details",{triggerid:triggerid}, function(data) {
-            var responsedata = JSON.parse(data);
-            if(responsedata.status == "1") {
-                jQuery("label.error").hide();
-                jQuery("#edittriggerid").val(triggerid);
-                jQuery("#edittriggerid").val(triggerid);
-                if(responsedata.triggerGoalName != ""){
-                    jQuery(".trigger_goal_name").html('');
-                    jQuery(".trigger_goal_name").html('Edit ' + responsedata.triggerGoalName + ' Trigger');
-                }
-                if(responsedata.triggerIntegrationName != ""){
-                    jQuery("#integrationname").val(responsedata.triggerIntegrationName);
-                }
-                if(responsedata.triggerCallName != ""){
-                    jQuery("#callname").val(responsedata.triggerCallName);
-                    if($checkClass!="" && $checkClass == 'readonly'){
-                        $('#callname').attr('readonly', true);
-                        $('#callname').addClass('ignore');
-                    }else{
-                        $('#callname').attr('readonly', false);
-                        $('#callname').removeClass('ignore');
-                    }
-                }
-                $("#editTriggerDetails").show();
-                //validate a application_settings_form form.....
-                if($('#trigger_details_form').length){
-                    validateForms('trigger_details_form');
-                }
-            }
-        });
+        //set the trigger id in input hidden field...
+        jQuery("#edittriggerid").val(triggerid);
+        var triggerGoalName = $("#trigger_hidden_goal_name_"+triggerid).val();//get the trigger goal name...
+        var triggerIntName = $("#trigger_hidden_int_name_"+triggerid).val();//get the trigger integration name..
+        var triggerCallName = $("#trigger_hidden_call_name_"+triggerid).val();//get the trigger call name....
+        //empty the popup header html.....
+        jQuery(".trigger_goal_name").html('');
+        //then set with new value.....
+        jQuery(".trigger_goal_name").html('Edit ' + triggerGoalName + ' Trigger');
+        jQuery("#edittriggername").val(triggerGoalName);//set the trigger goal name in input hidden....
+        jQuery("#integrationname").val(triggerIntName);//set the input value with integration name...
+        jQuery("#callname").val(triggerCallName);//set the input value with call name....
+        if($checkClass!="" && $checkClass == 'readonly'){
+            $('#callname').attr('readonly', true);
+            $('#callname').addClass('ignore');
+        }else{
+            $('#callname').attr('readonly', false);
+            $('#callname').removeClass('ignore');
+        }
+        $("#editTriggerDetails").show();//show the popup..
+        jQuery("label.error").hide();
+        //validate a application_settings_form form.....
+        if($('#trigger_details_form').length){
+            validateForms('trigger_details_form');
+        }
     }
 }
 
@@ -1498,9 +1668,15 @@ function updateTriggerdetails(){
                 $("#editTriggerDetails").hide();
                 swal("Saved!", 'Trigger details updated Successfully.', "success");
                 if(responsedata.triggerIntegrationName != ""){
+                   //set the integration name in hidden field........
+                   jQuery("#trigger_hidden_int_name_"+trigger_id).val(responsedata.triggerIntegrationName);
                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_integration_name_'+trigger_id).html(responsedata.triggerIntegrationName);
                 }
                 if(responsedata.displayCallName != ""){
+                    //get the only text from call name....
+                    var hiddenCallValue = $('<p>'+responsedata.displayCallName+'</p>').text();
+                    //then set in hidden field....
+                    jQuery("#trigger_hidden_call_name_"+trigger_id).val(hiddenCallValue);
                     jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.displayCallName);
                 }
             }else{
@@ -1533,6 +1709,10 @@ function hideCustomModel(modelId){
         if($(".scroll_div_products").length){
             $(".scroll_div_products").scrollTop(0);
         }
+        //check if product listing popup scroll is exist then set the scroll top to "0" to prevent the load more product request...
+        if($(".productsModelBody").length){
+            $(".productsModelBody").scrollTop(0);
+        }
         $("#"+modelId).hide();
         //reset form values and validation rules....
         if($("#addcfieldapp").length){
@@ -1545,11 +1725,6 @@ function hideCustomModel(modelId){
 //common function to apply a select2
 function applySelectTwo(element){
     if(element != ""){
-        //Export Tab: apply select 2 on infusionsoft products tab..
-        if(element == 'wc_iskp_products_dropdown'){
-            $("."+element).select2({
-            });    
-        }
         //Match Products Tab: apply select 2 on infusionsoft products tab..
         if(element == 'application_match_products_dropdown'){
             $("."+element).select2({
@@ -1561,6 +1736,12 @@ function applySelectTwo(element){
                 placeholder: 'Select Mapped Infusionsoft Field',
                 tags: true,
             }); 
+        }    
+
+        //Import Tab: apply select 2 on import products tab..
+        if(element == 'wc_import_products_dropdown'){
+            $("."+element).select2({
+            });    
         } 
         //add select 2 for woocommerce products field
         if(element == 'standardcfieldmappingwith'){
@@ -1665,6 +1846,7 @@ function applyCollapseRules(div_id){
         });    
     }
 }
+
 
 //Custom fields Tab : when user click on save button of custom field application form.....
 function savecfieldapp(){
@@ -2094,10 +2276,10 @@ function showProductsListing(length){
     jQuery("#products_sku_listing").html('<tr class="text-center"><td colspan="3">Loading Records...</td></tr>');
     $("#productsListing").show();
     $(".common-table-class").attr("id", "products_listing_with_sku_"+length);
-    $("#products_scroll_count").val(0);
     $(".load_products_listing_with_sku").hide();
     $(".load_coupons_listing").hide();
-    jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length}, function(data) {
+    var productLimitSku = $("#products_sku_listing_limit").val();
+    jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length,productLimitSku:productLimitSku}, function(data) {
         var responsedata = JSON.parse(data);
         if(responsedata.status == "1") {
             if(responsedata.productsListing != ""){
@@ -2112,8 +2294,11 @@ function showProductsListing(length){
 var productsLimit = 20;
 var productsOffsetExport = 20;
 var productsOffsetMatch = 20;
+var productsOffsetImport = 0;
 var customLimitExport = 20;
 var customLimitMatch = 20;
+var customLimitImport = 20;
+var dropdownAppProducts = 20;
 
 //on scroll load more products...
 function loadMoreProducts(){
@@ -2152,22 +2337,39 @@ function loadMoreProducts(){
                 }
                 var productsOffset = productsOffsetMatch;
                 customLimitMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+            }else if(tabId[1] == 'table_import_products') {
+                //compare scroll counter value......
+                if(scroll_counter_updated_value !== 1){
+                    productsOffsetImport = parseInt(productsOffsetImport) + 1;
+                }else{
+                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                    productsOffsetImport = 1;
+                }
+                var productsOffset = productsOffsetImport;
+                var existingLimitImport = $("#products_limit_import").val();
+                customLimitImport = parseInt(existingLimitImport) + 20;
+                var dropdownAppProducts = $("#products_limit_wc_import").val();
             }
+            
             //set the input hidden value to fetch the same list of records after export process done....
             $("#products_limit_export").val(customLimitExport);
             $("#products_limit_match").val(customLimitMatch);
+            $("#products_limit_import").val(customLimitImport);
+
             //set the loader image....
             $(".load_"+tabId[1]).html('');
             $(".load_"+tabId[1]).html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
             $(".load_"+tabId[1]).show();
             $('.export_products_btn').addClass("disable_anchor");
+            $('.import_products_btn').addClass("disable_anchor");
             //send ajax to get the latest products of wc with updated offset....
-            jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
+            jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset,dropdownLimit:dropdownAppProducts}, function(data) {
                 var responsedata = JSON.parse(data);
                 //hide the loader...
                 $(".load_"+tabId[1]).hide();
                 if(responsedata.status == "1") {
                     $('.export_products_btn').removeClass("disable_anchor");
+                    $('.import_products_btn').removeClass("disable_anchor");
                     if(responsedata.moreProductsListing != ""){
                         //check the tab if then append the next products html.....
                         if(tabId[1] == 'table_export_products'){
@@ -2176,10 +2378,24 @@ function loadMoreProducts(){
                             if($(".all_products_checkbox_export").is(":checked")){
                                 $(".each_product_checkbox_export").prop("checked",true);
                             }
-                        }else{
+                        }else if(tabId[1] == 'table_match_products'){
                             $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
                             //apply select two on match products tab.....
                             applySelectTwo('application_match_products_dropdown');
+                        }else{
+                            $("table#import_products_listing tbody").append(responsedata.moreProductsListing);
+                            //add select 2 for woocommerce products field
+                            if($(".wc_import_products_dropdown").length){
+                                applySelectTwo('wc_import_products_dropdown');
+                            }
+                            //first check checkbox of all checkbox is checked or not...
+                            if($(".all_products_checkbox_import").is(":checked")){
+                                $(".each_product_checkbox_import").prop("checked",true);
+                            }
+                            //code is used to set the woocommerce product selected from dropdowm....
+                            if($(".wcProductsDropdown").length){
+                                applyProductSelected();
+                            }
                         }
                     }else{
                         //minus something from scroll top to prevent next ajax request immediately.....
@@ -2200,49 +2416,54 @@ function loadMoreProducts(){
 //define the intial values for products listing with sku popup...
 var productsListingLimit = 20;
 var productsListingOffset = 20;
-
+var productsSkuCustomLimit = 20;
 //On scroll touch to bottom in products listing with sku popup
 function loadProductsWithSku(){
     //check scroll touch to bottom then proceed next....
     if($(".productsModelBody").scrollTop() + $(".productsModelBody").innerHeight() >= $(".productsModelBody")[0].scrollHeight){
-        //get the scroll counter value....
-        var products_scroll_counter_value = $("#products_scroll_count").val();
-        //add "1" to set the next value...
-        var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
-        //set the latest value....
-        $("#products_scroll_count").val(products_scroll_counter_updated_value);
-        //compare products listing scroll counter value......
-        if(products_scroll_counter_updated_value !== 1){
-            productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
-        }else{
-            productsListingLimit = 20;
-            productsListingOffset = 20;
-        }
-
-        //set the loader image....
-        $(".load_products_listing_with_sku").html('');
-        $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
-        $(".load_products_listing_with_sku").show();
-        var popupTableId = $(".common-table-class").attr('id');
-        var explodedId = popupTableId.split('products_listing_with_sku_');
-        var skuLength = explodedId[1];
-        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
-            var responseData = JSON.parse(data);
-            $(".load_products_listing_with_sku").hide();
-            if(responseData.status == "1"){
-                if(responseData.productsListingWithSku != ""){
-                    $("#products_sku_listing").append(responseData.productsListingWithSku);
-                }else{
-                    $(".load_products_listing_with_sku").html('');
-                    $(".load_products_listing_with_sku").html('No More Products Exist!');
-                    $(".load_products_listing_with_sku").show();
-                    //minus something from scroll top to prevent next ajax request immediately.....
-                    var listingScrollTop = $(".productsModelBody").scrollTop();
-                    var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
-                    $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
-                }
+        //then check the popup is visible or not.... if visible then send next request to load more products with sku....
+        if($("#productsListing").is(':visible')){
+            //get the scroll counter value....
+            var products_scroll_counter_value = $("#products_scroll_count").val();
+            //add "1" to set the next value...
+            var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
+            //set the latest value....
+            $("#products_scroll_count").val(products_scroll_counter_updated_value);
+            //compare products listing scroll counter value......
+            if(products_scroll_counter_updated_value !== 1){
+                productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+            }else{
+                productsListingLimit = 20;
+                productsListingOffset = 20;
             }
-        });
+            //update the limit by adding offset.....
+            productsSkuCustomLimit = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+            $("#products_sku_listing_limit").val(productsSkuCustomLimit);//set the input hidden value....
+            //set the loader image....
+            $(".load_products_listing_with_sku").html('');
+            $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+            $(".load_products_listing_with_sku").show();
+            var popupTableId = $(".common-table-class").attr('id');
+            var explodedId = popupTableId.split('products_listing_with_sku_');
+            var skuLength = explodedId[1];
+            jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
+                var responseData = JSON.parse(data);
+                $(".load_products_listing_with_sku").hide();
+                if(responseData.status == "1"){
+                    if(responseData.productsListingWithSku != ""){
+                        $("#products_sku_listing").append(responseData.productsListingWithSku);
+                    }else{
+                        $(".load_products_listing_with_sku").html('');
+                        $(".load_products_listing_with_sku").html('No More Products Exist!');
+                        $(".load_products_listing_with_sku").show();
+                        //minus something from scroll top to prevent next ajax request immediately.....
+                        var listingScrollTop = $(".productsModelBody").scrollTop();
+                        var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
+                        $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
+                    }
+                }
+            });
+        }
     }
 }
 
@@ -2379,4 +2600,84 @@ function loadMoreProductByCat(){
             } 
         }
     }
+}
+
+//On click of import products button send ajax to import products and on sucess update the html....
+function infusionKeapProductsImport(){
+    //get the scroll top....
+    var scrollTop = $(".righttextInner").scrollTop();
+    //minus 100px from it.....
+    var newScrollTopValue =scrollTop-100;
+    //set the new scroll top with latest value....
+    $(".righttextInner").scrollTop(newScrollTopValue);
+    $(".loading_products").hide();
+    //get the input type hidden value to tha same list of products they are already loaded....
+    var limitAfterImport = $("#products_limit_import").val();
+    var checkImportProducts = checkSelectedProducts('import_products_listing_class','allproductsimport');
+    var checkSelectedImportProductsCount = checkImportProducts.length;
+    if(checkSelectedImportProductsCount == 0){
+        $(".import-products-error").html('You need to select atleast one product to import.');
+        $(".import-products-error").show();
+    }else{
+        $(".import-products-error").hide();
+        $(".importProducts").show();
+        $('.import_products_btn').addClass("disable_anchor");
+        jQuery.post( ajax_object.ajax_url + "?action=wc_import_application_products",$('#wc_import_products_form').serialize()+"&newLimit="+limitAfterImport, function(data) {
+            var responsedata = JSON.parse(data);
+            $(".importProducts").hide();
+            if(responsedata.status == "1") {
+                $('.import_products_btn').removeClass("disable_anchor");
+                if(responsedata.latestImportProductsHtml != ""){
+                     $('.import_products_listing_class').html();
+                     $('.import_products_listing_class').html(responsedata.latestImportProductsHtml);
+                }
+                
+                //add select 2 for woocommerce products field
+                if($(".wc_import_products_dropdown").length){
+                    applySelectTwo('wc_import_products_dropdown');
+                }
+                //code is used to set the woocommerce product selected from dropdown....
+                if($(".wcProductsDropdown").length){
+                    applyProductSelected();
+                }
+                $('.all_products_checkbox_import').prop("checked", false);
+                $('.each_product_checkbox_import').prop("checked", false);
+                swal("Saved!", 'Products imported successfully.', "success");
+            }else{
+                $(".import-products-error").show();
+                $(".import-products-error").html('Something Went Wrong.');
+                setTimeout(function()
+                {
+                    $('.import-products-error').fadeOut("slow");
+                    $('.import_products_btn').removeClass("disable_anchor");
+                }, 3000);
+            }
+            //after export products set the scroll top to 0...
+            $(".righttextInner").scrollTop(0);
+        });
+    }
+    setTimeout(function()
+    {
+        $('.import-products-error').fadeOut("slow");
+    }, 3000);
+}
+
+//Import/Export Tab : code is used to set the woocommerce product selected from dropdown....
+function applyProductSelected(){
+    //execute loop on each select box of woocommerce products....
+    $(".wcProductsDropdown").each(function() {
+        //get the application product id....
+        var appProductId = $(this).attr('data-target');
+        //get the woocommercer product id....
+        var wcProductId = $(this).attr("data-id");
+        //first check application product id is exist....
+        if(appProductId != ''){
+            //then check woocommerce product id exist////
+            if(wcProductId != ""){
+                //set woocommerce product selected by select box name....
+                $('[name="wc_product_import_with_'+appProductId+'"]').val(wcProductId);
+                $('[name="wc_product_import_with_'+appProductId+'"]').select2().trigger('change');
+            }
+        }
+    }); 
 }
