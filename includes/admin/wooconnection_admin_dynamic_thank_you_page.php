@@ -2,6 +2,24 @@
 <?php 
 //check the application authentication status if authorized then give access to configure campaign goals....
 $checkAuthenticationStatus = applicationAuthenticationStatus();
+//get the referral partner affiliate page id....
+$referral_affiliate_page_id = get_option('affiliate_redirect_page_id');
+//get the default redirect data.......
+$default_thankyou_redirect_data = get_option('default_thankyou_details');
+//Initialize the empty variables.....
+$redirectSettingType = '';
+$redirectSettingValue = '';
+//check default thankyou page redirection setting exist or not...
+if (isset($default_thankyou_redirect_data) && !empty($default_thankyou_redirect_data)) {
+  //set the redirect type....
+  if(!empty($default_thankyou_redirect_data['redirectType'])){
+    $redirectSettingType = $default_thankyou_redirect_data['redirectType'];
+  }
+  //set the redirect value....
+  if(!empty($default_thankyou_redirect_data['redirectValue'])){
+    $redirectSettingValue = $default_thankyou_redirect_data['redirectValue'];
+  }
+}
 ?>
 <div class="info-header">
   <p>Dynamic Thankyou Page</p>
@@ -48,6 +66,9 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
             <div class="hide defaultoverride">
               <form action="" method="post" id="thank_default_form" onsubmit="return false">
                 <input type="hidden" name="defaultoverrideid" id="defaultoverrideid" value="" />
+                <input type="hidden" name="affiliate_page" value="<?php echo $referral_affiliate_page_id; ?>">
+                <input type="hidden" id="redirect_setting_type" value="<?php echo $redirectSettingType; ?>">
+                <input type="hidden" id="redirect_setting_value" value="<?php echo $redirectSettingValue; ?>">
                 <h5 class="text-left thankyou_default_title">Create Thankyou Page Override</h5>
                   <div class="form-group row custom_label">
                     <label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label">Redirect Settings</label>
