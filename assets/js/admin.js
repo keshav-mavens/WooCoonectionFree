@@ -1018,8 +1018,17 @@
                                 if(responsedata.status == "1") {
                                     if(current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
                                         $(".override_product_rule li#"+current_override_id).remove();
+                                        if($('.override_product_rule li').length == 0){
+                                            $('#product_thank_overrides').html('');
+                                            $('#product_thank_overrides').html("<p class='no_override_exist'>We don't have any product based overrides</p>");
+                                        }
                                         swal("Saved!", 'Product Thankyou page override deleted Successfully.', "success");
                                     }else if (current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
+                                        $(".override_product_category_rule li#"+current_override_id).remove();
+                                        if($('.override_product_category_rule li').length == 0){
+                                            $("#product_cat_thank_overrides").html('');
+                                            $("#product_cat_thank_overrides").html("<p class='no_override_exist'>We don't have any product category based overrides</p>");
+                                        }
                                         $(".override_product_category_rule li#"+current_override_id).remove();
                                         swal("Saved!", 'Product Category Thankyou page override deleted Successfully.', "success");
                                     }
@@ -1989,7 +1998,17 @@ function saveThanksProductOverride(){
                 //if product override id not exist it means add to new li.....
                 if(checkOverrideId == ""){
                     if(responsedata.newOverrideLi != ""){
-                        $(".override_product_rule").append(responsedata.newOverrideLi);
+                        //check if ul exist then needs to append the li....
+                        if($(".override_product_rule").length){
+                            $(".override_product_rule").append(responsedata.newOverrideLi);
+                        }else{//if not exist then needs to set the html.....
+                            $("#product_thank_overrides").html('');
+                            $("#product_thank_overrides").html('<ul class="group-fields override_product_rule">'+responsedata.newOverrideLi+'</ul>');
+                        }
+                        //apply sortable rule on the thankyou overrides of product rule.....
+                        if($(".override_product_rule").length){
+                            sortabledivs('override_product_rule');
+                        }
                     }
                 }else{//else update the title of li with latest updated title.....
                     if(responsedata.overrideUpdateTitle){
@@ -2032,7 +2051,17 @@ function saveThanksProductCatOverride(){
                 //if cat override id is not exist it means need to add new li of category override...
                 if(checkCatOverrideId == ""){
                     if(responsedata.catNewOverrideLi != ""){
-                        $(".override_product_category_rule").append(responsedata.catNewOverrideLi);
+                        //check if ul exist then needs to append the li....
+                        if($(".override_product_category_rule").length){
+                            $(".override_product_category_rule").append(responsedata.catNewOverrideLi);
+                        }else{//if not exist then needs to set the html.....
+                            $("#product_cat_thank_overrides").html('');
+                            $("#product_cat_thank_overrides").html('<ul class="group-fields override_product_category_rule">'+responsedata.catNewOverrideLi+'</ul>');
+                        }
+                        //apply sortable rule on the thankyou overrides of product rule.....
+                        if($(".override_product_category_rule").length){
+                            sortabledivs('override_product_category_rule');
+                        }
                     }
                 }else{//else update the title of updated category override....
                     if(responsedata.catUpdatedOverrTitle){
