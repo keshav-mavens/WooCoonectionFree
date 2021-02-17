@@ -4,6 +4,10 @@ add_action( 'wp_ajax_wc_load_tab_main_content', 'wc_load_tab_main_content');
 //Function Definiation : wc_load_tab_main_content
 function wc_load_tab_main_content(){
 	if(isset($_POST['tab_id']) && !empty($_POST['tab_id'])){
+		//define the memory limit infinite to prevent from exceed memory limit error....
+		ini_set('memory_limit',"-1");
+		//also set time limit "0" to prevent the execution time exceed....
+		set_time_limit(0);
 		//create file name on the basis of "tab_id"
 		$pageName = 'wooconnection_admin_'.$_POST['tab_id'].'.php';
 		require_once(WOOCONNECTION_PLUGIN_DIR.'includes/admin/'.$pageName);
@@ -616,33 +620,6 @@ function wc_save_thanks_product_category_override()
 			}
 		}	
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-
-//Dynamic Thankyou Override : wordpress hook is triggered when user try to eidt the default thankyou override.....
-add_action( 'wp_ajax_wc_get_thankyou_default_override', 'wc_get_thankyou_default_override');
-//Function Definiation : wc_get_thankyou_default_override
-function wc_get_thankyou_default_override()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		$redirectType = '';//define empty variable...
-		$redirectValue = '';//define empty variable...
-		//check option "default_thankyou_details" exist in wp_options table if yes then set the values of redirect type and redirect value.....
-		if(isset($_POST['option']) && !empty($_POST['option'])){
-			$default_thankyou_details = get_option($_POST['option']);
-			if (isset($default_thankyou_details) && !empty($default_thankyou_details)) {
-				if(!empty($default_thankyou_details['redirectType'])){
-					$redirectType = $default_thankyou_details['redirectType'];
-				}
-				if(!empty($default_thankyou_details['redirectValue'])){
-					$redirectValue = $default_thankyou_details['redirectValue'];
-				}
-			}
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'redirectType'=>$redirectType,'redirectValue'=>$redirectValue));
 	}
 	die();
 }
