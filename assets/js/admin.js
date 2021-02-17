@@ -1893,7 +1893,6 @@ function sortabledivs(element){
                     jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_rule").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
                         }
                     });
                 }
@@ -1906,7 +1905,6 @@ function sortabledivs(element){
                     jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_category_rule").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
                         }
                     });
                 }
