@@ -192,6 +192,15 @@
                                 $(".conditional_data").hide("display","none");
                             }
                         }
+
+                        //check if select exist.....
+                        if($(".redirectpagesselect").length){
+                            //get the affiliate page if from input hidden......
+                            var refRelatedPage  = $("[name=affiliate_page]").val();    
+                            //then remove the option of page from dropdown....
+                            $(".redirectpagesselect option[value="+refRelatedPage+"]").remove();
+                        }
+                    
                     });
                     //Check if "response" done....
                     var checkResponse = getQueryParameter('response');
@@ -833,6 +842,9 @@
             $document.on("change","#overrideredirecturltype",function(event) {
                 event.stopPropagation();
                 var selectedCondition = $(this).val();
+                //get the default override redirect data...
+                var defaultOverrideType = $("#redirect_setting_type").val();//override type....
+                var defaultOverrideValue = $("#redirect_setting_value").val();//override value....
                 if (selectedCondition == DEFAULT_WORDPRESS_POST) {
                     $(".redirect-type-common").hide();
                     $("#redirect-type-post").show();
@@ -845,40 +857,44 @@
                     $(".redirect-type-common").hide();
                     $("#redirect-type-custom-url").show();
                 }
+                //check if default override type and default override value is exist.....
+                if(defaultOverrideValue != '' && defaultOverrideType != ''){
+                    //set the default override type value on the basis of override type...
+                    if(defaultOverrideType == DEFAULT_WORDPRESS_POST){
+                        $("#redirectwordpresspost").val(defaultOverrideValue).trigger('change');//set post value and 
+                    }else if(defaultOverrideType = DEFAULT_WORDPRESS_PAGE){
+                        $("#redirectwordpresspage").val(defaultOverrideValue).trigger('change');
+                    }
+                }
             });
             
 
             //on click of edit icon of default thankyou override show the edit default thankyou override form.....
             $document.on("click",".edit_default_thankpage_override",function(event) {
                 event.stopPropagation();
-                $(".add-editform-override").addClass('overlay');
+                var defaultSettingType = $("#redirect_setting_type").val();
+                var defaultSettingValue = $("#redirect_setting_value").val();
                 $(".thankyou_default_title").html('Edit Default Thankyou Page');
-                jQuery.post( ajax_object.ajax_url + "?action=wc_get_thankyou_default_override",{option:'default_thankyou_details'}, function(data) {
-                    var responsedata = JSON.parse(data);
-                    if(responsedata.status == "1") {
-                        if(responsedata.redirectType != "" && responsedata.redirectType !== null){
-                            jQuery("#overrideredirecturltype").val(responsedata.redirectType);
-                            $("#overrideredirecturltype").trigger("change");
-                            if(responsedata.redirectType == DEFAULT_WORDPRESS_PAGE){
-                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
-                                    jQuery("#redirectwordpresspage").val(responsedata.redirectValue).trigger('change');
-                                }
-                            }
-                            else if (responsedata.redirectType == DEFAULT_WORDPRESS_POST)
-                            {
-                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
-                                    jQuery('#redirectwordpresspost').val(responsedata.redirectValue).trigger('change');
-                                }
-                            }
-                            else{
-                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
-                                    jQuery("#customurl").val(responsedata.redirectValue);
-                                }
-                            }   
+                if(defaultSettingType != "" && defaultSettingType !== null){
+                    jQuery("#overrideredirecturltype").val(defaultSettingType);
+                    $("#overrideredirecturltype").trigger("change");
+                    if(defaultSettingType == DEFAULT_WORDPRESS_PAGE){
+                        if(defaultSettingValue != "" && defaultSettingValue !== null){
+                            jQuery("#redirectwordpresspage").val(defaultSettingValue).trigger('change');
                         }
-                        $(".add-editform-override").removeClass('overlay');
                     }
-                });
+                    else if (defaultSettingType == DEFAULT_WORDPRESS_POST)
+                    {
+                        if(defaultSettingValue != "" && defaultSettingValue !== null){
+                            jQuery('#redirectwordpresspost').val(defaultSettingValue).trigger('change');
+                        }
+                    }
+                    else{
+                        if(defaultSettingValue != "" && defaultSettingValue !== null){
+                            jQuery("#customurl").val(defaultSettingValue);
+                        }
+                    }   
+                }
                 $('.defaultoverride,.main_rendered_thank_overrides').toggle();
             });
         
@@ -2116,6 +2132,14 @@ function saveThanksDefaultOverride(){
             var responsedata = JSON.parse(data);
             $(".savingDefaultOverrideDetails").hide();
             if(responsedata.status == "1") {
+                //set the input hidden value of default redirect type.....
+                if(responsedata.overriderDefaultType != ''){
+                    $("#redirect_setting_type").val(responsedata.overriderDefaultType);
+                }
+                //set the input hidden value of default redirect value....
+                if(responsedata.overriderDefaultValue != ''){
+                    $("#redirect_setting_value").val(responsedata.overriderDefaultValue);
+                }
                 $('.defaultoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_default_override').removeClass("disable_anchor");
                 swal("Saved!", 'Default thankyou page override details updated successfully.', "success");
