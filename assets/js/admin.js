@@ -1429,36 +1429,31 @@ function activateWcPlugin(){
 function popupEditDetails(triggerid){
     if(triggerid != ""){
         $checkClass = $("#trigger_tr_"+triggerid).attr('class');
-        jQuery.post( ajax_object.ajax_url + "?action=wc_get_trigger_details",{triggerid:triggerid}, function(data) {
-            var responsedata = JSON.parse(data);
-            if(responsedata.status == "1") {
-                jQuery("label.error").hide();
-                jQuery("#edittriggerid").val(triggerid);
-                jQuery("#edittriggerid").val(triggerid);
-                if(responsedata.triggerGoalName != ""){
-                    jQuery(".trigger_goal_name").html('');
-                    jQuery(".trigger_goal_name").html('Edit ' + responsedata.triggerGoalName + ' Trigger');
-                }
-                if(responsedata.triggerIntegrationName != ""){
-                    jQuery("#integrationname").val(responsedata.triggerIntegrationName);
-                }
-                if(responsedata.triggerCallName != ""){
-                    jQuery("#callname").val(responsedata.triggerCallName);
-                    if($checkClass!="" && $checkClass == 'readonly'){
-                        $('#callname').attr('readonly', true);
-                        $('#callname').addClass('ignore');
-                    }else{
-                        $('#callname').attr('readonly', false);
-                        $('#callname').removeClass('ignore');
-                    }
-                }
-                $("#editTriggerDetails").show();
-                //validate a application_settings_form form.....
-                if($('#trigger_details_form').length){
-                    validateForms('trigger_details_form');
-                }
-            }
-        });
+        //set the trigger id in input hidden field...
+        jQuery("#edittriggerid").val(triggerid);
+        var triggerGoalName = $("#trigger_hidden_goal_name_"+triggerid).val();//get the trigger goal name...
+        var triggerIntName = $("#trigger_hidden_int_name_"+triggerid).val();//get the trigger integration name..
+        var triggerCallName = $("#trigger_hidden_call_name_"+triggerid).val();//get the trigger call name....
+        //empty the popup header html.....
+        jQuery(".trigger_goal_name").html('');
+        //then set with new value.....
+        jQuery(".trigger_goal_name").html('Edit ' + triggerGoalName + ' Trigger');
+        jQuery("#edittriggername").val(triggerGoalName);//set the trigger goal name in input hidden....
+        jQuery("#integrationname").val(triggerIntName);//set the input value with integration name...
+        jQuery("#callname").val(triggerCallName);//set the input value with call name....
+        if($checkClass!="" && $checkClass == 'readonly'){
+            $('#callname').attr('readonly', true);
+            $('#callname').addClass('ignore');
+        }else{
+            $('#callname').attr('readonly', false);
+            $('#callname').removeClass('ignore');
+        }
+        $("#editTriggerDetails").show();//show the popup..
+        jQuery("label.error").hide();
+        //validate a application_settings_form form.....
+        if($('#trigger_details_form').length){
+            validateForms('trigger_details_form');
+        }
     }
 }
 
@@ -1482,9 +1477,15 @@ function updateTriggerdetails(){
                 $("#editTriggerDetails").hide();
                 swal("Saved!", 'Trigger details updated Successfully.', "success");
                 if(responsedata.triggerIntegrationName != ""){
+                   //set the integration name in hidden field........
+                   jQuery("#trigger_hidden_int_name_"+trigger_id).val(responsedata.triggerIntegrationName);
                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_integration_name_'+trigger_id).html(responsedata.triggerIntegrationName);
                 }
                 if(responsedata.displayCallName != ""){
+                    //get the only text from call name....
+                    var hiddenCallValue = $('<p>'+responsedata.displayCallName+'</p>').text();
+                    //then set in hidden field....
+                    jQuery("#trigger_hidden_call_name_"+trigger_id).val(hiddenCallValue);
                     jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.displayCallName);
                 }
             }else{
@@ -1516,6 +1517,10 @@ function hideCustomModel(modelId){
         //if div of scroll is exist then set the scroll top position to zero.....
         if($(".scroll_div_products").length){
             $(".scroll_div_products").scrollTop(0);
+        }
+        //check if product listing popup scroll is exist then set the scroll top to "0" to prevent the load more product request...
+        if($(".productsModelBody").length){
+            $(".productsModelBody").scrollTop(0);
         }
         $("#"+modelId).hide();
         //reset form values and validation rules....
@@ -2070,10 +2075,10 @@ function showProductsListing(length){
     jQuery("#products_sku_listing").html('<tr class="text-center"><td colspan="3">Loading Records...</td></tr>');
     $("#productsListing").show();
     $(".common-table-class").attr("id", "products_listing_with_sku_"+length);
-    $("#products_scroll_count").val(0);
     $(".load_products_listing_with_sku").hide();
     $(".load_coupons_listing").hide();
-    jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length}, function(data) {
+    var productLimitSku = $("#products_sku_listing_limit").val();
+    jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length,productLimitSku:productLimitSku}, function(data) {
         var responsedata = JSON.parse(data);
         if(responsedata.status == "1") {
             if(responsedata.productsListing != ""){
@@ -2176,49 +2181,54 @@ function loadMoreProducts(){
 //define the intial values for products listing with sku popup...
 var productsListingLimit = 20;
 var productsListingOffset = 20;
-
+var productsSkuCustomLimit = 20;
 //On scroll touch to bottom in products listing with sku popup
 function loadProductsWithSku(){
     //check scroll touch to bottom then proceed next....
     if($(".productsModelBody").scrollTop() + $(".productsModelBody").innerHeight() >= $(".productsModelBody")[0].scrollHeight){
-        //get the scroll counter value....
-        var products_scroll_counter_value = $("#products_scroll_count").val();
-        //add "1" to set the next value...
-        var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
-        //set the latest value....
-        $("#products_scroll_count").val(products_scroll_counter_updated_value);
-        //compare products listing scroll counter value......
-        if(products_scroll_counter_updated_value !== 1){
-            productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
-        }else{
-            productsListingLimit = 20;
-            productsListingOffset = 20;
-        }
-
-        //set the loader image....
-        $(".load_products_listing_with_sku").html('');
-        $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
-        $(".load_products_listing_with_sku").show();
-        var popupTableId = $(".common-table-class").attr('id');
-        var explodedId = popupTableId.split('products_listing_with_sku_');
-        var skuLength = explodedId[1];
-        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
-            var responseData = JSON.parse(data);
-            $(".load_products_listing_with_sku").hide();
-            if(responseData.status == "1"){
-                if(responseData.productsListingWithSku != ""){
-                    $("#products_sku_listing").append(responseData.productsListingWithSku);
-                }else{
-                    $(".load_products_listing_with_sku").html('');
-                    $(".load_products_listing_with_sku").html('No More Products Exist!');
-                    $(".load_products_listing_with_sku").show();
-                    //minus something from scroll top to prevent next ajax request immediately.....
-                    var listingScrollTop = $(".productsModelBody").scrollTop();
-                    var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
-                    $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
-                }
+        //then check the popup is visible or not.... if visible then send next request to load more products with sku....
+        if($("#productsListing").is(':visible')){
+            //get the scroll counter value....
+            var products_scroll_counter_value = $("#products_scroll_count").val();
+            //add "1" to set the next value...
+            var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
+            //set the latest value....
+            $("#products_scroll_count").val(products_scroll_counter_updated_value);
+            //compare products listing scroll counter value......
+            if(products_scroll_counter_updated_value !== 1){
+                productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+            }else{
+                productsListingLimit = 20;
+                productsListingOffset = 20;
             }
-        });
+            //update the limit by adding offset.....
+            productsSkuCustomLimit = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+            $("#products_sku_listing_limit").val(productsSkuCustomLimit);//set the input hidden value....
+            //set the loader image....
+            $(".load_products_listing_with_sku").html('');
+            $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+            $(".load_products_listing_with_sku").show();
+            var popupTableId = $(".common-table-class").attr('id');
+            var explodedId = popupTableId.split('products_listing_with_sku_');
+            var skuLength = explodedId[1];
+            jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
+                var responseData = JSON.parse(data);
+                $(".load_products_listing_with_sku").hide();
+                if(responseData.status == "1"){
+                    if(responseData.productsListingWithSku != ""){
+                        $("#products_sku_listing").append(responseData.productsListingWithSku);
+                    }else{
+                        $(".load_products_listing_with_sku").html('');
+                        $(".load_products_listing_with_sku").html('No More Products Exist!');
+                        $(".load_products_listing_with_sku").show();
+                        //minus something from scroll top to prevent next ajax request immediately.....
+                        var listingScrollTop = $(".productsModelBody").scrollTop();
+                        var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
+                        $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
+                    }
+                }
+            });
+        }
     }
 }
 
