@@ -831,6 +831,9 @@
             $document.on("change","#overrideredirecturltype",function(event) {
                 event.stopPropagation();
                 var selectedCondition = $(this).val();
+                //get the default override redirect data...
+                var defaultOverrideType = $("#redirect_setting_type").val();//override type....
+                var defaultOverrideValue = $("#redirect_setting_value").val();//override value....
                 if (selectedCondition == DEFAULT_WORDPRESS_POST) {
                     $(".redirect-type-common").hide();
                     $("#redirect-type-post").show();
@@ -843,40 +846,44 @@
                     $(".redirect-type-common").hide();
                     $("#redirect-type-custom-url").show();
                 }
+                //check if default override type and default override value is exist.....
+                if(defaultOverrideValue != '' && defaultOverrideType != ''){
+                    //set the default override type value on the basis of override type...
+                    if(defaultOverrideType == DEFAULT_WORDPRESS_POST){
+                        $("#redirectwordpresspost").val(defaultOverrideValue).trigger('change');//set post value and 
+                    }else if(defaultOverrideType = DEFAULT_WORDPRESS_PAGE){
+                        $("#redirectwordpresspage").val(defaultOverrideValue).trigger('change');
+                    }
+                }
             });
             
 
             //on click of edit icon of default thankyou override show the edit default thankyou override form.....
             $document.on("click",".edit_default_thankpage_override",function(event) {
                 event.stopPropagation();
-                $(".add-editform-override").addClass('overlay');
+                var defaultSettingType = $("#redirect_setting_type").val();
+                var defaultSettingValue = $("#redirect_setting_value").val();
                 $(".thankyou_default_title").html('Edit Default Thankyou Page');
-                jQuery.post( ajax_object.ajax_url + "?action=wc_get_thankyou_default_override",{option:'default_thankyou_details'}, function(data) {
-                    var responsedata = JSON.parse(data);
-                    if(responsedata.status == "1") {
-                        if(responsedata.redirectType != "" && responsedata.redirectType !== null){
-                            jQuery("#overrideredirecturltype").val(responsedata.redirectType);
-                            $("#overrideredirecturltype").trigger("change");
-                            if(responsedata.redirectType == DEFAULT_WORDPRESS_PAGE){
-                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
-                                    jQuery("#redirectwordpresspage").val(responsedata.redirectValue).trigger('change');
-                                }
-                            }
-                            else if (responsedata.redirectType == DEFAULT_WORDPRESS_POST)
-                            {
-                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
-                                    jQuery('#redirectwordpresspost').val(responsedata.redirectValue).trigger('change');
-                                }
-                            }
-                            else{
-                                if(responsedata.redirectValue != "" && responsedata.redirectValue !== null){
-                                    jQuery("#customurl").val(responsedata.redirectValue);
-                                }
-                            }   
+                if(defaultSettingType != "" && defaultSettingType !== null){
+                    jQuery("#overrideredirecturltype").val(defaultSettingType);
+                    $("#overrideredirecturltype").trigger("change");
+                    if(defaultSettingType == DEFAULT_WORDPRESS_PAGE){
+                        if(defaultSettingValue != "" && defaultSettingValue !== null){
+                            jQuery("#redirectwordpresspage").val(defaultSettingValue).trigger('change');
                         }
-                        $(".add-editform-override").removeClass('overlay');
                     }
-                });
+                    else if (defaultSettingType == DEFAULT_WORDPRESS_POST)
+                    {
+                        if(defaultSettingValue != "" && defaultSettingValue !== null){
+                            jQuery('#redirectwordpresspost').val(defaultSettingValue).trigger('change');
+                        }
+                    }
+                    else{
+                        if(defaultSettingValue != "" && defaultSettingValue !== null){
+                            jQuery("#customurl").val(defaultSettingValue);
+                        }
+                    }   
+                }
                 $('.defaultoverride,.main_rendered_thank_overrides').toggle();
             });
         
@@ -1010,10 +1017,19 @@
                                 var responsedata = JSON.parse(data);
                                 if(responsedata.status == "1") {
                                     if(current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
-                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
+                                        $(".override_product_rule li#"+current_override_id).remove();
+                                        if($('.override_product_rule li').length == 0){
+                                            $('#product_thank_overrides').html('');
+                                            $('#product_thank_overrides').html("<p class='no_override_exist'>We don't have any product based overrides</p>");
+                                        }
                                         swal("Saved!", 'Product Thankyou page override deleted Successfully.', "success");
                                     }else if (current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
-                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
+                                        $(".override_product_category_rule li#"+current_override_id).remove();
+                                        if($('.override_product_category_rule li').length == 0){
+                                            $("#product_cat_thank_overrides").html('');
+                                            $("#product_cat_thank_overrides").html("<p class='no_override_exist'>We don't have any product category based overrides</p>");
+                                        }
+                                        $(".override_product_category_rule li#"+current_override_id).remove();
                                         swal("Saved!", 'Product Category Thankyou page override deleted Successfully.', "success");
                                     }
                                 }
@@ -1429,36 +1445,31 @@ function activateWcPlugin(){
 function popupEditDetails(triggerid){
     if(triggerid != ""){
         $checkClass = $("#trigger_tr_"+triggerid).attr('class');
-        jQuery.post( ajax_object.ajax_url + "?action=wc_get_trigger_details",{triggerid:triggerid}, function(data) {
-            var responsedata = JSON.parse(data);
-            if(responsedata.status == "1") {
-                jQuery("label.error").hide();
-                jQuery("#edittriggerid").val(triggerid);
-                jQuery("#edittriggerid").val(triggerid);
-                if(responsedata.triggerGoalName != ""){
-                    jQuery(".trigger_goal_name").html('');
-                    jQuery(".trigger_goal_name").html('Edit ' + responsedata.triggerGoalName + ' Trigger');
-                }
-                if(responsedata.triggerIntegrationName != ""){
-                    jQuery("#integrationname").val(responsedata.triggerIntegrationName);
-                }
-                if(responsedata.triggerCallName != ""){
-                    jQuery("#callname").val(responsedata.triggerCallName);
-                    if($checkClass!="" && $checkClass == 'readonly'){
-                        $('#callname').attr('readonly', true);
-                        $('#callname').addClass('ignore');
-                    }else{
-                        $('#callname').attr('readonly', false);
-                        $('#callname').removeClass('ignore');
-                    }
-                }
-                $("#editTriggerDetails").show();
-                //validate a application_settings_form form.....
-                if($('#trigger_details_form').length){
-                    validateForms('trigger_details_form');
-                }
-            }
-        });
+        //set the trigger id in input hidden field...
+        jQuery("#edittriggerid").val(triggerid);
+        var triggerGoalName = $("#trigger_hidden_goal_name_"+triggerid).val();//get the trigger goal name...
+        var triggerIntName = $("#trigger_hidden_int_name_"+triggerid).val();//get the trigger integration name..
+        var triggerCallName = $("#trigger_hidden_call_name_"+triggerid).val();//get the trigger call name....
+        //empty the popup header html.....
+        jQuery(".trigger_goal_name").html('');
+        //then set with new value.....
+        jQuery(".trigger_goal_name").html('Edit ' + triggerGoalName + ' Trigger');
+        jQuery("#edittriggername").val(triggerGoalName);//set the trigger goal name in input hidden....
+        jQuery("#integrationname").val(triggerIntName);//set the input value with integration name...
+        jQuery("#callname").val(triggerCallName);//set the input value with call name....
+        if($checkClass!="" && $checkClass == 'readonly'){
+            $('#callname').attr('readonly', true);
+            $('#callname').addClass('ignore');
+        }else{
+            $('#callname').attr('readonly', false);
+            $('#callname').removeClass('ignore');
+        }
+        $("#editTriggerDetails").show();//show the popup..
+        jQuery("label.error").hide();
+        //validate a application_settings_form form.....
+        if($('#trigger_details_form').length){
+            validateForms('trigger_details_form');
+        }
     }
 }
 
@@ -1482,9 +1493,15 @@ function updateTriggerdetails(){
                 $("#editTriggerDetails").hide();
                 swal("Saved!", 'Trigger details updated Successfully.', "success");
                 if(responsedata.triggerIntegrationName != ""){
+                   //set the integration name in hidden field........
+                   jQuery("#trigger_hidden_int_name_"+trigger_id).val(responsedata.triggerIntegrationName);
                    jQuery("#trigger_tr_"+trigger_id+' td#trigger_integration_name_'+trigger_id).html(responsedata.triggerIntegrationName);
                 }
                 if(responsedata.displayCallName != ""){
+                    //get the only text from call name....
+                    var hiddenCallValue = $('<p>'+responsedata.displayCallName+'</p>').text();
+                    //then set in hidden field....
+                    jQuery("#trigger_hidden_call_name_"+trigger_id).val(hiddenCallValue);
                     jQuery("#trigger_tr_"+trigger_id+' td#trigger_call_name_'+trigger_id).html(responsedata.displayCallName);
                 }
             }else{
@@ -1516,6 +1533,10 @@ function hideCustomModel(modelId){
         //if div of scroll is exist then set the scroll top position to zero.....
         if($(".scroll_div_products").length){
             $(".scroll_div_products").scrollTop(0);
+        }
+        //check if product listing popup scroll is exist then set the scroll top to "0" to prevent the load more product request...
+        if($(".productsModelBody").length){
+            $(".productsModelBody").scrollTop(0);
         }
         $("#"+modelId).hide();
         //reset form values and validation rules....
@@ -1881,7 +1902,6 @@ function sortabledivs(element){
                     jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_rule").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
                         }
                     });
                 }
@@ -1894,7 +1914,6 @@ function sortabledivs(element){
                     jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_category_rule").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
                         }
                     });
                 }
@@ -1934,6 +1953,14 @@ function saveThanksDefaultOverride(){
             var responsedata = JSON.parse(data);
             $(".savingDefaultOverrideDetails").hide();
             if(responsedata.status == "1") {
+                //set the input hidden value of default redirect type.....
+                if(responsedata.overriderDefaultType != ''){
+                    $("#redirect_setting_type").val(responsedata.overriderDefaultType);
+                }
+                //set the input hidden value of default redirect value....
+                if(responsedata.overriderDefaultValue != ''){
+                    $("#redirect_setting_value").val(responsedata.overriderDefaultValue);
+                }
                 $('.defaultoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_default_override').removeClass("disable_anchor");
                 swal("Saved!", 'Default thankyou page override details updated successfully.', "success");
@@ -1962,14 +1989,35 @@ function saveThanksProductOverride(){
             $(".savingProductOverrideDetails").show();    
         }
         $('.save_thank_you_product_override').addClass("disable_anchor");
+        //get the product override id.....
+        var checkOverrideId = $("#productoverrideid").val();
         jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_override",$('#thank_override_form_product').serialize(), function(data) {
             var responsedata = JSON.parse(data);
             $(".savingProductOverrideDetails").hide();
             if(responsedata.status == "1") {
+                //if product override id not exist it means add to new li.....
+                if(checkOverrideId == ""){
+                    if(responsedata.newOverrideLi != ""){
+                        //check if ul exist then needs to append the li....
+                        if($(".override_product_rule").length){
+                            $(".override_product_rule").append(responsedata.newOverrideLi);
+                        }else{//if not exist then needs to set the html.....
+                            $("#product_thank_overrides").html('');
+                            $("#product_thank_overrides").html('<ul class="group-fields override_product_rule">'+responsedata.newOverrideLi+'</ul>');
+                        }
+                        //apply sortable rule on the thankyou overrides of product rule.....
+                        if($(".override_product_rule").length){
+                            sortabledivs('override_product_rule');
+                        }
+                    }
+                }else{//else update the title of li with latest updated title.....
+                    if(responsedata.overrideUpdateTitle){
+                        $("#override_title_"+checkOverrideId).text(responsedata.overrideUpdateTitle);
+                    }
+                }
                 $('.productoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_override').removeClass("disable_anchor");
                 swal("Saved!", 'Product thankyou override details updated successfully.', "success");
-                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');
@@ -1994,14 +2042,35 @@ function saveThanksProductCatOverride(){
             $(".savingProductCatOverrideDetails").show();    
         }
         $('.save_thank_you_product_cat_override').addClass("disable_anchor");
+        //get the category override id....
+        var checkCatOverrideId = $("#productcatoverrideid").val();
         jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_category_override",$('#thank_override_form_product_cat').serialize(), function(data) {
             var responsedata = JSON.parse(data);
             $(".savingProductCatOverrideDetails").hide();
             if(responsedata.status == "1") {
+                //if cat override id is not exist it means need to add new li of category override...
+                if(checkCatOverrideId == ""){
+                    if(responsedata.catNewOverrideLi != ""){
+                        //check if ul exist then needs to append the li....
+                        if($(".override_product_category_rule").length){
+                            $(".override_product_category_rule").append(responsedata.catNewOverrideLi);
+                        }else{//if not exist then needs to set the html.....
+                            $("#product_cat_thank_overrides").html('');
+                            $("#product_cat_thank_overrides").html('<ul class="group-fields override_product_category_rule">'+responsedata.catNewOverrideLi+'</ul>');
+                        }
+                        //apply sortable rule on the thankyou overrides of product rule.....
+                        if($(".override_product_category_rule").length){
+                            sortabledivs('override_product_category_rule');
+                        }
+                    }
+                }else{//else update the title of updated category override....
+                    if(responsedata.catUpdatedOverrTitle){
+                        $("#cat_override_name_"+checkCatOverrideId).text(responsedata.catUpdatedOverrTitle);
+                    }    
+                }
                 $('.productcatoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_cat_override').removeClass("disable_anchor");
                 swal("Saved!", 'Product category thankyou override details updated successfully.', "success");
-                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');
@@ -2070,10 +2139,10 @@ function showProductsListing(length){
     jQuery("#products_sku_listing").html('<tr class="text-center"><td colspan="3">Loading Records...</td></tr>');
     $("#productsListing").show();
     $(".common-table-class").attr("id", "products_listing_with_sku_"+length);
-    $("#products_scroll_count").val(0);
     $(".load_products_listing_with_sku").hide();
     $(".load_coupons_listing").hide();
-    jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length}, function(data) {
+    var productLimitSku = $("#products_sku_listing_limit").val();
+    jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length,productLimitSku:productLimitSku}, function(data) {
         var responsedata = JSON.parse(data);
         if(responsedata.status == "1") {
             if(responsedata.productsListing != ""){
@@ -2176,49 +2245,54 @@ function loadMoreProducts(){
 //define the intial values for products listing with sku popup...
 var productsListingLimit = 20;
 var productsListingOffset = 20;
-
+var productsSkuCustomLimit = 20;
 //On scroll touch to bottom in products listing with sku popup
 function loadProductsWithSku(){
     //check scroll touch to bottom then proceed next....
     if($(".productsModelBody").scrollTop() + $(".productsModelBody").innerHeight() >= $(".productsModelBody")[0].scrollHeight){
-        //get the scroll counter value....
-        var products_scroll_counter_value = $("#products_scroll_count").val();
-        //add "1" to set the next value...
-        var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
-        //set the latest value....
-        $("#products_scroll_count").val(products_scroll_counter_updated_value);
-        //compare products listing scroll counter value......
-        if(products_scroll_counter_updated_value !== 1){
-            productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
-        }else{
-            productsListingLimit = 20;
-            productsListingOffset = 20;
-        }
-
-        //set the loader image....
-        $(".load_products_listing_with_sku").html('');
-        $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
-        $(".load_products_listing_with_sku").show();
-        var popupTableId = $(".common-table-class").attr('id');
-        var explodedId = popupTableId.split('products_listing_with_sku_');
-        var skuLength = explodedId[1];
-        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
-            var responseData = JSON.parse(data);
-            $(".load_products_listing_with_sku").hide();
-            if(responseData.status == "1"){
-                if(responseData.productsListingWithSku != ""){
-                    $("#products_sku_listing").append(responseData.productsListingWithSku);
-                }else{
-                    $(".load_products_listing_with_sku").html('');
-                    $(".load_products_listing_with_sku").html('No More Products Exist!');
-                    $(".load_products_listing_with_sku").show();
-                    //minus something from scroll top to prevent next ajax request immediately.....
-                    var listingScrollTop = $(".productsModelBody").scrollTop();
-                    var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
-                    $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
-                }
+        //then check the popup is visible or not.... if visible then send next request to load more products with sku....
+        if($("#productsListing").is(':visible')){
+            //get the scroll counter value....
+            var products_scroll_counter_value = $("#products_scroll_count").val();
+            //add "1" to set the next value...
+            var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
+            //set the latest value....
+            $("#products_scroll_count").val(products_scroll_counter_updated_value);
+            //compare products listing scroll counter value......
+            if(products_scroll_counter_updated_value !== 1){
+                productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+            }else{
+                productsListingLimit = 20;
+                productsListingOffset = 20;
             }
-        });
+            //update the limit by adding offset.....
+            productsSkuCustomLimit = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+            $("#products_sku_listing_limit").val(productsSkuCustomLimit);//set the input hidden value....
+            //set the loader image....
+            $(".load_products_listing_with_sku").html('');
+            $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+            $(".load_products_listing_with_sku").show();
+            var popupTableId = $(".common-table-class").attr('id');
+            var explodedId = popupTableId.split('products_listing_with_sku_');
+            var skuLength = explodedId[1];
+            jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
+                var responseData = JSON.parse(data);
+                $(".load_products_listing_with_sku").hide();
+                if(responseData.status == "1"){
+                    if(responseData.productsListingWithSku != ""){
+                        $("#products_sku_listing").append(responseData.productsListingWithSku);
+                    }else{
+                        $(".load_products_listing_with_sku").html('');
+                        $(".load_products_listing_with_sku").html('No More Products Exist!');
+                        $(".load_products_listing_with_sku").show();
+                        //minus something from scroll top to prevent next ajax request immediately.....
+                        var listingScrollTop = $(".productsModelBody").scrollTop();
+                        var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
+                        $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
+                    }
+                }
+            });
+        }
     }
 }
 

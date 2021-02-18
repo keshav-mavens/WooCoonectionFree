@@ -4,6 +4,10 @@ add_action( 'wp_ajax_wc_load_tab_main_content', 'wc_load_tab_main_content');
 //Function Definiation : wc_load_tab_main_content
 function wc_load_tab_main_content(){
 	if(isset($_POST['tab_id']) && !empty($_POST['tab_id'])){
+		//define the memory limit infinite to prevent from exceed memory limit error....
+		ini_set('memory_limit',"-1");
+		//also set time limit "0" to prevent the execution time exceed....
+		set_time_limit(0);
 		//create file name on the basis of "tab_id"
 		$pageName = 'wooconnection_admin_'.$_POST['tab_id'].'.php';
 		require_once(WOOCONNECTION_PLUGIN_DIR.'includes/admin/'.$pageName);
@@ -90,41 +94,6 @@ function activate_wooconnection_plugin()
 	die();
 }
 
-//Wordpress hook : This action is triggered when user try to update trigger details then return the trigger existing values.....
-add_action( 'wp_ajax_wc_get_trigger_details', 'wc_get_trigger_details');
-//Function Definiation : wc_get_trigger_details
-function wc_get_trigger_details()
-{
-	if(!empty($_POST['triggerid']) && !empty($_POST['triggerid'])){
-		global $wpdb,$table_prefix;
-		$table_name = 'wooconnection_campaign_goals';
-		$wp_table_name = $table_prefix . "$table_name";
-		$triggerid = $_POST['triggerid'];
-    	$triggerDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE id=".$triggerid);
-    	$triggerGoalName = "";
-        $triggerIntegrationName = "";
-        $triggerCallName = "";
-    	if(isset($triggerDetails) && !empty($triggerDetails)){
-    		if(!empty($triggerDetails[0]->wc_goal_name)){
-    			$triggerGoalName = $triggerDetails[0]->wc_goal_name;
-    		}
-    		if(!empty($triggerDetails[0]->wc_integration_name)){
-    			$triggerIntegrationName = strtolower($triggerDetails[0]->wc_integration_name);	
-    		}
-	        if(!empty($triggerDetails[0]->wc_call_name)){
-    			if($triggerGoalName == 'Specific Product' || $triggerGoalName == 'Item Added to Cart' || $triggerGoalName == 'Review Left' || $triggerGoalName == 'Coupon Code Applied' || $triggerGoalName == 'Referral Partner Order'){
-		            $triggerCallName = $triggerDetails[0]->wc_call_name;
-		        }
-		        else{
-		            $triggerCallName = strtolower($triggerDetails[0]->wc_call_name);
-		        }
-    		}
-	    }
-    	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerGoalName'=>$triggerGoalName,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName));
-	}
-	die();
-}
-
 //Wordpress hook : This action is triggered when user try to update the trigger details.....
 add_action( 'wp_ajax_wc_update_trigger_details', 'wc_update_trigger_details');
 //Function Definiation : wc_update_trigger_details
@@ -170,6 +139,7 @@ function wc_update_trigger_details()
 		        }
 
     		}
+    		$data = array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName);
     		$updateResult = $wpdb->update($wp_table_name, array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName),array('id' => $_POST['edittriggerid']));
     		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName,'displayCallName'=>$displayCallName));
     	}
@@ -440,6 +410,9 @@ function wc_save_thanks_default_override()
 	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
 		$defaultThanksArray = array();//define empty array...
+		//empty variables.....
+		$overriderDefaultType = '';
+		$overriderDefaultValue = '';
 		//check select redirect type in post data to save default thankyou override.........
 		if(isset($_POST['overrideredirecturltype']) && !empty($_POST['overrideredirecturltype'])){
 			if($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_POST){//check if redirect type is wordpress post....
@@ -461,7 +434,10 @@ function wc_save_thanks_default_override()
 		}
 		//update the option "default_thankyou_details" to save the default thankyou details.......
 		update_option('default_thankyou_details', $defaultThanksArray);
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+		//assign latest value in variables....
+		$overriderDefaultType = $defaultThanksArray['redirectType'];
+		$overriderDefaultValue = $defaultThanksArray['redirectValue'];
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'overriderDefaultType'=>$overriderDefaultType,'overriderDefaultValue'=>$overriderDefaultValue));
 	}
 	die();
 }
@@ -496,6 +472,9 @@ function wc_save_thanks_product_override()
 		}
 		//assign redirect condition product thankyou override.....
 		$override_fields_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS;
+		//define empty variables to return in response....
+		$newOverrideHtml = '';
+		$overrideUpdatedTitle = '';
 		//first check the override id is exist in post data if exist then needs to perform update override process.....
 		if(isset($_POST['productoverrideid']) && !empty($_POST['productoverrideid'])){
 			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_array,array('id' => $_POST['productoverrideid']));
@@ -511,6 +490,8 @@ function wc_save_thanks_product_override()
 	   				}
 	   			}
 	   		}
+	   		//set the latest title of override in variable...
+	   		$overrideUpdatedTitle = $override_fields_array['wc_override_name'];
 	   	}else{//if override is not exist then need to add new product override....
 			//insert the record for custom field group 
 			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_array);
@@ -532,10 +513,12 @@ function wc_save_thanks_product_override()
 							$result_check_group_products = $wpdb->insert($wp_thankyou_override_related_products,$override_products_array_data);
 						}
 					}
+					//set the html of newly created override....
+					$newOverrideHtml .= '<li class="group-field" id="'.$lastInsertId.'"><span class="wc_thankyou_override_name override_name_inner"><span id="override_title_'.$lastInsertId.'">'.$override_fields_array['wc_override_name'].'</span><span class="listing-operators"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$lastInsertId.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$lastInsertId.'"></i></span></span></li>';
 				}
 			}
 		}	
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newOverrideLi'=>$newOverrideHtml,'overrideUpdateTitle'=>$overrideUpdatedTitle));
 	}
 	die();
 }
@@ -570,6 +553,8 @@ function wc_save_thanks_product_category_override()
 		}
 		//assign redirect condition product thankyou override.....
 		$override_fields_cat_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES;
+		$catNewOverrHtml = '';
+		$catUpdatedOverrTitle = '';
 		//first check the override id is exist in post data if exist then needs to perform update override process.....
 		if(isset($_POST['productcatoverrideid']) && !empty($_POST['productcatoverrideid'])){
 			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_cat_array,array('id' => $_POST['productcatoverrideid']));
@@ -585,6 +570,7 @@ function wc_save_thanks_product_category_override()
 	   				}
 	   			}
 	   		}
+	   		$catUpdatedOverrTitle = $override_fields_cat_array['wc_override_name'];
 		}else{//if override is not exist then need to add new product override....
 			//insert the record for custom field group 
 			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_cat_array);
@@ -606,37 +592,12 @@ function wc_save_thanks_product_category_override()
 							$result_check_cat_products = $wpdb->insert($wp_thankyou_override_related_categories,$override_cat_array);
 						}
 					}
+					
+					$catNewOverrHtml .= '<li class="group-field" id="'.$lastInsertId.'"><span class="wc_thankyou_override_name override_name_inner"><span id="cat_override_name_'.$lastInsertId.'">'.$override_fields_cat_array['wc_override_name'].'</span><span class="listing-operators"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$lastInsertId.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$lastInsertId.'"></i></span></span></li>';
 				}
 			}
 		}	
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-
-//Dynamic Thankyou Override : wordpress hook is triggered when user try to eidt the default thankyou override.....
-add_action( 'wp_ajax_wc_get_thankyou_default_override', 'wc_get_thankyou_default_override');
-//Function Definiation : wc_get_thankyou_default_override
-function wc_get_thankyou_default_override()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		$redirectType = '';//define empty variable...
-		$redirectValue = '';//define empty variable...
-		//check option "default_thankyou_details" exist in wp_options table if yes then set the values of redirect type and redirect value.....
-		if(isset($_POST['option']) && !empty($_POST['option'])){
-			$default_thankyou_details = get_option($_POST['option']);
-			if (isset($default_thankyou_details) && !empty($default_thankyou_details)) {
-				if(!empty($default_thankyou_details['redirectType'])){
-					$redirectType = $default_thankyou_details['redirectType'];
-				}
-				if(!empty($default_thankyou_details['redirectValue'])){
-					$redirectValue = $default_thankyou_details['redirectValue'];
-				}
-			}
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'redirectType'=>$redirectType,'redirectValue'=>$redirectValue));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'catNewOverrideLi'=>$catNewOverrHtml,'catUpdatedOverrTitle'=>$catUpdatedOverrTitle));
 	}
 	die();
 }
@@ -1429,7 +1390,8 @@ function wc_get_products_listing()
 		//check select products exist in post data to import.....
 		if(isset($_POST['length']) && !empty($_POST['length'])){
 			$skuLength = $_POST['length'];
-			$productsListing = get_products_listing($skuLength);
+			$newLimitProductsSku = $_POST['productLimitSku'];
+			$productsListing = get_products_listing($skuLength,$newLimitProductsSku);
 	    }
 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListing'=>$productsListing));
 	}	    
