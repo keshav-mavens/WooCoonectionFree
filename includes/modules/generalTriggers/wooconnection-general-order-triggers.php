@@ -143,6 +143,13 @@ function wooconnection_trigger_status_complete_hook($orderid){
                     //empty the cookie "affiliateId" value...
                     setcookie('affiliateId','',time()-99999,'/',$_SERVER['SERVER_NAME']);
                 }   
+            }else{//empty the affiliate variable and also empty it from the cookie.....
+                $referralAffiliateId = '';
+                //check header is not sent....
+                if(!headers_sent()){
+                    //empty the cookie "affiliateId" value...
+                    setcookie('affiliateId','',time()-99999,'/',$_SERVER['SERVER_NAME']);
+                }
             }
             
             //get order data and update the contact information,,
