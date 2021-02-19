@@ -507,6 +507,9 @@ function wc_save_thanks_product_override()
 		}
 		//assign redirect condition product thankyou override.....
 		$override_fields_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS;
+		//define empty variables to return in response....
+		$newOverrideHtml = '';
+		$overrideUpdatedTitle = '';
 		//first check the override id is exist in post data if exist then needs to perform update override process.....
 		if(isset($_POST['productoverrideid']) && !empty($_POST['productoverrideid'])){
 			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_array,array('id' => $_POST['productoverrideid']));
@@ -522,6 +525,8 @@ function wc_save_thanks_product_override()
 	   				}
 	   			}
 	   		}
+	   		//set the latest title of override in variable...
+	   		$overrideUpdatedTitle = $override_fields_array['wc_override_name'];
 	   	}else{//if override is not exist then need to add new product override....
 			//insert the record for custom field group 
 			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_array);
@@ -543,10 +548,12 @@ function wc_save_thanks_product_override()
 							$result_check_group_products = $wpdb->insert($wp_thankyou_override_related_products,$override_products_array_data);
 						}
 					}
+					//set the html of newly created override....
+					$newOverrideHtml .= '<li class="group-field" id="'.$lastInsertId.'"><span class="wc_thankyou_override_name override_name_inner"><span id="override_title_'.$lastInsertId.'">'.$override_fields_array['wc_override_name'].'</span><span class="listing-operators"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$lastInsertId.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$lastInsertId.'"></i></span></span></li>';
 				}
 			}
 		}	
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newOverrideLi'=>$newOverrideHtml,'overrideUpdateTitle'=>$overrideUpdatedTitle));
 	}
 	die();
 }
@@ -581,6 +588,8 @@ function wc_save_thanks_product_category_override()
 		}
 		//assign redirect condition product thankyou override.....
 		$override_fields_cat_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES;
+		$catNewOverrHtml = '';
+		$catUpdatedOverrTitle = '';
 		//first check the override id is exist in post data if exist then needs to perform update override process.....
 		if(isset($_POST['productcatoverrideid']) && !empty($_POST['productcatoverrideid'])){
 			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_cat_array,array('id' => $_POST['productcatoverrideid']));
@@ -596,6 +605,7 @@ function wc_save_thanks_product_category_override()
 	   				}
 	   			}
 	   		}
+	   		$catUpdatedOverrTitle = $override_fields_cat_array['wc_override_name'];
 		}else{//if override is not exist then need to add new product override....
 			//insert the record for custom field group 
 			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_cat_array);
@@ -617,10 +627,12 @@ function wc_save_thanks_product_category_override()
 							$result_check_cat_products = $wpdb->insert($wp_thankyou_override_related_categories,$override_cat_array);
 						}
 					}
+					
+					$catNewOverrHtml .= '<li class="group-field" id="'.$lastInsertId.'"><span class="wc_thankyou_override_name override_name_inner"><span id="cat_override_name_'.$lastInsertId.'">'.$override_fields_cat_array['wc_override_name'].'</span><span class="listing-operators"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$lastInsertId.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$lastInsertId.'"></i></span></span></li>';
 				}
 			}
-		}	
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'catNewOverrideLi'=>$catNewOverrHtml,'catUpdatedOverrTitle'=>$catUpdatedOverrTitle));	
 	}
 	die();
 }
@@ -827,6 +839,7 @@ function wc_save_cfield_app(){
 			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>'Authentication Error'));
 	    }
 	}
+	die();
 }		
 
 //Wordpress Hook : This hook is triggered to load the more product either for match products tab or export products tab.....
@@ -907,11 +920,15 @@ function wc_save_cfield_group()
 		if(isset($_POST['cfieldgroupname']) && !empty($_POST['cfieldgroupname'])){
 			$cfield_group_fields_array['wc_custom_field_group_name'] = trim($_POST['cfieldgroupname']);
 		}
-		
+		//define empty variables to return response.....
+		$cfieldGroupUpdatedName = '';
+		$newlyAddedCfieldGroup = '';
 		//check group id then needs to update......
 		if(isset($_POST['cfieldgroupid']) && !empty($_POST['cfieldgroupid'])){
 
 			$result_cfield_group = $wpdb->update($cfield_group_table_name,$cfield_group_fields_array,array('id' => $_POST['cfieldgroupid']));
+			//set the custom field group updated name....
+			$cfieldGroupUpdatedName = $cfield_group_fields_array['wc_custom_field_group_name'];
 		}else{//else needs to create new custom field group....
 			$result_cfield_group = $wpdb->insert($cfield_group_table_name,$cfield_group_fields_array);
 			if($result_cfield_group){
@@ -920,10 +937,12 @@ function wc_save_cfield_group()
 			    if(!empty($cfieldGroupLastInsertId)){
 			    	//then update the sort order with its primary key....
 			   		$cfieldGroupUpdateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_sort_order' => $cfieldGroupLastInsertId),array('id' => $cfieldGroupLastInsertId));
+				   	//set the html of newly created custom field group.....
+				   	$newlyAddedCfieldGroup  .= '<li class="group-list" id="'.$cfieldGroupLastInsertId.'"><span class="group-name"><span id="custom_field_group_title_'.$cfieldGroupLastInsertId.'">'.$cfield_group_fields_array['wc_custom_field_group_name'].'</span><span class="listing-operators"><i class="fa fa-plus addgroupcfield" title="Add custom field to this group" data-id="'.$cfieldGroupLastInsertId.'"></i><i class="fa fa-pencil editcfieldgroup" title="Edit custom field group details" data-id="'.$cfieldGroupLastInsertId.'"></i><i class="fa fa-eye showhidecfieldgroup" title="Hide custom field group with its custom fields" data-id="'.$cfieldGroupLastInsertId.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i><i class="fa fa-times deletecfieldgroup" title="Delete custom field group" data-id="'.$cfieldGroupLastInsertId.'"></i></span></span></li>';
 			   	}
 			}
 		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'updatedGroupName'=>$cfieldGroupUpdatedName,'newCfieldGroupLi'=>$newlyAddedCfieldGroup));
     }
     die();
 }
@@ -960,7 +979,7 @@ function get_cfields_groups(){
         		$showhidehtml = '<i class="fa fa-eye-slash showhidecfieldgroup" title="Show custom field group with its custom fields" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
         	}
         	//concate a html inside loop....
-        	$customFieldsListing .=  '<li class="group-list" id="'.$value->id.'"><span class="group-name">'.$value->wc_custom_field_group_name.'<span class="listing-operators"><i class="fa fa-plus addgroupcfield" title="Add custom field to this group" data-id="'.$value->id.'"></i>
+        	$customFieldsListing .=  '<li class="group-list" id="'.$value->id.'"><span class="group-name"><span id="custom_field_group_title_'.$value->id.'">'.$value->wc_custom_field_group_name.'</span><span class="listing-operators"><i class="fa fa-plus addgroupcfield" title="Add custom field to this group" data-id="'.$value->id.'"></i>
         		<i class="fa fa-pencil editcfieldgroup" title="Edit custom field group details" data-id="'.$value->id.'">
         		</i>'.$showhidehtml.'<i class="fa fa-times deletecfieldgroup" title="Delete custom field group" data-id="'.$value->id.'"></i></span></span>'.$custom_fields_html.'</li>';
         }
@@ -991,7 +1010,7 @@ function get_cfields($groupid){
 	        		$showhidehtml = '<i class="fa fa-eye-slash showhidecfield" title="Show custom field" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
 	        	}
 				//concate a html inside loop....
-				$customFieldsHtml .= '<li class="group-field" id="'.$value->id.'">'.$value->wc_cf_name.'<span class="listing-operators"><i class="fa fa-pencil editcfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i>'.$showhidehtml.'<i class="fa fa-times deletecfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i></span></li>';
+				$customFieldsHtml .= '<li class="group-field" id="'.$value->id.'"><span id="custom_field_title_'.$value->id.'">'.$value->wc_cf_name.'</span><span class="listing-operators"><i class="fa fa-pencil editcfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i>'.$showhidehtml.'<i class="fa fa-times deletecfield" title="Delete Current Custom Field" data-id="'.$value->id.'"></i></span></li>';
 			}
 			$customFieldsHtml .= '</ul>';
 		}
@@ -1116,7 +1135,7 @@ function wc_save_groupcfield()
 	            		$cfields_array['wc_cf_options'] = $cfieldsOptionBreak;
 	            	}
 	            }
-	            if(isset($_POST['cfielddefault2value']) && !empty($_POST['cfielddefault2value'])){
+	            if(isset($_POST['cfielddefault2value'])){
 	            	$cfields_array['wc_cf_default_value'] = trim($_POST['cfielddefault2value']);
 	            }
 	     		
@@ -1129,7 +1148,7 @@ function wc_save_groupcfield()
 		if(isset($_POST['cfieldmandatory']) && !empty($_POST['cfieldmandatory'])){
 			$cfields_array['wc_cf_mandatory'] = $_POST['cfieldmandatory'];
 		}
-		if(isset($_POST['cfieldplaceholder']) && !empty($_POST['cfieldplaceholder'])){
+		if(isset($_POST['cfieldplaceholder'])){
 			$cfields_array['wc_cf_placeholder'] = trim($_POST['cfieldplaceholder']);
 		}
 		if(isset($_POST['cfieldmapping']) && !empty($_POST['cfieldmapping'])){
@@ -1147,10 +1166,13 @@ function wc_save_groupcfield()
 		}else{
 			$cfields_array['wc_cf_mapped'] = '';
 		}
+		//define empty variiables to return in response....
+		$customFieldLatestTitle = '';
+		$newlyAddedCustomFieldLi = '';
 		//check if custom field id is exist then perform the update process....
 		if(isset($_POST['cfieldid']) && !empty($_POST['cfieldid'])){
 			$resultcfieldupdate = $wpdb->update($cfields_table_name,$cfields_array,array('id' => $_POST['cfieldid']));
-			echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+			$customFieldLatestTitle = $cfields_array['wc_cf_name'];//set the latest updated name....
 		}else{//else needs to create new custom field group....
 			if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
 				if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
@@ -1163,11 +1185,13 @@ function wc_save_groupcfield()
 				   	if(!empty($lastcfieldInsertId)){
 				   		//then update the sort order with its primary key....
 				   		$updateResult = $wpdb->update($cfields_table_name, array('wc_cf_sort_order' => $lastcfieldInsertId),array('id' => $lastcfieldInsertId));
+				   		//set the html of newly created custom field....
+				   		$newlyAddedCustomFieldLi .= '<li class="group-field" id="'.$lastcfieldInsertId.'"><span id="custom_field_title_'.$lastcfieldInsertId.'">'.$cfields_array['wc_cf_name'].'</span><span class="listing-operators"><i class="fa fa-pencil editcfield" title="Edit Current Custom Field" data-id="'.$lastcfieldInsertId.'"></i><i class="fa fa-eye showhidecfield" title="Hide custom field" data-id="'.$lastcfieldInsertId.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i><i class="fa fa-times deletecfield" title="Delete Current Custom Field" data-id="'.$lastcfieldInsertId.'"></i></span></li>';
 				   	}
 				}
-				echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 			}
 		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'customFieldUpdatedTitle'=>$customFieldLatestTitle,'newAddedCustomField'=>$newlyAddedCustomFieldLi));
 	}
 	die();
 }

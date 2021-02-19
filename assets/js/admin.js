@@ -569,7 +569,10 @@
                                 jQuery(".tab_related_content").removeClass('overlay');
                                 var responsedata = JSON.parse(data);
                                 if(responsedata.status == "1") {
-                                    loadingCustomFields();//after sucessfull delete then load the latest custom fields....
+                                    $('.group-list#'+cfieldgroupId).remove();//remove the group li after sucess of delete....
+                                    if($(".main-group li").length == 0){//check if not any custom field group exist.....
+                                        $('.default_message').text("We don't have any Custom Fields");//set the default message..
+                                    }
                                 }
                             });
                         }
@@ -711,7 +714,8 @@
             $document.on("click",".deletecfield",function(event) {
                 event.stopPropagation();
                 var cfieldId = $(this).data('id');//get custom field id....
-                //check value
+                var cfieldParentGroupId = $("li#"+cfieldId).parent().parent().attr('id');//get the li parent ul id...
+                // //check value
                 if(cfieldId > 0 ){
                     //ask to confirm....
                     swal({
@@ -732,7 +736,10 @@
                                 jQuery(".tab_related_content").removeClass('overlay');
                                 var responsedata = JSON.parse(data);
                                 if(responsedata.status == "1") {
-                                    loadingCustomFields();//after sucessfull delete then load the latest custom fields....
+                                    $(".group-field#"+cfieldId).remove();//remove the li of particular custom field..
+                                    if($(".group_custom_field_"+cfieldParentGroupId+" li").length == 0){//if particular group not have any custom field..
+                                        $(".group_custom_field_"+cfieldParentGroupId).remove();//then remove the ul.....
+                                    }
                                 }
                             });
                         }
@@ -744,6 +751,8 @@
             $document.on("click",".editcfield",function(event) {
                 event.stopPropagation();
                 var cfieldId = $(this).data("id");//get custom field id....
+                $("#form_cfield")[0].reset();//reset the form....
+                $("#form_cfield").validate().resetForm();//reset the form with validete error messages....
                 //check value
                 if(cfieldId > 0)
                 {
@@ -1028,10 +1037,19 @@
                                 var responsedata = JSON.parse(data);
                                 if(responsedata.status == "1") {
                                     if(current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
-                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
+                                        $(".override_product_rule li#"+current_override_id).remove();
+                                        if($('.override_product_rule li').length == 0){
+                                            $('#product_thank_overrides').html('');
+                                            $('#product_thank_overrides').html("<p class='no_override_exist'>We don't have any product based overrides</p>");
+                                        }
                                         swal("Saved!", 'Product Thankyou page override deleted Successfully.', "success");
                                     }else if (current_override_type == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
-                                        loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
+                                        $(".override_product_category_rule li#"+current_override_id).remove();
+                                        if($('.override_product_category_rule li').length == 0){
+                                            $("#product_cat_thank_overrides").html('');
+                                            $("#product_cat_thank_overrides").html("<p class='no_override_exist'>We don't have any product category based overrides</p>");
+                                        }
+                                        $(".override_product_category_rule li#"+current_override_id).remove();
                                         swal("Saved!", 'Product Category Thankyou page override deleted Successfully.', "success");
                                     }
                                 }
@@ -1898,14 +1916,31 @@ function savecfieldGroup(){
             $(".savingcfieldGroup").show();       
         }
         $('.savingcfieldGroupBtn').addClass("disable_anchor");
+        var checkCfieldGroup = $("#cfieldgroupid").val();//get the group id from hidden input.....
         //send ajax to save the custom field group in infusionsoft/keap application.....
         jQuery.post( ajax_object.ajax_url + "?action=wc_save_cfield_group",$('#form_cfield_group').serialize(), function(data) {
             var responsedata = JSON.parse(data);
             $(".savingcfieldGroup").hide();
             if(responsedata.status == "1") {
+                //check if custom field group id is empty then.....
+                if(checkCfieldGroup == ""){
+                    if(responsedata.newCfieldGroupLi != ''){//check newly created group html exist in response.....
+                        $(".main-group").append(responsedata.newCfieldGroupLi);//append the newly added group in listing of li.....
+                        //after add custom field group change the html of default message......
+                        $('.default_message').html('');
+                        $('.default_message').html('Above is the listing of available custom fields');
+                        //apply sortable rule on the custom field groups.....
+                        if($(".main-group").length){
+                            sortabledivs('main-group');
+                        }
+                    }
+                }else{//else on change the title of custom field group.....
+                    if(responsedata.updatedGroupName != ''){
+                        $("#custom_field_group_title_"+checkCfieldGroup).text(responsedata.updatedGroupName);
+                    }
+                }
                 $('.customfieldgroup,.main_rendered').toggle();
                 $('.savingcfieldGroupBtn').removeClass("disable_anchor");
-                loadingCustomFields();
             }else{
                 $(".cfieldgrouperror").show();
                 $(".cfieldgrouperror").html('Something Went Wrong');
@@ -2021,14 +2056,33 @@ function savegroupcfield(){
             $(".savinggroupcfield").show();       
         }
         $('.savingGroupCfieldBtn').addClass("disable_anchor");
+        var checkGroupCfield = $("#cfieldid").val();
+        var parentGroupId = $("#cfieldparentgroupid").val();//get the parent id of custom field.....
         //send ajax to save the custom field....
         jQuery.post( ajax_object.ajax_url + "?action=wc_save_groupcfield",$('#form_cfield').serialize(), function(data) {
             var responsedata = JSON.parse(data);
             $(".savinggroupcfield").hide();
             if(responsedata.status == "1") {
+                if(checkGroupCfield == ""){//if empty it means needs to add new custom field...
+                    if(responsedata.newAddedCustomField != ""){//check new custom field html is returned from response...
+                        if($(".group_custom_field_"+parentGroupId).length == 0){//check if not any existing custom field of group is exist ....
+                            //needs to add create ul....
+                            $('<ul class="group-fields group_custom_field_'+parentGroupId+'">'+responsedata.newAddedCustomField+'</ul>').insertAfter("li#"+parentGroupId+" .group-name");
+                        }else{//else append the newly created custom field in existing list of custom fields.....
+                            $(".group_custom_field_"+parentGroupId).append(responsedata.newAddedCustomField);
+                        }
+                        if($(".group_custom_field_"+parentGroupId).length){
+                            sortabledivs("group_custom_field_"+parentGroupId);//apply sortable rules on all custom fields......
+                        } 
+                    }
+                }else{//else needs to update the existing custom field.....
+                    if(responsedata.customFieldUpdatedTitle != ""){
+                        //update the title of the updated custom field....
+                        $("#custom_field_title_"+checkGroupCfield).text(responsedata.customFieldUpdatedTitle);
+                    }
+                }
                 $('.customfields,.main_rendered').toggle();
                 $('.savingGroupCfieldBtn').removeClass("disable_anchor");
-                loadingCustomFields();
             }else{
                 $(".groupcfielderror").show();
                 $(".groupcfielderror").html('Something Went Wrong');
@@ -2052,7 +2106,6 @@ function sortabledivs(element){
                     jQuery.post( ajax_object.ajax_url + "?action=wc_update_cfieldgroups_order",{cfieldgrouplatestorder: $(".main-group").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loadingCustomFields();
                         }
                     });
                 }
@@ -2066,7 +2119,6 @@ function sortabledivs(element){
                     jQuery.post( ajax_object.ajax_url + "?action=wc_update_groupcfields_order",{groupcfieldlatestorder: $("."+element).sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loadingCustomFields();
                         }
                     });
                }
@@ -2079,7 +2131,6 @@ function sortabledivs(element){
                     jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_rule").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
                         }
                     });
                 }
@@ -2092,7 +2143,6 @@ function sortabledivs(element){
                     jQuery.post( ajax_object.ajax_url + "?action=update_thankyou_overrides_order",{order: $(".override_product_category_rule").sortable('toArray')}, function(data) {
                         var responsedata = JSON.parse(data);
                         if(responsedata.status == "1") {
-                            loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
                         }
                     });
                 }
@@ -2168,14 +2218,35 @@ function saveThanksProductOverride(){
             $(".savingProductOverrideDetails").show();    
         }
         $('.save_thank_you_product_override').addClass("disable_anchor");
+        //get the product override id.....
+        var checkOverrideId = $("#productoverrideid").val();
         jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_override",$('#thank_override_form_product').serialize(), function(data) {
             var responsedata = JSON.parse(data);
             $(".savingProductOverrideDetails").hide();
             if(responsedata.status == "1") {
+                //if product override id not exist it means add to new li.....
+                if(checkOverrideId == ""){
+                    if(responsedata.newOverrideLi != ""){
+                        //check if ul exist then needs to append the li....
+                        if($(".override_product_rule").length){
+                            $(".override_product_rule").append(responsedata.newOverrideLi);
+                        }else{//if not exist then needs to set the html.....
+                            $("#product_thank_overrides").html('');
+                            $("#product_thank_overrides").html('<ul class="group-fields override_product_rule">'+responsedata.newOverrideLi+'</ul>');
+                        }
+                        //apply sortable rule on the thankyou overrides of product rule.....
+                        if($(".override_product_rule").length){
+                            sortabledivs('override_product_rule');
+                        }
+                    }
+                }else{//else update the title of li with latest updated title.....
+                    if(responsedata.overrideUpdateTitle){
+                        $("#override_title_"+checkOverrideId).text(responsedata.overrideUpdateTitle);
+                    }
+                }
                 $('.productoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_override').removeClass("disable_anchor");
                 swal("Saved!", 'Product thankyou override details updated successfully.', "success");
-                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');
@@ -2200,14 +2271,35 @@ function saveThanksProductCatOverride(){
             $(".savingProductCatOverrideDetails").show();    
         }
         $('.save_thank_you_product_cat_override').addClass("disable_anchor");
+        //get the category override id....
+        var checkCatOverrideId = $("#productcatoverrideid").val();
         jQuery.post( ajax_object.ajax_url + "?action=wc_save_thanks_product_category_override",$('#thank_override_form_product_cat').serialize(), function(data) {
             var responsedata = JSON.parse(data);
             $(".savingProductCatOverrideDetails").hide();
             if(responsedata.status == "1") {
+                //if cat override id is not exist it means need to add new li of category override...
+                if(checkCatOverrideId == ""){
+                    if(responsedata.catNewOverrideLi != ""){
+                        //check if ul exist then needs to append the li....
+                        if($(".override_product_category_rule").length){
+                            $(".override_product_category_rule").append(responsedata.catNewOverrideLi);
+                        }else{//if not exist then needs to set the html.....
+                            $("#product_cat_thank_overrides").html('');
+                            $("#product_cat_thank_overrides").html('<ul class="group-fields override_product_category_rule">'+responsedata.catNewOverrideLi+'</ul>');
+                        }
+                        //apply sortable rule on the thankyou overrides of product rule.....
+                        if($(".override_product_category_rule").length){
+                            sortabledivs('override_product_category_rule');
+                        }
+                    }
+                }else{//else update the title of updated category override....
+                    if(responsedata.catUpdatedOverrTitle){
+                        $("#cat_override_name_"+checkCatOverrideId).text(responsedata.catUpdatedOverrTitle);
+                    }    
+                }
                 $('.productcatoverride,.main_rendered_thank_overrides').toggle();
                 $('.save_thank_you_product_cat_override').removeClass("disable_anchor");
                 swal("Saved!", 'Product category thankyou override details updated successfully.', "success");
-                loading_thanks_overrides(REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES);//load the list of latest overrides....
             }else{
                 $(".override-error").show();
                 $(".override-error").html('Something Went Wrong');
