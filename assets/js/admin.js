@@ -1375,7 +1375,6 @@
                     }
                     //empty the array after removing the options......
                     searchProductResults = [];
-
                 }
             });
         });
