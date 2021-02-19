@@ -1791,10 +1791,10 @@ add_action('wp_ajax_wc_search_woo_product','wc_search_woo_product');
 function wc_search_woo_product(){
 	if(isset($_POST) && !empty($_POST)){
 		global $wpdb;
-		$searchItem = $_POST['searchItem'];
-		$matchProductsOptions = array();
-		//$wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_sku' AND meta_value='%s' LIMIT 1",$appsku)
-		$getProductsByName = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts WHERE post_title LIKE %s",'%'.$searchItem.'%'));
+		$matchProductsOptions = array();//define the empty array...
+		$searchItem = $_POST['searchItem'];//set the post search item....
+		$status = 'publish';//set status
+		$getProductsByName = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts WHERE post_title LIKE %s AND post_status = %s",array('%'.$searchItem.'%',$status)));
 		if(isset($getProductsByName) && !empty($getProductsByName)){
 			foreach ($getProductsByName as $key => $value) {
 				if(!empty($value->ID)){
