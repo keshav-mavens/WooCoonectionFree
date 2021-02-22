@@ -1630,6 +1630,11 @@ function wc_import_application_products()
 {
 	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
+		global $wpdb;
+		//define the memory limit infinite to prevent from exceed memory limit error....
+		ini_set('memory_limit',"-1");
+		//also set time limit "0" to prevent the execution time exceed....
+		set_time_limit(0);
 		//first need to check whether the application authentication is done or not..
         $applicationAuthenticationDetails = getAuthenticationDetails();
         //get the access token....
@@ -1641,6 +1646,11 @@ function wc_import_application_products()
         }
 		//check select products exist in post data to export.....
         if(isset($_POST['wc_products_import']) && !empty($_POST['wc_products_import'])){
+        	$managedSubStatus = '';
+        	//check managed subscription status
+  			if(!empty($_POST['manage_subscription_status']) && $_POST['manage_subscription_status'] == 'yes'){
+  				$managedSubStatus = 'yes';
+  			}
             foreach ($_POST['wc_products_import'] as $key => $value) {
  				if(!empty($value)){//check value...
           			//check any associated product is selected along with imported product request....
@@ -1649,43 +1659,73 @@ function wc_import_application_products()
 	      			}else{
 	      				$needUpdateExistingProduct = '';
 	      			}
-	      			//define array to store the infusionsoft/keap product detail......
+	      			//get the product details by product id...
+	               	$applicationProductDetails = getApplicationProductDetail($value,$access_token);
+	               	//define array to store the infusionsoft/keap product detail......
 	      			$product_extra_data_array = array();
-	      			if(isset($_POST['plan_id_'.$value]) && !empty($_POST['plan_id_'.$value])){
-	      				//get the all data of application product from hidden values.....
-	      				$infusionKeapProduct = $_POST['plan_id_'.$value];
-
+	      			if(isset($applicationProductDetails) && !empty($applicationProductDetails)){
+	      				
+	      				//set and get the product content.....
 	      				$pContent = '';
-		      			if(!empty($infusionKeapProduct['description'])){
-		      				$pContent = trim($infusionKeapProduct['description']);	
-		      			}else if ($infusionKeapProduct['shortdescription']) {
-		      				$pContent = trim($infusionKeapProduct['shortdescription']);
-		      			}else if ($infusionKeapProduct['name']) {
-		      				$pContent = trim($infusionKeapProduct['name']);
+		      			if(!empty($applicationProductDetails['product_desc'])){
+		      				$pContent = trim($applicationProductDetails['product_desc']);	
+		      			}else if ($applicationProductDetails['product_short_desc']) {
+		      				$pContent = trim($applicationProductDetails['product_short_desc']);
+		      			}else if ($applicationProductDetails['product_name']) {
+		      				$pContent = trim($applicationProductDetails['product_name']);
 		      			}
 		      			
 		      			//set and get the product short description.....
 		      			$pshortContent = '';
-		      			if(!empty($infusionKeapProduct['shortdescription'])){
-		      				$pshortContent = trim($infusionKeapProduct['shortdescription']);
+		      			if(!empty($applicationProductDetails['product_short_desc'])){
+		      				$pshortContent = trim($applicationProductDetails['product_short_desc']);
 		      			}
 		      			
+		      			//set and get the product name....
 		      			$productName = '';	
-		      			if(!empty($infusionKeapProduct['name'])){
-		      				$productName = $infusionKeapProduct['name'];
+		      			if(!empty($applicationProductDetails['product_name'])){
+		      				$productName = $applicationProductDetails['product_name'];
 		      			}
 
-		      			$product_extra_data_array['_regular_price'] = $infusionKeapProduct['price'];
-		      			$product_extra_data_array['_price'] = $infusionKeapProduct['price'];
-		      			if(!empty($infusionKeapProduct['sku'])){
-		      				$product_extra_data_array['_sku'] = $infusionKeapProduct['sku'];
+		      			//set the meta fields of product....
+		      			$product_extra_data_array['_regular_price'] = $applicationProductDetails['product_price'];
+		      			$product_extra_data_array['_price'] = $applicationProductDetails['product_price'];
+		      			if(!empty($applicationProductDetails['product_sku'])){
+		      				$product_extra_data_array['_sku'] = $applicationProductDetails['product_sku'];
 		      			}
+
+		      			$markAsSubscription = false;
+		      			//check manage subscription via infusionsoft is enable or not....
+		      			if(!empty($managedSubStatus) && $managedSubStatus == 'yes'){
+		      				//check subscription only exist...
+		      				if(!empty($applicationProductDetails['subscription_only']) && $applicationProductDetails['subscription_only'] == true){
+								if(!empty($applicationProductDetails['subscription_plans'])){
+									//get the last subscription plan....
+									$lastPlan = end($applicationProductDetails['subscription_plans']);
+									$product_extra_data_array['_subscription_period_interval'] = $lastPlan['frequency'];
+									$product_extra_data_array['_subscription_period'] = strtolower($lastPlan['cycle_type']);
+									$product_extra_data_array['_subscription_length'] = $lastPlan['number_of_cycles'];
+									$product_extra_data_array['_subscription_price'] = $lastPlan['plan_price'];
+									$product_extra_data_array['_regular_price'] = $lastPlan['plan_price'];
+		      						$product_extra_data_array['_price'] = $lastPlan['plan_price'];
+									$markAsSubscription = true;
+								}
+		      				}
+		      			}
+		      				
 		      			//if product is not associated along with imported product request then need create new product..
 		      			if(empty($needUpdateExistingProduct)){
 		      				$postData = array('post_content' => $pContent,'post_status' => "publish",'post_title' => $productName,'post_type' => "product",'post_excerpt'=>$pshortContent);
 							$new_post_id = wp_insert_post($postData);
 							//check if product imported done then need to check the image associated with product if yes then need to update....
 							if($new_post_id){
+								//check if product is related to subscription....
+								if($markAsSubscription == true){
+									// Setting the product type
+									wp_set_object_terms( $new_post_id, 'subscription', 'product_type' );
+									$updatedGuid = get_option('siteurl').'/?post_type=product&p='.$new_post_id;
+									$wpdb->update($wpdb->posts, ['guid' => $updatedGuid], ['ID' => $new_post_id]);
+								}
 								$product_extra_data_array['is_kp_product_id'] = $value;
 								if(empty($product_extra_data_array['_sku'])){
 									$product = get_post($new_post_id); 
@@ -1708,8 +1748,7 @@ function wc_import_application_products()
 		      			//if product is associated along with imported product request then need to update the values of exitsing product.........
 		      			else{
 		      				//create latest product details array....
-		      				$latestPostData = array('ID'=>$needUpdateExistingProduct,'post_content'=>$pContent,
-							      'post_excerpt'=>$pshortContent,'post_title'=>$productName);
+		      				$latestPostData = array('ID'=>$needUpdateExistingProduct,'post_content'=>$pContent,'post_excerpt'=>$pshortContent,'post_title'=>$productName);
 							//update the product details with latest data..
 							$update_post_id = wp_update_post($latestPostData);
 							$product_extra_data_array['is_kp_product_id'] = $value;

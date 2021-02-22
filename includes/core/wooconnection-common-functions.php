@@ -1441,6 +1441,17 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
     //Call the function to get the listing of woocommerce publish products....
     $existingProductResult = listExistingDatabaseWooProducts($woodropdownLimit);
 
+    //set the by default manage subscription status...
+    $manageSubscriptionStatus = 'no';
+    $customSettingOptions = get_option('woocommerce_infusionsoft_keap_settings');//get the advanced setting details.....
+    if(isset($customSettingOptions) && !empty($customSettingOptions)){
+      if(!empty($customSettingOptions['enabled']) && $customSettingOptions['enabled']== 'yes'){
+          if(isset($customSettingOptions['wc_subscriptions']) && !empty($customSettingOptions['wc_subscriptions']) && $customSettingOptions['wc_subscriptions'] == 'yes' && $configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+              $manageSubscriptionStatus = 'yes';
+          }
+      } 
+    }
+    
     //set html if no products exist in infusionsoft/keap account for import....
     if(empty($applicationProductsArray)){
         //return html only when import product html type is empty.....
@@ -1459,6 +1470,7 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
               }else{
 
                     $table_products_html_import .= '<form action="" method="post" id="wc_import_products_form" onsubmit="return false">  
+                    <input type = "hidden" name="manage_subscription_status" value="'.$manageSubscriptionStatus.'">
                     <table class="table table-striped import_products_listing_class" id="import_products_listing">
                       '.$importProductsData['importTableHtml'].'
                     </table>
