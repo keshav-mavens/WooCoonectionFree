@@ -158,6 +158,17 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
   $applicationProductsArray =  getApplicationProducts();
+
+  //set the default manage subscription status at the time of export...
+  $exportManageSubStatus = false;
+  $advanceSettingOptions = get_option('woocommerce_infusionsoft_keap_settings');
+  if(!empty($advanceSettingOptions)){
+    if(!empty($advanceSettingOptions['enabled']) && $advanceSettingOptions['enabled'] == 'yes'){
+        if(!empty($advanceSettingOptions['wc_subscriptions']) && $advanceSettingOptions['wc_subscriptions'] == 'yes' && $configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+            $exportManageSubStatus = true;
+        }
+    }
+  }
   
   //set html if no products exist in woocommerce for export....
   if(empty($woocommerceProducts)){
@@ -174,7 +185,8 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
                 $table_export_products_html = $exportProductsData['exportTableHtml'];
             }
             else{
-              $table_export_products_html .= '<form action="" method="post" id="wc_export_products_form" onsubmit="return false">  
+              $table_export_products_html .= '<form action="" method="post" id="wc_export_products_form" onsubmit="return false">
+                <input type="hidden" name="export_manage_subscription_status" value="'.$exportManageSubStatus.'">  
                 <table class="table table-striped export_products_listing_class" id="export_products_listing">
                   '.$exportProductsData['exportTableHtml'].'
                 </table>
@@ -1592,7 +1604,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                   $appProductSku = "--";
                 }
                 //Create final html.......
-                $importTableHtml .= '<tr><input type="hidden" name="plan_id_'.$value['Id'].'[price]" value="'.$value['ProductPrice'].'"><input type="hidden" name="plan_id_'.$value['Id'].'[name]" value="'.$value['ProductName'].'"><input type="hidden" name="plan_id_'.$value['Id'].'[description]" value="'.strip_tags($value['Description']).'"><input type="hidden" name="plan_id_'.$value['Id'].'[shortdescription]" value="'.strip_tags($value['ShortDescription']).'"><input type="hidden" name="plan_id_'.$value['Id'].'[sku]" value="'.$value['Sku'].'"><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
+                $importTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
 
             }
 

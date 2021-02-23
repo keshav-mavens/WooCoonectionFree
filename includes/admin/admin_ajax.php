@@ -271,9 +271,11 @@ function wc_export_wc_products()
                     }
 					
 					$wcProductType = $wcproductdetails->get_type();//get the product type...
+                    //get the manage subscription status...
+                    $subManageStatus = $_POST['export_manage_subscription_status'];
                     //get the product is sold as a subscription...
                     $productSoldAsSubscription = get_post_meta($value,'_product_sold_subscription',true);
-	                if($productSoldAsSubscription == 'yes' && stripos($wcProductType,'subscription') !== false){
+	                if($productSoldAsSubscription == 'yes' && stripos($wcProductType,'subscription') !== false && !empty($subManageStatus) && $subManageStatus == true){
 	                  	$typeProduct = ITEM_TYPE_SUBSCRIPTION;
 	    				$subscriptionInterval = get_post_meta($value,'_subscription_period_interval',true);//get the subscription interval......
 	    				$subscriptionPeriod = get_post_meta($value,'_subscription_period',true);//get the subscription period..
@@ -292,17 +294,16 @@ function wc_export_wc_products()
                     $productDetailsArray['sku'] = $wcproductSku;
                     $productDetailsArray['product_price'] = $wcproductPrice;
                     $productDetailsArray['product_short_desc'] = $wcproductShortDesc;
+                    //check item type is a subscription then add new parameter in array that is "subscription_only"....
+                	if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
+                		$productDetailsArray['subscription_only'] = true;
+                	}
                     
-
                     //check the products data exist....
                     if(isset($productDetailsArray) && !empty($productDetailsArray)){
                         //if product is not associated along with export product request then need create new product in connected infusionsoft/keap appication.....
                         if(empty($mapppedProductId)){
                         	$productDetailsArray['product_name'] = $wcproductName;//assign product name for new product creation....
-                        	//check item type is a subscription then add new parameter in array that is "subscription_only"....
-                        	if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
-                        		$productDetailsArray['subscription_only'] = true;
-                        	}
                         	$jsonData = json_encode($productDetailsArray);//covert array to json...
                             $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_BACK_END,$wooconnectionLogger);//call the common function to insert the product.....
                             if(!empty($createdProductId)){//if new product created is not then update relation and product sku...
@@ -1694,6 +1695,7 @@ function wc_import_application_products()
 		      				$product_extra_data_array['_sku'] = $applicationProductDetails['product_sku'];
 		      			}
 
+		      			//set default value of product is not related to subscription "false"....
 		      			$markAsSubscription = false;
 		      			//check manage subscription via infusionsoft is enable or not....
 		      			if(!empty($managedSubStatus) && $managedSubStatus == 'yes'){
@@ -1702,13 +1704,14 @@ function wc_import_application_products()
 								if(!empty($applicationProductDetails['subscription_plans'])){
 									//get the last subscription plan....
 									$lastPlan = end($applicationProductDetails['subscription_plans']);
+									//push the subscription plan details in array....
 									$product_extra_data_array['_subscription_period_interval'] = $lastPlan['frequency'];
 									$product_extra_data_array['_subscription_period'] = strtolower($lastPlan['cycle_type']);
 									$product_extra_data_array['_subscription_length'] = $lastPlan['number_of_cycles'];
 									$product_extra_data_array['_subscription_price'] = $lastPlan['plan_price'];
 									$product_extra_data_array['_regular_price'] = $lastPlan['plan_price'];
 		      						$product_extra_data_array['_price'] = $lastPlan['plan_price'];
-									$markAsSubscription = true;
+									$markAsSubscription = true;//mark product is related to subscription "true".....
 								}
 		      				}
 		      			}
@@ -1751,6 +1754,11 @@ function wc_import_application_products()
 		      				$latestPostData = array('ID'=>$needUpdateExistingProduct,'post_content'=>$pContent,'post_excerpt'=>$pshortContent,'post_title'=>$productName);
 							//update the product details with latest data..
 							$update_post_id = wp_update_post($latestPostData);
+							//check need to mark product as a subscription...
+							if(!empty($markAsSubscription) && $markAsSubscription == true){
+								//set the product type as a subscription....
+								wp_set_object_terms($needUpdateExistingProduct,'subscription','product_type');
+							}
 							$product_extra_data_array['is_kp_product_id'] = $value;
 	      					if(empty($product_extra_data_array['_sku'])){
 								$product = get_post($new_post_id); 
