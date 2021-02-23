@@ -2202,6 +2202,7 @@ var productsOffsetExport = 20;
 var productsOffsetMatch = 20;
 var customLimitExport = 20;
 var customLimitMatch = 20;
+var visibility = false;//set default visibility false...
 
 //on scroll load more products...
 function loadMoreProducts(){
@@ -2214,73 +2215,88 @@ function loadMoreProducts(){
         var tabId = tabType.split('#');
         //get the first element after split....
         if(tabId[1] != ""){
-            //get the scroll counter value....
-            var scroll_counter_value = $("#scroll_count_"+tabId[1]).val();
-            //add "1" to set the next value...
-            var scroll_counter_updated_value = parseInt(scroll_counter_value) + 1;
-            //set the latest value....
-            $("#scroll_count_"+tabId[1]).val(scroll_counter_updated_value);
+            //first compare the tab id....
             if(tabId[1] == 'table_export_products'){
-                //compare scroll counter value......
-                if(scroll_counter_updated_value !== 1){
-                    productsOffsetExport = parseInt(productsOffsetExport) + parseInt(productsLimit);
+                //check if "exportProducts" div is visibile it means export products ajax request in process...
+                if($('.exportProducts').is(':visible')){
+                    visibility = true;//set the visibility "true".....
                 }else{
-                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
-                    productsOffsetExport = PRODUCT_LAZY_LOADING_OFFSET;
+                    visibility = false;//set the visibility "false".....
                 }
-                var productsOffset = productsOffsetExport;
-                customLimitExport = parseInt(productsOffsetExport)+parseInt(productsLimit);
-            }else if(tabId[1] == 'table_match_products'){
-                //compare scroll counter value......
-                if(scroll_counter_updated_value !== 1){
-                    productsOffsetMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
-                }else{
-                    productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
-                    productsOffsetMatch = PRODUCT_LAZY_LOADING_OFFSET;
-                }
-                var productsOffset = productsOffsetMatch;
-                customLimitMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+            }else{//for match products tab set the visibility false....
+                visibility = false;
             }
-            //set the input hidden value to fetch the same list of records after export process done....
-            $("#products_limit_export").val(customLimitExport);
-            $("#products_limit_match").val(customLimitMatch);
-            //set the loader image....
-            $(".load_"+tabId[1]).html('');
-            $(".load_"+tabId[1]).html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
-            $(".load_"+tabId[1]).show();
-            $('.export_products_btn').addClass("disable_anchor");
-            //send ajax to get the latest products of wc with updated offset....
-            jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
-                var responsedata = JSON.parse(data);
-                //hide the loader...
-                $(".load_"+tabId[1]).hide();
-                if(responsedata.status == "1") {
-                    $('.export_products_btn').removeClass("disable_anchor");
-                    if(responsedata.moreProductsListing != ""){
-                        //check the tab if then append the next products html.....
-                        if(tabId[1] == 'table_export_products'){
-                            $("table#export_products_listing tbody").append(responsedata.moreProductsListing);
-                            //first check checkbox of all checkbox is checked or not....
-                            if($(".all_products_checkbox_export").is(":checked")){
-                                $(".each_product_checkbox_export").prop("checked",true);
+            
+            //check if visibility is "false" it means no any ajax request in process....
+            if(visibility == false){
+                //get the scroll counter value....
+                var scroll_counter_value = $("#scroll_count_"+tabId[1]).val();
+                //add "1" to set the next value...
+                var scroll_counter_updated_value = parseInt(scroll_counter_value) + 1;
+                //set the latest value....
+                $("#scroll_count_"+tabId[1]).val(scroll_counter_updated_value);
+                if(tabId[1] == 'table_export_products'){
+                    //compare scroll counter value......
+                    if(scroll_counter_updated_value !== 1){
+                        productsOffsetExport = parseInt(productsOffsetExport) + parseInt(productsLimit);
+                    }else{
+                        productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                        productsOffsetExport = PRODUCT_LAZY_LOADING_OFFSET;
+                    }
+                    var productsOffset = productsOffsetExport;
+                    customLimitExport = parseInt(productsOffsetExport)+parseInt(productsLimit);
+                }else if(tabId[1] == 'table_match_products'){
+                    //compare scroll counter value......
+                    if(scroll_counter_updated_value !== 1){
+                        productsOffsetMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+                    }else{
+                        productsLimit = PRODUCT_LAZY_LOADING_LIMIT;
+                        productsOffsetMatch = PRODUCT_LAZY_LOADING_OFFSET;
+                    }
+                    var productsOffset = productsOffsetMatch;
+                    customLimitMatch = parseInt(productsOffsetMatch) + parseInt(productsLimit);
+                }
+                //set the input hidden value to fetch the same list of records after export process done....
+                $("#products_limit_export").val(customLimitExport);
+                $("#products_limit_match").val(customLimitMatch);
+                //set the loader image....
+                $(".load_"+tabId[1]).html('');
+                $(".load_"+tabId[1]).html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+                $(".load_"+tabId[1]).show();
+                $('.export_products_btn').addClass("disable_anchor");
+                //send ajax to get the latest products of wc with updated offset....
+                jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
+                    var responsedata = JSON.parse(data);
+                    //hide the loader...
+                    $(".load_"+tabId[1]).hide();
+                    if(responsedata.status == "1") {
+                        $('.export_products_btn').removeClass("disable_anchor");
+                        if(responsedata.moreProductsListing != ""){
+                            //check the tab if then append the next products html.....
+                            if(tabId[1] == 'table_export_products'){
+                                $("table#export_products_listing tbody").append(responsedata.moreProductsListing);
+                                //first check checkbox of all checkbox is checked or not....
+                                if($(".all_products_checkbox_export").is(":checked")){
+                                    $(".each_product_checkbox_export").prop("checked",true);
+                                }
+                            }else{
+                                $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
+                                //apply select two on match products tab.....
+                                applySelectTwo('application_match_products_dropdown');
                             }
                         }else{
-                            $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
-                            //apply select two on match products tab.....
-                            applySelectTwo('application_match_products_dropdown');
+                            //minus something from scroll top to prevent next ajax request immediately.....
+                            var scrollTop = $(".righttextInner").scrollTop();
+                            var newScrollTopValue = scrollTop-100;//minus 100 to set the new scroll top value....
+                            $(".righttextInner").scrollTop(newScrollTopValue);//set scroll top to up on the basis of new value....
+                            //set the html to no products if response html is empty.....
+                            $(".load_"+tabId[1]).html('');
+                            $(".load_"+tabId[1]).html('No More Products Exist!');
+                            $(".load_"+tabId[1]).show();
                         }
-                    }else{
-                        //minus something from scroll top to prevent next ajax request immediately.....
-                        var scrollTop = $(".righttextInner").scrollTop();
-                        var newScrollTopValue = scrollTop-100;//minus 100 to set the new scroll top value....
-                        $(".righttextInner").scrollTop(newScrollTopValue);//set scroll top to up on the basis of new value....
-                        //set the html to no products if response html is empty.....
-                        $(".load_"+tabId[1]).html('');
-                        $(".load_"+tabId[1]).html('No More Products Exist!');
-                        $(".load_"+tabId[1]).show();
                     }
-                }
-            });
+                });
+            }
         }
     }
 }
