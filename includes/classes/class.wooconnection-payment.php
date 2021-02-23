@@ -541,7 +541,20 @@
 	         	}
 	        }
 
-			//Get the order items from order then execute loop to create the order items array....
+
+     		$applicationEdition = applicationType();//get the application edition....
+     		$allowSub = false;//set default value false....
+     		//get the custom payment gateway settings......
+     		$advanceSettings = get_option('woocommerce_infusionsoft_keap_settings');
+     		if(isset($advanceSettings) && !empty($advanceSettings)){
+     			if(!empty($advanceSettings['enabled']) && $advanceSettings['enabled'] == 'yes'){
+     				if(!empty($advanceSettings['wc_subscriptions']) && $advanceSettings['wc_subscriptions'] == 'yes' && !empty($applicationEdition) && $applicationEdition == APPLICATION_TYPE_INFUSIONSOFT){
+     					$allowSub = true;
+     				}
+     			}
+     		}
+     		
+     		//Get the order items from order then execute loop to create the order items array....
             if ( sizeof( $orderProductsItems = $orderData->get_items() ) > 0 ) {
                 foreach($orderProductsItems as $itemId => $item)
                 {
@@ -558,7 +571,7 @@
                     $orderProductPrice = round($productData->get_price(),2);//get product price....
                     $orderProductQuan = $item['quantity']; // Get the item quantity....
                    	$checkProductAsSub = get_post_meta($orderProductId,'_product_sold_subscription',true);
-                   	if($checkProductAsSub == 'yes'){
+                   	if($checkProductAsSub == 'yes' && $allowSub == true){
                    		$typeItem = ITEM_TYPE_SUBSCRIPTION;
                    	}
                    	$orderProductIdCheck = checkAddProductIsKp($access_token,$productData,$parentProduct,$typeItem);//get the related  product id on the basis of relation with infusionsoft/keap application product...
