@@ -371,9 +371,12 @@
 
 	}
 
-	// Create global so you can use this variable beyond initial creation.
-	global $custom_subscription_coupons;
+	//check if subscription class exist it means subscription plugin exist...
+	if(class_exists('WC_Subscriptions_Cart')){
+		// Create global so you can use this variable beyond initial creation.
+		global $custom_subscription_coupons;
 
-	// Create instance of our wooconnection class to use off the whole things.
-	$custom_subscription_coupons = new WC_Subscription_Coupons();
+		// Create instance of our wooconnection class to use off the whole things.
+		$custom_subscription_coupons = new WC_Subscription_Coupons();
+	}
 ?>
