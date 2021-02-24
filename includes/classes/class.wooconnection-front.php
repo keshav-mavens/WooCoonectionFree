@@ -22,6 +22,8 @@ class WooConnection_Front {
             //Call the hook init to control the referral partner process....
             add_action('init', array($this, 'wooconnection_referral_partner_handling'));
         }
+        //Call the hook wp_enqueue_scripts at the time of front end site loading to handle the frontend..
+        add_action( 'wp_enqueue_scripts', array($this, 'front_end_triggers_handling'));
     }
 
 
@@ -117,7 +119,7 @@ class WooConnection_Front {
                         var affiliate_class_name = '<?php echo $affiliate_menu_class; ?>';
                         if(affiliate_class_name != ""){
                             document.getElementsByClassName(affiliate_class_name)[0].style.visibility='hidden';
-                        }   
+                        }
                     }
                 </script>
             <?php
@@ -206,6 +208,22 @@ class WooConnection_Front {
                     setcookie($cookieName, $cookieValue, time() + 3600, "/", $_SERVER['SERVER_NAME']);
                 }
             }
+        }
+    }
+
+    //Function Definition : front_end_triggers_handling is used to handle the front end triggers....
+    public function front_end_triggers_handling(){
+        //enqeue the script only when pages of front end...
+        if(!is_admin()){
+           // Register the JS file with a unique handle, file location, and an array of dependencies
+           wp_register_script( "front_script", (WOOCONNECTION_PLUGIN_URL.'assets/js/front_script.js'),WOOCONNECTION_VERSION, true);
+           
+           // localize the script to your domain name, so that you can reference the url to admin-ajax.php file easily
+           wp_localize_script( 'front_script', 'customAjaxUrl', array( 'ajax_url' => admin_url( 'admin-ajax.php' )));        
+           
+           // enqueue jQuery library and the script you registered above
+           wp_enqueue_script( 'jquery' );
+           wp_enqueue_script( 'front_script' );
         }
     }
 }

@@ -99,7 +99,7 @@ function wooconnection_cart_empty_trigger(){
 }
 
 //Woocommerce hook : This action is triggered when specific product add to cart.Specification is work on the basis of product sku.
-add_action('woocommerce_add_to_cart', 'wooconnection_cart_product_add_trigger', 10, 6);
+//add_action('woocommerce_add_to_cart', 'wooconnection_cart_product_add_trigger', 10, 6);
 //Function Definiation : wooconnection_cart_product_add_trigger
 function wooconnection_cart_product_add_trigger(){
     // Create instance of our wooconnection logger class to use off the whole things.

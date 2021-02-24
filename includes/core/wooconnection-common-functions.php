@@ -158,6 +158,17 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
   $applicationProductsArray =  getApplicationProducts();
+
+  //set the default manage subscription status at the time of export...
+  $exportManageSubStatus = false;
+  $advanceSettingOptions = get_option('woocommerce_infusionsoft_keap_settings');
+  if(!empty($advanceSettingOptions)){
+    if(!empty($advanceSettingOptions['enabled']) && $advanceSettingOptions['enabled'] == 'yes'){
+        if(!empty($advanceSettingOptions['wc_subscriptions']) && $advanceSettingOptions['wc_subscriptions'] == 'yes' && $configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+            $exportManageSubStatus = true;
+        }
+    }
+  }
   
   //set html if no products exist in woocommerce for export....
   if(empty($woocommerceProducts)){
@@ -174,7 +185,8 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
                 $table_export_products_html = $exportProductsData['exportTableHtml'];
             }
             else{
-              $table_export_products_html .= '<form action="" method="post" id="wc_export_products_form" onsubmit="return false">  
+              $table_export_products_html .= '<form action="" method="post" id="wc_export_products_form" onsubmit="return false">
+                <input type="hidden" name="export_manage_subscription_status" value="'.$exportManageSubStatus.'">  
                 <table class="table table-striped export_products_listing_class" id="export_products_listing">
                   '.$exportProductsData['exportTableHtml'].'
                 </table>
@@ -1441,6 +1453,17 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
     //Call the function to get the listing of woocommerce publish products....
     $existingProductResult = listExistingDatabaseWooProducts($woodropdownLimit);
 
+    //set the by default manage subscription status...
+    $manageSubscriptionStatus = 'no';
+    $customSettingOptions = get_option('woocommerce_infusionsoft_keap_settings');//get the advanced setting details.....
+    if(isset($customSettingOptions) && !empty($customSettingOptions)){
+      if(!empty($customSettingOptions['enabled']) && $customSettingOptions['enabled']== 'yes'){
+          if(isset($customSettingOptions['wc_subscriptions']) && !empty($customSettingOptions['wc_subscriptions']) && $customSettingOptions['wc_subscriptions'] == 'yes' && $configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+              $manageSubscriptionStatus = 'yes';
+          }
+      } 
+    }
+    
     //set html if no products exist in infusionsoft/keap account for import....
     if(empty($applicationProductsArray)){
         //return html only when import product html type is empty.....
@@ -1459,6 +1482,7 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
               }else{
 
                     $table_products_html_import .= '<form action="" method="post" id="wc_import_products_form" onsubmit="return false">  
+                    <input type = "hidden" name="manage_subscription_status" value="'.$manageSubscriptionStatus.'">
                     <table class="table table-striped import_products_listing_class" id="import_products_listing">
                       '.$importProductsData['importTableHtml'].'
                     </table>
@@ -1568,7 +1592,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                     }
                     
                     //Create final select html.....
-                    $wcProductSelectHtml = '<input type="hidden" id="scroll_count_wc_products" value="0" class="scroll_counter"><input type="hidden" id="products_limit_wc_import" value="20" class="scroll_counter"><select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="0">Select woocommerce product</option>'.$wcProductsDropDown.$customOptionHtml.'</select>';
+                    $wcProductSelectHtml = '<input type="hidden" id="scroll_count_wc_products" value="0" class="scroll_counter"><input type="hidden" id="products_limit_wc_import" value="20" class="scroll_counter"><input type="hidden" id="wc_product_import_with_'.$appProductId.'" value=""><select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="0">Select woocommerce product</option>'.$wcProductsDropDown.$customOptionHtml.'</select>';
                 }else{
                   //Set the html of select if no products exist in application....
                   $wcProductSelectHtml = 'No Woocommerce Products Exist!';
@@ -1580,7 +1604,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                   $appProductSku = "--";
                 }
                 //Create final html.......
-                $importTableHtml .= '<tr><input type="hidden" name="plan_id_'.$value['Id'].'[price]" value="'.$value['ProductPrice'].'"><input type="hidden" name="plan_id_'.$value['Id'].'[name]" value="'.$value['ProductName'].'"><input type="hidden" name="plan_id_'.$value['Id'].'[description]" value="'.strip_tags($value['Description']).'"><input type="hidden" name="plan_id_'.$value['Id'].'[shortdescription]" value="'.strip_tags($value['ShortDescription']).'"><input type="hidden" name="plan_id_'.$value['Id'].'[sku]" value="'.$value['Sku'].'"><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
+                $importTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
 
             }
 
@@ -3733,6 +3757,23 @@ function getSubscriptionPlanDetails($access_token,$subPlanId,$logger){
     curl_close($ch);
   }
   return $subPlanDetailsArray;
+}
+
+//get the matched subscription plan id.....
+function getMatchSubscriptionId($appPlansArray,$wcPlanArray){
+  $matchPlanId = '';//define empty array....
+  //first check application subscription plan array is exist or not empty and also check current woocommerce plan exist...
+  if(!empty($appPlansArray) && !empty($wcPlanArray)){
+    //execute loop on application subscription plans to get the match subscription plan id....
+    foreach ($appPlansArray as $key => $value) {
+        //compare four parameter of woocommerce subscription with application subscription plan....
+        if($value['frequency'] == $wcPlanArray[0] && $value['cycle_type'] == $wcPlanArray[1] && $value['number_of_cycles'] == $wcPlanArray[2] && $value['plan_price'] == $wcPlanArray[3]){
+            $matchPlanId = $value['id'];//set the match subscription plan id.....
+            break;//stop to move on next plan....
+        }
+    }
+  }
+  return $matchPlanId;//return the match subscription plan id.....
 }
 
 ?>
