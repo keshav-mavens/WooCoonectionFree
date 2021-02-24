@@ -34,7 +34,6 @@
 				        }
 				    }
 				}   
-            //add_filter("woocommerce_coupon_is_valid",[$this,"custom_subscription_coupon_validation"],15,2);
             //Wordpress hook : This action is triggered to save custom fields related data...........
             add_action( 'woocommerce_before_calculate_totals', [$this, 'checkout_calculate_total_after_free_trial'], 10, 1 );
             //Wordpress Hook : This filter is used to validate the custom coupons of custom discount type....
@@ -216,70 +215,60 @@
 	    	return true;
 	    }
 
-	    //Function Definition : custom_subscription_coupon_validation.....
-	    // public function custom_subscription_coupon_validation($isvalid,$coupon){
-	    // 	//check if coupon discount type is custom......
-	    // 	if($coupon->get_discount_type() === 'custom_subscription_managed'){
-	    // 		//then check 
-	    // 		if($this->subscription_avail == 'no'){
-	    // 			return false;
-	    // 		}
-	    // 	}
-	    // 	return $isvalid;
-	    // }
-
 	    //Function Definition : remove_coupons_custom_discount_type(this function is used to trigger the )
 	    public function remove_coupons_custom_discount_type($cartData){
-	    	//Remove original coupon triggers of wc subsction coupon class.....
-	    	remove_action('woocommerce_before_calculate_totals','WC_Subscriptions_Coupon::remove_coupons',10);
+		    //check if subscription class exist it means subscription plugin exist...
+		    if(class_exists('WC_Subscriptions_Cart')){
+		    	//Remove original coupon triggers of wc subsction coupon class.....
+		    	remove_action('woocommerce_before_calculate_totals','WC_Subscriptions_Coupon::remove_coupons',10);
+		    	//get the calculation type from woocommerce subscription cart.....
+		    	$payment_calculation_type = WC_Subscriptions_Cart::get_calculation_type();
 
-	    	//get the calculation type from woocommerce subscription cart.....
-	    	$payment_calculation_type = WC_Subscriptions_Cart::get_calculation_type();
+		    	//first check calculation is none or cart does not contain subscription product or page is checkout,cart etc....
+		    	if(! WC_Subscriptions_Cart::cart_contains_subscription() || $payment_calculation_type == 'none' || (!is_checkout() && !is_cart() && !defined('WOOCOMMERCE_CART') && !defined('WOOCOMMERCE_CHECKOUT')) ){
+		    		return;
+		    	}
+		    	
+		    	//get the list of applied coupons.....
+		    	$cartDataCoupons = $cartData->get_applied_coupons();
+		    	
+		    	//check applied coupons exist or not......
+		    	if(isset($cartDataCoupons) && !empty($cartDataCoupons)){
+		    		//intialize the empty array to applied some coupon directly......
+		    		$reapplied_coupons_array = array();
 
-	    	//first check calculation is none or cart does not contain subscription product or page is checkout,cart etc....
-	    	if(! WC_Subscriptions_Cart::cart_contains_subscription() || $payment_calculation_type == 'none' || (!is_checkout() && !is_cart() && !defined('WOOCOMMERCE_CART') && !defined('WOOCOMMERCE_CHECKOUT')) ){
-	    		return;
-	    	}
-	    	
-	    	//get the list of applied coupons.....
-	    	$cartDataCoupons = $cartData->get_applied_coupons();
-	    	
-	    	//check applied coupons exist or not......
-	    	if(isset($cartDataCoupons) && !empty($cartDataCoupons)){
-	    		//intialize the empty array to applied some coupon directly......
-	    		$reapplied_coupons_array = array();
+		    		//execute loop on applied coupons.....
+		    		foreach ($cartDataCoupons as $couponCode) {
+		    			//get the coupon details by coupon code.....
+		    			$couponData = new WC_Coupon($couponCode);
+		    			//get the coupon discount type.....
+		    			$couponDiscountType =  wcs_get_coupon_property($couponData,'discount_type');
+		    			//set the value in array on the basis of condition....
+		    			if(in_array($couponDiscountType, array('recurring_fee','recurring_percent','custom_subscription_managed'))){
+		    				if($payment_calculation_type == 'recurring_total'){
+		    					$reapplied_coupons_array[] = $couponCode;
+		    				}else if($payment_calculation_type == 'none'){
+		    					$reapplied_coupons_array[] = $couponCode; 
+		    				}else{
+		    					self::$removed_coupons_array[] = $couponCode;
+		    				}
+		    			}else if(($payment_calculation_type == 'none') && !in_array($couponDiscountType, array('recurring_fee','recurring_percent'))){
+		    				$reapplied_coupons_array[] = $couponCode;
+		    			}else{
+		    				self::$removed_coupons_array[] = $couponCode;
+		    			}
+		    		}
 
-	    		//execute loop on applied coupons.....
-	    		foreach ($cartDataCoupons as $couponCode) {
-	    			//get the coupon details by coupon code.....
-	    			$couponData = new WC_Coupon($couponCode);
-	    			//get the coupon discount type.....
-	    			$couponDiscountType =  wcs_get_coupon_property($couponData,'discount_type');
-	    			//set the value in array on the basis of condition....
-	    			if(in_array($couponDiscountType, array('recurring_fee','recurring_percent','custom_subscription_managed'))){
-	    				if($payment_calculation_type == 'recurring_total'){
-	    					$reapplied_coupons_array[] = $couponCode;
-	    				}else if($payment_calculation_type == 'none'){
-	    					$reapplied_coupons_array[] = $couponCode; 
-	    				}else{
-	    					self::$removed_coupons_array[] = $couponCode;
-	    				}
-	    			}else if(($payment_calculation_type == 'none') && !in_array($couponDiscountType, array('recurring_fee','recurring_percent'))){
-	    				$reapplied_coupons_array[] = $couponCode;
-	    			}else{
-	    				self::$removed_coupons_array[] = $couponCode;
-	    			}
-	    		}
+		    		//hit the default function to remove coupons......
+		    		$cartData->remove_coupons();
 
-	    		//hit the default function to remove coupons......
-	    		$cartData->remove_coupons();
-
-	    		//set the applied coupon......
-                $cartData->applied_coupons = $reapplied_coupons_array;
-                
-               	if ( isset( $cartData->coupons ) ) {
-                    $cartData->coupons = $cartData->get_coupons();
-                }
+		    		//set the applied coupon......
+	                $cartData->applied_coupons = $reapplied_coupons_array;
+	                
+	               	if ( isset( $cartData->coupons ) ) {
+	                    $cartData->coupons = $cartData->get_coupons();
+	                }
+		    	}
 	    	}
 	    }	
 	    
