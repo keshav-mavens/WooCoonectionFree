@@ -8,7 +8,6 @@
  * Plugin URI: https://www.wooconnection.com
  */
 class WooConnectionPro {
-
     public function __construct() {
         //Call the hook plugin_loaded at the time of plugin initialization..
         add_action("plugins_loaded", array($this, "wooconnection_plugin_initialization"));
@@ -22,6 +21,12 @@ class WooConnectionPro {
         register_activation_hook( __FILE__, array($this, 'create_standard_custom_fields_mapping_table' ) );
         register_activation_hook( __FILE__, array($this, 'create_thanks_page_override_table' ) );
         register_activation_hook( __FILE__, array($this, 'update_pro_version_status' ) );
+        //Call the hook register activation hook to call the custom action to set the schedular....
+        register_activation_hook(__FILE__,  array($this, 'set_custom_schedular'));
+        //Call the hook register deactivation to clear the set custom cron job....
+        register_deactivation_hook(__FILE__,array($this,'clear_custom_schedular'));
+        //Call the register activation hook to create the custom table for store the recurring payment data of all users...
+        register_activation_hook(__FILE__,array($this,'create_recurring_details_table'));
     }
 
     
@@ -31,11 +36,13 @@ class WooConnectionPro {
             add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
             return;
         }
+        
         //check if wooconnection free version plugin is already activated then user needs to deactivate or delete the free verison of wooconnection to use the pro wooconnection version.....
         if (class_exists('WooConnection')) {
             add_action('admin_notices', array($this, 'wc_pro_deactivate_free_version_notice'));
             return;
         }
+        
         //check if user try with copy paste the files ....
         $checkProVersionActivated = get_option('wc_pro_version_activated');
         //if option not exist...
@@ -45,12 +52,15 @@ class WooConnectionPro {
             deactivate_plugins( plugin_basename( __FILE__ ) );
             wp_die( __( 'Sorry you are allowed to access this plugin. Please activate it first.', 'textdomain' ) );
         }
+
         define( 'WOOCONNECTION_VERSION', '16' );//Version Entity
         define( 'WOOCONNECTION_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );//Directory Path Entity
         define( 'WOOCONNECTION_PLUGIN_URL', plugin_dir_url( __FILE__ ) );//Directory Url Entity
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-entities.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
+        //Call the hook to call the custom function to update the recurring amount in authenticate application....
+        add_action('recurring_payment_schedular_everyday','WooConnection_Admin::everyday_update_sub_recurring_amount');
     }
 
     //Function Definition : woocommerce_plugin_necessary
@@ -165,6 +175,47 @@ class WooConnectionPro {
         } 
     }
 
+    //Function Definition : set_custom_schedular....
+    public function set_custom_schedular(){
+        //check schedular is already set or not.....
+        if (!wp_next_scheduled( 'recurring_payment_schedular_everyday' ) ) {
+            wp_schedule_event( time(), 'daily', 'recurring_payment_schedular_everyday' );
+        }
+    }
+
+    //Function Definition : clear_custom_schedular 
+    public function clear_custom_schedular(){
+        //check schedular is exist or not......
+        if(wp_next_scheduled('recurring_payment_schedular_everyday')){
+            //clera cron job from the schedular....
+            wp_clear_scheduled_hook('recurring_payment_schedular_everyday');
+        }
+    }
+
+    //Function Definition : create_recurring_details_table
+    public function create_recurring_details_table(){
+        global $table_prefix,$wpdb;
+        $custom_table_name = 'wooconnection_recurring_payments_data';
+        $wp_custom_table_name = $table_prefix. "$custom_table_name";
+        if($wpdb->get_var("show tables like '$wp_custom_table_name'") != $wp_custom_table_name){
+            $custom_table_sql = "CREATE TABLE `".$wp_custom_table_name."`(";
+            $custom_table_sql .= "`id` int(11) NOT NULL auto_increment,";
+            $custom_table_sql .= "`wp_user_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`app_contact_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`app_sub_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`sub_total_amount` double NOT NULL DEFAULT 0,";
+            $custom_table_sql .= "`sub_discount_amount` double NOT NULL DEFAULT 0,";
+            $custom_table_sql .= "`discount_duration` varchar(255),";
+            $custom_table_sql .= "`sub_amount_updation_status` tinyint(4) DEFAULT 0 COMMENT '0-false,1-true',";
+            $custom_table_sql .= "`sub_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";
+            $custom_table_sql .= "`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+            $custom_table_sql .= "`modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,";
+            $custom_table_sql .= "PRIMARY KEY (`id`)";
+            $custom_table_sql .= ") ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
+            require_once(ABSPATH .'/wp-admin/includes/upgrade.php');
+            dbDelta($custom_table_sql);
+        }
+    }
     
 
     //Function Definition : create_custom_fields_group_table

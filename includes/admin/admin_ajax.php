@@ -160,6 +160,11 @@ function wc_load_import_export_tab_main_content(){
 				$limit = $_POST['newLimitExport'];
 			}
 			$latestHtml = createExportProductsHtml($limit,$offset);
+		}else if ($_POST['target_tab_id'] == '#table_import_products') {
+			if(isset($_POST['newLimitImport']) && !empty($_POST['newLimitImport'])){
+				$limit = $_POST['newLimitImport'];
+			}
+			$latestHtml = createImportProductsHtml($limit,$offset);
 		}else if ($_POST['target_tab_id'] == '#table_match_products') {
 			if(isset($_POST['newLimitMatch']) && !empty($_POST['newLimitMatch'])){
 				$limit = $_POST['newLimitMatch'];
@@ -198,6 +203,7 @@ function wc_export_wc_products()
         //check select products exist in post data to export.....
         if(isset($_POST['wc_products']) && !empty($_POST['wc_products'])){
             foreach ($_POST['wc_products'] as $key => $value) {
+                $subDetailsArray = array();
                 $productDetailsArray = array();//Define variable..
                 $mapppedProductId = '';//Define variable..
                 if(!empty($value)){//check value...
@@ -263,14 +269,36 @@ function wc_export_wc_products()
                		}else{
                         $wcproductShortDesc = "";
                     }
-                    //create final array with values.......
-                    $productDetailsArray['active'] = true;
+					
+					$wcProductType = $wcproductdetails->get_type();//get the product type...
+                    //get the manage subscription status...
+                    $subManageStatus = $_POST['export_manage_subscription_status'];
+                    //get the product is sold as a subscription...
+                    $productSoldAsSubscription = get_post_meta($value,'_product_sold_subscription',true);
+	                if($productSoldAsSubscription == 'yes' && stripos($wcProductType,'subscription') !== false && !empty($subManageStatus) && $subManageStatus == true){
+	                  	$typeProduct = ITEM_TYPE_SUBSCRIPTION;
+	    				$subscriptionInterval = get_post_meta($value,'_subscription_period_interval',true);//get the subscription interval......
+	    				$subscriptionPeriod = get_post_meta($value,'_subscription_period',true);//get the subscription period..
+	    				$subscriptionLength = get_post_meta($value,'_subscription_length',true);//get the subscription length....
+	    				//push the wc subscription values in array....
+	    				$subDetailsArray = array($subscriptionInterval,strtoupper($subscriptionPeriod),$subscriptionLength,$wcproductPrice);
+	    				//create json array to add subscription....
+	                    $appJsonSubPlanArray = '{"active":true,"cycle_type":"'.strtoupper($subscriptionPeriod).'","frequency":'.$subscriptionInterval.',"number_of_cycles":'.$subscriptionLength.',"plan_price":'.$wcproductPrice.',"subscription_plan_index":0}';
+	                }else{
+	                  $typeProduct = ITEM_TYPE_PRODUCT;
+	                }
+	                
+	                //create final array with values.....
+	                $productDetailsArray['active'] = true;
                     $productDetailsArray['product_desc'] = $wcproductDesc;
                     $productDetailsArray['sku'] = $wcproductSku;
                     $productDetailsArray['product_price'] = $wcproductPrice;
                     $productDetailsArray['product_short_desc'] = $wcproductShortDesc;
+                    //check item type is a subscription then add new parameter in array that is "subscription_only"....
+                	if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
+                		$productDetailsArray['subscription_only'] = true;
+                	}
                     
-
                     //check the products data exist....
                     if(isset($productDetailsArray) && !empty($productDetailsArray)){
                         //if product is not associated along with export product request then need create new product in connected infusionsoft/keap appication.....
@@ -283,7 +311,12 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $createdProductId);
                                 //update the woocommerce product sku......
                             	update_post_meta($value,'_sku',$wcproductSku);
-                            }                   
+	                            //check if product type is subscription then add subscription plan for paricular product....
+	                            if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
+	                            	//add subscription with particular application product....
+	                            	$createSubscription = addSubscriptionPlan($access_token,$createdProductId,$appJsonSubPlanArray,$wooconnectionLogger);
+	                            }                   
+                        	}
                         }
                         //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
                         else{
@@ -295,11 +328,28 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $updateProductId);
                                 //update the woocommerce product sku......
                                 update_post_meta($value,'_sku',$wcproductSku);
+                                //first check product is related to subscription or not....
+                            	if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
+	                            	//get the product details by product id...
+	                        		$appProductDetails = getApplicationProductDetail($mapppedProductId,$access_token);
+	                            	//check if subscription plans exist in product....
+	                            	if(isset($appProductDetails['subscription_plans']) && !empty($appProductDetails['subscription_plans'])){
+	                            		$appSubscriptionPlans = $appProductDetails['subscription_plans'];//assign the subscription plans in variable...
+	                            		//check same subscription plan exist in array.....
+	                            		$matchSubscriptionId = getMatchSubscriptionId($appSubscriptionPlans,$subDetailsArray);
+	                            		//if not exist then add the new subscription plan in it...
+	                            		if(empty($matchSubscriptionId)){
+	                            			//add subscription plan in particular mapped application product....
+	                            			$createSubscriptionPlan = addSubscriptionPlan($access_token,$updateProductId,$appJsonSubPlanArray,$wooconnectionLogger);
+	                            		}
+	                            	}else{//if not subscription plans exist then add new subscription plan....
+	                            		//add subscription plan in particular mapped application product.....
+	                            		$createSubscriptionPlan = addSubscriptionPlan($access_token,$updateProductId,$appJsonSubPlanArray,$wooconnectionLogger);
+	                            	}
+                            	}
                             }
-                            
                         }
                     }
-                    
                 }
             }
             //set default offset and limit....
@@ -358,6 +408,7 @@ function wc_get_product_variation()
   			$applicationLabel = applicationLabel($type);
   			$currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
 	  		if(isset($available_variations) && !empty($available_variations)){
+	  			$typeProduct == ITEM_TYPE_PRODUCT;
 	  			foreach ($available_variations as $key => $value) {
 	  				if($value['variation_is_active'] == STATUS_ACTIVE){
 	  					$mappedProductHtml = '';
@@ -367,12 +418,12 @@ function wc_get_product_variation()
 		                    $variationExistId = get_post_meta($value['variation_id'], 'is_kp_product_id', true);
 		                    //If variation relation exist then create select deopdown and set associative product selected....
 		                    if(isset($variationExistId) && !empty($variationExistId)){
-		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId);
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId,$typeProduct);
 		                    }else if($variationExistId === '0'){
-		                    	$productsDropDown = createMatchProductsSelect($applicationProductsArray);
+		                    	$productsDropDown = createMatchProductsSelect($applicationProductsArray,'',$typeProduct);
 		                    }
 		                    else if(isset($_POST['matchProductId']) && !empty($_POST['matchProductId'])){
-		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$_POST['matchProductId']);
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$_POST['matchProductId'],$typeProduct);
 		                    }
 		                    $mappedProductHtml = '<select class="application_match_products_dropdown" name="wc_product_match_with_'.$value['variation_id'].'" data-id="'.$value['variation_id'].'"><option value="0">Select '.$applicationLabel.' product</option>'.$productsDropDown.'</select>';
 	  					}else{
@@ -596,8 +647,8 @@ function wc_save_thanks_product_category_override()
 					$catNewOverrHtml .= '<li class="group-field" id="'.$lastInsertId.'"><span class="wc_thankyou_override_name override_name_inner"><span id="cat_override_name_'.$lastInsertId.'">'.$override_fields_cat_array['wc_override_name'].'</span><span class="listing-operators"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$lastInsertId.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$lastInsertId.'"></i></span></span></li>';
 				}
 			}
-		}	
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'catNewOverrideLi'=>$catNewOverrHtml,'catUpdatedOverrTitle'=>$catUpdatedOverrTitle));
+		}
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'catNewOverrideLi'=>$catNewOverrHtml,'catUpdatedOverrTitle'=>$catUpdatedOverrTitle));	
 	}
 	die();
 }
@@ -820,6 +871,10 @@ function wc_load_more_products(){
 			}else if ($_POST['tabversion'] == 'table_match_products') {
 				//then call the "createMatchProductsHtml" function to get the next products for match products....
 				$moreProductsListing = createMatchProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
+			}else if($_POST['tabversion'] == 'table_import_products'){
+				$wooProductsDropdownLimit = $_POST['dropdownLimit'];
+				//then call the "createImportProductsHtml" function to get the next products for import products...
+				$moreProductsListing = createImportProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE,$wooProductsDropdownLimit);
 			}
 	    }
 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'moreProductsListing'=>$moreProductsListing));
@@ -1569,6 +1624,200 @@ function wc_save_affiliate_redirect_slug()
 	die();
 }
 
+//Custom fields Tab : wordpress hook is call when user click on import products button to import products from insufionsoft/keap application....
+add_action( 'wp_ajax_wc_import_application_products', 'wc_import_application_products');
+//Function Definiation : wc_import_application_products
+function wc_import_application_products()
+{
+	//first check post data is not empty
+	if(isset($_POST) && !empty($_POST)){
+		global $wpdb;
+		//define the memory limit infinite to prevent from exceed memory limit error....
+		ini_set('memory_limit',"-1");
+		//also set time limit "0" to prevent the execution time exceed....
+		set_time_limit(0);
+		//first need to check whether the application authentication is done or not..
+        $applicationAuthenticationDetails = getAuthenticationDetails();
+        //get the access token....
+        $access_token = '';
+        if(!empty($applicationAuthenticationDetails)){//check authentication details......
+            if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
+                $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
+            }
+        }
+		//check select products exist in post data to export.....
+        if(isset($_POST['wc_products_import']) && !empty($_POST['wc_products_import'])){
+        	$managedSubStatus = '';
+        	//check managed subscription status
+  			if(!empty($_POST['manage_subscription_status']) && $_POST['manage_subscription_status'] == 'yes'){
+  				$managedSubStatus = 'yes';
+  			}
+            foreach ($_POST['wc_products_import'] as $key => $value) {
+ 				if(!empty($value)){//check value...
+          			//check any associated product is selected along with imported product request....
+	      			if(isset($_POST['wc_product_import_with_'.$value]) && !empty($_POST['wc_product_import_with_'.$value])){
+	      				$needUpdateExistingProduct = $_POST['wc_product_import_with_'.$value];
+	      			}else{
+	      				$needUpdateExistingProduct = '';
+	      			}
+	      			//get the product details by product id...
+	               	$applicationProductDetails = getApplicationProductDetail($value,$access_token);
+	               	//define array to store the infusionsoft/keap product detail......
+	      			$product_extra_data_array = array();
+	      			if(isset($applicationProductDetails) && !empty($applicationProductDetails)){
+	      				
+	      				//set and get the product content.....
+	      				$pContent = '';
+		      			if(!empty($applicationProductDetails['product_desc'])){
+		      				$pContent = trim($applicationProductDetails['product_desc']);	
+		      			}else if ($applicationProductDetails['product_short_desc']) {
+		      				$pContent = trim($applicationProductDetails['product_short_desc']);
+		      			}else if ($applicationProductDetails['product_name']) {
+		      				$pContent = trim($applicationProductDetails['product_name']);
+		      			}
+		      			
+		      			//set and get the product short description.....
+		      			$pshortContent = '';
+		      			if(!empty($applicationProductDetails['product_short_desc'])){
+		      				$pshortContent = trim($applicationProductDetails['product_short_desc']);
+		      			}
+		      			
+		      			//set and get the product name....
+		      			$productName = '';	
+		      			if(!empty($applicationProductDetails['product_name'])){
+		      				$productName = $applicationProductDetails['product_name'];
+		      			}
+
+		      			//set the meta fields of product....
+		      			$product_extra_data_array['_regular_price'] = $applicationProductDetails['product_price'];
+		      			$product_extra_data_array['_price'] = $applicationProductDetails['product_price'];
+		      			if(!empty($applicationProductDetails['product_sku'])){
+		      				$product_extra_data_array['_sku'] = $applicationProductDetails['product_sku'];
+		      			}
+
+		      			//set default value of product is not related to subscription "false"....
+		      			$markAsSubscription = false;
+		      			//check manage subscription via infusionsoft is enable or not....
+		      			if(!empty($managedSubStatus) && $managedSubStatus == 'yes'){
+		      				//check subscription only exist...
+		      				if(!empty($applicationProductDetails['subscription_only']) && $applicationProductDetails['subscription_only'] == true){
+								if(!empty($applicationProductDetails['subscription_plans'])){
+									//get the last subscription plan....
+									$lastPlan = end($applicationProductDetails['subscription_plans']);
+									//push the subscription plan details in array....
+									$product_extra_data_array['_subscription_period_interval'] = $lastPlan['frequency'];
+									$product_extra_data_array['_subscription_period'] = strtolower($lastPlan['cycle_type']);
+									$product_extra_data_array['_subscription_length'] = $lastPlan['number_of_cycles'];
+									$product_extra_data_array['_subscription_price'] = $lastPlan['plan_price'];
+									$product_extra_data_array['_regular_price'] = $lastPlan['plan_price'];
+		      						$product_extra_data_array['_price'] = $lastPlan['plan_price'];
+									$markAsSubscription = true;//mark product is related to subscription "true".....
+								}
+		      				}
+		      			}
+		      				
+		      			//if product is not associated along with imported product request then need create new product..
+		      			if(empty($needUpdateExistingProduct)){
+		      				$postData = array('post_content' => $pContent,'post_status' => "publish",'post_title' => $productName,'post_type' => "product",'post_excerpt'=>$pshortContent);
+							$new_post_id = wp_insert_post($postData);
+							//check if product imported done then need to check the image associated with product if yes then need to update....
+							if($new_post_id){
+								//check if product is related to subscription....
+								if($markAsSubscription == true){
+									// Setting the product type
+									wp_set_object_terms( $new_post_id, 'subscription', 'product_type' );
+									$updatedGuid = get_option('siteurl').'/?post_type=product&p='.$new_post_id;
+									$wpdb->update($wpdb->posts, ['guid' => $updatedGuid], ['ID' => $new_post_id]);
+								}
+								$product_extra_data_array['is_kp_product_id'] = $value;
+								if(empty($product_extra_data_array['_sku'])){
+									$product = get_post($new_post_id); 
+									$slug = $product->post_name;
+									//if "-" is exist in product sku then replace with "_".....
+								    if (strpos($slug, '-') !== false)
+								    {
+								        $wcproductSku=str_replace("-", "_", $slug);
+								    }
+								    else
+								    {
+								        $wcproductSku=$slug;
+								    }
+									$product_extra_data_array['_sku'] = $wcproductSku;
+								}	
+								//update post meta of newly created post...
+								updateProductMetaData($new_post_id,$product_extra_data_array);
+							}
+						}
+		      			//if product is associated along with imported product request then need to update the values of exitsing product.........
+		      			else{
+		      				//create latest product details array....
+		      				$latestPostData = array('ID'=>$needUpdateExistingProduct,'post_content'=>$pContent,'post_excerpt'=>$pshortContent,'post_title'=>$productName);
+							//update the product details with latest data..
+							$update_post_id = wp_update_post($latestPostData);
+							//check need to mark product as a subscription...
+							if(!empty($markAsSubscription) && $markAsSubscription == true){
+								//set the product type as a subscription....
+								wp_set_object_terms($needUpdateExistingProduct,'subscription','product_type');
+							}
+							$product_extra_data_array['is_kp_product_id'] = $value;
+	      					if(empty($product_extra_data_array['_sku'])){
+								$product = get_post($new_post_id); 
+								$slug = $product->post_name;
+								//if "-" is exist in product sku then replace with "_".....
+							    if (strpos($slug, '-') !== false)
+							    {
+							        $wcproductSku=str_replace("-", "_", $slug);
+							    }
+							    else
+							    {
+							        $wcproductSku=$slug;
+							    }
+								$product_extra_data_array['_sku'] = $wcproductSku;
+							}
+		      				//update post meta of existing post...
+		      				updateProductMetaData($needUpdateExistingProduct,$product_extra_data_array);
+		      			}
+
+		      		}
+	      		}
+ 			}
+ 			//set default offset and limit.....
+ 			$importProductsLimit = 20;
+ 			$importProductsOffset = 0;
+ 			//check limit exist in post data or not....
+ 			if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
+ 				$importProductsLimit = $_POST['newLimit'];
+ 			}
+ 			
+ 			//then call the "createImportProductsHtml" function to get the latest html...
+            $latestImportProductsHtml = createImportProductsHtml($importProductsLimit,$importProductsOffset);
+            echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestImportProductsHtml'=>$latestImportProductsHtml));
+ 		}
+ 	}
+	die();
+}
+
+
+//Wordpress Hook : This hook is triggered to lod more woocommerce products...
+add_action('wp_ajax_wc_load_woo_products','wc_load_woo_products');
+//Function Definiation : wc_load_woo_products
+function wc_load_woo_products(){
+	if(isset($_POST) && !empty($_POST)){
+		$getWooProducts = listExistingDatabaseWooProducts($_POST['wooProLimit'],$_POST['wooProOffset']);
+		$wooProdOptionsData = array();
+		if(isset($getWooProducts) && !empty($getWooProducts)){
+			foreach ($getWooProducts as $key => $value) {
+				if(!empty($value->ID)){
+					$wooProdOptionsData[$key]['ProductName'] = $value->post_title;
+					$wooProdOptionsData[$key]['Id'] = $value->ID;
+				}
+			}
+		}
+		//return response....
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newWooProductsOptions'=>$wooProdOptionsData));
+	}
+	die();
+}
 
 //Wordpress hook : This action is triggered to load products on the basis of category....
 add_action('wp_ajax_wc_more_products_with_cat','wc_more_products_with_cat');
@@ -1597,4 +1846,30 @@ function wc_more_products_with_cat(){
 	}
 	die();
 }
+
+//Wordpress Hook : This hook is triggered to search the products from database....
+add_action('wp_ajax_wc_search_woo_product','wc_search_woo_product');
+//Function Definiation : wc_search_woo_product
+function wc_search_woo_product(){
+	if(isset($_POST) && !empty($_POST)){
+		global $wpdb;
+		$matchProductsOptions = array();//define the empty array...
+		$searchItem = $_POST['searchItem'];//set the post search item....
+		$status = 'publish';//set status....
+		$postType = 'product';//set the post type.....
+		$getProductsByName = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts WHERE post_title LIKE %s AND post_status = %s AND post_type = %s",array('%'.$searchItem.'%',$status,$postType)));
+		if(isset($getProductsByName) && !empty($getProductsByName)){
+			foreach ($getProductsByName as $key => $value) {
+				if(!empty($value->ID)){
+					$matchProductsOptions[$key]['ProductName'] = $value->post_title;
+					$matchProductsOptions[$key]['Id'] = $value->ID;
+				}
+			}
+		}
+		//return response
+		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'matchProductsOptions'=>$matchProductsOptions));
+	}
+	die();
+}
 ?>
+
