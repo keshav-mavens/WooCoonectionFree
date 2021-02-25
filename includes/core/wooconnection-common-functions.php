@@ -155,7 +155,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
   //Set the application label on the basis of type...
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
-  $applicationProductsArray =  getApplicationProducts();
+  $applicationProductsArray =  getExistingAppProducts();
   
   //set html if no products exist in woocommerce for export....
   if(empty($woocommerceProducts)){
@@ -259,11 +259,11 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                   $wcproductName = "--";
                 }
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
-                if(!empty($applicationProductsArray['products'])){
+                if(!empty($applicationProductsArray)){
                     //Check product relation is exist....
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
-                    if(isset($productExistId)){
+                    if(isset($productExistId) && !empty($productExistId)){
                       $matchProductId = $productExistId;
                     }else if (!empty($wcproductSku)) {//Then check product sku,If product sku exist then check product in application with same sku is exist ot not....
                       $checkSkuMatchWithIskpProducts = checkProductMapping($wcproductSku,$applicationProductsArray); 
@@ -276,18 +276,20 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                           }
                       }
                     }
+                    
                     //check matchproduct id is exist or not if exist then get the product name from application products array......
                     if(!empty($matchProductId)){
-                      $key = array_search($matchProductId, array_column($applicationProductsArray['products'], 'id'));
+                      $key = array_search($matchProductId, array_column($applicationProductsArray, 'app_product_id'));
                       if (!empty($key) || $key === 0) {
-                        $productDetails = $applicationProductsArray['products'][$key];
-                        if(!empty($productDetails['product_name'])){
-                          $productsDropDown = '<input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails['product_name'];
+                        $productDetails = $applicationProductsArray[$key];
+                        if(!empty($productDetails->app_product_name)){
+                          $productsDropDown = '<input type = "hidden" value="'.$productDetails->id.'" name="wc_product_primary_key_'.$matchProductId.'"><input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails->app_product_name;
                         }
                       }else{
                         $productsDropDown = 'Mapped Product Not Exist In App!';
                       }
-                    }else{
+                    }
+                    else{
                       $productsDropDown = 'No mapping exist!'; 
                     }
                     //Create final select html.....
@@ -316,14 +318,14 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
 //Check product with same sku is exist or not , if exist then return match products id.....
 function checkProductMapping($sku,$productsArray){
     $matchProductsIds = array();//Define array...
-    if(!empty($productsArray['products'])){//check is products array is not empty....
+    if(!empty($productsArray)){//check is products array is not empty....
         //Execute loop on application prdoucts array,......
-        foreach ($productsArray['products'] as $key => $value) {
-          if(!empty($value['id'])){//check product id....
+        foreach ($productsArray as $key => $value) {
+          if(!empty($value->app_product_id)){//check product id....
               //compare sku, if match the return the ids..
-              if(isset($value['sku']) && !empty($value['sku'])){
-                  if($value['sku'] == $sku){
-                    $matchProductsIds[] = $value['id'];
+              if(!empty($value->app_product_sku)){
+                  if($value->app_product_sku == $sku){
+                    $matchProductsIds[] = $value->app_product_id;
                   }    
               }
           }
@@ -1480,4 +1482,53 @@ function getExistingAppProducts(){
     }
     return $appProListing;
 }
+
+//Get the list of application products....
+function getAppProductBySku($sku,$access_token){
+    $skuMatchProductIds = array();
+    if(!empty($sku) && !empty($access_token)){
+      // Create instance of our wooconnection logger class to use off the whole things.
+      $wooconnectionLogger = new WC_Logger();
+      
+      $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $header = array(
+        'Accept: text/xml',
+        'Content-Type: text/xml',
+        'Authorization: Bearer '. $access_token
+      );
+
+      //Create xml to hit the curl request for get the list of products......
+      $getProductsXml = '<methodCall>
+                            <methodName>DataService.findByField</methodName>
+                              <params><param><value><string></string></value></param><param><value><string>Product</string></value></param><param><value><int>1000</int></value></param><param><value><int>0</int></value></param><param><value><string>Sku</string></value></param><param><value><string>'.$sku.'</string></value></param><param><value><array><data><value><string>Id</string></value><value><string>ProductName</string></value></data></array></value></param></params></methodCall>';
+
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $getProductsXml);
+      $response = curl_exec($ch);
+      $err = curl_error($ch);
+      //check if error occur due to any reason and then save the logs...
+      if($err){
+          $errorMessage = "Get the product detail by product sku is failed due to ". $err; 
+          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+      }else{
+        //Covert/Decode response to xml.....
+        $responsedata = xmlrpc_decode($response);
+        //check if any error occur like invalid access token,then save logs....
+        if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
+            if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
+                $errorMessage = "Get the product detail by sku is failed due to ". $responsedata['faultString']; 
+                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
+            }
+        }else{
+          $skuMatchProductIds = $responsedata;
+        }
+      }
+      curl_close($ch);
+    }
+    return $skuMatchProductIds;
+}
+
 ?>

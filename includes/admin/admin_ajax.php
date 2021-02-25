@@ -169,6 +169,7 @@ function wc_export_wc_products()
 {
 	//first check post data is not empty
     if(isset($_POST) && !empty($_POST)){
+        global $wpdb,$table_prefix;
         //first need to check whether the application authentication is done or not..
         $applicationAuthenticationDetails = getAuthenticationDetails();
         //get the access token....
@@ -186,11 +187,15 @@ function wc_export_wc_products()
         $callback_purpose = 'Export Woocommerce Product : Process of export woocommerce product to infusionsoft/keap application';
         //set the wooconnection log class.....
         $wooconnectionLogger = new WC_Logger();
+        //get the existing application app products...
+        $existinProducts = getExistingAppProducts();
+        $appProductsTableName = $table_prefix.'authorize_application_products';
         //check select products exist in post data to export.....
         if(isset($_POST['wc_products']) && !empty($_POST['wc_products'])){
             foreach ($_POST['wc_products'] as $key => $value) {
                 $productDetailsArray = array();//Define variable..
                 $mapppedProductId = '';//Define variable..
+                $appProductData = array();
                 if(!empty($value)){//check value...
                     //check any associated product is selected along with export product request....
 	      			if(isset($_POST['wc_product_export_with_'.$value]) && !empty($_POST['wc_product_export_with_'.$value])){
@@ -274,6 +279,13 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $createdProductId);
                                 //update the woocommerce product sku......
                             	update_post_meta($value,'_sku',$wcproductSku);
+                            	$appProductData['app_product_id'] = $createdProductId;
+								$appProductData['app_product_name'] =  $wcproductName;
+								$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
+								$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
+								$appProductData['app_product_sku'] = $wcproductSku;
+								$appProductData['app_product_price'] = $wcproductPrice;
+								$wpdb->insert($appProductsTableName,$appProductData);
                             }                   
                         }
                         //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
@@ -286,7 +298,16 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $updateProductId);
                                 //update the woocommerce product sku......
                                 update_post_meta($value,'_sku',$wcproductSku);
-                            }
+                                if(isset($_POST['wc_product_primary_key_'.$updateProductId]) && !empty($_POST['wc_product_primary_key_'.$updateProductId])){
+	                                $primaryKey = $_POST['wc_product_primary_key_'.$updateProductId];
+									$appProductData['app_product_name'] =  $wcproductName;
+									$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
+									$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
+									$appProductData['app_product_sku'] = $wcproductSku;
+									$appProductData['app_product_price'] = $wcproductPrice;
+									$response = $wpdb->update($appProductsTableName, $appProductData, array('id'=>$primaryKey));
+                                }
+							}
                             
                         }
                     }
