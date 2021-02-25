@@ -413,4 +413,31 @@ function wc_load_more_products(){
 	die();
 }
 
+//Wordpreess Hool : This hook is triggered to get the products from authorized application and insert into the database.....
+add_action('wp_ajax_wc_get_insert_app_products','wc_get_insert_app_products');
+//Function Definition : wc_get_insert_app_products
+function wc_get_insert_app_products(){
+	if(isset($_POST) && !empty($_POST)){
+		global $wpdb,$table_prefix;
+		$applicationProductsTableName = $table_prefix.'authorize_application_products';
+		$appProducts = getApplicationProducts();
+		if(isset($appProducts['products']) && !empty($appProducts['products'])){
+			foreach ($appProducts['products'] as $key => $value) {
+				if(!empty($value['id'])){
+					$productDataArray = array();
+					$productDataArray['app_product_id'] = $value['id'];
+					$productDataArray['app_product_name'] =  $value['product_name'];
+					$productDataArray['app_product_description'] = $value['product_desc'];	
+					$productDataArray['app_product_excerpt'] = $value['product_short_desc'];
+					$productDataArray['app_product_sku'] = $value['sku'];
+					$productDataArray['app_product_price'] = $value['product_price'];
+					$wpdb->insert($applicationProductsTableName,$productDataArray);
+				}
+			}
+		}
+	}
+	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	die();
+}
+
 ?>

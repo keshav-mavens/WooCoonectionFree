@@ -187,6 +187,7 @@
             //Check if "response" done....
             var checkResponse = getQueryParameter('response');
             if(checkResponse != "" && checkResponse == "1"){
+                insertApplicationProducts();
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
                 swal({
                   title: "Authorization!",
@@ -689,4 +690,11 @@ function loadMoreProducts(){
             });
         }
     }
+}
+
+function insertApplicationProducts(){
+    var insertProducts = 'insert';
+    jQuery.post(ajax_object.ajax_url+"?action=wc_get_insert_app_products",{test:insertProducts},function(data){
+
+    });
 }
