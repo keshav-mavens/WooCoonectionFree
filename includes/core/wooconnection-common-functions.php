@@ -183,6 +183,9 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
                   <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
                   <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
                 </div>
+                <div class="form-group col-md-12">
+                  <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" onclick="loadMoreProducts()">
+                </div>
               </form>';
             }
           }
@@ -504,7 +507,9 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
               $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
                 <table class="table table-striped match_products_listing_class" id="match_products_listing">
                   '.$matchProductsData['matchTableHtml'].'
-                </table></form>';
+                </table><div class="form-group col-md-12">
+                  <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" onclick="loadMoreProducts()">
+                </div></form>';
             }
           }
       }
