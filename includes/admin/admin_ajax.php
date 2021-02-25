@@ -1682,6 +1682,19 @@ function wc_trigger_add_cart(){
 	        $productSku = 'added'.substr($productSku, 0,SKU_LENGHT_CART_ITEM);
 	    }elseif (!empty($_POST['productId'])) {
         	$currentProductSku = get_set_product_sku($_POST['productId'],SKU_LENGHT_CART_ITEM);
+        	//if "-" is exist in product sku then replace with empty
+	        if (strpos($currentProductSku, '-') !== false)
+	        {
+	            $currentProductSku=str_replace("-", "", $currentProductSku);
+	        }
+	        else if (strpos($currentProductSku, '_') !== false)
+	        {
+	            $currentProductSku=str_replace("_", "", $currentProductSku);
+	        }
+	        else
+	        {
+	            $currentProductSku=$currentProductSku;
+	        }
         	if(!empty($currentProductSku)){
         		$productSku = 'added'.$currentProductSku;
         	}
