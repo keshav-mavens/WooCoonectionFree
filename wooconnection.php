@@ -24,6 +24,10 @@ class WooConnection {
         register_activation_hook( __FILE__, array($this, 'insert_countries_database_table' ) );
         //call the hook register_activation_hoook to create the custom table to store the authorize application products.....
         register_activation_hook(__FILE__,array($this,'create_application_products_table'));
+        //Call the hook register activation hook to call the custom action to set the schedular....
+        register_activation_hook(__FILE__,  array($this, 'set_custom_schedular_products'));
+        //Call the hook register deactivation to clear the set custom cron job....
+        register_deactivation_hook(__FILE__,array($this,'clear_custom_schedular_products'));
     }
 
     
@@ -36,6 +40,8 @@ class WooConnection {
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-entities.php' );
 		require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
+        //Call the hook to call the custom function to update the recurring amount in authenticate application....
+        add_action('application_products_schedular_twiceday','WooConnection_Admin::twiceday_update_application_products');
     }
 
     //Function Definition : woocommerce_plugin_necessary
@@ -147,6 +153,23 @@ class WooConnection {
             require_once( ABSPATH . '/wp-admin/includes/upgrade.php' );
             dbDelta($appProductsSql);
         } 
+    }
+
+    //Function Definition : set_custom_schedular_products....
+    public function set_custom_schedular_products(){
+        //check schedular is already set or not.....
+        if (!wp_next_scheduled( 'application_products_schedular_twiceday' ) ) {
+            wp_schedule_event( time(), 'twicedaily', 'application_products_schedular_twiceday' );
+        }
+    }
+
+    //Function Definition : clear_custom_schedular_products
+    public function clear_custom_schedular_products(){
+        //check schedular is exist or not......
+        if(wp_next_scheduled('application_products_schedular_twiceday')){
+            //clera cron job from the schedular....
+            wp_clear_scheduled_hook('application_products_schedular_twiceday');
+        }
     }
 }
 
