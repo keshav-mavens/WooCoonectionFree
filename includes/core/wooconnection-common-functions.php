@@ -157,7 +157,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
   //Set the application label on the basis of type...
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
-  $applicationProductsArray =  getApplicationProducts();
+  $applicationProductsArray =  getExistingAppProducts();
 
   //set the default manage subscription status at the time of export...
   $exportManageSubStatus = false;
@@ -190,12 +190,17 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
                 <table class="table table-striped export_products_listing_class" id="export_products_listing">
                   '.$exportProductsData['exportTableHtml'].'
                 </table>
-                <div class="form-group col-md-12 text-center m-t-25">
-                  <div class="load_table_export_products loading_products" style="display:none;"></div>
-                  <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Exporting products to your '.$applicationLabel.' account.</div>
-                  <div class="alert-error-message export-products-error" style="display: none;"></div>
-                  <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
-                  <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
+                <div class="load_table_export_products loading_products text-center" style="display:none;"></div>
+                <div class="exportProducts text-center" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Exporting products to your '.$applicationLabel.' account.</div>
+                <div class="alert-error-message export-products-error" style="display: none;"></div>
+                <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
+                <div class="btn-footer">
+                  <div class="products-btn">
+                    <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" onclick="loadMoreProducts()">
+                  </div>
+                  <div class="products-btn text-right">
+                    <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
+                  </div>
                 </div>
               </form>';
             }
@@ -208,7 +213,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
 
 //list of existing woocommerce products from database and then return...
 function listExistingDatabaseWooProducts($limit='',$offset=''){
-    $productsLimit = 20;
+    $productsLimit = 100;
     $productsOffset = 0;
     if(!empty($limit)){
       $productsLimit = $limit;
@@ -297,11 +302,11 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                   $typeProduct = ITEM_TYPE_PRODUCT;
                 }
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
-                if(!empty($applicationProductsArray['products'])){
+                if(!empty($applicationProductsArray)){
                     //Check product relation is exist....
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
-                    if(isset($productExistId)){
+                    if(isset($productExistId) && !empty($productExistId)){
                       $matchProductId = $productExistId;
                     }else if (!empty($wcproductSku)) {//Then check product sku,If product sku exist then check product in application with same sku is exist ot not....
                       $checkSkuMatchWithIskpProducts = checkProductMapping($wcproductSku,$applicationProductsArray); 
@@ -314,18 +319,20 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                           }
                       }
                     }
+                    
                     //check matchproduct id is exist or not if exist then get the product name from application products array......
                     if(!empty($matchProductId)){
-                      $key = array_search($matchProductId, array_column($applicationProductsArray['products'], 'id'));
+                      $key = array_search($matchProductId, array_column($applicationProductsArray, 'app_product_id'));
                       if (!empty($key) || $key === 0) {
-                        $productDetails = $applicationProductsArray['products'][$key];
-                        if(!empty($productDetails['product_name'])){
-                          $productsDropDown = '<input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails['product_name'];
+                        $productDetails = $applicationProductsArray[$key];
+                        if(!empty($productDetails->app_product_name)){
+                          $productsDropDown = '<input type = "hidden" value="'.$productDetails->id.'" name="wc_product_primary_key_'.$matchProductId.'"><input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails->app_product_name;
                         }
                       }else{
                         $productsDropDown = 'Mapped Product Not Exist In App!';
                       }
-                    }else{
+                    }
+                    else{
                       $productsDropDown = 'No mapping exist!'; 
                     }
                     //Create final select html.....
@@ -359,14 +366,14 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
 //Check product with same sku is exist or not , if exist then return match products id.....
 function checkProductMapping($sku,$productsArray){
     $matchProductsIds = array();//Define array...
-    if(!empty($productsArray['products'])){//check is products array is not empty....
+    if(!empty($productsArray)){//check is products array is not empty....
         //Execute loop on application prdoucts array,......
-        foreach ($productsArray['products'] as $key => $value) {
-          if(!empty($value['id'])){//check product id....
+        foreach ($productsArray as $key => $value) {
+          if(!empty($value->app_product_id)){//check product id....
               //compare sku, if match the return the ids..
-              if(isset($value['sku']) && !empty($value['sku'])){
-                  if($value['sku'] == $sku){
-                    $matchProductsIds[] = $value['id'];
+              if(!empty($value->app_product_sku)){
+                  if($value->app_product_sku == $sku){
+                    $matchProductsIds[] = $value->app_product_id;
                   }    
               }
           }
@@ -570,8 +577,8 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
   //Set the application label on the basis of type...
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
-  $applicationProductsArray = getApplicationProducts();
-
+  $applicationProductsArray = getExistingAppProducts();
+  
   //set html if no products exist in woocommerce they are in relation with applcation products....
   if(empty($wooCommerceProducts)){
     if(empty($matchProductHtmlType)){
@@ -591,7 +598,12 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
               $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
                 <table class="table table-striped match_products_listing_class" id="match_products_listing">
                   '.$matchProductsData['matchTableHtml'].'
-                </table></form>';
+                </table>
+                <div class="form-group col-md-12 text-center">
+                  <div class="load_table_match_products loading_products" style="text-align: center;display: none;"></div>
+                  <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" style="margin-top:10px;" onclick="loadMoreProducts()">
+                </div>
+                </form>';
             }
           }
       }
@@ -658,7 +670,7 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                 }
                 
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
-                if(!empty($applicationProductsArray['products'])){
+                if(!empty($applicationProductsArray)){
                     //Check product relation is exist....
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
@@ -702,10 +714,10 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
 //create the infusionsoft products dropdown for mapping..........
 function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_compare='',$typeProduct=''){
     $iskp_products_options_html = '';//Define variable...
-    if(isset($existingiskpProductResult['products']) && !empty($existingiskpProductResult['products'])){//check application products...
-        foreach($existingiskpProductResult['products'] as $iskpProductDetails) {
-          $iskpProductId = $iskpProductDetails['id'];//get or set the product id....
-          $iskpProductName = $iskpProductDetails['product_name'];//get or set the product name....
+    if(isset($existingiskpProductResult) && !empty($existingiskpProductResult)){//check application products...
+        foreach($existingiskpProductResult as $iskpProductDetails) {
+          $iskpProductId = $iskpProductDetails->app_product_id;//get or set the product id....
+          $iskpProductName = $iskpProductDetails->app_product_name;//get or set the product name....
           $iskpProductSelected = "";
           if(!empty($wc_product_id_compare)){//if relation exist...
               if($wc_product_id_compare == $iskpProductId){//then compare the relation between products....
@@ -715,15 +727,15 @@ function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_com
               }
           }
           //first check it item/product type is a subscription or subscription plans exist with products then only those products are available in dropown to update mapping.......
-          if($typeProduct == ITEM_TYPE_SUBSCRIPTION && $iskpProductDetails['subscription_only'] == true){
-              //create the final html.....
-              $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';  
-          }
-          //then check if product type is product then show only those products which is not related to subscription plans.....
-          else if ($typeProduct == ITEM_TYPE_PRODUCT && $iskpProductDetails['subscription_only'] !== true) {
+          // if($typeProduct == ITEM_TYPE_SUBSCRIPTION && $iskpProductDetails['subscription_only'] == true){
+          //     //create the final html.....
+          //     $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';  
+          // }
+          // //then check if product type is product then show only those products which is not related to subscription plans.....
+          // else if ($typeProduct == ITEM_TYPE_PRODUCT && $iskpProductDetails['subscription_only'] !== true) {
               //create the final html.....
               $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';
-          }
+          // }
           
         }
     }
@@ -1060,7 +1072,7 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$itemType
         }
       }
     }
-
+    
     $wooconnectionLogger = new WC_Logger();
     //check product mapping exist else create new product and return the id newly created product.....
     if(isset($checkAlreadyExist) && !empty($checkAlreadyExist) && $productExistStatus == true){
@@ -1448,7 +1460,7 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
     $applicationLabel = applicationLabel($type);
     
     //Get the list of active products from authenticate application....
-    $applicationProductsArray = getApplicationProductsImportTab($importProductsLimit,$importProductsPageNumber);
+    $applicationProductsArray = getExistingAppProducts();
     
     //Call the function to get the listing of woocommerce publish products....
     $existingProductResult = listExistingDatabaseWooProducts($woodropdownLimit);
@@ -1480,15 +1492,13 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
               if(!empty($importProductHtmlType) && $importProductHtmlType == PRODUCTS_HTML_TYPE_LOAD_MORE){
                     $table_products_html_import .= $importProductsData['importTableHtml'];
               }else{
-
-                    $table_products_html_import .= '<form action="" method="post" id="wc_import_products_form" onsubmit="return false">  
+                  $table_products_html_import .= '<form action="" method="post" id="wc_import_products_form" onsubmit="return false">  
                     <input type = "hidden" name="manage_subscription_status" value="'.$manageSubscriptionStatus.'">
                     <table class="table table-striped import_products_listing_class" id="import_products_listing">
                       '.$importProductsData['importTableHtml'].'
                     </table>
                     <div class="form-group col-md-12 text-center m-t-60">
                       <div class="load_table_import_products loading_products" style="display:none"></div>
-                      <div class="load_table_export_products loading_products" style="display:none;"></div>
                       <div class="importProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Importing products from your '.$applicationLabel.' account.</div>
                       <div class="alert-error-message import-products-error" style="display: none;"></div>
                       <div class="alert-sucess-message import-products-success" style="display: none;">Products import successfully.</div>
@@ -1526,12 +1536,12 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
           $wcProductsDropDown = createImportProductsSelect($wooCommerceProducts);
         }
         foreach ($applicationProductsArray as $key => $value) {
-            if(!empty($value['Id'])){
+            if(!empty($value->app_product_id)){
                 $customOptionHtml = '';
                 $wcProductExistId = '';
                 $wcProductSelectHtml = '';
-                $appProductId = $value['Id'];//Define product id...                  
-                $appProductPrice = $value['ProductPrice'];//Get product price....
+                $appProductId = $value->app_product_id;//Define product id...                  
+                $appProductPrice = $value->app_product_price;//Get product price....
                 $currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
                 //check product price and set....
                 if(!empty($appProductPrice)){
@@ -1541,8 +1551,8 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                 }
                 //Create final price to display...
                 $appProductPrice = $currencySign.number_format($appProductPrice,2);
-                $appProductSku = $value['Sku'];//get product sku....
-                $appProductName = $value['ProductName'];//get product name....
+                $appProductSku = $value->app_product_sku;//get product sku....
+                $appProductName = $value->app_product_name;//get product name....
                 //$wcProductsDropDown = '';
                 //check and set the product name....
                 if(!empty($appProductName)){
@@ -3776,4 +3786,15 @@ function getMatchSubscriptionId($appPlansArray,$wcPlanArray){
   return $matchPlanId;//return the match subscription plan id.....
 }
 
+//get the list of application products from database....
+function getExistingAppProducts(){
+    global $wpdb,$table_prefix;
+    $appProListing = array();
+    $appProductsTableName = $table_prefix.'authorize_application_products';
+    $productsListing = $wpdb->get_results("SELECT * FROM `".$appProductsTableName."` WHERE app_product_status=".STATUS_ACTIVE);
+    if(isset($productsListing) && !empty($productsListing)){
+        $appProListing = $productsListing;
+    }
+    return $appProListing;
+}
 ?>

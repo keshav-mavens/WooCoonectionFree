@@ -1869,6 +1869,85 @@ function wc_search_woo_product(){
 		//return response
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'matchProductsOptions'=>$matchProductsOptions));
 	}
+}
+
+//Wordpreess Hool : This hook is triggered to get the products from authorized application and insert into the database.....
+add_action('wp_ajax_wc_get_insert_app_products','wc_get_insert_app_products');
+//Function Definition : wc_get_insert_app_products
+function wc_get_insert_app_products(){
+	if(isset($_POST) && !empty($_POST)){
+		global $wpdb,$table_prefix;
+		$applicationProductsTableName = $table_prefix.'authorize_application_products';
+		$appProducts = getApplicationProducts();
+		$applicationExistingProducts = getExistingAppProducts();
+		if(isset($appProducts['products']) && !empty($appProducts['products'])){
+			foreach ($appProducts['products'] as $key => $value) {
+				if(!empty($value['id'])){
+					$productDataArray = array();
+					$productDataArray['app_product_id'] = $value['id'];
+					$productDataArray['app_product_name'] =  $value['product_name'];
+					$productDataArray['app_product_description'] = strip_tags($value['product_desc']);	
+					$productDataArray['app_product_excerpt'] = $value['product_short_desc'];
+					$productDataArray['app_product_sku'] = $value['sku'];
+					$productDataArray['app_product_price'] = $value['product_price'];
+					if(isset($applicationExistingProducts) && !empty($applicationExistingProducts)){
+						$matchKey = array_search($value['id'],array_column($applicationExistingProducts,'app_product_id'));
+						if(!empty($matchKey) || $matchKey === 0){
+							$alreadyExistProductId = $applicationExistingProducts[$matchKey]->id;
+							if (!empty($alreadyExistProductId)) {
+								$updateResponse = $wpdb->update($applicationProductsTableName,$productDataArray,array('id'=>$alreadyExistProductId));
+							}
+						}else{
+							$wpdb->insert($applicationProductsTableName,$productDataArray);
+						}
+					}else{
+						$wpdb->insert($applicationProductsTableName,$productDataArray);
+					}
+				}
+			}
+		}
+	}
+	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	die();
+}
+
+//Wordpress Hook : This action is triggered when user click on refresh button to refresh the list of products.....
+add_action('wp_ajax_wc_get_reload_app_products','wc_get_reload_app_products');
+//Function Definition : wc_get_reload_app_products
+function wc_get_reload_app_products(){
+	if(isset($_POST) && !empty($_POST)){
+		global $wpdb,$table_prefix;
+		$appLatestProducts = getApplicationProducts();
+		$appExistingProducts = getExistingAppProducts();
+		$applicationProductsTableName = $table_prefix.'authorize_application_products';
+		if(isset($appLatestProducts) && !empty($appLatestProducts)){
+			foreach ($appLatestProducts['products'] as $key => $value) {
+				if(!empty($value['id'])){
+					$refreshProductDataArray = array();
+					$refreshProductDataArray['app_product_id'] = $value['id'];
+					$refreshProductDataArray['app_product_name'] =  $value['product_name'];
+					$refreshProductDataArray['app_product_description'] = strip_tags($value['product_desc']);	
+					$refreshProductDataArray['app_product_excerpt'] = $value['product_short_desc'];
+					$refreshProductDataArray['app_product_sku'] = $value['sku'];
+					$refreshProductDataArray['app_product_price'] = $value['product_price'];
+					if(isset($appExistingProducts) && !empty($appExistingProducts)){
+						$key = array_search($value['id'], array_column($appExistingProducts, 'app_product_id'));
+						if (!empty($key) || $key === 0) {
+							$existingProductId =  $appExistingProducts[$key]->id;
+							if(!empty($existingProductId)){
+								$response = $wpdb->update($applicationProductsTableName, $refreshProductDataArray, array('id'=>$existingProductId));
+							}
+						}else{
+							$wpdb->insert($applicationProductsTableName,$refreshProductDataArray);
+						}
+					}else{
+						$wpdb->insert($applicationProductsTableName,$refreshProductDataArray);
+					}
+				}
+			}
+		}
+	}
+	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	die();
 }
 ?>
