@@ -92,9 +92,11 @@ class WooConnection_Admin {
     public function wooconnection_include_files() {
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-common-functions.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
+        if(is_admin()){//check the screen of wp-admin is exist then include the below mention files..
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
+        }
     }
 
     //Function Definition : includeCssJs

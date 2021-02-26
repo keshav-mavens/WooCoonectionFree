@@ -99,7 +99,7 @@ function wooconnection_cart_empty_trigger(){
 }
 
 //Woocommerce hook : This action is triggered when specific product add to cart.Specification is work on the basis of product sku.
-add_action('woocommerce_add_to_cart', 'wooconnection_cart_product_add_trigger', 10, 6);
+//add_action('woocommerce_add_to_cart', 'wooconnection_cart_product_add_trigger', 10, 6);
 //Function Definiation : wooconnection_cart_product_add_trigger
 function wooconnection_cart_product_add_trigger(){
     // Create instance of our wooconnection logger class to use off the whole things.
@@ -345,6 +345,149 @@ function redirect_user_cart(){
                 Header("Location: ".$headTo);
                 exit();
             }
+        }
+    }
+}
+
+//Wordpress Hook : This action trigger when user try to add product from shop page.....
+add_action('wp_footer','custom_code_add_cart_shop');
+//Function Definition : custom_code_add_cart_shop
+function custom_code_add_cart_shop(){
+    //enqeue the script only when pages of front end...
+    if(!is_admin()){
+       // Register the JS file with a unique handle, file location, and an array of dependencies
+       wp_register_script( "front_script", (WOOCONNECTION_PLUGIN_URL.'assets/js/front_script.js'),WOOCONNECTION_VERSION, true);
+       
+       // localize the script to your domain name, so that you can reference the url to admin-ajax.php file easily
+       wp_localize_script( 'front_script', 'customAjaxUrl', array( 'ajax_url' => admin_url( 'admin-ajax.php' )));        
+       
+       // enqueue jQuery library and the script you registered above
+       wp_enqueue_script( 'jquery' );
+       wp_enqueue_script( 'front_script' );
+    }
+}
+
+//Wordpress Hook : This action is trigger when user add the product into the cart from single product page......
+add_action('wp_footer', 'product_added_to_cart_single_page');
+//Function Definition : product_added_to_cart_single_page......
+function product_added_to_cart_single_page()
+{
+    $ajaxCartEnable = get_option( 'woocommerce_enable_ajax_add_to_cart' );
+    $existInCart = false; //by default the set the false--means not exist in cart.....
+    $cartItems = WC()->cart->get_cart();
+    $sku = '';
+    //check in request post data is exist or not....
+    if(isset($_POST['add-to-cart']) && isset($_POST['quantity'])){
+        $getAddedItemId   = isset($_POST['variation_id']) ? esc_attr($_POST['variation_id']) : esc_attr($_POST['add-to-cart']);
+        if(isset($cartItems) && !empty($cartItems)){
+            foreach($cartItems as $eachItem){
+                $productData = $eachItem['data'];
+                if($productData->get_id() == $getAddedItemId){
+                    $sku = $productData->get_sku();
+                    $existInCart = true;
+                    break;//break the loop.....
+                }
+            }
+        }
+    }else if ($ajaxCartEnable == 'no' && isset($_GET['add-to-cart']) && !empty($_GET['add-to-cart'])) {
+        if(isset($cartItems) && !empty($cartItems)){
+            foreach($cartItems as $eachItem){
+                $productData = $eachItem['data'];
+                if($productData->get_id() == $_GET['add-to-cart']){
+                    $sku = $productData->get_sku();
+                    $existInCart = true;
+                    break;//break the loop.....
+                }
+            }
+        }
+    }
+    
+    //check if product exist in cart it means product is added sucessfully....then proceed next...
+    if($existInCart == true) {
+        //check if sku of product is exist.....
+        if(isset($sku) && !empty($sku)){
+            // Create instance of our wooconnection logger class to use off the whole things.
+            $wooconnectionLogger = new WC_Logger();
+            
+            //Concate a error message to store the logs...
+            $callback_purpose = 'Wooconnection Add Cart Item : Process of wooconnection add item/product to cart trigger';
+            $applicationAuthenticationDetails = getAuthenticationDetails();
+            
+            //Stop the below process if not authentication done with infusionsoft/keap application..
+            if(empty($applicationAuthenticationDetails) || empty($applicationAuthenticationDetails[0]->user_access_token))
+            {
+                $addLogs = addLogsAuthentication($callback_purpose);
+                return false;
+            }
+            
+            //get the access token....
+            $access_token = '';
+            if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+                $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+            }
+
+            //Woocommerce Cart trigger : Get the call name and integration name of goal "Item Added to Cart"... 
+            $standardAddItemCartTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_CART,'Item Added to Cart');
+
+            //Define variables....
+            $standardAddItemCartIntegrationName = '';
+            
+            //Check campaign goal details...
+            if(isset($standardAddItemCartTrigger) && !empty($standardAddItemCartTrigger)){
+            
+                //Get and set the wooconnection goal integration name
+                if(isset($standardAddItemCartTrigger[0]->wc_integration_name) && !empty($standardAddItemCartTrigger[0]->wc_integration_name)){
+                    $standardAddItemCartIntegrationName = $standardAddItemCartTrigger[0]->wc_integration_name;
+                }
+            }
+
+
+            //get or set the add cart user email..
+            $itemAddCartUseremail = get_set_user_email();
+            if(empty($itemAddCartUseremail)){
+                $itemAddCartUseremail = "";
+            }
+
+            // Validate email is in valid format or not 
+            validate_email($itemAddCartUseremail,$callback_purpose,$wooconnectionLogger);
+            
+            //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
+            $itemAddCartContactId = checkAddContactApp($access_token,$itemAddCartUseremail,$callback_purpose);
+
+            //check if contact id is exist then hit the trigger....
+            if(isset($itemAddCartContactId) && !empty($itemAddCartContactId)) {
+                $productSku = '';
+                //if "-" is exist in product sku then replace with empty
+                if (strpos($sku, '-') !== false)
+                {
+                    $productSku=str_replace("-", "", $sku);
+                }
+                else if (strpos($sku, '_') !== false)
+                {
+                    $productSku=str_replace("_", "", $sku);
+                }
+                else
+                {
+                    $productSku=$sku;
+                }
+                
+                $productSku = 'added'.substr($productSku, 0,SKU_LENGHT_CART_ITEM);
+                if(!empty($standardAddItemCartIntegrationName))
+                {
+                    $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardAddItemCartIntegrationName,$productSku,$itemAddCartContactId,$callback_purpose);
+                    if(!empty($standardAddItemCartTriggerResponse)){
+                        if(empty($standardAddItemCartTriggerResponse[0]['success'])){
+                            //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                            if(isset($standardAddItemCartTriggerResponse[0]['message']) && !empty($standardAddItemCartTriggerResponse[0]['message'])){
+                                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Cart Item : Process of wooconnection add item/product to cart trigger is failed where contact id is '.$itemAddCartContactId.' because '.$standardAddItemCartTriggerResponse[0]['message'].'');    
+                            }else{
+                                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Cart Item : Process of wooconnection add item/product to cart trigger is failed where contact id is '.$itemAddCartContactId.'');
+                            }
+                            
+                        }
+                    }
+                }
+            } 
         }
     }
 }
