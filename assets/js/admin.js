@@ -604,11 +604,11 @@ function applyCollapseRules(div_id){
 }
 
 //define the intial values....
-var productsLimit = 20;
-var productsOffsetExport = 20;
-var productsOffsetMatch = 20;
-var customLimitExport = 20;
-var customLimitMatch = 20;
+var productsLimit = 100;
+var productsOffsetExport = 100;
+var productsOffsetMatch = 100;
+var customLimitExport = 100;
+var customLimitMatch = 100;
 
 //on scroll load more products...
 function loadMoreProducts(){
@@ -688,6 +688,7 @@ function loadMoreProducts(){
     }
 }
 
+//Function is used to insert the application products....
 function insertApplicationProducts(){
     var insertProducts = 'insert';
     jQuery.post(ajax_object.ajax_url+"?action=wc_get_insert_app_products",{insert:insertProducts},function(data){
@@ -696,6 +697,7 @@ function insertApplicationProducts(){
 }
 
 
+//On click of refersh button to update and insert the new application products in database....
 function reloadLatestAppProducts(){
     var reloadProducts = 'reload';
     jQuery(".tab_related_content").addClass('overlay');
@@ -707,7 +709,6 @@ function reloadLatestAppProducts(){
             if(tabType != ""){
                 $("a[href='"+tabType+"']").click();
             }
-            //jQuery(".tab_related_content").removeClass('overlay');
         }
     });   
 }

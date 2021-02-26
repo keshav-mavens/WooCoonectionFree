@@ -316,7 +316,7 @@ function wc_export_wc_products()
             }
             //set default offset and limit....
             $exportOffset = 0;
-            $exportLimit = 20;
+            $exportLimit = 100;
             //check limit exist in post data or not......
             if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
             	//set the latest limit to fetch the records...
@@ -442,17 +442,30 @@ function wc_get_insert_app_products(){
 		global $wpdb,$table_prefix;
 		$applicationProductsTableName = $table_prefix.'authorize_application_products';
 		$appProducts = getApplicationProducts();
+		$applicationExistingProducts = getExistingAppProducts();
 		if(isset($appProducts['products']) && !empty($appProducts['products'])){
 			foreach ($appProducts['products'] as $key => $value) {
 				if(!empty($value['id'])){
 					$productDataArray = array();
 					$productDataArray['app_product_id'] = $value['id'];
 					$productDataArray['app_product_name'] =  $value['product_name'];
-					$productDataArray['app_product_description'] = $value['product_desc'];	
+					$productDataArray['app_product_description'] = strip_tags($value['product_desc']);	
 					$productDataArray['app_product_excerpt'] = $value['product_short_desc'];
 					$productDataArray['app_product_sku'] = $value['sku'];
 					$productDataArray['app_product_price'] = $value['product_price'];
-					$wpdb->insert($applicationProductsTableName,$productDataArray);
+					if(isset($applicationExistingProducts) && !empty($applicationExistingProducts)){
+						$matchKey = array_search($value['id'],array_column($applicationExistingProducts,'app_product_id'));
+						if(!empty($matchKey) || $matchKey === 0){
+							$alreadyExistProductId = $applicationExistingProducts[$matchKey]->id;
+							if (!empty($alreadyExistProductId)) {
+								$updateResponse = $wpdb->update($applicationProductsTableName,$productDataArray,array('id'=>$alreadyExistProductId));
+							}
+						}else{
+							$wpdb->insert($applicationProductsTableName,$productDataArray);
+						}
+					}else{
+						$wpdb->insert($applicationProductsTableName,$productDataArray);
+					}
 				}
 			}
 		}
@@ -473,25 +486,25 @@ function wc_get_reload_app_products(){
 		if(isset($appLatestProducts) && !empty($appLatestProducts)){
 			foreach ($appLatestProducts['products'] as $key => $value) {
 				if(!empty($value['id'])){
-					$productDataArray = array();
-					$productDataArray['app_product_id'] = $value['id'];
-					$productDataArray['app_product_name'] =  $value['product_name'];
-					$productDataArray['app_product_description'] = strip_tags($value['product_desc']);	
-					$productDataArray['app_product_excerpt'] = $value['product_short_desc'];
-					$productDataArray['app_product_sku'] = $value['sku'];
-					$productDataArray['app_product_price'] = $value['product_price'];
+					$refreshProductDataArray = array();
+					$refreshProductDataArray['app_product_id'] = $value['id'];
+					$refreshProductDataArray['app_product_name'] =  $value['product_name'];
+					$refreshProductDataArray['app_product_description'] = strip_tags($value['product_desc']);	
+					$refreshProductDataArray['app_product_excerpt'] = $value['product_short_desc'];
+					$refreshProductDataArray['app_product_sku'] = $value['sku'];
+					$refreshProductDataArray['app_product_price'] = $value['product_price'];
 					if(isset($appExistingProducts) && !empty($appExistingProducts)){
 						$key = array_search($value['id'], array_column($appExistingProducts, 'app_product_id'));
 						if (!empty($key) || $key === 0) {
 							$existingProductId =  $appExistingProducts[$key]->id;
 							if(!empty($existingProductId)){
-								$response = $wpdb->update($applicationProductsTableName, $productDataArray, array('id'=>$existingProductId));
+								$response = $wpdb->update($applicationProductsTableName, $refreshProductDataArray, array('id'=>$existingProductId));
 							}
 						}else{
-							$wpdb->insert($applicationProductsTableName,$productDataArray);
+							$wpdb->insert($applicationProductsTableName,$refreshProductDataArray);
 						}
 					}else{
-						$wpdb->insert($applicationProductsTableName,$productDataArray);
+						$wpdb->insert($applicationProductsTableName,$refreshProductDataArray);
 					}
 				}
 			}

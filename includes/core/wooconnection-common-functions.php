@@ -197,7 +197,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
 
 //list of existing woocommerce products from database and then return...
 function listExistingDatabaseWooProducts($limit='',$offset=''){
-    $productsLimit = 20;
+    $productsLimit = 100;
     $productsOffset = 0;
     if(!empty($limit)){
       $productsLimit = $limit;
