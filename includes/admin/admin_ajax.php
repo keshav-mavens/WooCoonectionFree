@@ -290,24 +290,44 @@ function wc_export_wc_products()
                         }
                         //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
                         else{
-                        	$jsonData = json_encode($productDetailsArray);//covert array to json...
-                        	//call the common function to update the existing function in application.....
-                            $updateProductId = updateExistingProduct($mapppedProductId,$access_token,$jsonData,LOG_TYPE_BACK_END,$wooconnectionLogger);
-                            if(!empty($updateProductId)){//if new product created is not then update relation and product sku...
-                                //update relationship between woocommerce product and infusionsoft/keap product...
-                                update_post_meta($value, 'is_kp_product_id', $updateProductId);
-                                //update the woocommerce product sku......
-                                update_post_meta($value,'_sku',$wcproductSku);
-                                if(isset($_POST['wc_product_primary_key_'.$updateProductId]) && !empty($_POST['wc_product_primary_key_'.$updateProductId])){
-	                                $primaryKey = $_POST['wc_product_primary_key_'.$updateProductId];
+							$checkMappedProductExist = getApplicationProductDetail($mapppedProductId,$access_token);
+                        	if(!empty($checkMappedProductExist['product_name'])){
+	                        	$jsonData = json_encode($productDetailsArray);//covert array to json...
+	                        	//call the common function to update the existing function in application.....
+	                            $updateProductId = updateExistingProduct($mapppedProductId,$access_token,$jsonData,LOG_TYPE_BACK_END,$wooconnectionLogger);
+	                            if(!empty($updateProductId)){//if new product created is not then update relation and product sku...
+	                                //update relationship between woocommerce product and infusionsoft/keap product...
+	                                update_post_meta($value, 'is_kp_product_id', $updateProductId);
+	                                //update the woocommerce product sku......
+	                                update_post_meta($value,'_sku',$wcproductSku);
+	                                if(isset($_POST['wc_product_primary_key_'.$updateProductId]) && !empty($_POST['wc_product_primary_key_'.$updateProductId])){
+		                                $primaryKey = $_POST['wc_product_primary_key_'.$updateProductId];
+										$appProductData['app_product_name'] =  $wcproductName;
+										$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
+										$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
+										$appProductData['app_product_sku'] = $wcproductSku;
+										$appProductData['app_product_price'] = $wcproductPrice;
+										$response = $wpdb->update($appProductsTableName, $appProductData, array('id'=>$primaryKey));
+	                                }
+								}
+                        	}else{
+         						$productDetailsArray['product_name'] = $wcproductName;//assign product name for new product creation....
+	                        	$jsonData = json_encode($productDetailsArray);//covert array to json...
+	                            $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_BACK_END,$wooconnectionLogger);//call the common function to insert the product.....
+	                            if(!empty($createdProductId)){//if new product created is not then update relation and product sku...
+	                                //update relationship between woocommerce product and infusionsoft/keap product...
+	                                update_post_meta($value, 'is_kp_product_id', $createdProductId);
+	                                //update the woocommerce product sku......
+	                            	update_post_meta($value,'_sku',$wcproductSku);
+	                            	$appProductData['app_product_id'] = $createdProductId;
 									$appProductData['app_product_name'] =  $wcproductName;
 									$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
 									$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
 									$appProductData['app_product_sku'] = $wcproductSku;
 									$appProductData['app_product_price'] = $wcproductPrice;
-									$response = $wpdb->update($appProductsTableName, $appProductData, array('id'=>$primaryKey));
-                                }
-							}
+									$wpdb->insert($appProductsTableName,$appProductData);
+	                            }
+                        	}
                             
                         }
                     }
