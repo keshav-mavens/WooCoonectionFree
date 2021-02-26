@@ -176,15 +176,17 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
                 <table class="table table-striped export_products_listing_class" id="export_products_listing">
                   '.$exportProductsData['exportTableHtml'].'
                 </table>
-                <div class="form-group col-md-12 text-center m-t-25">
-                  <div class="load_table_export_products loading_products" style="display:none;"></div>
-                  <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Exporting products to your '.$applicationLabel.' account.</div>
-                  <div class="alert-error-message export-products-error" style="display: none;"></div>
-                  <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
-                  <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
-                </div>
-                <div class="form-group col-md-12">
-                  <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" onclick="loadMoreProducts()">
+                <div class="load_table_export_products loading_products text-center" style="display:none;"></div>
+                <div class="exportProducts text-center" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Exporting products to your '.$applicationLabel.' account.</div>
+                <div class="alert-error-message export-products-error" style="display: none;"></div>
+                <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
+                <div class="btn-footer">
+                  <div class="products-btn">
+                    <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" onclick="loadMoreProducts()">
+                  </div>
+                  <div class="products-btn text-right">
+                    <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
+                  </div>
                 </div>
               </form>';
             }
@@ -507,9 +509,12 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
               $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
                 <table class="table table-striped match_products_listing_class" id="match_products_listing">
                   '.$matchProductsData['matchTableHtml'].'
-                </table><div class="form-group col-md-12">
-                  <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" onclick="loadMoreProducts()">
-                </div></form>';
+                </table>
+                <div class="form-group col-md-12 text-center">
+                  <div class="load_table_match_products loading_products" style="text-align: center;display: none;"></div>
+                  <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" style="margin-top:10px;" onclick="loadMoreProducts()">
+                </div>
+                </form>';
             }
           }
       }

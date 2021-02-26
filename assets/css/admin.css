@@ -680,6 +680,19 @@ div#table_match_products_listing {
     text-align: center;
     border: 2px solid #fff;
 }
+.products-btn {
+    width: 47%;
+    float: left;
+    margin-bottom: 10px;
+    margin-top : 10px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+i.fa.fa-refresh {
+    color: green;
+    font-size: 17px;
+    padding-left: 4px;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;
