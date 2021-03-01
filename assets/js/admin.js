@@ -555,26 +555,26 @@ function wcProductsExport(){
         $(".exportProducts").show();
         $('.export_products_btn').addClass("disable_anchor");
         jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize()+"&newLimit="+limitAfterExport, function(data) {
-            var responsedata = JSON.parse(data);
-            $(".exportProducts").hide();
-            if(responsedata.status == "1") {
-                $('.export_products_btn').removeClass("disable_anchor");
-                if(responsedata.latestExportProductsHtml != ""){
-                     $('.export_products_listing_class').html();
-                     $('.export_products_listing_class').html(responsedata.latestExportProductsHtml);
-                }
-                swal("Saved!", 'Products exported successfully.', "success");
-            }else{
-                $(".export-products-error").show();
-                $(".export-products-error").html('Something Went Wrong.');
-                setTimeout(function()
-                {
-                    $('.export-products-error').fadeOut("slow");
-                    $('.export_products_btn').removeClass("disable_anchor");
-                }, 3000);
-            }
-            //after export products set the scroll top to 0...
-            $(".righttextInner").scrollTop(0);
+            // var responsedata = JSON.parse(data);
+            // $(".exportProducts").hide();
+            // if(responsedata.status == "1") {
+            //     $('.export_products_btn').removeClass("disable_anchor");
+            //     if(responsedata.latestExportProductsHtml != ""){
+            //          $('.export_products_listing_class').html();
+            //          $('.export_products_listing_class').html(responsedata.latestExportProductsHtml);
+            //     }
+            //     swal("Saved!", 'Products exported successfully.', "success");
+            // }else{
+            //     $(".export-products-error").show();
+            //     $(".export-products-error").html('Something Went Wrong.');
+            //     setTimeout(function()
+            //     {
+            //         $('.export-products-error').fadeOut("slow");
+            //         $('.export_products_btn').removeClass("disable_anchor");
+            //     }, 3000);
+            // }
+            // //after export products set the scroll top to 0...
+            // $(".righttextInner").scrollTop(0);
         });
     }
     setTimeout(function()
