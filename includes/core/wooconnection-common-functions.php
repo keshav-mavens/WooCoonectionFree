@@ -1085,6 +1085,9 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEditi
                 $appProductData['app_product_sku'] = $wcproductSku;
                 $appProductData['app_product_price'] = $wcproductPrice;
                 $wpdb->insert($appProductsTableName,$appProductData);
+                if(!empty($checkAlreadyExist)){//check if match product is exist then mark the status deleted in wp database....
+                  $wpdb->update($appProductsTableName, array('app_product_status'=>STATUS_DELETED),array('app_product_id'=>$checkAlreadyExist));
+                }
               }
           }
       }else{
@@ -1114,6 +1117,9 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEditi
             $appProductData['app_product_sku'] = $wcproductSku;
             $appProductData['app_product_price'] = $wcproductPrice;
             $wpdb->insert($appProductsTableName,$appProductData);
+            if(!empty($checkAlreadyExist)){//check if match product is exist then mark the status deleted in wp database....
+              $wpdb->update($appProductsTableName, array('app_product_status'=>STATUS_DELETED),array('app_product_id'=>$checkAlreadyExist));
+            }
           }         
                 
       }
