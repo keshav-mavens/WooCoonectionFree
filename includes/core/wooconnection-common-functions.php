@@ -1492,19 +1492,8 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
               if(!empty($importProductHtmlType) && $importProductHtmlType == PRODUCTS_HTML_TYPE_LOAD_MORE){
                     $table_products_html_import .= $importProductsData['importTableHtml'];
               }else{
-                  $table_products_html_import .= '<form action="" method="post" id="wc_import_products_form" onsubmit="return false">  
-                    <input type = "hidden" name="manage_subscription_status" value="'.$manageSubscriptionStatus.'">
-                    <table class="table table-striped import_products_listing_class" id="import_products_listing">
-                      '.$importProductsData['importTableHtml'].'
-                    </table>
-                    <div class="form-group col-md-12 text-center m-t-60">
-                      <div class="load_table_import_products loading_products" style="display:none"></div>
-                      <div class="importProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Importing products from your '.$applicationLabel.' account.</div>
-                      <div class="alert-error-message import-products-error" style="display: none;"></div>
-                      <div class="alert-sucess-message import-products-success" style="display: none;">Products import successfully.</div>
-                      <input type="button" value="Import Products" class="btn btn-primary btn-radius btn-theme import_products_btn" onclick="infusionKeapProductsImport()">
-                    </div>
-                  </form>';
+                  $table_products_html_import .= '<form action="" method="post" id="wc_import_products_form" onsubmit="return false"><input type = "hidden" name="manage_subscription_status" value="'.$manageSubscriptionStatus.'"><table class="table table-striped import_products_listing_class" id="import_products_listing">
+                      '.$importProductsData['importTableHtml'].'</table><div class="load_table_import_products loading_products text-center" style="display:none"></div><div class="importProducts" style="display: none;text-center;"><i class="fa fa-spinner fa-spin"></i>Importing products from your '.$applicationLabel.' account.</div><div class="alert-error-message import-products-error" style="display: none;"></div><div class="alert-sucess-message import-products-success" style="display: none;">Products import successfully.</div><div class="btn-footer"><div class="products-btn"><input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" onclick="loadMoreProducts()"></div><div class="products-btn text-right"><input type="button" value="Import Products" class="btn btn-primary btn-radius btn-theme import_products_btn" onclick="infusionKeapProductsImport()"></div></div></form>';
               }
             }
         }
@@ -1602,7 +1591,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                     }
                     
                     //Create final select html.....
-                    $wcProductSelectHtml = '<input type="hidden" id="scroll_count_wc_products" value="0" class="scroll_counter"><input type="hidden" id="products_limit_wc_import" value="20" class="scroll_counter"><input type="hidden" id="wc_product_import_with_'.$appProductId.'" value=""><select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="0">Select woocommerce product</option>'.$wcProductsDropDown.$customOptionHtml.'</select>';
+                    $wcProductSelectHtml = '<input type="hidden" id="scroll_count_wc_products" value="0" class="scroll_counter"><input type="hidden" id="products_limit_wc_import" value="100" class="scroll_counter"><input type="hidden" id="wc_product_import_with_'.$appProductId.'" value=""><select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="0">Select woocommerce product</option>'.$wcProductsDropDown.$customOptionHtml.'</select>';
                 }else{
                   //Set the html of select if no products exist in application....
                   $wcProductSelectHtml = 'No Woocommerce Products Exist!';

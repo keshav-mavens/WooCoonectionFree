@@ -1209,8 +1209,8 @@
 
 
             //set the default limit and offset for import tab dropdown.....
-            var importProductsLimit = 20;
-            var importProductsOffset = 20;
+            var importProductsLimit = 100;
+            var importProductsOffset = 100;
             var eventPosition = '';
             //on wheel of select ul..... proceed next....
             $document.on('wheel DOMMouseScroll',".select2-results__options",function(event){
@@ -1249,12 +1249,12 @@
                                 if(import_counter_updated_value !== 1){
                                     importProductsOffset = parseInt(importProductsOffset) + parseInt(importProductsLimit);
                                 }else{
-                                    importProductsLimit = 20;
-                                    importProductsOffset = 20;
+                                    importProductsLimit = 100;
+                                    importProductsOffset = 100;
                                 }
                                 //get default limit....
                                 var wooDropdownLimit = $("#products_limit_wc_import").val();
-                                var wooNewDropdownLimit = parseInt(wooDropdownLimit) + 20;
+                                var wooNewDropdownLimit = parseInt(wooDropdownLimit) + 100;
                                 //set the latest limit in input hidden.....
                                 $("#products_limit_wc_import").val(wooNewDropdownLimit);
                                 //minus something from scroll top to prevent next ajax request immediately.....

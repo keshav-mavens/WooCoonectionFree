@@ -1782,7 +1782,7 @@ function wc_import_application_products()
 	      		}
  			}
  			//set default offset and limit.....
- 			$importProductsLimit = 20;
+ 			$importProductsLimit = 100;
  			$importProductsOffset = 0;
  			//check limit exist in post data or not....
  			if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
