@@ -962,9 +962,12 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token){
 
 //add product to infusionsoft/keap account..
 function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEdition=''){
+    global $wpdb,$table_prefix;
+    $appProductsTableName = $table_prefix.'authorize_application_products';
     //define empty variables......
     $currentProductID = '';
     $checkAlreadyExist = '';
+    $appProductData = array();
     //get product id...
     $productId = $item->get_id();
     //check product id on the basis of main product id.....
@@ -1074,6 +1077,14 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEditi
                 //update the woocommerce product sku......
                 update_post_meta($productId,'_sku',$wcproductSku);
                 $currentProductID = $createdProductId;
+                //create the array then insert into the wordpress database.....
+                $appProductData['app_product_id'] = $currentProductID;
+                $appProductData['app_product_name'] =  $wcproductName;
+                $appProductData['app_product_description'] = $productDetailsArray['product_desc'];  
+                $appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
+                $appProductData['app_product_sku'] = $wcproductSku;
+                $appProductData['app_product_price'] = $wcproductPrice;
+                $wpdb->insert($appProductsTableName,$appProductData);
               }
           }
       }else{
@@ -1095,6 +1106,14 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEditi
             //update the woocommerce product sku......
             update_post_meta($productId,'_sku',$wcproductSku);
             $currentProductID = $createdProductId;
+            //create the array then insert into the wordpress batabase...
+            $appProductData['app_product_id'] = $currentProductID;
+            $appProductData['app_product_name'] =  $wcproductName;
+            $appProductData['app_product_description'] = $productDetailsArray['product_desc'];  
+            $appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
+            $appProductData['app_product_sku'] = $wcproductSku;
+            $appProductData['app_product_price'] = $wcproductPrice;
+            $wpdb->insert($appProductsTableName,$appProductData);
           }         
                 
       }
