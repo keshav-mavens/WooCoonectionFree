@@ -187,7 +187,7 @@
             //Check if "response" done....
             var checkResponse = getQueryParameter('response');
             if(checkResponse != "" && checkResponse == "1"){
-                insertApplicationProducts();
+                insertApplicationProducts();//call the function to insert the products in our database....
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
                 swal({
                   title: "Authorization!",
@@ -536,12 +536,6 @@ function applySelectTwo(element){
 
 //On click of export products button send ajax to export products and on sucess update the html....
 function wcProductsExport(){
-    //get the scroll top....
-    var scrollTop = $(".righttextInner").scrollTop();
-    //minus 100px from it....
-    var newScrollTopValue = scrollTop-100;
-    //set the new scroll top with latest value....
-    $(".righttextInner").scrollTop(newScrollTopValue);
     $(".loading_products").hide();
     //get the input type hidden value....
     var limitAfterExport = $("#products_limit_export").val();
@@ -551,11 +545,13 @@ function wcProductsExport(){
         $(".export-products-error").html('You need to select atleast one product to export.');
         $(".export-products-error").show();
     }else{
+        $('.load_products_export').addClass('disable_anchor');
         $(".export-products-error").hide();
         $(".exportProducts").show();
         $('.export_products_btn').addClass("disable_anchor");
         jQuery.post( ajax_object.ajax_url + "?action=wc_export_wc_products",$('#wc_export_products_form').serialize()+"&newLimit="+limitAfterExport, function(data) {
             var responsedata = JSON.parse(data);
+            $(".load_products_export").removeClass('disable_anchor');
             $(".exportProducts").hide();
             if(responsedata.status == "1") {
                 $('.export_products_btn').removeClass("disable_anchor");
@@ -573,8 +569,6 @@ function wcProductsExport(){
                     $('.export_products_btn').removeClass("disable_anchor");
                 }, 3000);
             }
-            //after export products set the scroll top to 0...
-            $(".righttextInner").scrollTop(0);
         });
     }
     setTimeout(function()
@@ -604,11 +598,11 @@ function applyCollapseRules(div_id){
 }
 
 //define the intial values....
-var productsLimit = 100;
-var productsOffsetExport = 100;
-var productsOffsetMatch = 100;
-var customLimitExport = 100;
-var customLimitMatch = 100;
+var productsLimit = 200;
+var productsOffsetExport = 200;
+var productsOffsetMatch = 200;
+var customLimitExport = 200;
+var customLimitMatch = 200;
 
 //on scroll load more products...
 function loadMoreProducts(){
@@ -674,10 +668,6 @@ function loadMoreProducts(){
                         applySelectTwo('application_match_products_dropdown');
                     }
                 }else{
-                    //minus something from scroll top to prevent next ajax request immediately.....
-                    var scrollTop = $(".righttextInner").scrollTop();
-                    var newScrollTopValue = scrollTop-100;//minus 100 to set the new scroll top value....
-                    $(".righttextInner").scrollTop(newScrollTopValue);//set scroll top to up on the basis of new value....
                     //set the html to no products if response html is empty.....
                     $(".load_"+tabId[1]).html('');
                     $(".load_"+tabId[1]).html('No More Products Exist!');

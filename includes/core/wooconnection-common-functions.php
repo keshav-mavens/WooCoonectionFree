@@ -182,7 +182,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
                 <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
                 <div class="btn-footer">
                   <div class="products-btn">
-                    <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" onclick="loadMoreProducts()">
+                    <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme load_products_export" onclick="loadMoreProducts()">
                   </div>
                   <div class="products-btn text-right">
                     <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
@@ -199,7 +199,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
 
 //list of existing woocommerce products from database and then return...
 function listExistingDatabaseWooProducts($limit='',$offset=''){
-    $productsLimit = 100;
+    $productsLimit = 200;
     $productsOffset = 0;
     if(!empty($limit)){
       $productsLimit = $limit;
