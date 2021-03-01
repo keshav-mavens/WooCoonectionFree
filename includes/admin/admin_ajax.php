@@ -4,6 +4,10 @@ add_action( 'wp_ajax_wc_load_tab_main_content', 'wc_load_tab_main_content');
 //Function Definiation : wc_load_tab_main_content
 function wc_load_tab_main_content(){
 	if(isset($_POST['tab_id']) && !empty($_POST['tab_id'])){
+		//define the memory limit infinite to prevent from exceed memory limit error....
+		ini_set('memory_limit',"-1");
+		//also set time limit "0" to prevent the execution time exceed....
+		set_time_limit(0);
 		//create file name on the basis of "tab_id"
 		$pageName = 'wooconnection_admin_'.$_POST['tab_id'].'.php';
 		require_once(WOOCONNECTION_PLUGIN_DIR.'includes/admin/'.$pageName);
@@ -144,6 +148,10 @@ add_action( 'wp_ajax_wc_load_import_export_tab_main_content', 'wc_load_import_ex
 function wc_load_import_export_tab_main_content(){
 	//First check the target tab id the call the html function for latest html.....
 	if(isset($_POST['target_tab_id']) && !empty($_POST['target_tab_id'])){
+		//define the memory limit infinite to prevent from exceed memory limit error....
+		ini_set('memory_limit',"-1");
+		//also set time limit "0" to prevent the execution time exceed....
+		set_time_limit(0);
 		$latestHtml = '';
 		$offset = 0;
 		if ($_POST['target_tab_id'] == '#table_export_products') {
@@ -169,6 +177,10 @@ function wc_export_wc_products()
 {
 	//first check post data is not empty
     if(isset($_POST) && !empty($_POST)){
+        //define the memory limit infinite to prevent from exceed memory limit error....
+		ini_set('memory_limit',"-1");
+		//also set time limit "0" to prevent the execution time exceed....
+		set_time_limit(0);
         global $wpdb,$table_prefix;
         //first need to check whether the application authentication is done or not..
         $applicationAuthenticationDetails = getAuthenticationDetails();
