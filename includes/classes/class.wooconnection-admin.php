@@ -91,12 +91,18 @@ class WooConnection_Admin {
     public function wooconnection_include_files() {
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-common-functions.php');
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-payment.php');
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-coupons.php');
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin-subscriptions.php');
+        //check condition then call the below files...
+        if(!isset($_POST['tab_id']) && (!isset($_POST['product_id']) && !isset($_POST['product_sku']) && !isset($_POST['quantity'])))
+        {
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-payment.php');
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-coupons.php');
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin-subscriptions.php');
+        }
+        if(is_admin() && !wp_doing_ajax()){//check if panel is admin and not ajax request...
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
+        }
         require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
     }
 
     //Function Definition : includeCssJs
