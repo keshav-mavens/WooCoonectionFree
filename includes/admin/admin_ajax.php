@@ -178,6 +178,7 @@ function wc_export_wc_products()
 {
 	//first check post data is not empty
     if(isset($_POST) && !empty($_POST)){
+        global $wpdb,$table_prefix;
         //first need to check whether the application authentication is done or not..
         $applicationAuthenticationDetails = getAuthenticationDetails();
         //get the access token....
@@ -195,11 +196,15 @@ function wc_export_wc_products()
         $callback_purpose = 'Export Woocommerce Product : Process of export woocommerce product to infusionsoft/keap application';
         //set the wooconnection log class.....
         $wooconnectionLogger = new WC_Logger();
+        //get the existing application app products...
+        $existinProducts = getExistingAppProducts();
+        $appProductsTableName = $table_prefix.'authorize_application_products';
         //check select products exist in post data to export.....
         if(isset($_POST['wc_products']) && !empty($_POST['wc_products'])){
             foreach ($_POST['wc_products'] as $key => $value) {
                 $productDetailsArray = array();//Define variable..
                 $mapppedProductId = '';//Define variable..
+                $appProductData = array();
                 if(!empty($value)){//check value...
                     //check any associated product is selected along with export product request....
 	      			if(isset($_POST['wc_product_export_with_'.$value]) && !empty($_POST['wc_product_export_with_'.$value])){
@@ -273,8 +278,12 @@ function wc_export_wc_products()
 
                     //check the products data exist....
                     if(isset($productDetailsArray) && !empty($productDetailsArray)){
-                        //if product is not associated along with export product request then need create new product in connected infusionsoft/keap appication.....
-                        if(empty($mapppedProductId)){
+                    	$checkMappedProductExist = array();//define the empty array.....
+                    	if(isset($mapppedProductId) && !empty($mapppedProductId)){//check if mapped product id exist.....
+                    		$checkMappedProductExist = getApplicationProductDetail($mapppedProductId,$access_token);
+                    	}
+                        //if product is not associated along with export product request then need create new product in connected infusionsoft/keap appication or another when mapping exist but mapped product does not exist in authorize application.....
+                        if(empty($mapppedProductId) || empty($checkMappedProductExist['product_name'])){
                         	$productDetailsArray['product_name'] = $wcproductName;//assign product name for new product creation....
                         	$jsonData = json_encode($productDetailsArray);//covert array to json...
                             $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_BACK_END,$wooconnectionLogger);//call the common function to insert the product.....
@@ -283,11 +292,18 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $createdProductId);
                                 //update the woocommerce product sku......
                             	update_post_meta($value,'_sku',$wcproductSku);
-                            }                   
+                            	$appProductData['app_product_id'] = $createdProductId;
+								$appProductData['app_product_name'] =  $wcproductName;
+								$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
+								$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
+								$appProductData['app_product_sku'] = $wcproductSku;
+								$appProductData['app_product_price'] = $wcproductPrice;
+								$wpdb->insert($appProductsTableName,$appProductData);
+                           	}                   
                         }
                         //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
                         else{
-                        	$jsonData = json_encode($productDetailsArray);//covert array to json...
+							$jsonData = json_encode($productDetailsArray);//covert array to json...
                         	//call the common function to update the existing function in application.....
                             $updateProductId = updateExistingProduct($mapppedProductId,$access_token,$jsonData,LOG_TYPE_BACK_END,$wooconnectionLogger);
                             if(!empty($updateProductId)){//if new product created is not then update relation and product sku...
@@ -295,16 +311,23 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $updateProductId);
                                 //update the woocommerce product sku......
                                 update_post_meta($value,'_sku',$wcproductSku);
-                            }
-                            
-                        }
+                                if(isset($_POST['wc_product_primary_key_'.$updateProductId]) && !empty($_POST['wc_product_primary_key_'.$updateProductId])){
+	                                $primaryKey = $_POST['wc_product_primary_key_'.$updateProductId];
+									$appProductData['app_product_name'] =  $wcproductName;
+									$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
+									$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
+									$appProductData['app_product_sku'] = $wcproductSku;
+									$appProductData['app_product_price'] = $wcproductPrice;
+									$response = $wpdb->update($appProductsTableName, $appProductData, array('id'=>$primaryKey));
+                                }
+							}
+                       	}
                     }
-                    
                 }
             }
             //set default offset and limit....
             $exportOffset = 0;
-            $exportLimit = 20;
+            $exportLimit = 100;
             //check limit exist in post data or not......
             if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
             	//set the latest limit to fetch the records...
@@ -843,8 +866,6 @@ function wc_cfield_app_tabs(){
 	}
 	die();
 }
-
-
 
 //Custom fields Tab : wordpress hook is call to get the custom fields headers on change custom field tab at the time of custom field creation....
 add_action( 'wp_ajax_wc_cfield_app_headers', 'wc_cfield_app_headers');
@@ -1595,6 +1616,85 @@ function wc_more_products_with_cat(){
 		//return the repsonse....
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newProductListingWithCat'=>$productWithAffiliateHtml));
 	}
+}
+
+//Wordpreess Hool : This hook is triggered to get the products from authorized application and insert into the database.....
+add_action('wp_ajax_wc_get_insert_app_products','wc_get_insert_app_products');
+//Function Definition : wc_get_insert_app_products
+function wc_get_insert_app_products(){
+	if(isset($_POST) && !empty($_POST)){
+		global $wpdb,$table_prefix;
+		$applicationProductsTableName = $table_prefix.'authorize_application_products';
+		$appProducts = getApplicationProducts();
+		$applicationExistingProducts = getExistingAppProducts();
+		if(isset($appProducts['products']) && !empty($appProducts['products'])){
+			foreach ($appProducts['products'] as $key => $value) {
+				if(!empty($value['id'])){
+					$productDataArray = array();
+					$productDataArray['app_product_id'] = $value['id'];
+					$productDataArray['app_product_name'] =  $value['product_name'];
+					$productDataArray['app_product_description'] = strip_tags($value['product_desc']);	
+					$productDataArray['app_product_excerpt'] = $value['product_short_desc'];
+					$productDataArray['app_product_sku'] = $value['sku'];
+					$productDataArray['app_product_price'] = $value['product_price'];
+					if(isset($applicationExistingProducts) && !empty($applicationExistingProducts)){
+						$matchKey = array_search($value['id'],array_column($applicationExistingProducts,'app_product_id'));
+						if(!empty($matchKey) || $matchKey === 0){
+							$alreadyExistProductId = $applicationExistingProducts[$matchKey]->id;
+							if (!empty($alreadyExistProductId)) {
+								$updateResponse = $wpdb->update($applicationProductsTableName,$productDataArray,array('id'=>$alreadyExistProductId));
+							}
+						}else{
+							$wpdb->insert($applicationProductsTableName,$productDataArray);
+						}
+					}else{
+						$wpdb->insert($applicationProductsTableName,$productDataArray);
+					}
+				}
+			}
+		}
+	}
+	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	die();
+}
+
+//Wordpress Hook : This action is triggered when user click on refresh button to refresh the list of products.....
+add_action('wp_ajax_wc_get_reload_app_products','wc_get_reload_app_products');
+//Function Definition : wc_get_reload_app_products
+function wc_get_reload_app_products(){
+	if(isset($_POST) && !empty($_POST)){
+		global $wpdb,$table_prefix;
+		$appLatestProducts = getApplicationProducts();
+		$appExistingProducts = getExistingAppProducts();
+		$applicationProductsTableName = $table_prefix.'authorize_application_products';
+		if(isset($appLatestProducts) && !empty($appLatestProducts)){
+			foreach ($appLatestProducts['products'] as $key => $value) {
+				if(!empty($value['id'])){
+					$refreshProductDataArray = array();
+					$refreshProductDataArray['app_product_id'] = $value['id'];
+					$refreshProductDataArray['app_product_name'] =  $value['product_name'];
+					$refreshProductDataArray['app_product_description'] = strip_tags($value['product_desc']);	
+					$refreshProductDataArray['app_product_excerpt'] = $value['product_short_desc'];
+					$refreshProductDataArray['app_product_sku'] = $value['sku'];
+					$refreshProductDataArray['app_product_price'] = $value['product_price'];
+					if(isset($appExistingProducts) && !empty($appExistingProducts)){
+						$key = array_search($value['id'], array_column($appExistingProducts, 'app_product_id'));
+						if (!empty($key) || $key === 0) {
+							$existingProductId =  $appExistingProducts[$key]->id;
+							if(!empty($existingProductId)){
+								$response = $wpdb->update($applicationProductsTableName, $refreshProductDataArray, array('id'=>$existingProductId));
+							}
+						}else{
+							$wpdb->insert($applicationProductsTableName,$refreshProductDataArray);
+						}
+					}else{
+						$wpdb->insert($applicationProductsTableName,$refreshProductDataArray);
+					}
+				}
+			}
+		}
+	}
+	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	die();
 }
 ?>
