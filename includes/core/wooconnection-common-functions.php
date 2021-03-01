@@ -1486,9 +1486,11 @@ function getExistingAppProducts(){
     global $wpdb,$table_prefix;
     $appProListing = array();
     $appProductsTableName = $table_prefix.'authorize_application_products';
-    $productsListing = $wpdb->get_results("SELECT * FROM `".$appProductsTableName."` WHERE app_product_status=".STATUS_ACTIVE);
-    if(isset($productsListing) && !empty($productsListing)){
-        $appProListing = $productsListing;
+    if($wpdb->get_var("SHOW TABLES LIKE '$appProductsTableName'") == $appProductsTableName) {
+      $productsListing = $wpdb->get_results("SELECT * FROM `".$appProductsTableName."` WHERE app_product_status=".STATUS_ACTIVE);
+      if(isset($productsListing) && !empty($productsListing)){
+          $appProListing = $productsListing;
+      }
     }
     return $appProListing;
 }

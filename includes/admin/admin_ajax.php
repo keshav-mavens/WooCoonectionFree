@@ -455,6 +455,7 @@ function wc_get_insert_app_products(){
 					$productDataArray['app_product_excerpt'] = $value['product_short_desc'];
 					$productDataArray['app_product_sku'] = $value['sku'];
 					$productDataArray['app_product_price'] = $value['product_price'];
+					$productDataArray['app_product_subscription'] = $value['subscription_only'];
 					if(isset($applicationExistingProducts) && !empty($applicationExistingProducts)){
 						$matchKey = array_search($value['id'],array_column($applicationExistingProducts,'app_product_id'));
 						if(!empty($matchKey) || $matchKey === 0){
@@ -495,6 +496,7 @@ function wc_get_reload_app_products(){
 					$refreshProductDataArray['app_product_excerpt'] = $value['product_short_desc'];
 					$refreshProductDataArray['app_product_sku'] = $value['sku'];
 					$refreshProductDataArray['app_product_price'] = $value['product_price'];
+					$refreshProductDataArray['app_product_subscription'] = $value['subscription_only'];
 					if(isset($appExistingProducts) && !empty($appExistingProducts)){
 						$key = array_search($value['id'], array_column($appExistingProducts, 'app_product_id'));
 						if (!empty($key) || $key === 0) {

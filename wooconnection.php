@@ -145,6 +145,7 @@ class WooConnection {
             $appProductsSql .= "`app_product_excerpt` text DEFAULT NULL, ";
             $appProductsSql .= "`app_product_sku` varchar(55) DEFAULT NULL, ";
             $appProductsSql .= "`app_product_price` double DEFAULT NULL, ";
+            $appProductsSql .= "`app_product_subscription` tinyint(4) DEFAULT 0 COMMENT '0-false,1-true',";
             $appProductsSql .= "`app_product_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";
             $appProductsSql .= "  `created`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
             $appProductsSql .= "  `modified`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, ";

@@ -160,6 +160,7 @@ class WooConnection_Admin {
                         $cronProductDataArray['app_product_excerpt'] = $value['product_short_desc'];
                         $cronProductDataArray['app_product_sku'] = $value['sku'];
                         $cronProductDataArray['app_product_price'] = $value['product_price'];
+                        $cronProductDataArray['app_product_subscription'] = $value['subscription_only'];
                         if(isset($existingDbProducts) && !empty($existingDbProducts)){
                             $key = array_search($value['id'], array_column($existingDbProducts, 'app_product_id'));
                             if (!empty($key) || $key === 0) {
