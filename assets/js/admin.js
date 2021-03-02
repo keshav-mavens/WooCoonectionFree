@@ -1828,9 +1828,11 @@ function showProductsByCat($catId){
         $("#productsAffiliateLinks").html('');
         $("#productsAffiliateLinks").html('<tr><td colspan="3" style="text-align: center; vertical-align: middle;">Loading Products.....</td></tr>');
         $("#productsWithAffiliateLInks").show();
+        $(".cat_products_more").hide();
         jQuery.post( ajax_object.ajax_url + "?action=wc_load_products",{categoryId:$catId,newCatProLimit:latestLimitProducts}, function(data) {
             var responsedata = JSON.parse(data);
             if(responsedata.status == "1") {
+                $(".cat_products_more").show();
                 if(responsedata.productLisingWithAffiliateLinks != "") {
                     $("#productsAffiliateLinks").html('');
                     $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
@@ -2179,9 +2181,11 @@ function showProductsListing(length){
     $(".load_products_listing_with_sku").hide();
     $(".load_coupons_listing").hide();
     var productLimitSku = $("#products_sku_listing_limit").val();
+    $(".product_with_sku_more").hide();
     jQuery.post( ajax_object.ajax_url + "?action=wc_get_products_listing",{length:length,productLimitSku:productLimitSku}, function(data) {
         var responsedata = JSON.parse(data);
         if(responsedata.status == "1") {
+            $(".product_with_sku_more").show();
             if(responsedata.productsListing != ""){
                 jQuery("#products_sku_listing").html('');
                 jQuery("#products_sku_listing").html(responsedata.productsListing);
@@ -2277,52 +2281,42 @@ var productsListingOffset = 200;
 var productsSkuCustomLimit = 200;
 //On scroll touch to bottom in products listing with sku popup
 function loadProductsWithSku(){
-    //check scroll touch to bottom then proceed next....
-    if($(".productsModelBody").scrollTop() + $(".productsModelBody").innerHeight() >= $(".productsModelBody")[0].scrollHeight){
-        //then check the popup is visible or not.... if visible then send next request to load more products with sku....
-        if($("#productsListing").is(':visible')){
-            //get the scroll counter value....
-            var products_scroll_counter_value = $("#products_scroll_count").val();
-            //add "1" to set the next value...
-            var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
-            //set the latest value....
-            $("#products_scroll_count").val(products_scroll_counter_updated_value);
-            //compare products listing scroll counter value......
-            if(products_scroll_counter_updated_value !== 1){
-                productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
-            }else{
-                productsListingLimit = 200;
-                productsListingOffset = 200;
-            }
-            //update the limit by adding offset.....
-            productsSkuCustomLimit = parseInt(productsListingOffset) + parseInt(productsListingLimit);
-            $("#products_sku_listing_limit").val(productsSkuCustomLimit);//set the input hidden value....
-            //set the loader image....
-            $(".load_products_listing_with_sku").html('');
-            $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
-            $(".load_products_listing_with_sku").show();
-            var popupTableId = $(".common-table-class").attr('id');
-            var explodedId = popupTableId.split('products_listing_with_sku_');
-            var skuLength = explodedId[1];
-            jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
-                var responseData = JSON.parse(data);
-                $(".load_products_listing_with_sku").hide();
-                if(responseData.status == "1"){
-                    if(responseData.productsListingWithSku != ""){
-                        $("#products_sku_listing").append(responseData.productsListingWithSku);
-                    }else{
-                        $(".load_products_listing_with_sku").html('');
-                        $(".load_products_listing_with_sku").html('No More Products Exist!');
-                        $(".load_products_listing_with_sku").show();
-                        //minus something from scroll top to prevent next ajax request immediately.....
-                        var listingScrollTop = $(".productsModelBody").scrollTop();
-                        var newListingScrollTopValue = listingScrollTop-100;//minus 100 to set the new scroll top value....
-                        $(".productsModelBody").scrollTop(newListingScrollTopValue);//set scroll top to up on the basis of new value....
-                    }
-                }
-            });
-        }
+    //get the scroll counter value....
+    var products_scroll_counter_value = $("#products_scroll_count").val();
+    //add "1" to set the next value...
+    var products_scroll_counter_updated_value = parseInt(products_scroll_counter_value) + 1;
+    //set the latest value....
+    $("#products_scroll_count").val(products_scroll_counter_updated_value);
+    //compare products listing scroll counter value......
+    if(products_scroll_counter_updated_value !== 1){
+        productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+    }else{
+        productsListingLimit = 200;
+        productsListingOffset = 200;
     }
+    //update the limit by adding offset.....
+    productsSkuCustomLimit = parseInt(productsListingOffset) + parseInt(productsListingLimit);
+    $("#products_sku_listing_limit").val(productsSkuCustomLimit);//set the input hidden value....
+    //set the loader image....
+    $(".load_products_listing_with_sku").html('');
+    $(".load_products_listing_with_sku").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+    $(".load_products_listing_with_sku").show();
+    var popupTableId = $(".common-table-class").attr('id');
+    var explodedId = popupTableId.split('products_listing_with_sku_');
+    var skuLength = explodedId[1];
+    jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_products_with_sku",{productsListingLimit:productsListingLimit,productsListingOffset:productsListingOffset,productSkuLength:skuLength},function(data){
+        var responseData = JSON.parse(data);
+        $(".load_products_listing_with_sku").hide();
+        if(responseData.status == "1"){
+            if(responseData.productsListingWithSku != ""){
+                $("#products_sku_listing").append(responseData.productsListingWithSku);
+            }else{
+                $(".load_products_listing_with_sku").html('');
+                $(".load_products_listing_with_sku").html('No More Products Exist!');
+                $(".load_products_listing_with_sku").show();
+            }
+        }
+    });
 }
 
 //define the intial values for coupons listing in popup....
@@ -2331,44 +2325,37 @@ var couponsListingOffset = 200;
 
 //On scroll touch to botton in coupons listing popup....
 function loadMoreCoupons(){
-    //check scroll touch to bottom....
-    if($(".couponsLisingContent").scrollTop() + $(".couponsLisingContent").innerHeight() >= $(".couponsLisingContent")[0].scrollHeight){
-        //get the scroll counter value....
-        var coupons_scroll_counter_value = $("#coupons_scroll_count").val();
-        //add "1" to set the next value...
-        var coupons_scroll_counter_updated_value = parseInt(coupons_scroll_counter_value)+1;
-        //set the latest value....
-        $("#coupons_scroll_count").val(coupons_scroll_counter_updated_value);
-        //compare products listing scroll counter value......
-        if(coupons_scroll_counter_updated_value !== 1){
-            couponsListingOffset = parseInt(couponsListingOffset) + parseInt(couponsListingLimit);
-        }else{
-            couponsListingLimit = 200;
-            couponsListingOffset = 200;
-        }
-        
-        //set the loader image.....
-        $(".load_coupons_listing").html('');
-        $(".load_coupons_listing").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
-        $(".load_coupons_listing").show();
-        jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_coupons",{couponsListingLimit:couponsListingLimit,couponsListingOffset:couponsListingOffset},function(data){
-            var responseData = JSON.parse(data);
-            $(".load_coupons_listing").hide();
-            if(responseData.status == "1"){
-                if(responseData.couponsListingHtml != ""){
-                    $("#coupon_listing_with_sku").append(responseData.couponsListingHtml);
-                }else{
-                    $(".load_coupons_listing").html('');
-                    $(".load_coupons_listing").html('No More Coupons Exist!');
-                    $(".load_coupons_listing").show();
-                    //minus something from scroll top to prevent next ajax request immediately.....
-                    var couponsListingScrollTop = $(".couponsLisingContent").scrollTop();
-                    var newCouponsListingScrollTopValue = couponsListingScrollTop-100;//minus 100 to set the new scroll top value....
-                    $(".couponsLisingContent").scrollTop(newCouponsListingScrollTopValue);//set scroll top to up on the basis of new value....
-                }
-            }
-        });
+    //get the scroll counter value....
+    var coupons_scroll_counter_value = $("#coupons_scroll_count").val();
+    //add "1" to set the next value...
+    var coupons_scroll_counter_updated_value = parseInt(coupons_scroll_counter_value)+1;
+    //set the latest value....
+    $("#coupons_scroll_count").val(coupons_scroll_counter_updated_value);
+    //compare products listing scroll counter value......
+    if(coupons_scroll_counter_updated_value !== 1){
+        couponsListingOffset = parseInt(couponsListingOffset) + parseInt(couponsListingLimit);
+    }else{
+        couponsListingLimit = 200;
+        couponsListingOffset = 200;
     }
+    
+    //set the loader image.....
+    $(".load_coupons_listing").html('');
+    $(".load_coupons_listing").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+    $(".load_coupons_listing").show();
+    jQuery.post(ajax_object.ajax_url + "?action=wc_load_more_coupons",{couponsListingLimit:couponsListingLimit,couponsListingOffset:couponsListingOffset},function(data){
+        var responseData = JSON.parse(data);
+        $(".load_coupons_listing").hide();
+        if(responseData.status == "1"){
+            if(responseData.couponsListingHtml != ""){
+                $("#coupon_listing_with_sku").append(responseData.couponsListingHtml);
+            }else{
+                $(".load_coupons_listing").html('');
+                $(".load_coupons_listing").html('No More Coupons Exist!');
+                $(".load_coupons_listing").show();
+            }
+        }
+    });
 }
 
 //Referral Partner Tab : On click of save buttons send ajax request to update the slug of affiliate redirect page......
@@ -2414,50 +2401,44 @@ var productsOffsetWithCat = 200;
 var customCatProductsLimit = 200;
 //Function : This function is called on scroll of products listing(on the basis of category) popup...
 function loadMoreProductByCat(){
-    //check scroll of popup is touch to bottom or not.....
-    if($(".scroll_div_products").scrollTop() + $(".scroll_div_products").innerHeight() >= $('.scroll_div_products')[0].scrollHeight){
-        //then check popup is visible or not.....If visible then proceed next.......
-        if($('#productsWithAffiliateLInks').is(':visible')){
-            var getScrollTop = $('.scroll_div_products').scrollTop();//get the scroll top position....
-            var updatedTopScrollValue = getScrollTop-100;//miuns something.....
-            var categoryId = $(".scroll_div_products").attr('id');//get the id of popup to get popup link to whick category...
-            var affiliatePath = $("[name=affiliate_path]").val();//get the affiliate link from hidden value....
-            //then check category id is exist or not...
-            if(categoryId != "" && typeof categoryId  != "undefined"){
-                var cat_products_scroll_count = $("#scroll_count_cat_products_"+categoryId).val();//get the scroll counter....
-                var cat_pro_counter_updated_value = parseInt(cat_products_scroll_count)+1;//update the counter value....
-                $("#scroll_count_cat_products_"+categoryId).val(cat_pro_counter_updated_value);//set updated value.....
-                //check counter value and set the limit and offset on the basis of it....
-                if(cat_pro_counter_updated_value !== 1){
-                    productsOffsetWithCat = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
-                }else{
-                    productsLimitWithCat = 200;
-                    productsOffsetWithCat = 200;
-                }
-                //update the new limit........
-                customCatProductsLimit = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
-                $("#cat_products_limit_"+categoryId).val(customCatProductsLimit);
-                $(".load_products_cat_basis").html('');
-                $(".load_products_cat_basis").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
-                $(".load_products_cat_basis").show();
-                jQuery.post(ajax_object.ajax_url+"?action=wc_more_products_with_cat",{catId:categoryId,catProLimit:productsLimitWithCat,catProOffset:productsOffsetWithCat,appAffiliatPath:affiliatePath},function(data){
-                    var productResponse = JSON.parse(data);
-                    $(".load_products_cat_basis").hide();
-                    if(productResponse.status == "1"){
-                        if(productResponse.newProductListingWithCat != ""){
-                            var newlyLoadedProducts = productResponse.newProductListingWithCat;
-                            $('#productsAffiliateLinks tr:last').after(newlyLoadedProducts);//append mew products...
-                        }else{
-                            $(".load_products_cat_basis").html('');
-                            $(".load_products_cat_basis").html('No More Products Exist!');
-                            $(".load_products_cat_basis").show();
-                            $('.scroll_div_products').scrollTop(updatedTopScrollValue);//update the scroll top value to prevent ajax hit....
-                        }
-                    }
-                });
-            } 
+    var getScrollTop = $('.scroll_div_products').scrollTop();//get the scroll top position....
+    var updatedTopScrollValue = getScrollTop-100;//miuns something.....
+    var categoryId = $(".scroll_div_products").attr('id');//get the id of popup to get popup link to whick category...
+    var affiliatePath = $("[name=affiliate_path]").val();//get the affiliate link from hidden value....
+    //then check category id is exist or not...
+    if(categoryId != "" && typeof categoryId  != "undefined"){
+        var cat_products_scroll_count = $("#scroll_count_cat_products_"+categoryId).val();//get the scroll counter....
+        var cat_pro_counter_updated_value = parseInt(cat_products_scroll_count)+1;//update the counter value....
+        $("#scroll_count_cat_products_"+categoryId).val(cat_pro_counter_updated_value);//set updated value.....
+        //check counter value and set the limit and offset on the basis of it....
+        if(cat_pro_counter_updated_value !== 1){
+            productsOffsetWithCat = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
+        }else{
+            productsLimitWithCat = 200;
+            productsOffsetWithCat = 200;
         }
-    }
+        //update the new limit........
+        customCatProductsLimit = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
+        $("#cat_products_limit_"+categoryId).val(customCatProductsLimit);
+        $(".load_products_cat_basis").html('');
+        $(".load_products_cat_basis").html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
+        $(".load_products_cat_basis").show();
+        jQuery.post(ajax_object.ajax_url+"?action=wc_more_products_with_cat",{catId:categoryId,catProLimit:productsLimitWithCat,catProOffset:productsOffsetWithCat,appAffiliatPath:affiliatePath},function(data){
+            var productResponse = JSON.parse(data);
+            $(".load_products_cat_basis").hide();
+            if(productResponse.status == "1"){
+                if(productResponse.newProductListingWithCat != ""){
+                    var newlyLoadedProducts = productResponse.newProductListingWithCat;
+                    $('#productsAffiliateLinks tr:last').after(newlyLoadedProducts);//append mew products...
+                }else{
+                    $(".load_products_cat_basis").html('');
+                    $(".load_products_cat_basis").html('No More Products Exist!');
+                    $(".load_products_cat_basis").show();
+                    $('.scroll_div_products').scrollTop(updatedTopScrollValue);//update the scroll top value to prevent ajax hit....
+                }
+            }
+        });
+    } 
 }
 
 //Function is used to insert the application products....

@@ -133,7 +133,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
         <h4 class="modal-title">Products With Sku</h4>
         <button type="button" class="close" onclick="hideCustomModel('productsListing')">&times;</button>
       </div>
-      <div class="modal-body productsModelBody" onscroll="loadProductsWithSku()" style="overflow-y:scroll;max-height:500px;">
+      <div class="modal-body productsModelBody" style="overflow-y:scroll;max-height:500px;">
         <div class="table-responsive">
           <input type="hidden" id="products_scroll_count" value="0">
           <input type="hidden" id="products_sku_listing_limit" value="200">
@@ -148,7 +148,10 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
             <tbody id="products_sku_listing">
             </tbody>
           </table>
-          <div class="load_products_listing_with_sku" style="text-align: center;display: none;margin-top:10px;margin-bottom: 10px;"></div>
+          <div class="form-group col-md-12 text-center product_with_sku_more" style="display:none;">
+            <div class="load_products_listing_with_sku" style="text-align: center;display: none;"></div>
+            <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" style="margin-top:10px;" onclick="loadProductsWithSku()">
+          </div>
         </div>
       </div>
     </div>
@@ -163,14 +166,17 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
         <h4 class="modal-title">Coupons Code Listing</h4>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body couponsLisingContent" onscroll="loadMoreCoupons()" style="overflow-y:scroll;max-height:500px;">
+      <div class="modal-body couponsLisingContent" style="overflow-y:scroll;max-height:500px;">
        <div class="table-responsive">
           <input type="hidden" id="coupons_scroll_count" value="0">
           <table class="table table-striped" id="coupon_listing_with_sku">
                 <thead><tr><th>Coupon Code</th><th>Coupon Desc</th><th>Action</th></tr></thead>
                 <tbody><?php echo get_coupons_listing(); ?></tbody>
           </table>
-          <div class="load_coupons_listing" style="display: none;text-align:center;margin-top:10;margin-bottom:10px;"></div>
+          <div class="form-group col-md-12 text-center">
+            <div class="load_coupons_listing" style="text-align: center;display: none;"></div>
+            <input type="button" value="Load More Coupons" class="btn btn-primary btn-radius btn-theme" style="margin-top:10px;" onclick="loadMoreCoupons()">
+          </div>
         </div>
       </div>
     </div>

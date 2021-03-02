@@ -126,7 +126,7 @@ if(isset($pageDetails['pageUrl']) && !empty($pageDetails['pageUrl'])){
         <h4 class="modal-title">Products Listing With Affiliate Links</h4>
         <button type="button" class="close" onclick="hideCustomModel('productsWithAffiliateLInks')">&times;</button>
       </div>
-      <div class="modal-body scroll_div_products" id="" style="max-height:500px; overflow-y:auto;" onscroll="loadMoreProductByCat()">
+      <div class="modal-body scroll_div_products" id="" style="max-height:500px; overflow-y:auto;">
       	<div class="table-responsive">
 			<table class="table table-striped" id="products_listing_with_affiliate_links">
 			    <thead>
@@ -140,8 +140,12 @@ if(isset($pageDetails['pageUrl']) && !empty($pageDetails['pageUrl'])){
 			    	<tr><td colspan="3" style="text-align: center; vertical-align: middle;">Loading Products.....</td></tr>
 			    </tbody>
 			</table>
-      	</div>
-      	<div class="load_products_cat_basis" style="text-align: center;display: none;"></div>
+			<div class="form-group col-md-12 text-center cat_products_more" style="display:none;">
+				<div class="load_products_cat_basis" style="text-align:center;display:none;"></div>
+				<input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" style="margin-top: 10px;" onclick="loadMoreProductByCat()">
+			</div>
+		</div>
+      	<!-- <div class="load_products_cat_basis" style="text-align: center;display: none;"></div> -->
       </div>
     </div>
   </div>
