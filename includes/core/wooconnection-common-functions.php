@@ -1850,7 +1850,7 @@ function wc_standard_categories_listing(){
               }else{
                 $termName = $value->name;
               }
-              $categoriesLising .= '<tr><input type="hidden" id="scroll_count_cat_products_'.$termId.'" value="0"><input type="hidden" value="20" id="cat_products_limit_'.$termId.'"><td>'.$termName.'</td><td><a href="javascript:void(0);" onclick="showProductsByCat('.$termId.')">View Products</a></td></tr>';
+              $categoriesLising .= '<tr><input type="hidden" id="scroll_count_cat_products_'.$termId.'" value="0"><input type="hidden" value="200" id="cat_products_limit_'.$termId.'"><td>'.$termName.'</td><td><a href="javascript:void(0);" onclick="showProductsByCat('.$termId.')">View Products</a></td></tr>';
           }
         }
     }else{
@@ -2548,7 +2548,7 @@ function getOrderTriggers(){
 //get the list of products with sku...
 function get_products_listing($length,$limit='',$offset='',$htmlType = ''){
   //set default limit and offset....
-  $listingLimit = 20;
+  $listingLimit = 200;
   $listingOffset = 0;
   //check if limit exist in function parameter...
   if(!empty($limit)){
@@ -2583,7 +2583,7 @@ function get_products_listing($length,$limit='',$offset='',$htmlType = ''){
 //get the list of coupons with coupon code...
 function get_coupons_listing($couponListingLimit='',$couponListingOffset='',$couponListingType=''){
   //set default limit and offset.....
-  $couponsListingLimit = 20;
+  $couponsListingLimit = 200;
   $couponsListingOffset = 0;
   //check if coupon limit exist in function parameter.....
   if(!empty($couponListingLimit)){

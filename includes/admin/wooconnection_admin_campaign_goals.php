@@ -136,7 +136,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
       <div class="modal-body productsModelBody" onscroll="loadProductsWithSku()" style="overflow-y:scroll;max-height:500px;">
         <div class="table-responsive">
           <input type="hidden" id="products_scroll_count" value="0">
-          <input type="hidden" id="products_sku_listing_limit" value="20">
+          <input type="hidden" id="products_sku_listing_limit" value="200">
           <table class="table table-striped common-table-class" id="table_products_lisitng_with_sku">
             <thead>
               <tr>

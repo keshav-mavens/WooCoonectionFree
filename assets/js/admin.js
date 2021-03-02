@@ -2272,9 +2272,9 @@ function loadMoreProducts(){
 }
 
 //define the intial values for products listing with sku popup...
-var productsListingLimit = 20;
-var productsListingOffset = 20;
-var productsSkuCustomLimit = 20;
+var productsListingLimit = 200;
+var productsListingOffset = 200;
+var productsSkuCustomLimit = 200;
 //On scroll touch to bottom in products listing with sku popup
 function loadProductsWithSku(){
     //check scroll touch to bottom then proceed next....
@@ -2291,8 +2291,8 @@ function loadProductsWithSku(){
             if(products_scroll_counter_updated_value !== 1){
                 productsListingOffset = parseInt(productsListingOffset) + parseInt(productsListingLimit);
             }else{
-                productsListingLimit = 20;
-                productsListingOffset = 20;
+                productsListingLimit = 200;
+                productsListingOffset = 200;
             }
             //update the limit by adding offset.....
             productsSkuCustomLimit = parseInt(productsListingOffset) + parseInt(productsListingLimit);
@@ -2326,8 +2326,8 @@ function loadProductsWithSku(){
 }
 
 //define the intial values for coupons listing in popup....
-var couponsListingLimit = 20;
-var couponsListingOffset = 20;
+var couponsListingLimit = 200;
+var couponsListingOffset = 200;
 
 //On scroll touch to botton in coupons listing popup....
 function loadMoreCoupons(){
@@ -2343,8 +2343,8 @@ function loadMoreCoupons(){
         if(coupons_scroll_counter_updated_value !== 1){
             couponsListingOffset = parseInt(couponsListingOffset) + parseInt(couponsListingLimit);
         }else{
-            couponsListingLimit = 20;
-            couponsListingOffset = 20;
+            couponsListingLimit = 200;
+            couponsListingOffset = 200;
         }
         
         //set the loader image.....
@@ -2409,9 +2409,9 @@ function saveAffiliateRedirectSlug(){
 }
 
 //Referral Partner Tab : set default variables to handle the process of load more prod
-var productsLimitWithCat = 20;
-var productsOffsetWithCat = 20;
-var customCatProductsLimit = 20;
+var productsLimitWithCat = 200;
+var productsOffsetWithCat = 200;
+var customCatProductsLimit = 200;
 //Function : This function is called on scroll of products listing(on the basis of category) popup...
 function loadMoreProductByCat(){
     //check scroll of popup is touch to bottom or not.....
@@ -2431,8 +2431,8 @@ function loadMoreProductByCat(){
                 if(cat_pro_counter_updated_value !== 1){
                     productsOffsetWithCat = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
                 }else{
-                    productsLimitWithCat = 20;
-                    productsOffsetWithCat = 20;
+                    productsLimitWithCat = 200;
+                    productsOffsetWithCat = 200;
                 }
                 //update the new limit........
                 customCatProductsLimit = parseInt(productsOffsetWithCat) + parseInt(productsLimitWithCat);
