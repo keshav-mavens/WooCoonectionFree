@@ -22,6 +22,12 @@ class WooConnectionPro {
         register_activation_hook( __FILE__, array($this, 'create_standard_custom_fields_mapping_table' ) );
         register_activation_hook( __FILE__, array($this, 'create_thanks_page_override_table' ) );
         register_activation_hook( __FILE__, array($this, 'update_pro_version_status' ) );
+        //call the hook register_activation_hoook to create the custom table to store the authorize application products.....
+        register_activation_hook(__FILE__,array($this,'create_application_products_table'));
+        //Call the hook register activation hook to call the custom action to set the schedular....
+        register_activation_hook(__FILE__,  array($this, 'set_custom_schedular_products'));
+        //Call the hook register deactivation to clear the set custom cron job....
+        register_deactivation_hook(__FILE__,array($this,'clear_custom_schedular_products'));
     }
 
     
@@ -321,6 +327,50 @@ class WooConnectionPro {
         global $table_prefix, $wpdb;
         update_option('wc_pro_version_activated', true);
     }
+
+    //Function Definition : create_application_products_table
+    public function create_application_products_table(){
+        global $table_prefix,$wpdb;
+        $appproducts_table_name = 'authorize_application_products';
+        $wp_app_products_table_name = $table_prefix . "$appproducts_table_name";
+        if($wpdb->get_var( "show tables like '$wp_app_products_table_name'" ) != $wp_app_products_table_name) 
+        {
+            $appProductsSql = "CREATE TABLE `". $wp_app_products_table_name . "` ( ";
+            $appProductsSql .= "`id` int(11)   NOT NULL auto_increment, ";
+            $appProductsSql .= "`app_product_id` int(11) NOT NULL, ";
+            $appProductsSql .= "`app_product_name` text NOT NULL, ";
+            $appProductsSql .= "`app_product_description` longtext DEFAULT NULL,";
+            $appProductsSql .= "`app_product_excerpt` text DEFAULT NULL, ";
+            $appProductsSql .= "`app_product_sku` varchar(55) DEFAULT NULL, ";
+            $appProductsSql .= "`app_product_price` double DEFAULT NULL, ";
+            $appProductsSql .= "`app_product_subscription` tinyint(4) DEFAULT 0 COMMENT '0-false,1-true',";
+            $appProductsSql .= "`app_product_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";
+            $appProductsSql .= "  `created`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
+            $appProductsSql .= "  `modified`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, ";
+            $appProductsSql .= "  PRIMARY KEY (`id`) ";
+            $appProductsSql .= ") ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ; ";
+            require_once( ABSPATH . '/wp-admin/includes/upgrade.php' );
+            dbDelta($appProductsSql);
+        } 
+    }
+
+    //Function Definition : set_custom_schedular_products....
+    public function set_custom_schedular_products(){
+        //check schedular is already set or not.....
+        if (!wp_next_scheduled( 'application_products_schedular_twiceday' ) ) {
+            wp_schedule_event( time(), 'twicedaily', 'application_products_schedular_twiceday' );
+        }
+    }
+
+    //Function Definition : clear_custom_schedular_products
+    public function clear_custom_schedular_products(){
+        //check schedular is exist or not......
+        if(wp_next_scheduled('application_products_schedular_twiceday')){
+            //clera cron job from the schedular....
+            wp_clear_scheduled_hook('application_products_schedular_twiceday');
+        }
+    }
+
 }
 // Create global so you can use this variable beyond initial creation.
 global $wooconnection;

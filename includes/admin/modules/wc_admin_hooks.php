@@ -4,7 +4,9 @@ add_action( 'woocommerce_process_product_meta', 'insertProductToApplication',100
 //Function Definiation : insertProductToApplication
 function insertProductToApplication( $post_id, $post ){  
     if(!empty($post_id)){//check post id is exist
-    		//Check product is update or publish....
+        global $wpdb,$table_prefix;
+        $applicationProductsTableName = $table_prefix.'authorize_application_products';
+        //Check product is update or publish....
         $productExistId = get_post_meta($post_id, 'wc_product_automation', true);
         //if product is not create yet then need to move in application
         if(empty($productExistId)){
@@ -100,6 +102,15 @@ function insertProductToApplication( $post_id, $post ){
               update_post_meta($post_id, 'wc_product_automation', true);
               //update the woocommerce product sku......
               update_post_meta($post_id,'_sku',$wcproductSku);
+              //insert the product into own database.....
+              $productDataArray = array();
+              $productDataArray['app_product_id'] = $newProductId;
+              $productDataArray['app_product_name'] =  $wcproductName;
+              $productDataArray['app_product_description'] = $wcproductDesc;  
+              $productDataArray['app_product_excerpt'] = $wcproductShortDesc;
+              $productDataArray['app_product_sku'] = $wcproductSku;
+              $productDataArray['app_product_price'] = $wcproductPrice;
+              $wpdb->insert($applicationProductsTableName,$productDataArray);
               $callback_purpose = LOG_TYPE_BACK_END." : ".$callback_purpose.' is sucessfully done and newly created product in application is #'.$newProductId;
               $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', $callback_purpose);    
             }  

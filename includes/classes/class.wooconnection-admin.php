@@ -151,6 +151,53 @@ class WooConnection_Admin {
         <?php
     }
 
+    //Function Definition : twiceday_update_application_products(Cron job run twice a day)
+    public function twiceday_update_application_products(){
+        //get the authentication details of plugin....
+        $pluginAuthenticationDetails = getAuthenticationDetails();
+
+        //get the access token....
+        $application_access_token = '';
+        
+        if(!empty($pluginAuthenticationDetails[0]->user_access_token)){
+            $application_access_token = $pluginAuthenticationDetails[0]->user_access_token;
+        }
+        
+        if(isset($application_access_token) && !empty($application_access_token)){
+            global $wpdb,$table_prefix;
+            $applicationProductsTableName = $table_prefix.'authorize_application_products';
+            $appLatestProductsListing = getApplicationProducts();
+            $existingDbProducts = getExistingAppProducts();
+            if(isset($appLatestProductsListing) && !empty($appLatestProductsListing)){
+                foreach ($appLatestProductsListing['products'] as $key => $value) {
+                    if(!empty($value['id'])){
+                        $cronProductDataArray = array();
+                        $cronProductDataArray['app_product_id'] = $value['id'];
+                        $cronProductDataArray['app_product_name'] =  $value['product_name'];
+                        $cronProductDataArray['app_product_description'] = strip_tags($value['product_desc']);   
+                        $cronProductDataArray['app_product_excerpt'] = $value['product_short_desc'];
+                        $cronProductDataArray['app_product_sku'] = $value['sku'];
+                        $cronProductDataArray['app_product_price'] = $value['product_price'];
+                        $cronProductDataArray['app_product_subscription'] = $value['subscription_only'];
+                        if(isset($existingDbProducts) && !empty($existingDbProducts)){
+                            $key = array_search($value['id'], array_column($existingDbProducts, 'app_product_id'));
+                            if (!empty($key) || $key === 0) {
+                                $existingProductId =  $existingDbProducts[$key]->id;
+                                if(!empty($existingProductId)){
+                                    $response = $wpdb->update($applicationProductsTableName, $cronProductDataArray, array('id'=>$existingProductId));
+                                }
+                            }else{
+                                $wpdb->insert($applicationProductsTableName,$cronProductDataArray);
+                            }
+                        }else{
+                            $wpdb->insert($applicationProductsTableName,$cronProductDataArray);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
 // Create global so you can use this variable beyond initial creation.
 global $wooconnectionadmin;

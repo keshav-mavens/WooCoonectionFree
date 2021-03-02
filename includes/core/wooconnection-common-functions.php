@@ -157,7 +157,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
   //Set the application label on the basis of type...
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
-  $applicationProductsArray =  getApplicationProducts();
+  $applicationProductsArray =  getExistingAppProducts();
   
   //set html if no products exist in woocommerce for export....
   if(empty($woocommerceProducts)){
@@ -178,12 +178,17 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
                 <table class="table table-striped export_products_listing_class" id="export_products_listing">
                   '.$exportProductsData['exportTableHtml'].'
                 </table>
-                <div class="form-group col-md-12 text-center m-t-25">
-                  <div class="load_table_export_products loading_products" style="display:none;"></div>
-                  <div class="exportProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Exporting products to your '.$applicationLabel.' account.</div>
-                  <div class="alert-error-message export-products-error" style="display: none;"></div>
-                  <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
-                  <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
+                <div class="load_table_export_products loading_products text-center" style="display:none;"></div>
+                <div class="exportProducts text-center" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Exporting products to your '.$applicationLabel.' account.</div>
+                <div class="alert-error-message export-products-error" style="display: none;"></div>
+                <div class="alert-sucess-message export-products-success" style="display: none;">Products export successfully.</div>
+                <div class="btn-footer">
+                  <div class="products-btn">
+                    <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme load_products_export" onclick="loadMoreProducts()">
+                  </div>
+                  <div class="products-btn text-right">
+                    <input type="button" value="Export Products" class="btn btn-primary btn-radius btn-theme export_products_btn" onclick="wcProductsExport()">
+                  </div>
                 </div>
               </form>';
             }
@@ -196,7 +201,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
 
 //list of existing woocommerce products from database and then return...
 function listExistingDatabaseWooProducts($limit='',$offset=''){
-    $productsLimit = 20;
+    $productsLimit = 200;
     $productsOffset = 0;
     if(!empty($limit)){
       $productsLimit = $limit;
@@ -223,21 +228,6 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
     if(!empty($applicationAuthenticationDetails)){
       if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
           $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-      }
-    }
-
-    //by default subscription products is hide....
-    $allowSubscription = false;
-    //get the custom payment gateway settings.......
-    $settingOptions = get_option('woocommerce_infusionsoft_keap_settings');
-    //check settings is exist or not........
-    if(isset($settingOptions) && !empty($settingOptions)){
-      //then check custom gateway is enabled for payments......
-      if($settingOptions['enabled'] == 'yes'){
-        //then check subscriptions are enable or not if enable then call the class to give feature of trial subscription coupons......
-        if(isset($settingOptions['wc_subscriptions']) && !empty($settingOptions['wc_subscriptions']) && $settingOptions['wc_subscriptions'] == 'yes' && !empty($applicationType) && $applicationType == APPLICATION_TYPE_INFUSIONSOFT_LABEL){
-            $allowSubscription = true;
-        }
       }
     }
 
@@ -275,21 +265,12 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                 }else{
                   $wcproductName = "--";
                 }
-                $wcProductType = $wcproduct->get_type();
-                //get the product meta to check wehther this product is sold as a subscription managed by infusionsoft.....
-                $productSoldAsSubscription = get_post_meta($wc_product_id,'_product_sold_subscription',true);
-                //get_post_meta($product_id,'_product_sold_subscription',true);
-                if(stripos($wcProductType, 'subscription') !== false && $productSoldAsSubscription == 'yes'){
-                  $typeProduct = ITEM_TYPE_SUBSCRIPTION;
-                }else{
-                  $typeProduct = ITEM_TYPE_PRODUCT;
-                }
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
-                if(!empty($applicationProductsArray['products'])){
+                if(!empty($applicationProductsArray)){
                     //Check product relation is exist....
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
-                    if(isset($productExistId)){
+                    if(isset($productExistId) && !empty($productExistId)){
                       $matchProductId = $productExistId;
                     }else if (!empty($wcproductSku)) {//Then check product sku,If product sku exist then check product in application with same sku is exist ot not....
                       $checkSkuMatchWithIskpProducts = checkProductMapping($wcproductSku,$applicationProductsArray); 
@@ -302,18 +283,20 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                           }
                       }
                     }
+                    
                     //check matchproduct id is exist or not if exist then get the product name from application products array......
                     if(!empty($matchProductId)){
-                      $key = array_search($matchProductId, array_column($applicationProductsArray['products'], 'id'));
+                      $key = array_search($matchProductId, array_column($applicationProductsArray, 'app_product_id'));
                       if (!empty($key) || $key === 0) {
-                        $productDetails = $applicationProductsArray['products'][$key];
-                        if(!empty($productDetails['product_name'])){
-                          $productsDropDown = '<input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails['product_name'];
+                        $productDetails = $applicationProductsArray[$key];
+                        if(!empty($productDetails->app_product_name)){
+                          $productsDropDown = '<input type = "hidden" value="'.$productDetails->id.'" name="wc_product_primary_key_'.$matchProductId.'"><input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails->app_product_name;
                         }
                       }else{
                         $productsDropDown = 'Mapped Product Not Exist In App!';
                       }
-                    }else{
+                    }
+                    else{
                       $productsDropDown = 'No mapping exist!'; 
                     }
                     //Create final select html.....
@@ -328,14 +311,9 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                 }else{
                     $wcproductSku = '--';
                 }
-                if($typeProduct == ITEM_TYPE_PRODUCT){
-                    //Create final html.......
-                    $exportTableHtml .= '<tr><td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
-                }
-                else if($typeProduct == ITEM_TYPE_SUBSCRIPTION && $allowSubscription == true){
-                    //Create final html.......
-                    $exportTableHtml .= '<tr><td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
-                }
+                //Create final html.......
+                $exportTableHtml .= '<tr><td style="text-align: center;"><input type="checkbox" class="each_product_checkbox_export" name="wc_products[]" value="'.$wc_product_id.'" id="'.$wc_product_id.'"></td><td>'.$wcproductName.'</td><td class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+
             }
 
         }
@@ -347,14 +325,14 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
 //Check product with same sku is exist or not , if exist then return match products id.....
 function checkProductMapping($sku,$productsArray){
     $matchProductsIds = array();//Define array...
-    if(!empty($productsArray['products'])){//check is products array is not empty....
+    if(!empty($productsArray)){//check is products array is not empty....
         //Execute loop on application prdoucts array,......
-        foreach ($productsArray['products'] as $key => $value) {
-          if(!empty($value['id'])){//check product id....
+        foreach ($productsArray as $key => $value) {
+          if(!empty($value->app_product_id)){//check product id....
               //compare sku, if match the return the ids..
-              if(isset($value['sku']) && !empty($value['sku'])){
-                  if($value['sku'] == $sku){
-                    $matchProductsIds[] = $value['id'];
+              if(!empty($value->app_product_sku)){
+                  if($value->app_product_sku == $sku){
+                    $matchProductsIds[] = $value->app_product_id;
                   }    
               }
           }
@@ -408,76 +386,6 @@ function applicationName(){
     $applicationName =  $data[0]->user_authorize_application;
   }
   return $applicationName;  
-}
-
-//Get the list of application products....
-function getApplicationProductsImportTab($appLimit = '',$pageNumber = ''){
-    //define the empty variables.....
-    $productsListing = array();
-    
-    //set the default variable values...
-    $appProductsLimit = 20;
-    $appProductsPageNumber = 0; 
-
-    //check if limit exist in function parameter then override the default value of limit...
-    if(!empty($appLimit)){
-      $appProductsLimit = $appLimit;
-    }
-
-    //check if offset exist in function parameter then override the default value of offset....
-    if(!empty($pageNumber)){
-      $appProductsPageNumber = $pageNumber;
-    }
-
-    //first need to check connection is created or not infusionsoft/keap application then next process need to done..
-    $applicationAuthenticationDetails = getAuthenticationDetails();
-    //get the access token....
-    $access_token = '';
-    if(!empty($applicationAuthenticationDetails)){
-      if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
-          $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-      }
-    }
-    
-    // Create instance of our wooconnection logger class to use off the whole things.
-    $wooconnectionLogger = new WC_Logger();
-    
-    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $header = array(
-      'Accept: text/xml',
-      'Content-Type: text/xml',
-      'Authorization: Bearer '. $access_token
-    );
-
-    //Create xml to hit the curl request for get the list of products......
-    $getProductsXml = '<methodCall><methodName>DataService.findByField</methodName><params><param><value><string></string></value></param><param><value><string>Product</string></value></param><param><value><int>'.$appProductsLimit.'</int></value></param><param><value><int>'.$appProductsPageNumber.'</int></value></param><param><value><string>Status</string></value></param><param><value><string>1</string></value></param><param><value><array><data><value><string>Id</string></value><value><string>ProductName</string></value><value><string>Sku</string></value><value><string>ProductPrice</string></value><value><string>Description</string></value><value><string>ShortDescription</string></value></data></array></value></param></params></methodCall>';
-
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $getProductsXml);
-    $response = curl_exec($ch);
-    $err = curl_error($ch);
-    //check if error occur due to any reason and then save the logs...
-    if($err){
-        $errorMessage = "Get the list of products is failed due to ". $err; 
-        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-    }else{
-      //Covert/Decode response to xml.....
-      $responsedata = xmlrpc_decode($response);
-      //check if any error occur like invalid access token,then save logs....
-      if (is_array($responsedata) && xmlrpc_is_fault($responsedata)) {
-          if(isset($responsedata['faultString']) && !empty($responsedata['faultString'])){
-              $errorMessage = "Get the list of products is failed due to ". $responsedata['faultString']; 
-              $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          }
-      }else{
-        $productsListing = $responsedata;
-      }
-    }
-    curl_close($ch);
-    return $productsListing;
 }
 
 //Function is used to update the infusionsoft/keap application existing products at the time of export...
@@ -540,26 +448,11 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
     }
   }
 
-  //by default subscription products is hide....
-  $allowSubscription = false;
-  //get the custom payment gateway settings.......
-  $settingOptions = get_option('woocommerce_infusionsoft_keap_settings');
-  //check settings is exist or not........
-  if(isset($settingOptions) && !empty($settingOptions)){
-    //then check custom gateway is enabled for payments......
-    if($settingOptions['enabled'] == 'yes'){
-      //then check subscriptions are enable or not if enable then call the class to give feature of trial subscription coupons......
-      if(isset($settingOptions['wc_subscriptions']) && !empty($settingOptions['wc_subscriptions']) && $settingOptions['wc_subscriptions'] == 'yes' && !empty($type) && $type == APPLICATION_TYPE_INFUSIONSOFT_LABEL){
-          $allowSubscription = true;
-      }
-    }
-  }
-
   //Set the application label on the basis of type...
   $applicationLabel = applicationLabel($type);
   //Get the list of active products from authenticate application....
-  $applicationProductsArray = getApplicationProducts();
-
+  $applicationProductsArray = getExistingAppProducts();
+  
   //set html if no products exist in woocommerce they are in relation with applcation products....
   if(empty($wooCommerceProducts)){
     if(empty($matchProductHtmlType)){
@@ -567,7 +460,7 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
     }
   }else{
       //Compare woocommerce publish products application products....
-      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel,$matchProductHtmlType,$allowSubscription);
+      $matchProductsData = createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationLabel,$matchProductHtmlType);
       //Check export products data....
       if(isset($matchProductsData) && !empty($matchProductsData)){
           //Get the match products table html and append to table
@@ -579,7 +472,12 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
               $table_match_products_html .= '<span class="ajax_loader_match_products_related" style="display:none"><img src="'.WOOCONNECTION_PLUGIN_URL.'assets/images/loader.gif"></span><form action="" method="post" id="wc_match_products_form" onsubmit="return false">  
                 <table class="table table-striped match_products_listing_class" id="match_products_listing">
                   '.$matchProductsData['matchTableHtml'].'
-                </table></form>';
+                </table>
+                <div class="form-group col-md-12 text-center">
+                  <div class="load_table_match_products loading_products" style="text-align: center;display: none;"></div>
+                  <input type="button" value="Load More Products" class="btn btn-primary btn-radius btn-theme" style="margin-top:10px;" onclick="loadMoreProducts()">
+                </div>
+                </form>';
             }
           }
       }
@@ -588,8 +486,9 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
   return $table_match_products_html;
 }
 
+
 //Create the match products table listing....
-function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$matchProductHtmlType='',$allowSubscription=''){
+function createMatchProductsListingApplication($wooCommerceProducts,$applicationProductsArray,$applicationType,$matchProductHtmlType=''){
     $matchTableHtml  = '';//Define variable..
     $matchProductsData = array();//Define array...
     //First check if wooproducts exist...
@@ -609,7 +508,6 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
         }
         $productExistId = '';
         foreach ($wooCommerceProducts as $key => $value) {
-            $typeproduct = ITEM_TYPE_PRODUCT;
             if(!empty($value)){
                 $wc_product_id = $value->ID;//Define product id...                  
                 $wcproduct = wc_get_product($wc_product_id);//Get product details..
@@ -632,28 +530,15 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                 }else{
                   $wcproductName = "--";
                 }
-                //get the product type i.e simple product or simple subscription......
-                $wcproductType = $wcproduct->get_type();
-                //get the product meta to check wehther this product is sold as a subscription managed by infusionsoft.....
-                $productSoldAsSubscription = get_post_meta($wc_product_id,'_product_sold_subscription',true);
-                //check it substring "subscription" not exist in product type it means it is a simple product..
-                if(stripos($wcproductType, 'subscription') !== false && $productSoldAsSubscription == 'yes'){
-                    $typeproduct = ITEM_TYPE_SUBSCRIPTION;
-                }
-                //else it is a subscription plan.....
-                else{
-                    $typeproduct = ITEM_TYPE_PRODUCT;
-                }
-                
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
-                if(!empty($applicationProductsArray['products'])){
+                if(!empty($applicationProductsArray)){
                     //Check product relation is exist....
                     $productExistId = get_post_meta($wc_product_id, 'is_kp_product_id', true);
                     //If product relation exist then create select deopdown and set associative product selected....
                     if(isset($productExistId) && !empty($productExistId)){
-                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$productExistId,$typeproduct);
+                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$productExistId);
                     }else{
-                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,'',$typeproduct);
+                      $productsDropDown = createMatchProductsSelect($applicationProductsArray);
                     }
                     //Create final select html.....
                     $productSelectHtml = '<select class="application_match_products_dropdown" name="wc_product_match_with_'.$wc_product_id.'" data-id="'.$wc_product_id.'"><option value="0">Select '.$applicationType.' product</option>'.$productsDropDown.'</select>';
@@ -672,15 +557,11 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
                     $actionHtml  = '<button type="button" title="Expand variations of this product." class="btn btn-success exploder" id="'.$wc_product_id.'" data-id="'.$productExistId.'"><i class="fa fa-plus"></i></button>';
                 }
 
-                if($typeproduct == ITEM_TYPE_PRODUCT){
-                    //Create final html.......
-                    $matchTableHtml .= '<tr id="table_row_'.$wc_product_id.'"><td>'.$actionHtml.'</td><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';  
-                }
-                else if($typeproduct == ITEM_TYPE_SUBSCRIPTION && $allowSubscription == true){
-                    //Create final html.......
-                    $matchTableHtml .= '<tr id="table_row_'.$wc_product_id.'"><td>'.$actionHtml.'</td><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
-                }
+                //Create final html.......
+                $matchTableHtml .= '<tr id="table_row_'.$wc_product_id.'"><td>'.$actionHtml.'</td><td>'.$wcproductName.'</td><td  class="skucss">'.$wcproductSku.'</td><td>'.$wcproductPrice.'</td><td>'.$productSelectHtml.'</td></tr>';
+
             }
+
         }
         $matchProductsData['matchTableHtml'] = $matchTableHtml;//Assign html....
     }
@@ -688,12 +569,12 @@ function createMatchProductsListingApplication($wooCommerceProducts,$application
 }
 
 //create the infusionsoft products dropdown for mapping..........
-function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_compare='',$typeProduct=''){
+function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_compare=''){
     $iskp_products_options_html = '';//Define variable...
-    if(isset($existingiskpProductResult['products']) && !empty($existingiskpProductResult['products'])){//check application products...
-        foreach($existingiskpProductResult['products'] as $iskpProductDetails) {
-          $iskpProductId = $iskpProductDetails['id'];//get or set the product id....
-          $iskpProductName = $iskpProductDetails['product_name'];//get or set the product name....
+    if(isset($existingiskpProductResult) && !empty($existingiskpProductResult)){//check application products...
+        foreach($existingiskpProductResult as $iskpProductDetails) {
+          $iskpProductId = $iskpProductDetails->app_product_id;//get or set the product id....
+          $iskpProductName = $iskpProductDetails->app_product_name;//get or set the product name....
           $iskpProductSelected = "";
           if(!empty($wc_product_id_compare)){//if relation exist...
               if($wc_product_id_compare == $iskpProductId){//then compare the relation between products....
@@ -702,17 +583,8 @@ function createMatchProductsSelect($existingiskpProductResult,$wc_product_id_com
                   $iskpProductSelected = "";
               }
           }
-          //first check it item/product type is a subscription or subscription plans exist with products then only those products are available in dropown to update mapping.......
-          if($typeProduct == ITEM_TYPE_SUBSCRIPTION && $iskpProductDetails['subscription_only'] == true){
-              //create the final html.....
-              $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';  
-          }
-          //then check if product type is product then show only those products which is not related to subscription plans.....
-          else if ($typeProduct == ITEM_TYPE_PRODUCT && $iskpProductDetails['subscription_only'] !== true) {
-              //create the final html.....
-              $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';
-          }
-          
+           //create the final html.....
+          $iskp_products_options_html.= '<option value="'.$iskpProductId.'" '.$iskpProductSelected.' data-id="'.$iskpProductId.'">'.$iskpProductName.'</option>';
         }
     }
     return $iskp_products_options_html;//return html...
@@ -1016,10 +888,13 @@ function createOrder($orderid,$contactId,$jsonOrderItems,$access_token,$lead_aff
 }
 
 //add product to infusionsoft/keap account..
-function checkAddProductIsKp($access_token,$item,$parent_product_id='',$itemType='',$appEdition=''){
+function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEdition=''){
+    global $wpdb,$table_prefix;
+    $appProductsTableName = $table_prefix.'authorize_application_products';
     //define empty variables......
     $currentProductID = '';
     $checkAlreadyExist = '';
+    $appProductData = array();
     //get product id...
     $productId = $item->get_id();
     //check product id on the basis of main product id.....
@@ -1033,14 +908,13 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$itemType
     }
 
     //set default mapped product exist in application........
-    $productExistStatus = true;
+    $productExistStatus= true;
     //check mapping product exist.....
     if(!empty($checkAlreadyExist)){
       //get the application product details by product id.....
       $checkAppProduct = getApplicationProductDetail($checkAlreadyExist,$access_token);
       //check api return the product details.......
       if(!empty($checkAppProduct)){
-        //check if product name is exist in api array response....
         if(!empty($checkAppProduct['product_name'])){
           $productExistStatus = true;
         }else{//else set exist status if false(it means need to add new product)......
@@ -1048,7 +922,7 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$itemType
         }
       }
     }
-
+    
     $wooconnectionLogger = new WC_Logger();
     //check product mapping exist else create new product and return the id newly created product.....
     if(isset($checkAlreadyExist) && !empty($checkAlreadyExist) && $productExistStatus == true){
@@ -1100,13 +974,6 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$itemType
       $productDetailsArray['product_price'] = $wcproductPrice;
       $productDetailsArray['product_short_desc'] = $wcproductShortDesc;
       $productDetailsArray['product_name'] = $wcproductName;
-      //check item type exist....
-      if(isset($itemType) && !empty($itemType)){
-        //add subscription only true if item type is equal to subscription....
-        if($itemType == ITEM_TYPE_SUBSCRIPTION){
-          $productDetailsArray['subscription_only'] = true;
-        }
-      }
       $callback_purpose = 'Add Woocommerce Product : Process of add woocommerce product to infusionsoft/keap application at the time of order creation';
       //Check if product sku is not exist then create the sku on the basis of product slug.........
       if(isset($wcproductSku) && !empty($wcproductSku)){
@@ -1137,6 +1004,17 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$itemType
                 //update the woocommerce product sku......
                 update_post_meta($productId,'_sku',$wcproductSku);
                 $currentProductID = $createdProductId;
+                //create the array then insert into the wordpress database.....
+                $appProductData['app_product_id'] = $currentProductID;
+                $appProductData['app_product_name'] =  $wcproductName;
+                $appProductData['app_product_description'] = $productDetailsArray['product_desc'];  
+                $appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
+                $appProductData['app_product_sku'] = $wcproductSku;
+                $appProductData['app_product_price'] = $wcproductPrice;
+                $wpdb->insert($appProductsTableName,$appProductData);
+                if(!empty($checkAlreadyExist)){//check if match product is exist then mark the status deleted in wp database....
+                  $wpdb->update($appProductsTableName, array('app_product_status'=>STATUS_DELETED),array('app_product_id'=>$checkAlreadyExist));
+                }
               }
           }
       }else{
@@ -1158,6 +1036,17 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$itemType
             //update the woocommerce product sku......
             update_post_meta($productId,'_sku',$wcproductSku);
             $currentProductID = $createdProductId;
+            //create the array then insert into the wordpress batabase...
+            $appProductData['app_product_id'] = $currentProductID;
+            $appProductData['app_product_name'] =  $wcproductName;
+            $appProductData['app_product_description'] = $productDetailsArray['product_desc'];  
+            $appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
+            $appProductData['app_product_sku'] = $wcproductSku;
+            $appProductData['app_product_price'] = $wcproductPrice;
+            $wpdb->insert($appProductsTableName,$appProductData);
+            if(!empty($checkAlreadyExist)){//check if match product is exist then mark the status deleted in wp database....
+              $wpdb->update($appProductsTableName, array('app_product_status'=>STATUS_DELETED),array('app_product_id'=>$checkAlreadyExist));
+            }
           }         
                 
       }
@@ -1415,219 +1304,150 @@ function addOrderItems($access_token,$orderid,$productId,$type,$price,$quan,$des
     }
 }
 
-//Main function is used to generate the create products html.....
-function createImportProductsHtml($importProductsLimit='',$importProductsPageNumber='',$importProductHtmlType='',$woodropdownLimit=''){
-    //Define import table html variable or arrays.....
-    $isKeapProductsArray = array();
-    $applicationProductsArray = array();
-    $table_products_html_import = '';
+//get the amount owned by the authoenticate application order.....
+function getOrderAmountOwned($access_token,$orderId,$logger){
+  //define empty variable....
+  $amountOwned = '';
+  //check access token and application order id exist......
+  if(!empty($access_token) && !empty($orderId)){
+    //set xmlrpc api link to get the amount owned by the application order.....
+    $curlUrl = "https://api.infusionsoft.com/crm/xmlrpc/v1";
+    $ch = curl_init($curlUrl);
+    curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
+    $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$access_token);
     
-    //Get the application type and set the lable on the basis of it.... 
-    $configurationType = applicationType();
-    $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;//Default....
-    if(isset($configurationType) && !empty($configurationType)){
-      if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
-        $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
-      }else if ($configurationType == APPLICATION_TYPE_KEAP) {
-        $type = APPLICATION_TYPE_KEAP_LABEL;
+    //create xml to hit curl request to get the amount owned by application order......
+    $loadAmountXml = "<?xml version='1.0' encoding='UTF-8'?><methodCall><methodName>InvoiceService.calculateAmountOwed</methodName><params><param><value><string></string></value></param><param><value><int>".$orderId."</int></value></param></params></methodCall>";
+    
+    //curl setup....
+    curl_setopt($ch,CURLOPT_HTTPHEADER,$header);
+    curl_setopt($ch,CURLOPT_CUSTOMREQUEST,"POST");
+    curl_setopt($ch,CURLOPT_POSTFIELDS,$loadAmountXml);
+    
+    //get the curl request error and response......
+    $amountOwnedResponse = curl_exec($ch);
+    $amountOwnedErr = curl_error($ch);
+    //check error exist....
+    if($amountOwnedErr){
+        $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ".$amountOwnedErr;
+        $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($amountOwnedErrorMessage));
+    }else{
+      //Convert/Decode response to xml....
+      $amountOwnedResponseData = xmlrpc_decode($amountOwnedResponse);
+      //check if any error occur like invalid access token,then save logs....
+      if (is_array($amountOwnedResponseData) && xmlrpc_is_fault($amountOwnedResponseData)) {
+          if(isset($amountOwnedResponseData['faultString']) && !empty($amountOwnedResponseData['faultString'])){
+              $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ". $amountOwnedResponseData['faultString']; 
+              $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($amountOwnedErrorMessage, true));
+          }
+      }else{
+        //set the amount value owned by application order.....
+        $amountOwned = $amountOwnedResponseData;
       }
     }
-    //Set the application label on the basis of type...
-    $applicationLabel = applicationLabel($type);
-    
-    //Get the list of active products from authenticate application....
-    $applicationProductsArray = getApplicationProductsImportTab($importProductsLimit,$importProductsPageNumber);
-    
-    //Call the function to get the listing of woocommerce publish products....
-    $existingProductResult = listExistingDatabaseWooProducts($woodropdownLimit);
-
-    //set html if no products exist in infusionsoft/keap account for import....
-    if(empty($applicationProductsArray)){
-        //return html only when import product html type is empty.....
-        if(empty($importProductHtmlType)){
-            $table_products_html_import = '<p class="heading-text" style="text-align:center">No products exist in authenticate '.$applicationLabel.' account for import.</p>';
-        }
-    }else{
-        //Compare woocommerce publish products application products....
-        $importProductsData = createImportProductsListingApplication($applicationProductsArray,$existingProductResult,$applicationLabel,$importProductHtmlType);
-        //Check product data....
-        if(isset($importProductsData) && !empty($importProductsData)){
-            //Get the import products table html and append to table
-            if(!empty($importProductsData['importTableHtml'])){
-              if(!empty($importProductHtmlType) && $importProductHtmlType == PRODUCTS_HTML_TYPE_LOAD_MORE){
-                    $table_products_html_import .= $importProductsData['importTableHtml'];
-              }else{
-
-                    $table_products_html_import .= '<form action="" method="post" id="wc_import_products_form" onsubmit="return false">  
-                    <table class="table table-striped import_products_listing_class" id="import_products_listing">
-                      '.$importProductsData['importTableHtml'].'
-                    </table>
-                    <div class="form-group col-md-12 text-center m-t-60">
-                      <div class="load_table_import_products loading_products" style="display:none"></div>
-                      <div class="load_table_export_products loading_products" style="display:none;"></div>
-                      <div class="importProducts" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Importing products from your '.$applicationLabel.' account.</div>
-                      <div class="alert-error-message import-products-error" style="display: none;"></div>
-                      <div class="alert-sucess-message import-products-success" style="display: none;">Products import successfully.</div>
-                      <input type="button" value="Import Products" class="btn btn-primary btn-radius btn-theme import_products_btn" onclick="infusionKeapProductsImport()">
-                    </div>
-                  </form>';
-              }
-            }
-        }
-    }
-    //return the html...
-    return $table_products_html_import;
+    curl_close($ch);
+  }
+  //return actual amount owned by application order
+  return $amountOwned;
 }
 
-//Create the match products table listing....
-function createImportProductsListingApplication($applicationProductsArray,$wooCommerceProducts,$applicationType,$importProductHtmlType=''){
-    $importTableHtml  = '';//Define variable..
-    $importProductsData = array();//Define array...
-    //First check if wooproducts exist...
-    if(isset($applicationProductsArray) && !empty($applicationProductsArray)){
-        //Create first table....
-        if(empty($importProductHtmlType)){
-          $importTableHtml .= '<thead>';
-          $importTableHtml .= '<tr>
-                          <th style="text-align: center;"><input type="checkbox" id="import_products_all" name="import_products_all" class="all_products_checkbox_import" value="allproductsexport"></th>
-                          <th>'.$applicationType.' Product Name</th>
-                          <th>'.$applicationType.' Product SKU</th>
-                          <th>'.$applicationType.' Product Price</th>
-                          <th>Woocommerce Product</th>
-                        </tr>';
-          $importTableHtml .= '</thead>';
-          $importTableHtml .= '<tbody>';
-        }
-        if(!empty($wooCommerceProducts)){
-          $wcProductsDropDown = createImportProductsSelect($wooCommerceProducts);
-        }
-        foreach ($applicationProductsArray as $key => $value) {
-            if(!empty($value['Id'])){
-                $customOptionHtml = '';
-                $wcProductExistId = '';
-                $wcProductSelectHtml = '';
-                $appProductId = $value['Id'];//Define product id...                  
-                $appProductPrice = $value['ProductPrice'];//Get product price....
-                $currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
-                //check product price and set....
-                if(!empty($appProductPrice)){
-                    $appProductPrice = $appProductPrice;
-                }else{
-                    $appProductPrice = 0;
-                }
-                //Create final price to display...
-                $appProductPrice = $currencySign.number_format($appProductPrice,2);
-                $appProductSku = $value['Sku'];//get product sku....
-                $appProductName = $value['ProductName'];//get product name....
-                //$wcProductsDropDown = '';
-                //check and set the product name....
-                if(!empty($appProductName)){
-                  $appProductName = $appProductName;
-                }else{
-                  $appProductName = "--";
-                }
-                //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
-                if(!empty($wooCommerceProducts)){
-                    //Check product relation is exist....
-                    $wcProductExistId = getProductId('is_kp_product_id',$appProductId);
-                    //then check relation id is not empty.....
-                    if(isset($wcProductExistId) && !empty($wcProductExistId)){
-                      //check the mapped product is exist in woocommerce products array.....
-                      $checkProductExistInArray = array_search($wcProductExistId, array_column($wooCommerceProducts, 'ID'));
-                      //if not exist.....
-                      if($checkProductExistInArray == false){
-                        //get the post title by mapped product id.....
-                        $productTitle = get_the_title($wcProductExistId);
-                        if(!empty($productTitle)){
-                          //create custom option..........
-                          $customOptionHtml = '<option value="'.$wcProductExistId.'" data-id="'.$wcProductExistId.'">'.$productTitle.'</option>';
-                        }
-                      }
-                    }
-                    
-                    //first check if product relation is not exist in database...
-                    if(empty($wcProductExistId) && !empty($appProductSku)){
-                      //then try to find product exist with sku or not....
-                      $checkResponse = checkWooProductExistWithSku($appProductSku);
-                      //check product exist in response.....
-                      if(isset($checkResponse) && !empty($checkResponse)){
-                        //check mapped product is in woocommerce products array......
-                        $checkProductExistResponse = array_search($checkResponse,array_column($wooCommerceProducts,'ID'));
-                        //it means relation of product id is not exist in array...then needs to create custom option tag....
-                        if($checkProductExistResponse == false){
-                          //get the product title...
-                          $postTitle = get_the_title($checkResponse);
-                          if(!empty($postTitle)){
-                            //create custom option....
-                            $customOptionHtml = '<option value="'.$checkResponse.'" data-id="'.$checkResponse.'">'.$postTitle.'</option>';
-                          }
-                        }
-                        //set the product id which is already exist.....
-                        $wcProductExistId = $checkResponse;
-                      }
-                    }
-                    
-                    //Create final select html.....
-                    $wcProductSelectHtml = '<input type="hidden" id="scroll_count_wc_products" value="0" class="scroll_counter"><input type="hidden" id="products_limit_wc_import" value="20" class="scroll_counter"><select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="0">Select woocommerce product</option>'.$wcProductsDropDown.$customOptionHtml.'</select>';
-                }else{
-                  //Set the html of select if no products exist in application....
-                  $wcProductSelectHtml = 'No Woocommerce Products Exist!';
-                }
-                //Check and set the product sku to display.....
-                if(!empty($appProductSku)){
-                  $appProductSku = $appProductSku;
-                }else{
-                  $appProductSku = "--";
-                }
-                //Create final html.......
-                $importTableHtml .= '<tr><input type="hidden" name="plan_id_'.$value['Id'].'[price]" value="'.$value['ProductPrice'].'"><input type="hidden" name="plan_id_'.$value['Id'].'[name]" value="'.$value['ProductName'].'"><input type="hidden" name="plan_id_'.$value['Id'].'[description]" value="'.strip_tags($value['Description']).'"><input type="hidden" name="plan_id_'.$value['Id'].'[shortdescription]" value="'.strip_tags($value['ShortDescription']).'"><input type="hidden" name="plan_id_'.$value['Id'].'[sku]" value="'.$value['Sku'].'"><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
-
-            }
-
-        }
-        $importProductsData['importTableHtml'] = $importTableHtml;//Assign html....
-    }
-    return $importProductsData;//Return data....
-}
-
-
-//create the infusionsoft products dropdown for mapping..........
-function createImportProductsSelect($existingwcProductResult,$iskp_product_id_compare=''){
-    $wc_products_options_html = '';//Define variable...
-    if(isset($existingwcProductResult) && !empty($existingwcProductResult)){//check application products...
-        foreach($existingwcProductResult as $wcProductDetails) {
-          $wcProductId = $wcProductDetails->ID;//get or set the product id....
-          $wcProductName = $wcProductDetails->post_title;//get or set the product name....
-          $wcProductSelected = "";
-          if(!empty($iskp_product_id_compare)){//if relation exist...
-              if($iskp_product_id_compare == $wcProductId){//then compare the relation between products....
-                  $wcProductSelected = "selected";//set product selected....
-              }else{
-                  $wcProductSelected = "";
-              }
+//charge a manual payment...
+function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode,$logger){
+    //define empty variables....
+    $paymentStatus = '';
+    //check access token,order id exist then proceed next.....
+    if(!empty($accessToken) && !empty($orderId)){
+        //set xmlrpc api link to charge the amount owned for application order manually......
+        $url = "https://api.infusionsoft.com/crm/xmlrpc/v1";
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$accessToken);
+        //check mode and on the basis of it set the payment type of custom payment gateway......
+        if(!empty($mode)){
+          if($mode == PAYMENT_MODE_TEST){
+            $paymentType = 'Payment of Test Mode';
+          }else if($mode == PAYMENT_MODE_SKIPPED ){
+            $paymentType = 'Payment of zero amount';
+          }else{
+            $paymentType = $mode;
           }
-          //create the final html.....
-          $wc_products_options_html.= '<option value="'.$wcProductId.'" '.$wcProductSelected.' data-id="'.$wcProductId.'">'.$wcProductName.'</option>';
+        }else{
+          $paymentType = 'Credit Card';
         }
+        //get/set the current date time for application order....
+        $currentDateTime = new DateTime("now",new DateTimeZone('America/New_York'));
+        $paymentDateTime = $currentDateTime->format('Ymd\TH:i:s');
+        //create xml to hit the curl request to done payment manually.....
+        $chargePaymentXml = "<methodCall><methodName>InvoiceService.addManualPayment</methodName><params>
+                                  <param><value><string></string></value></param><param><value><int>".$orderId."</int></value></param><param><value><double>".$amountDue."</double></value></param><param><value><dateTime.iso8601>".$paymentDateTime."</dateTime.iso8601></value></param><param><value><string>".$paymentType."</string></value></param><param><value><string>Woocommerce Payment With ".$description." Method.</string></value></param><param><value><boolean>0</boolean></value></param></params></methodCall>";
+        //curl setup....
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $chargePaymentXml);
+        
+        //get the curl repsone and curl error..
+        $chargePaymentResponse = curl_exec($ch);
+        $chargePaymentErr = curl_error($ch);
+        //first check curl error exist.........
+        if($chargePaymentErr){
+          $chargePaymentErrorMessage = "Process to charge order amount manually is failed due to ".$chargePaymentErr; 
+          $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($chargePaymentErrorMessage, true));
+        }else{
+          //Covert/Decode response to xml.....
+          $chargePaymentResponseData = xmlrpc_decode($chargePaymentResponse);
+          //check if any error occur like invalid access token,then save logs....
+          if (is_array($chargePaymentResponseData) && xmlrpc_is_fault($chargePaymentResponseData)) {
+              if(isset($chargePaymentResponseData['faultString']) && !empty($chargePaymentResponseData['faultString'])){
+                  $amountOwnedErrorMessage = "Process to charge order amount manually is failed due to ". $chargePaymentResponseData['faultString']; 
+                  $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($amountOwnedErrorMessage, true));
+              }
+          }else{
+            //set payment status....
+            $paymentStatus = $chargePaymentResponseData;
+          }
+        }
+        curl_close($ch);
     }
-    return $wc_products_options_html;//return html...
+    //return payment status...
+    return $paymentStatus;
 }
 
-//Function is used to get the product id on the basis of meta key and meta value.....
-function getProductId($key, $value) {
-  global $wpdb;
-  $meta = $wpdb->get_results("SELECT * FROM `".$wpdb->postmeta."` WHERE meta_key='".$wpdb->escape($key)."' AND meta_value='".$wpdb->escape($value)."'");
-  if (is_array($meta) && !empty($meta) && isset($meta[0])) {
-    $meta = $meta[0];
-  }   
-  if (is_object($meta)) {
-    return $meta->post_id;
-  }
-  else {
-    return false;
-  }
+//Get the application product details by product id....
+function getApplicationProductDetail($id,$access_token){
+    $productsListing = array();
+    $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$id;
+    $ch = curl_init($url);
+    $header = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer '. $access_token
+    );
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    $matchIdsArray = array();
+    if($err){
+    }else{
+      $sucessData = json_decode($response,true);
+      return $sucessData;
+    }
+    curl_close($ch);
 }
 
+//get the list of application products from database....
+function getExistingAppProducts(){
+    global $wpdb,$table_prefix;
+    $appProListing = array();
+    $appProductsTableName = $table_prefix.'authorize_application_products';
+    if($wpdb->get_var("SHOW TABLES LIKE '$appProductsTableName'") == $appProductsTableName) {
+      $productsListing = $wpdb->get_results("SELECT * FROM `".$appProductsTableName."` WHERE app_product_status=".STATUS_ACTIVE);
+      if(isset($productsListing) && !empty($productsListing)){
+          $appProListing = $productsListing;
+      }
+    }
+    return $appProListing;
+}
 
 //Custom fields Tab :  Get all latest custom fields from infusionsoft/keap application related to orders/contacts..........
 function getPredefindCustomfields(){
@@ -3031,137 +2851,6 @@ function affiliateListing(){
   return $listing;
 }
 
-//get the amount owned by the authoenticate application order.....
-function getOrderAmountOwned($access_token,$orderId,$logger){
-  //define empty variable....
-  $amountOwned = '';
-  //check access token and application order id exist......
-  if(!empty($access_token) && !empty($orderId)){
-    //set xmlrpc api link to get the amount owned by the application order.....
-    $curlUrl = "https://api.infusionsoft.com/crm/xmlrpc/v1";
-    $ch = curl_init($curlUrl);
-    curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
-    $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$access_token);
-    
-    //create xml to hit curl request to get the amount owned by application order......
-    $loadAmountXml = "<?xml version='1.0' encoding='UTF-8'?><methodCall><methodName>InvoiceService.calculateAmountOwed</methodName><params><param><value><string></string></value></param><param><value><int>".$orderId."</int></value></param></params></methodCall>";
-    
-    //curl setup....
-    curl_setopt($ch,CURLOPT_HTTPHEADER,$header);
-    curl_setopt($ch,CURLOPT_CUSTOMREQUEST,"POST");
-    curl_setopt($ch,CURLOPT_POSTFIELDS,$loadAmountXml);
-    
-    //get the curl request error and response......
-    $amountOwnedResponse = curl_exec($ch);
-    $amountOwnedErr = curl_error($ch);
-    //check error exist....
-    if($amountOwnedErr){
-        $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ".$amountOwnedErr;
-        $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($amountOwnedErrorMessage));
-    }else{
-      //Convert/Decode response to xml....
-      $amountOwnedResponseData = xmlrpc_decode($amountOwnedResponse);
-      //check if any error occur like invalid access token,then save logs....
-      if (is_array($amountOwnedResponseData) && xmlrpc_is_fault($amountOwnedResponseData)) {
-          if(isset($amountOwnedResponseData['faultString']) && !empty($amountOwnedResponseData['faultString'])){
-              $amountOwnedErrorMessage = "Process to get order amount owned is failed due to ". $amountOwnedResponseData['faultString']; 
-              $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($amountOwnedErrorMessage, true));
-          }
-      }else{
-        //set the amount value owned by application order.....
-        $amountOwned = $amountOwnedResponseData;
-      }
-    }
-    curl_close($ch);
-  }
-  //return actual amount owned by application order
-  return $amountOwned;
-}
-
-//charge a manual payment...
-function chargePaymentManual($accessToken,$orderId,$amountDue,$description,$mode,$logger){
-    //define empty variables....
-    $paymentStatus = '';
-    //check access token,order id exist then proceed next.....
-    if(!empty($accessToken) && !empty($orderId)){
-        //set xmlrpc api link to charge the amount owned for application order manually......
-        $url = "https://api.infusionsoft.com/crm/xmlrpc/v1";
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$accessToken);
-        //check mode and on the basis of it set the payment type of custom payment gateway......
-        if(!empty($mode)){
-          if($mode == PAYMENT_MODE_TEST){
-            $paymentType = 'Payment of Test Mode';
-          }else if($mode == PAYMENT_MODE_SKIPPED ){
-            $paymentType = 'Payment of zero amount';
-          }else{
-            $paymentType = $mode;
-          }
-        }else{
-          $paymentType = 'Credit Card';
-        }
-        //get/set the current date time for application order....
-        $currentDateTime = new DateTime("now",new DateTimeZone('America/New_York'));
-        $paymentDateTime = $currentDateTime->format('Ymd\TH:i:s');
-        //create xml to hit the curl request to done payment manually.....
-        $chargePaymentXml = "<methodCall><methodName>InvoiceService.addManualPayment</methodName><params>
-                                  <param><value><string></string></value></param><param><value><int>".$orderId."</int></value></param><param><value><double>".$amountDue."</double></value></param><param><value><dateTime.iso8601>".$paymentDateTime."</dateTime.iso8601></value></param><param><value><string>".$paymentType."</string></value></param><param><value><string>Woocommerce Payment With ".$description." Method.</string></value></param><param><value><boolean>0</boolean></value></param></params></methodCall>";
-        //curl setup....
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $chargePaymentXml);
-        
-        //get the curl repsone and curl error..
-        $chargePaymentResponse = curl_exec($ch);
-        $chargePaymentErr = curl_error($ch);
-        //first check curl error exist.........
-        if($chargePaymentErr){
-          $chargePaymentErrorMessage = "Process to charge order amount manually is failed due to ".$chargePaymentErr; 
-          $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($chargePaymentErrorMessage, true));
-        }else{
-          //Covert/Decode response to xml.....
-          $chargePaymentResponseData = xmlrpc_decode($chargePaymentResponse);
-          //check if any error occur like invalid access token,then save logs....
-          if (is_array($chargePaymentResponseData) && xmlrpc_is_fault($chargePaymentResponseData)) {
-              if(isset($chargePaymentResponseData['faultString']) && !empty($chargePaymentResponseData['faultString'])){
-                  $amountOwnedErrorMessage = "Process to charge order amount manually is failed due to ". $chargePaymentResponseData['faultString']; 
-                  $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($amountOwnedErrorMessage, true));
-              }
-          }else{
-            //set payment status....
-            $paymentStatus = $chargePaymentResponseData;
-          }
-        }
-        curl_close($ch);
-    }
-    //return payment status...
-    return $paymentStatus;
-}
-
-//Get the application product details by product id....
-function getApplicationProductDetail($id,$access_token){
-    $productsListing = array();
-    $url = "https://api.infusionsoft.com/crm/rest/v1/products/".$id;
-    $ch = curl_init($url);
-    $header = array(
-        'Accept: application/json',
-        'Content-Type: application/json',
-        'Authorization: Bearer '. $access_token
-    );
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
-    $response = curl_exec($ch);
-    $err = curl_error($ch);
-    $matchIdsArray = array();
-    if($err){
-    }else{
-      $sucessData = json_decode($response,true);
-      return $sucessData;
-    }
-    curl_close($ch);
-}
-
 //Function is used to get the cookie values....
 function getCookieValue($name) {
     $cookies = [];
@@ -3300,439 +2989,4 @@ function getApplicationProducts(){
     curl_close($ch);
     return $productsListing;
 }
-
-
-//Common Function : By sku check product is exist in database or not.....
-function checkWooProductExistWithSku($appsku){
-  global $wpdb;
-  $productId = '';//define empty variable....
-  //execute the query to get the product id on the basis of sku of the product.......
-  $productData = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_sku' AND meta_value='%s' LIMIT 1",$appsku));
-  //check if product exist with same sku as given in function parameter....
-  if($productData){
-    $productId = $productData;
-  }
-  //return the product id....
-  return $productId;
-}
-
-//Common Function : This function is used to update the subscription amount in authorize application
-function updateSubscriptionAmount($access_token,$subscriptionId,$updatedAmount){
-  //define empty variables....
-  $updatedSubscriptionId = '';
-  //first check access token and application subscription id exist in function parameters...
-  if(!empty($access_token) && !empty($subscriptionId)){
-      // Create instance of our wooconnection logger class to use off the whole things.
-      $wooconnectionLogger = new WC_Logger();  
-
-      $url = "https://api.infusionsoft.com/crm/xmlrpc/v1";
-      $ch = curl_init($url);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      $header = array('Accept:text/xml','Content-Type:text/xml','Authorization:Bearer '.$access_token);
-      
-      //create xml to hit the curl request to update the subscription amount....
-      $updateSubAmtXml = "<methodCall><methodName>DataService.update</methodName><params><param><value><string></string></value></param><param><value><string>RecurringOrder</string></value></param><param><value>
-        <int>".$subscriptionId."</int></value></param><param><value><struct><member><name>BillingAmt</name><value><string>".$updatedAmount."</string></value></member></struct></value></param></params></methodCall>";
-    
-      //curl setup....
-      curl_setopt($ch,CURLOPT_HTTPHEADER,$header);
-      curl_setopt($ch,CURLOPT_CUSTOMREQUEST,"POST");
-      curl_setopt($ch,CURLOPT_POSTFIELDS,$updateSubAmtXml);
-
-      //get the curl response and curl error....
-      $updateSubAmtResponse = curl_exec($ch);
-      $updateSubAmtErr = curl_error($ch);
-      //firsy check error return from curl request...
-      if($updateSubAmtErr){
-        $updateSubAmtErrorMessage = "Process to update subscription amount is failed due to ".$updateSubAmtErr;
-        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft',$updateSubAmtErrorMessage);    
-      }else{
-        //Covert/Decode response to xml.....
-        $updateSubAmtResponseData = xmlrpc_decode($updateSubAmtResponse);
-        //check if any error occur like invalid access token,then save logs....
-        if (is_array($updateSubAmtResponseData) && xmlrpc_is_fault($updateSubAmtResponseData)) {
-            if(isset($updateSubAmtResponseData['faultString']) && !empty($updateSubAmtResponseData['faultString'])){
-                $updateSubAmtErrorMessage = "Process to charge order amount manually is failed due to ". $updateSubAmtResponseData['faultString']; 
-                $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($updateSubAmtErrorMessage, true));
-            }
-        }else{
-          //set payment status....
-          $updatedSubscriptionId = $updateSubAmtResponseData;
-        }
-      }
-      curl_close($ch);
-  }
-  //return the updated subscription id...
-  return $updatedSubscriptionId;
-}
-
-//Function is used to vaidate a credit card on the basis of card details.....
-function validateCreditCard($accessToken,$cardDetails){
-    $creditCardResponseData = '';
-    //First needs to check access token is exist or not.....
-    if(!empty($accessToken) && !empty($cardDetails)){
-        // Create instance of our wooconnection logger class to use off the whole things.
-        $wooconnectionLogger = new WC_Logger();
-        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-          'Accept: text/xml',
-          'Content-Type: text/xml',
-          'Authorization: Bearer '. $accessToken
-        );
-        
-        //Create xml to hit the curl request to validate the credit card.....
-        $creditCardXmlData = "<methodCall><methodName>InvoiceService.validateCreditCard</methodName><params><param><value><string></string></value></param><param><value><struct><member><name>CardType</name><value><string>".$cardDetails['CardType']."</string></value></member><member><name>ContactId</name><value><int>".$cardDetails['ContactId']."</int></value></member><member><name>CardNumber</name><value><string>".$cardDetails['CardNumber']."</string></value></member><member><name>ExpirationMonth</name><value><string>".$cardDetails['ExpirationMonth']."</string></value></member><member><name>ExpirationYear</name><value><string>".$cardDetails['ExpirationYear']."</string></value></member><member><name>CVV2</name><value><string>".$cardDetails['CVV2']."</string></value></member></struct></value></param></params></methodCall>";
-        
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $creditCardXmlData);
-        $creditCardResponse = curl_exec($ch);
-        $creditCardErr = curl_error($ch);
-        //check if error occur due to any reason and then save the logs...
-        if($creditCardErr){
-            $creditCardErrorMessage = "Validate contact credit card is failed due to ". $creditCardErr; 
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($creditCardErrorMessage, true));
-        }else{
-          //Covert/Decode response to xml.....
-          $creditCardResponseData = xmlrpc_decode($creditCardResponse);
-          //check if any error occur like invalid access token,then save logs....
-          if (is_array($creditCardResponseData) && xmlrpc_is_fault($creditCardResponseData)) {
-              if(isset($creditCardResponseData['faultString']) && !empty($creditCardResponseData['faultString'])){
-                  $creditCardErrorMessage = "Validate contact credit card is failed due to ". $creditCardResponseData['faultString']; 
-                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($creditCardErrorMessage, true));
-              }
-          }else{
-            return $creditCardResponseData;
-          }
-        }
-        curl_close($ch);
-    }
-    return $creditCardResponseData;
-}
-
-
-
-//Function is used to vaidate a credit card on the basis of card details.....
-function checkContactCardExist($access_token,$conatctId,$cardNumber){
-    $contactCardResponseData = '';
-    //First needs to check access token is exist or not.....
-    if(!empty($access_token) && !empty($conatctId) && !empty($cardNumber)){
-        // Create instance of our wooconnection logger class to use off the whole things.
-        $wooconnectionLogger = new WC_Logger();
-        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-          'Accept: text/xml',
-          'Content-Type: text/xml',
-          'Authorization: Bearer '. $access_token
-        );
-        
-        //Create xml to hit the curl request to check contact credit card already exist or not......
-        $contactCardXmlData = "<methodCall><methodName>InvoiceService.locateExistingCard</methodName><params><param><value><string></string></value></param><param><value><int>".$conatctId."</int></value></param><param><value><string>".$cardNumber."</string></value></param></params></methodCall>";
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $contactCardXmlData);
-        $contactCardResponse = curl_exec($ch);
-        $contactCardErr = curl_error($ch);
-        //check if error occur due to any reason and then save the logs...
-        if($contactCardErr){
-            $contactCardErrorMessage = "Check contact credit card is failed due to ". $contactCardErr; 
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($contactCardErrorMessage, true));
-        }else{
-          //Covert/Decode response to xml.....
-          $contactCardResponseData = xmlrpc_decode($contactCardResponse);
-          //check if any error occur like invalid access token,then save logs....
-          if (is_array($contactCardResponseData) && xmlrpc_is_fault($contactCardResponseData)) {
-              if(isset($contactCardResponseData['faultString']) && !empty($contactCardResponseData['faultString'])){
-                  $contactCardErrorMessage = "Check contact credit card is failed due to ". $contactCardResponseData['faultString']; 
-                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($contactCardErrorMessage, true));
-              }
-          }else{
-            return $contactCardResponseData;
-          }
-        }
-        curl_close($ch);
-    }
-    return $contactCardResponseData;
-}
-
-
-//Function is used to update the existing credit card details....
-function updateExistingCreditCard($access_token,$cardId,$cardFields){
-    $updateCardResponseData = '';
-    //First needs to check access token is exist or not.....
-    if(!empty($access_token) && !empty($cardId) && !empty($cardFields)){
-        // Create instance of our wooconnection logger class to use off the whole things.
-        $wooconnectionLogger = new WC_Logger();
-        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-          'Accept: text/xml',
-          'Content-Type: text/xml',
-          'Authorization: Bearer '. $access_token
-        );
-        
-        //create xml html by executing loop...
-        $cardFieldsHtml = '';
-        foreach ($cardFields as $key => $value) {
-            $cardFieldsHtml .= '<member><name>'.$key.'</name><value><string>'.$value.'</string></value></member>';
-        }
-
-        //Create xml to hit the curl request to update credit card fields.....
-        $updateCardXmlData = "<methodCall><methodName>DataService.update</methodName><params><param><value></value></param><param><value><string>CreditCard</string></value></param><param><value><int>".$cardId."</int></value></param><param><value><struct>".$cardFieldsHtml."</struct></value></param></params></methodCall>";
-        
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $updateCardXmlData);
-        $updateCardResponse = curl_exec($ch);
-        $updateCardErr = curl_error($ch);
-        //check if error occur due to any reason and then save the logs...
-        if($updateCardErr){
-            $updateCardErrorMessage = "Update existing credit card details is failed due to ". $updateCardErr; 
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($updateCardErrorMessage, true));
-        }else{
-          //Covert/Decode response to xml.....
-          $updateCardResponseData = xmlrpc_decode($updateCardResponse);
-          //check if any error occur like invalid access token,then save logs....
-          if (is_array($updateCardResponseData) && xmlrpc_is_fault($updateCardResponseData)) {
-              if(isset($updateCardResponseData['faultString']) && !empty($updateCardResponseData['faultString'])){
-                  $updateCardErrorMessage = "Update existing credit card details is failed due to ". $updateCardResponseData['faultString']; 
-                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($updateCardErrorMessage, true));
-              }
-          }else{
-            return $updateCardResponseData;
-          }
-        }
-        curl_close($ch);
-    }
-    return $updateCardResponseData;
-}
-
-
-//Function is used to add the new credit card details....
-function addNewCreditCard($access_token,$creditCardFields){
-    $addCardResponseData = '';
-    //First needs to check access token is exist or not.....
-    if(!empty($access_token) && !empty($creditCardFields)){
-        // Create instance of our wooconnection logger class to use off the whole things.
-        $wooconnectionLogger = new WC_Logger();
-        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-          'Accept: text/xml',
-          'Content-Type: text/xml',
-          'Authorization: Bearer '. $access_token
-        );
-        
-        //create xml html by executing loop...
-        $addCardFieldsHtml = '';
-        foreach ($creditCardFields as $key => $value) {
-            $addCardFieldsHtml .= '<member><name>'.$key.'</name><value><string>'.$value.'</string></value></member>';
-        }
-
-        //Create xml to hit the curl request for add order item.....
-        $addCardXmlData = "<methodCall><methodName>DataService.add</methodName><params><param><value></value></param><param><value><string>CreditCard</string></value></param><param><value><struct>".$addCardFieldsHtml."</struct></value></param></params></methodCall>";
-        
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $addCardXmlData);
-        $addCardResponse = curl_exec($ch);
-        $addCardErr = curl_error($ch);
-        //check if error occur due to any reason and then save the logs...
-        if($addCardErr){
-            $addCardErrorMessage = "Add new credit card is failed due to ". $addCardErr; 
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($addCardErrorMessage, true));
-        }else{
-          //Covert/Decode response to xml.....
-          $addCardResponseData = xmlrpc_decode($addCardResponse);
-          //check if any error occur like invalid access token,then save logs....
-          if (is_array($addCardResponseData) && xmlrpc_is_fault($addCardResponseData)) {
-              if(isset($addCardResponseData['faultString']) && !empty($addCardResponseData['faultString'])){
-                  $addCardErrorMessage = "Add new credit card is failed due to ". $addCardResponseData['faultString']; 
-                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($addCardErrorMessage, true));
-              }
-          }else{
-            return $addCardResponseData;
-          }
-        }
-        curl_close($ch);
-    }
-    return $addCardResponseData;
-}
-
-//Create order payment in infusionsoft/keap application at the time checkout......
-function createOrderPayment($access_token,$orderid,$cardId,$merchId){
-    $orderpaymentResponseData = '';
-    //First needs to check access token is exist or not.....
-    if(!empty($access_token) && !empty($orderid) && !empty($cardId) && !empty($merchId)){
-        // Create instance of our wooconnection logger class to use off the whole things.
-        $wooconnectionLogger = new WC_Logger();
-        $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array(
-          'Accept: text/xml',
-          'Content-Type: text/xml',
-          'Authorization: Bearer '. $access_token
-        );
-
-        //Create xml to hit the curl request to process the payment.....
-        $orderpaymentXmlData = "<methodCall><methodName>InvoiceService.chargeInvoice</methodName><params><param><value><string></string></value></param><param><value><int>".$orderid."</int></value></param><param><value><string>Online Shopping Payment</string></value></param><param><value><int>".$cardId."</int></value></param><param><value><int>".$merchId."</int></value></param><param><value><boolean>0</boolean></value></param> </params></methodCall>";
-        
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $orderpaymentXmlData);
-        $orderPaymentResponse = curl_exec($ch);
-        $orderPaymentErr = curl_error($ch);
-        //check if error occur due to any reason and then save the logs...
-        if($orderPaymentErr){
-            $orderPaymentErrorMessage = "Process payment for application order # ".$orderid." is fail due to ".$orderPaymentErr; 
-            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($orderPaymentErrorMessage, true));
-        }else{
-          //Covert/Decode response to xml.....
-          $orderpaymentResponseData = xmlrpc_decode($orderPaymentResponse);
-          //check if any error occur like invalid access token,then save logs....
-          if (is_array($orderpaymentResponseData) && xmlrpc_is_fault($orderpaymentResponseData)) {
-              if(isset($orderpaymentResponseData['faultString']) && !empty($orderpaymentResponseData['faultString'])){
-                  $orderPaymentErrorMessage = "Process payment for application order # ".$orderid." is fail due to ". $orderpaymentResponseData['faultString']; 
-                  $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($orderPaymentErrorMessage, true));
-              }
-          }else{
-            return $orderpaymentResponseData;
-          }
-        }
-        curl_close($ch);
-    }
-    return $orderpaymentResponseData;
-}
-
-//create subscription plan at the time of export products.....
-function addSubscriptionPlan($accessToken,$appProductId,$subJsonData,$logger)
-{
-  $newSubPlanId = '';
-  if(!empty($accessToken) && !empty($appProductId) && !empty($subJsonData)){
-      //append the application product is in url to add the subscription plan for specific product.....
-      $url = 'https://api.infusionsoft.com/crm/rest/v1/products/'.$appProductId.'/subscriptions';
-      $ch = curl_init($url);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      $header = array(
-        'Accept: application/json',
-        'Content-Type: application/json',
-        'Authorization: Bearer '. $accessToken
-      );
-      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $subJsonData);
-      $subResponse = curl_exec($ch);
-      $subError = curl_error($ch);
-      if($subError){
-        $subErrorMessage = "Add subscription plan for application product #".$appProductId." is failed due to ".$subError;
-        $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true));
-      }else{
-        $subSucessData = json_decode($subResponse,true);
-        if(isset($subSucessData['fault']) && !empty($subSucessData['fault'])){
-          $subErrorMessage = 'Try to add subscription for particluar product #'.$appProductId.' in application is failed ';
-          if(isset($subSucessData['fault']['faultstring']) && !empty($subSucessData['fault']['faultstring'])){
-            $subErrorMessage .= "due to ".$subErrorMessage['fault']['faultstring'];
-          }
-          $wooconnection_logs_entry = $logger->add('infusionsoft',print_r($subErrorMessage,true));
-        }
-        if(isset($subSucessData['id']) && !empty($subSucessData['id'])){
-          $newSubPlanId = $subSucessData['id'];
-        }
-      }
-      curl_close($ch);
-  }
-  return $newSubPlanId;
-}
-
-//create contact subscription.....
-function createContactSub($access_token,$xml,$logger){
-  $contactSubscriptionId = '';
-  if(!empty($access_token)){
-    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $header = array(
-      'Accept: text/xml',
-      'Content-Type: text/xml',
-      'Authorization: Bearer '. $access_token
-    );
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
-    $contactSubResponse = curl_exec($ch);
-    $contactSubErr = curl_error($ch);
-    //check if error occur due to any reason and then save the logs...
-    if($contactSubErr){
-        $contactSubErrorMessage = "Add subscription for contact is failed due to ".$contactSubErr; 
-        $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($contactSubErrorMessage, true));
-    }else{
-      //Covert/Decode response to xml.....
-      $contactSubResponseData = xmlrpc_decode($contactSubResponse);
-      //check if any error occur like invalid access token,then save logs....
-      if (is_array($contactSubResponseData) && xmlrpc_is_fault($contactSubResponseData)) {
-          if(isset($contactSubResponseData['faultString']) && !empty($contactSubResponseData['faultString'])){
-              $contactSubErrorMessage = "Add subscription for contact is failed due to ". $contactSubResponseData['faultString']; 
-              $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($contactSubErrorMessage, true));
-          }
-      }else{
-        $contactSubscriptionId = $contactSubResponseData;
-      }
-    }
-    curl_close($ch);
-  }
-  return $contactSubscriptionId;
-}
-
-//get the subscription details by subscription plan id.....
-function getSubscriptionPlanDetails($access_token,$subPlanId,$logger){
-  $subPlanDetailsArray = array();
-  if(!empty($access_token) && !empty($subPlanId)){
-    $url = 'https://api.infusionsoft.com/crm/xmlrpc/v1';   
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $header = array(
-      'Accept: text/xml',
-      'Content-Type: text/xml',
-      'Authorization: Bearer '. $access_token
-    );
-
-    //Create xml to hit the curl request to get subscription plan details.....
-    $loadData = "<methodCall><methodName>DataService.load</methodName><params>
-                        <param><value><string></string></value></param><param><value><string>CProgram</string></value></param><param><value><int>".$subPlanId."</int></value></param><param><value><array><data><value><string>DefaultCycle</string></value><value><string>DefaultFrequency</string></value></data>
-                          </array></value></param></params></methodCall>";
-    
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $loadData);
-    $subResponse = curl_exec($ch);
-    $subErr = curl_error($ch);
-    //check if error occur due to any reason and then save the logs...
-    if($subErr){
-        $subErrorMessage = "Process to get subscription plan details is failed due to ".$subErr; 
-        $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($subErr, true));
-    }else{
-      //Covert/Decode response to xml.....
-      $subResponseData = xmlrpc_decode($subResponse);
-      //check if any error occur like invalid access token,then save logs....
-      if (is_array($subResponseData) && xmlrpc_is_fault($subResponseData)) {
-          if(isset($subResponseData['faultString']) && !empty($subResponseData['faultString'])){
-              $subErrorMessage = "Process to get subscription plan details is failed due to ". $subResponseData['faultString']; 
-              $wooconnection_logs_entry = $logger->add('infusionsoft', print_r($subErrorMessage, true));
-          }
-      }else{
-        $subPlanDetailsArray = $subResponseData;
-      }
-    }
-    curl_close($ch);
-  }
-  return $subPlanDetailsArray;
-}
-
 ?>
