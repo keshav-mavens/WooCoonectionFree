@@ -2989,4 +2989,75 @@ function getApplicationProducts(){
     curl_close($ch);
     return $productsListing;
 }
+
+//Common Function : This function is used to hit the add to cart trigger...
+function hitAddToCartTrigger($productSku){
+    // Create instance of our wooconnection logger class to use off the whole things.
+    $wooconnectionLogger = new WC_Logger();
+    
+    //Concate a error message to store the logs...
+    $callback_purpose = 'Wooconnection Add Cart Item : Process of wooconnection add item/product to cart trigger';
+    $applicationAuthenticationDetails = getAuthenticationDetails();
+    
+    //Stop the below process if not authentication done with infusionsoft/keap application..
+    if(empty($applicationAuthenticationDetails) || empty($applicationAuthenticationDetails[0]->user_access_token))
+    {
+        $addLogs = addLogsAuthentication($callback_purpose);
+        return false;
+    }
+    
+    //get the access token....
+    $access_token = '';
+    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+    }
+
+    //get or set the add cart user email..
+    $itemAddCartUseremail = get_set_user_email();
+    if(empty($itemAddCartUseremail)){
+        $itemAddCartUseremail = "";
+    }
+    
+    if(isset($itemAddCartUseremail) && !empty($itemAddCartUseremail)){
+        // Validate email is in valid format or not 
+        validate_email($itemAddCartUseremail,$callback_purpose,$wooconnectionLogger);
+        
+        //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
+        $itemAddCartContactId = checkAddContactApp($access_token,$itemAddCartUseremail,$callback_purpose);
+        
+        //check contact added sucessfully..
+        if(isset($itemAddCartContactId) && !empty($itemAddCartContactId)){
+            //Woocommerce Cart trigger : Get the call name and integration name of goal "Item Added to Cart"... 
+            $standardAddItemCartTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_CART,'Item Added to Cart');
+
+            //Define variables....
+            $standardAddItemCartIntegrationName = '';
+            
+            //Check campaign goal details...
+            if(isset($standardAddItemCartTrigger) && !empty($standardAddItemCartTrigger)){
+                //Get and set the wooconnection goal integration name
+                if(isset($standardAddItemCartTrigger[0]->wc_integration_name) && !empty($standardAddItemCartTrigger[0]->wc_integration_name)){
+                    $standardAddItemCartIntegrationName = $standardAddItemCartTrigger[0]->wc_integration_name;
+                }
+            }
+
+            if(!empty($standardAddItemCartIntegrationName))
+            {
+                $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardAddItemCartIntegrationName,$productSku,$itemAddCartContactId,$callback_purpose);
+                if(!empty($standardAddItemCartTriggerResponse)){
+                    if(empty($standardAddItemCartTriggerResponse[0]['success'])){
+                        //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                        if(isset($standardAddItemCartTriggerResponse[0]['message']) && !empty($standardAddItemCartTriggerResponse[0]['message'])){
+                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Cart Item : Process of wooconnection add item/product to cart trigger is failed where contact id is '.$itemAddCartContactId.' because '.$standardAddItemCartTriggerResponse[0]['message'].'');    
+                        }else{
+                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Cart Item : Process of wooconnection add item/product to cart trigger is failed where contact id is '.$itemAddCartContactId.'');
+                        }
+                        
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
 ?>
