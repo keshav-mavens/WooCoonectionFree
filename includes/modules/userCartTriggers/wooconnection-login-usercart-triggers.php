@@ -421,5 +421,4 @@ function custom_handing_add_cart_redirect($cartUrl){
         }
     }
     return $cartUrl;
-}
-?>
+}?>
