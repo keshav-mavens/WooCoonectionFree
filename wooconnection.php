@@ -8,7 +8,6 @@
  * Plugin URI: https://www.wooconnection.com
  */
 class WooConnectionPro {
-
     public function __construct() {
         //Call the hook plugin_loaded at the time of plugin initialization..
         add_action("plugins_loaded", array($this, "wooconnection_plugin_initialization"));
@@ -18,10 +17,17 @@ class WooConnectionPro {
         register_activation_hook( __FILE__, array($this, 'insert_campaign_goals_database_table' ) );
         register_activation_hook( __FILE__, array($this, 'create_countries_database_table' ) );
         register_activation_hook( __FILE__, array($this, 'insert_countries_database_table' ) );
+
         register_activation_hook( __FILE__, array($this, 'create_custom_fields_group_table' ) );
         register_activation_hook( __FILE__, array($this, 'create_standard_custom_fields_mapping_table' ) );
         register_activation_hook( __FILE__, array($this, 'create_thanks_page_override_table' ) );
         register_activation_hook( __FILE__, array($this, 'update_pro_version_status' ) );
+        //Call the hook register activation hook to call the custom action to set the schedular....
+        register_activation_hook(__FILE__,  array($this, 'set_custom_schedular'));
+        //Call the hook register deactivation to clear the set custom cron job....
+        register_deactivation_hook(__FILE__,array($this,'clear_custom_schedular'));
+        //Call the register activation hook to create the custom table for store the recurring payment data of all users...
+        register_activation_hook(__FILE__,array($this,'create_recurring_details_table'));
         //call the hook register_activation_hoook to create the custom table to store the authorize application products.....
         register_activation_hook(__FILE__,array($this,'create_application_products_table'));
         //Call the hook register activation hook to call the custom action to set the schedular....
@@ -37,11 +43,13 @@ class WooConnectionPro {
             add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
             return;
         }
+        
         //check if wooconnection free version plugin is already activated then user needs to deactivate or delete the free verison of wooconnection to use the pro wooconnection version.....
         if (class_exists('WooConnection')) {
             add_action('admin_notices', array($this, 'wc_pro_deactivate_free_version_notice'));
             return;
         }
+        
         //check if user try with copy paste the files ....
         $checkProVersionActivated = get_option('wc_pro_version_activated');
         //if option not exist...
@@ -51,12 +59,16 @@ class WooConnectionPro {
             deactivate_plugins( plugin_basename( __FILE__ ) );
             wp_die( __( 'Sorry you are allowed to access this plugin. Please activate it first.', 'textdomain' ) );
         }
+
         define( 'WOOCONNECTION_VERSION', '16' );//Version Entity
         define( 'WOOCONNECTION_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );//Directory Path Entity
         define( 'WOOCONNECTION_PLUGIN_URL', plugin_dir_url( __FILE__ ) );//Directory Url Entity
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-entities.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
+        //Call the hook to call the custom function to update the recurring amount in authenticate application....
+        add_action('recurring_payment_schedular_everyday','WooConnection_Admin::everyday_update_sub_recurring_amount');
+        add_action('application_products_schedular_twiceday','WooConnection_Admin::twiceday_update_application_products');
     }
 
     //Function Definition : woocommerce_plugin_necessary
@@ -170,7 +182,90 @@ class WooConnectionPro {
                 ('AFG','Afghanistan','AF'), ('ALA','Åland','AX'), ('ALB','Albania','AL'), ('DZA','Algeria','DZ'), ('ASM','American Samoa','AS'), ('AND','Andorra','AD'), ('AGO','Angola','AO'), ('AIA','Anguilla','AI'), ('ATA','Antarctica','AQ'), ('ATG','Antigua and Barbuda','AG'), ('ARG','Argentina','AR'), ('ARM','Armenia','AM'), ('ABW','Aruba','AW'), ('AUS','Australia','AU'), ('AUT','Austria','AT'), ('AZE','Azerbaijan','AZ'), ('BHS','Bahamas','BS'), ('BHR','Bahrain','BH'), ('BGD','Bangladesh','BD'), ('BRB','Barbados','BB'), ('BLR','Belarus','BY'), ('BEL','Belgium','BE'), ('BLZ','Belize','BZ'), ('BEN','Benin','BJ'), ('BMU','Bermuda','BM'), ('BTN','Bhutan','BT'), ('BOL','Bolivia','BO'), ('BES','Bonaire','BQ'), ('BIH','Bosnia and Herzegovina','BA'), ('BWA','Botswana','BW'), ('BVT','Bouvet Island','BV'), ('BRA','Brazil','BR'), ('IOT','British Indian Ocean Territory','IO'), ('VGB','British Virgin Islands','VG'), ('BRN','Brunei','BN'), ('BGR','Bulgaria','BG'), ('BFA','Burkina Faso','BF'), ('BDI','Burundi','BI'), ('KHM','Cambodia','KH'), ('CMR','Cameroon','CM'), ('CAN','Canada','CA'), ('CPV','Cape Verde','CV'), ('CYM','Cayman Islands','KY'), ('CAF','Central African Republic','CF'), ('TCD','Chad','TD'), ('CHL','Chile','CL'), ('CHN','China','CN'), ('CXR','Christmas Island','CX'), ('CCK','Cocos [Keeling] Islands','CC'), ('COL','Colombia','CO'), ('COM','Comoros','KM'), ('COK','Cook Islands','CK'), ('CRI','Costa Rica','CR'), ('HRV','Croatia','HR'), ('CUB','Cuba','CU'), ('CUW','Curacao','CW'), ('CYP','Cyprus','CY'), ('CZE','Czech Republic','CZ'), ('COD','Democratic Republic of the Congo','CD'), ('DNK','Denmark','DK'), ('DJI','Djibouti','DJ'), ('DMA','Dominica','DM'), ('DOM','Dominican Republic','DO'), ('TLS','East Timor','TL'), ('ECU','Ecuador','EC'), ('EGY','Egypt','EG'), ('SLV','El Salvador','SV'), ('GNQ','Equatorial Guinea','GQ'), ('ERI','Eritrea','ER'), ('EST','Estonia','EE'), ('ETH','Ethiopia','ET'), ('FLK','Falkland Islands','FK'), ('FRO','Faroe Islands','FO'), ('FJI','Fiji','FJ'), ('FIN','Finland','FI'), ('FRA','France','FR'), ('GUF','French Guiana','GF'), ('PYF','French Polynesia','PF'), ('ATF','French Southern Territories','TF'), ('GAB','Gabon','GA'), ('GMB','Gambia','GM'), ('GEO','Georgia','GE'), ('DEU','Germany','DE'), ('GHA','Ghana','GH'), ('GIB','Gibraltar','GI'), ('GRC','Greece','GR'), ('GRL','Greenland','GL'), ('GRD','Grenada','GD'), ('GLP','Guadeloupe','GP'), ('GUM','Guam','GU'), ('GTM','Guatemala','GT'), ('GGY','Guernsey','GG'), ('GIN','Guinea','GN'), ('GNB','Guinea-Bissau','GW'), ('GUY','Guyana','GY'), ('HTI','Haiti','HT'), ('HMD','Heard Island and McDonald Islands','HM'), ('HND','Honduras','HN'), ('HKG','Hong Kong','HK'), ('HUN','Hungary','HU'), ('ISL','Iceland','IS'), ('IND','India','IN'), ('IDN','Indonesia','ID'), ('IRN','Iran','IR'), ('IRQ','Iraq','IQ'), ('IRL','Ireland','IE'), ('IMN','Isle of Man','IM'), ('ISR','Israel','IL'), ('ITA','Italy','IT'), ('CIV','Ivory Coast','CI'), ('JAM','Jamaica','JM'), ('JPN','Japan','JP'), ('JEY','Jersey','JE'), ('JOR','Jordan','JO'), ('KAZ','Kazakhstan','KZ'), ('KEN','Kenya','KE'), ('KIR','Kiribati','KI'), ('XKX','Kosovo','XK'), ('KWT','Kuwait','KW'), ('KGZ','Kyrgyzstan','KG'), ('LAO','Laos','LA'), ('LVA','Latvia','LV'), ('LBN','Lebanon','LB'), ('LSO','Lesotho','LS'), ('LBR','Liberia','LR'), ('LBY','Libya','LY'), ('LIE','Liechtenstein','LI'), ('LTU','Lithuania','LT'), ('LUX','Luxembourg','LU'), ('MAC','Macao','MO'), ('MKD','Macedonia','MK'), ('MDG','Madagascar','MG'), ('MWI','Malawi','MW'), ('MYS','Malaysia','MY'), ('MDV','Maldives','MV'), ('MLI','Mali','ML'), ('MLT','Malta','MT'), ('MHL','Marshall Islands','MH'), ('MTQ','Martinique','MQ'), ('MRT','Mauritania','MR'), ('MUS','Mauritius','MU'), ('MYT','Mayotte','YT'), ('MEX','Mexico','MX'), ('FSM','Micronesia','FM'), ('MDA','Moldova','MD'), ('MCO','Monaco','MC'), ('MNG','Mongolia','MN'), ('MNE','Montenegro','ME'), ('MSR','Montserrat','MS'), ('MAR','Morocco','MA'), ('MOZ','Mozambique','MZ'), ('MMR','Myanmar [Burma]','MM'), ('NAM','Namibia','NA'), ('NRU','Nauru','NR'), ('NPL','Nepal','NP'), ('NLD','Netherlands','NL'), ('NCL','New Caledonia','NC'), ('NZL','New Zealand','NZ'), ('NIC','Nicaragua','NI'), ('NER','Niger','NE'), ('NGA','Nigeria','NG'), ('NIU','Niue','NU'), ('NFK','Norfolk Island','NF'), ('PRK','North Korea','KP'), ('MNP','Northern Mariana Islands','MP'), ('NOR','Norway','NO'), ('OMN','Oman','OM'), ('PAK','Pakistan','PK'), ('PLW','Palau','PW'), ('PSE','Palestine','PS'), ('PAN','Panama','PA'), ('PNG','Papua New Guinea','PG'), ('PRY','Paraguay','PY'), ('PER','Peru','PE'), ('PHL','Philippines','PH'), ('PCN','Pitcairn Islands','PN'), ('POL','Poland','PL'), ('PRT','Portugal','PT'), ('PRI','Puerto Rico','PR'), ('QAT','Qatar','QA'), ('COG','Republic of the Congo','CG'), ('REU','Réunion','RE'), ('ROU','Romania','RO'), ('RUS','Russia','RU'), ('RWA','Rwanda','RW'), ('BLM','Saint Barthélemy','BL'), ('SHN','Saint Helena','SH'), ('KNA','Saint Kitts and Nevis','KN'), ('LCA','Saint Lucia','LC'), ('MAF','Saint Martin','MF'), ('SPM','Saint Pierre and Miquelon','PM'), ('VCT','Saint Vincent and the Grenadines','VC'), ('WSM','Samoa','WS'), ('SMR','San Marino','SM'), ('STP','São Tomé and Príncipe','ST'), ('SAU','Saudi Arabia','SA'), ('SEN','Senegal','SN'), ('SRB','Serbia','RS'), ('SYC','Seychelles','SC'), ('SLE','Sierra Leone','SL'), ('SGP','Singapore','SG'), ('SXM','Sint Maarten','SX'), ('SVK','Slovakia','SK'), ('SVN','Slovenia','SI'), ('SLB','Solomon Islands','SB'), ('SOM','Somalia','SO'), ('ZAF','South Africa','ZA'), ('SGS','South Georgia and the South Sandwich Islands','GS'), ('KOR','South Korea','KR'), ('SSD','South Sudan','SS'), ('ESP','Spain','ES'), ('LKA','Sri Lanka','LK'), ('SDN','Sudan','SD'), ('SUR','Suriname','SR'), ('SJM','Svalbard and Jan Mayen','SJ'), ('SWZ','Swaziland','SZ'), ('SWE','Sweden','SE'), ('CHE','Switzerland','CH'), ('SYR','Syria','SY'), ('TWN','Taiwan','TW'), ('TJK','Tajikistan','TJ'), ('TZA','Tanzania','TZ'), ('THA','Thailand','TH'), ('TGO','Togo','TG'), ('TKL','Tokelau','TK'), ('TON','Tonga','TO'), ('TTO','Trinidad and Tobago','TT'), ('TUN','Tunisia','TN'), ('TUR','Turkey','TR'), ('TKM','Turkmenistan','TM'), ('TCA','Turks and Caicos Islands','TC'), ('TUV','Tuvalu','TV'), ('UMI','U.S. Minor Outlying Islands','UM'), ('VIR','U.S. Virgin Islands','VI'), ('UGA','Uganda','UG'), ('UKR','Ukraine','UA'), ('ARE','United Arab Emirates','AE'), ('GBR','United Kingdom','GB'), ('USA','United States','US'), ('URY','Uruguay','UY'), ('UZB','Uzbekistan','UZ'), ('VUT','Vanuatu','VU'), ('VAT','Vatican City','VA'), ('VEN','Venezuela','VE'), ('VNM','Vietnam','VN'), ('WLF','Wallis and Futuna','WF'), ('ESH','Western Sahara','EH'), ('YEM','Yemen','YE'), ('ZMB','Zambia','ZM'), ('ZWE','Zimbabwe','ZW')");
         } 
     }
+    
+    //Function Definition : create_application_products_table
+    public function create_application_products_table(){
+        global $table_prefix,$wpdb;
+        $appproducts_table_name = 'authorize_application_products';
+        $wp_app_products_table_name = $table_prefix . "$appproducts_table_name";
+        if($wpdb->get_var( "show tables like '$wp_app_products_table_name'" ) != $wp_app_products_table_name) 
+        {
+            $appProductsSql = "CREATE TABLE `". $wp_app_products_table_name . "` ( ";
+            $appProductsSql .= "`id` int(11)   NOT NULL auto_increment, ";
+            $appProductsSql .= "`app_product_id` int(11) NOT NULL, ";
+            $appProductsSql .= "`app_product_name` text NOT NULL, ";
+            $appProductsSql .= "`app_product_description` longtext DEFAULT NULL,";
+            $appProductsSql .= "`app_product_excerpt` text DEFAULT NULL, ";
+            $appProductsSql .= "`app_product_sku` varchar(55) DEFAULT NULL, ";
+            $appProductsSql .= "`app_product_price` double DEFAULT NULL, ";
+            $appProductsSql .= "`app_product_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";
+            $appProductsSql .= "  `created`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
+            $appProductsSql .= "  `modified`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, ";
+            $appProductsSql .= "  PRIMARY KEY (`id`) ";
+            $appProductsSql .= ") ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ; ";
+            require_once( ABSPATH . '/wp-admin/includes/upgrade.php' );
+            dbDelta($appProductsSql);
+        } 
+    }
 
+    //Function Definition : set_custom_schedular_products....
+    public function set_custom_schedular_products(){
+        //check schedular is already set or not.....
+        if (!wp_next_scheduled( 'application_products_schedular_twiceday' ) ) {
+            wp_schedule_event( time(), 'twicedaily', 'application_products_schedular_twiceday' );
+        }
+    }
+
+    //Function Definition : clear_custom_schedular_products
+    public function clear_custom_schedular_products(){
+        //check schedular is exist or not......
+        if(wp_next_scheduled('application_products_schedular_twiceday')){
+            //clera cron job from the schedular....
+            wp_clear_scheduled_hook('application_products_schedular_twiceday');
+        }
+    }
+    
+    //Function Definition : set_custom_schedular....
+    public function set_custom_schedular(){
+        //check schedular is already set or not.....
+        if (!wp_next_scheduled( 'recurring_payment_schedular_everyday' ) ) {
+            wp_schedule_event( time(), 'daily', 'recurring_payment_schedular_everyday' );
+        }
+    }
+
+    //Function Definition : clear_custom_schedular 
+    public function clear_custom_schedular(){
+        //check schedular is exist or not......
+        if(wp_next_scheduled('recurring_payment_schedular_everyday')){
+            //clera cron job from the schedular....
+            wp_clear_scheduled_hook('recurring_payment_schedular_everyday');
+        }
+    }
+
+    //Function Definition : create_recurring_details_table
+    public function create_recurring_details_table(){
+        global $table_prefix,$wpdb;
+        $custom_table_name = 'wooconnection_recurring_payments_data';
+        $wp_custom_table_name = $table_prefix. "$custom_table_name";
+        if($wpdb->get_var("show tables like '$wp_custom_table_name'") != $wp_custom_table_name){
+            $custom_table_sql = "CREATE TABLE `".$wp_custom_table_name."`(";
+            $custom_table_sql .= "`id` int(11) NOT NULL auto_increment,";
+            $custom_table_sql .= "`wp_user_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`app_contact_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`app_sub_id` int(11) NOT NULL,";
+            $custom_table_sql .= "`sub_total_amount` double NOT NULL DEFAULT 0,";
+            $custom_table_sql .= "`sub_discount_amount` double NOT NULL DEFAULT 0,";
+            $custom_table_sql .= "`discount_duration` varchar(255),";
+            $custom_table_sql .= "`sub_amount_updation_status` tinyint(4) DEFAULT 0 COMMENT '0-false,1-true',";
+            $custom_table_sql .= "`sub_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";
+            $custom_table_sql .= "`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+            $custom_table_sql .= "`modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,";
+            $custom_table_sql .= "PRIMARY KEY (`id`)";
+            $custom_table_sql .= ") ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
+            require_once(ABSPATH .'/wp-admin/includes/upgrade.php');
+            dbDelta($custom_table_sql);
+        }
+    }
     
 
     //Function Definition : create_custom_fields_group_table
@@ -327,50 +422,6 @@ class WooConnectionPro {
         global $table_prefix, $wpdb;
         update_option('wc_pro_version_activated', true);
     }
-
-    //Function Definition : create_application_products_table
-    public function create_application_products_table(){
-        global $table_prefix,$wpdb;
-        $appproducts_table_name = 'authorize_application_products';
-        $wp_app_products_table_name = $table_prefix . "$appproducts_table_name";
-        if($wpdb->get_var( "show tables like '$wp_app_products_table_name'" ) != $wp_app_products_table_name) 
-        {
-            $appProductsSql = "CREATE TABLE `". $wp_app_products_table_name . "` ( ";
-            $appProductsSql .= "`id` int(11)   NOT NULL auto_increment, ";
-            $appProductsSql .= "`app_product_id` int(11) NOT NULL, ";
-            $appProductsSql .= "`app_product_name` text NOT NULL, ";
-            $appProductsSql .= "`app_product_description` longtext DEFAULT NULL,";
-            $appProductsSql .= "`app_product_excerpt` text DEFAULT NULL, ";
-            $appProductsSql .= "`app_product_sku` varchar(55) DEFAULT NULL, ";
-            $appProductsSql .= "`app_product_price` double DEFAULT NULL, ";
-            $appProductsSql .= "`app_product_subscription` tinyint(4) DEFAULT 0 COMMENT '0-false,1-true',";
-            $appProductsSql .= "`app_product_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";
-            $appProductsSql .= "  `created`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
-            $appProductsSql .= "  `modified`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, ";
-            $appProductsSql .= "  PRIMARY KEY (`id`) ";
-            $appProductsSql .= ") ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ; ";
-            require_once( ABSPATH . '/wp-admin/includes/upgrade.php' );
-            dbDelta($appProductsSql);
-        } 
-    }
-
-    //Function Definition : set_custom_schedular_products....
-    public function set_custom_schedular_products(){
-        //check schedular is already set or not.....
-        if (!wp_next_scheduled( 'application_products_schedular_twiceday' ) ) {
-            wp_schedule_event( time(), 'twicedaily', 'application_products_schedular_twiceday' );
-        }
-    }
-
-    //Function Definition : clear_custom_schedular_products
-    public function clear_custom_schedular_products(){
-        //check schedular is exist or not......
-        if(wp_next_scheduled('application_products_schedular_twiceday')){
-            //clera cron job from the schedular....
-            wp_clear_scheduled_hook('application_products_schedular_twiceday');
-        }
-    }
-
 }
 // Create global so you can use this variable beyond initial creation.
 global $wooconnection;

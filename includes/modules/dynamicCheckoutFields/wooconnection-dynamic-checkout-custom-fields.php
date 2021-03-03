@@ -127,7 +127,6 @@ add_action( 'woocommerce_before_checkout_form', 'apply_date_picker_date_field');
 //Function Definiation : apply_date_picker_date_field
 function apply_date_picker_date_field() {
         wp_enqueue_style('jquery-ui-css', WOOCONNECTION_PLUGIN_URL.'assets/css/jquery-ui.css');
-        wp_enqueue_script( 'jquery_min_js', WOOCONNECTION_PLUGIN_URL.'assets/js/jquery.min.js', array( 'jquery' ), WOOCONNECTION_VERSION ,true );
         wp_enqueue_script('jquery_ui_js', WOOCONNECTION_PLUGIN_URL.'assets/js/jquery-ui-1.10.1.min.js', array('jquery'), WOOCONNECTION_VERSION, true );
     ?>
     <style type="text/css">
@@ -138,7 +137,7 @@ function apply_date_picker_date_field() {
     <script type="text/javascript">
         jQuery(document).ready(function() {
             if (jQuery(".cfieldDate")[0]){
-                $( ".cfieldDate input" ).datepicker({
+                jQuery( ".cfieldDate input" ).datepicker({
                   changeMonth: true,
                   changeYear: true
                 });

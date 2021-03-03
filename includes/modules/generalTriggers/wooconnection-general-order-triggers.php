@@ -110,7 +110,11 @@ function wooconnection_trigger_status_complete_hook($orderid){
     if(isset($orderContactId) && !empty($orderContactId)) {
         //check relation of current order with infusionsoft/keap application order.....
         $orderRelationId = get_post_meta($orderid, 'is_kp_order_relation', true);
-        if(empty($orderRelationId)){
+
+        //get the payment gateway method name......
+        $gatewayId = get_post_meta($orderid,'Custom Payment Gateway',true);
+
+        if(empty($orderRelationId) || $gatewayId == 'infusionsoft_keap'){
             //define empty variable....
             $referralAffiliateId = '';
             $affiliateCode = '';
@@ -119,7 +123,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
             //first check "affiliateId" exist in cookie....
             $cookieDetail = getCookieValue('affiliateId');
             if(!empty($cookieDetail)){
-                $cookieDetailsArray = explode(';', $cookieDetail);
+                $cookieDetailsArray = explode(';', $cookieDetail[0]);
                 if(isset($cookieDetailsArray) && !empty($cookieDetailsArray)){
                     $referralAffiliateId = $cookieDetailsArray[0];
                 }
@@ -199,78 +203,84 @@ function wooconnection_trigger_status_complete_hook($orderid){
                 }
             }
             
-            //Get the order items from order then execute loop to create the order items array....
-            if ( sizeof( $products_items = $order->get_items() ) > 0 ) {
-                foreach($products_items as $item_id => $item)
-                {
-                    $parent_product_id = '';
-                    if(!empty($item->get_variation_id())){
-                        $product_id = $item->get_variation_id();    
-                        $parent_product_id = $item->get_product_id();
-                    }else{
-                        $product_id = $item->get_product_id(); 
-                    }
-                    $product = wc_get_product($product_id);//get the prouct details...
-                    $productDesc = strip_tags($product->get_description());//product description..
-                    $productPrice = round($product->get_price(),2);//get product price....
-                    $productQuan = $item['quantity']; // Get the item quantity....
-                    $productIdCheck = checkAddProductIsKp($access_token,$product,$parent_product_id,$applicationEdition);//get the related  product id on the basis of relation with infusionsoft/keap application product...
-                    $productTitle = $product->get_title();//get product title..
-                    //push product details into array/......
-                    $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
-                    //get product sku..
-                    $length = SKU_LENGHT_SPECIFIC_PRODUCT;
-                    $productSku = get_set_product_sku($item['product_id'],$length);
-                    if(isset($productSku) && !empty($productSku)){
-                        //Call the common function to hit the specific product purchase trigger....
-                        $specificPurchaseTrigger = orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,$wooconnectionLogger);
-                    }
-                }
-                //create order items json....
-                $jsonOrderItems = json_encode($itemsArray);
-                //create order in infusionsoft/keap application.....
-                $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token,$referralAffiliateId);
-                //update order relation between woocommerce order and infusionsoft/keap application order.....
-                if(!empty($iskporderId)){
-                    //Update relation .....
-                    update_post_meta($orderid, 'is_kp_order_relation', $iskporderId);
-                    //Check of tax exist with current order....
-                    if(isset($orderTaxDetails) && !empty($orderTaxDetails)){
-                        //Call the common function to add order itema as a tax....
-                        addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_TAX, $orderTaxDetails, ORDER_ITEM_QUANTITY, 'Order Tax',ITEM_TAX_NOTES);
-                    }
-                    //Check discount on order.....
-                    if(isset($orderDiscountDetails) && !empty($orderDiscountDetails)){
-                        $discountDetected = $orderDiscountDetails;
-                        $discountDetected *= -1;
-                        //Call the common function to add order itema as a discount....
-                        addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
-                    }
+            //get the payment method to proceed next........
+            $payment_method = $order->get_payment_method();
+            //check if payment gateway is not equal to infusionsoft or keap then proceed next.....
+            if($payment_method != "infusionsoft_keap") {
 
-                    global $wpdb;//define variable for query......
-                    //execute query to get the details of order related custom fields.....
-                    $orderCustomFields =  $wpdb->get_results($wpdb->prepare("SELECT *  FROM `wp_postmeta` WHERE `post_id` = $orderid AND `meta_key` LIKE '%orderCFields_%'"));
-                    $orderCFields = array();//define empty array....
-                    if(isset($orderCustomFields) && !empty($orderCustomFields)){
-                      //execute loop....
-                      foreach ($orderCustomFields as $key => $value) {
-                          $cfieldKey = explode('orderCFields', $value->meta_key);
-                          $orderCFields[$cfieldKey[1]] = $value->meta_value;
-                      }
+                //Get the order items from order then execute loop to create the order items array....
+                if ( sizeof( $products_items = $order->get_items() ) > 0 ) {
+                    foreach($products_items as $item_id => $item)
+                    {
+                        $parent_product_id = '';
+                        if(!empty($item->get_variation_id())){
+                            $product_id = $item->get_variation_id();    
+                            $parent_product_id = $item->get_product_id();
+                        }else{
+                            $product_id = $item->get_product_id(); 
+                        }
+                        $product = wc_get_product($product_id);//get the prouct details...
+                        $productDesc = strip_tags($product->get_description());//product description..
+                        $productPrice = round($product->get_price(),2);//get product price....
+                        $productQuan = $item['quantity']; // Get the item quantity....
+                        $productIdCheck = checkAddProductIsKp($access_token,$product,$parent_product_id,$applicationEdition);//get the related  product id on the basis of relation with infusionsoft/keap application product...
+                        $productTitle = $product->get_title();//get product title..
+                        //push product details into array/......
+                        $itemsArray[] = array('description' => $productDesc, 'price' => $productPrice, 'product_id' => $productIdCheck, 'quantity' => $productQuan);
+                        //get product sku..
+                        $length = SKU_LENGHT_SPECIFIC_PRODUCT;
+                        $productSku = get_set_product_sku($item['product_id'],$length);
+                        if(isset($productSku) && !empty($productSku)){
+                            //Call the common function to hit the specific product purchase trigger....
+                            $specificPurchaseTrigger = orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,$wooconnectionLogger);
+                        }
                     }
+                    //create order items json....
+                    $jsonOrderItems = json_encode($itemsArray);
+                    //create order in infusionsoft/keap application.....
+                    $iskporderId = createOrder($orderid,$orderContactId,$jsonOrderItems,$access_token,$referralAffiliateId);
+                    //update order relation between woocommerce order and infusionsoft/keap application order.....
+                    if(!empty($iskporderId)){
+                        //Update relation .....
+                        update_post_meta($orderid, 'is_kp_order_relation', $iskporderId);
+                        //Check of tax exist with current order....
+                        if(isset($orderTaxDetails) && !empty($orderTaxDetails)){
+                            //Call the common function to add order itema as a tax....
+                            addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_TAX, $orderTaxDetails, ORDER_ITEM_QUANTITY, 'Order Tax',ITEM_TAX_NOTES);
+                        }
+                        //Check discount on order.....
+                        if(isset($orderDiscountDetails) && !empty($orderDiscountDetails)){
+                            $discountDetected = $orderDiscountDetails;
+                            $discountDetected *= -1;
+                            //Call the common function to add order itema as a discount....
+                            addOrderItems($access_token,$iskporderId, NON_PRODUCT_ID, ITEM_TYPE_DISCOUNT, $discountDetected, ORDER_ITEM_QUANTITY, $discountDesc, ITEM_DISCOUNT_NOTES);
+                        }
+                       
+                        global $wpdb;//define variable for query......
+                        //execute query to get the details of order related custom fields.....
+                        $orderCustomFields =  $wpdb->get_results($wpdb->prepare("SELECT *  FROM `wp_postmeta` WHERE `post_id` = $orderid AND `meta_key` LIKE '%orderCFields_%'"));
+                        $orderCFields = array();//define empty array....
+                        if(isset($orderCustomFields) && !empty($orderCustomFields)){
+                          //execute loop....
+                          foreach ($orderCustomFields as $key => $value) {
+                              $cfieldKey = explode('orderCFields', $value->meta_key);
+                              $orderCFields[$cfieldKey[1]] = $value->meta_value;
+                          }
+                        }
 
-                    //check order related custom fields exist with data or not....
-                    if(isset($orderCFields) && !empty($orderCFields) && !empty($access_token)){
-                        //call the common function to update the order related custom fields in infusionsoft.......
-                        $responseCheck = updateOrderCustomFields($access_token, $iskporderId, $orderCFields);
+                        //check order related custom fields exist with data or not....
+                        if(isset($orderCFields) && !empty($orderCFields) && !empty($access_token)){
+                            //call the common function to update the order related custom fields in infusionsoft.......
+                            $responseCheck = updateOrderCustomFields($access_token, $iskporderId, $orderCFields);
+                        }
+
+                        //get the payment method....
+                        $paymentMethodTitle = $order->get_payment_method_title();
+                        //get the amount ownd by the application order......
+                        $totalAmountOwned = getOrderAmountOwned($access_token,$iskporderId,$wooconnectionLogger);
+                        //then charge the payment....
+                        $chargeManualPayment = chargePaymentManual($access_token,$iskporderId,$totalAmountOwned,$paymentMethodTitle,$paymentMethodTitle,$wooconnectionLogger);
                     }
-
-                    //get the payment method....
-                    $paymentMethodTitle = $order->get_payment_method_title();
-                    //get the amount ownd by the application order......
-                    $totalAmountOwned = getOrderAmountOwned($access_token,$iskporderId,$wooconnectionLogger);
-                    //then charge the payment....
-                    $chargeManualPayment = chargePaymentManual($access_token,$iskporderId,$totalAmountOwned,$paymentMethodTitle,$paymentMethodTitle,$wooconnectionLogger);
                 }
             }
         }
@@ -343,12 +353,21 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
         $affiliateCode = '';
         $customField = array();
 
-        //first check "affiliateId" exist in cookie....
-        if(isset($_COOKIE["affiliateId"])){
-            $referralAffiliateId = $_COOKIE["affiliateId"];
+        $cookieData = getCookieValue('affiliateId');//get the cookie details....
+        if(isset($cookieData) && !empty($cookieData)){
+            $cookieDataArray = explde(';',$cookieData[0]);//explode the cookie....
+            if(isset($cookieDataArray) && !empty($cookieDataArray)){
+                $referralAffiliateId = $cookieDataArray[0];
+            }
+        }else{
+            if(isset($_COOKIE['affiliateId'])){
+                $referralAffiliateId = $_COOKIE['affiliateId'];
+            }
         }
 
+        //check affiliate id exist....
         if(isset($referralAffiliateId) && !empty($referralAffiliateId)){
+            //then get the details of it by id.....
             $affiliateCode = getAffiliateDetails($access_token,$referralAffiliateId);
         }
         
