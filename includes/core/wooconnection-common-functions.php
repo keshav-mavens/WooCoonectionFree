@@ -3085,6 +3085,10 @@ function createImportProductsHtml($importProductsLimit='',$importProductsPageNum
     //Set the application label on the basis of type...
     $applicationLabel = applicationLabel($type);
     
+    if(empty($importProductsLimit)){
+      $importProductsLimit = 200;
+    }
+
     //Get the list of active products from authenticate application....
     $applicationProductsArray = getExistingAppProducts($importProductsLimit,$importProductsPageNumber);
     
@@ -3163,9 +3167,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
           $importTableHtml .= '</thead>';
           $importTableHtml .= '<tbody>';
         }
-        if(!empty($wooCommerceProducts)){
-          $wcProductsDropDown = createImportProductsSelect($wooCommerceProducts);
-        }
+        //execute the loop on application products....
         foreach ($applicationProductsArray as $key => $value) {
             if(!empty($value->app_product_id)){
                 $customOptionHtml = '';
@@ -3192,47 +3194,40 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                 }
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
                 if(!empty($wooCommerceProducts)){
+                    //Set the html of select if no products exist in application....
                     //Check product relation is exist....
                     $wcProductExistId = getProductId('is_kp_product_id',$appProductId);
                     //then check relation id is not empty.....
                     if(isset($wcProductExistId) && !empty($wcProductExistId)){
-                      //check the mapped product is exist in woocommerce products array.....
-                      $checkProductExistInArray = array_search($wcProductExistId, array_column($wooCommerceProducts, 'ID'));
-                      //if not exist.....
-                      if($checkProductExistInArray == false){
-                        //get the post title by mapped product id.....
-                        $productTitle = get_the_title($wcProductExistId);
-                        if(!empty($productTitle)){
-                          //create custom option..........
-                          $customOptionHtml = '<option value="'.$wcProductExistId.'" data-id="'.$wcProductExistId.'">'.$productTitle.'</option>';
-                        }
+                      //get the post title by mapped product id.....
+                      $productTitle = get_the_title($wcProductExistId);
+                      if(!empty($productTitle)){
+                        //create custom option..........
+                        $customOptionHtml = '<option value="'.$wcProductExistId.'" data-id="'.$wcProductExistId.'">'.$productTitle.'</option>';
                       }
-                    }
-                    
-                    //first check if product relation is not exist in database...
-                    if(empty($wcProductExistId) && !empty($appProductSku)){
-                      //then try to find product exist with sku or not....
-                      $checkResponse = checkWooProductExistWithSku($appProductSku);
-                      //check product exist in response.....
-                      if(isset($checkResponse) && !empty($checkResponse)){
-                        //check mapped product is in woocommerce products array......
-                        $checkProductExistResponse = array_search($checkResponse,array_column($wooCommerceProducts,'ID'));
-                        //it means relation of product id is not exist in array...then needs to create custom option tag....
-                        if($checkProductExistResponse == false){
-                          //get the product title...
-                          $postTitle = get_the_title($checkResponse);
-                          if(!empty($postTitle)){
-                            //create custom option....
-                            $customOptionHtml = '<option value="'.$checkResponse.'" data-id="'.$checkResponse.'">'.$postTitle.'</option>';
+                    }else{
+                      //first check if product relation is not exist in database...
+                      if(!empty($appProductSku)){
+                        $checkResponse = wc_get_product_id_by_sku($appProductSku);
+                        //check product exist in response.....
+                        if(isset($checkResponse) && !empty($checkResponse)){
+                          $mapped_product_status = get_post_status($checkResponse);
+                          if($mapped_product_status == 'publish'){
+                            //get the product title...
+                            $postTitle = get_the_title($checkResponse);
+                            if(!empty($postTitle)){
+                              //create custom option....
+                              $customOptionHtml = '<option value="'.$checkResponse.'" data-id="'.$checkResponse.'">'.$postTitle.'</option>';
+                            }
+                            //set the product id which is already exist.....
+                            $wcProductExistId = $checkResponse;
                           }
                         }
-                        //set the product id which is already exist.....
-                        $wcProductExistId = $checkResponse;
                       }
                     }
-                    
+                    //$mapped_product_status = get_post_status($wcProductExistId);
                     //Create final select html.....
-                    $wcProductSelectHtml = '<input type="hidden" id="scroll_count_wc_products" value="0" class="scroll_counter"><input type="hidden" id="products_limit_wc_import" value="20" class="scroll_counter"><input type="hidden" id="wc_product_import_with_'.$appProductId.'" value=""><select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="0">Select woocommerce product</option>'.$wcProductsDropDown.$customOptionHtml.'</select>';
+                    $wcProductSelectHtml ='<select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="">Select woocommerce product</option>'.$customOptionHtml.'</select>';
                 }else{
                   //Set the html of select if no products exist in application....
                   $wcProductSelectHtml = 'No Woocommerce Products Exist!';

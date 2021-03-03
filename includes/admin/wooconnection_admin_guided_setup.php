@@ -33,6 +33,8 @@
     $importExportId = "progress_import_products";
     $automationId = "progress_automation";
   }
+  $mypoststatus = get_post_status(16890);
+  echo $mypoststatus;
 ?>
 <div class="info-header">
   <p>Guided Setup</p>

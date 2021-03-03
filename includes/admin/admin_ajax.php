@@ -301,10 +301,8 @@ function wc_export_wc_products()
 	                }else{
 	                  $typeProduct = ITEM_TYPE_PRODUCT;
 	                }
-
-
-
-                    //check item type is a subscription then add new parameter in array that is "subscription_only"....
+					
+					//check item type is a subscription then add new parameter in array that is "subscription_only"....
                 	if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
                 		$productDetailsArray['subscription_only'] = true;
                 	}
@@ -1753,9 +1751,14 @@ function wc_import_application_products()
 								}
 		      				}
 		      			}
-		      				
-		      			//if product is not associated along with imported product request then need create new product..
-		      			if(empty($needUpdateExistingProduct)){
+		      			
+		      			//check if mapping exist.....
+		      			if(!empty($needUpdateExistingProduct)){//then check the product status...
+		      				$mapped_product_status = get_post_status($needUpdateExistingProduct);
+		      			}
+
+						//if product is not associated along with imported product request then need create new product..
+		      			if(empty($needUpdateExistingProduct) || $mapped_product_status !== 'publish'){
 		      				$postData = array('post_content' => $pContent,'post_status' => "publish",'post_title' => $productName,'post_type' => "product",'post_excerpt'=>$pshortContent);
 							$new_post_id = wp_insert_post($postData);
 							//check if product imported done then need to check the image associated with product if yes then need to update....
@@ -1828,7 +1831,7 @@ function wc_import_application_products()
  			}
  			
  			//then call the "createImportProductsHtml" function to get the latest html...
-            $latestImportProductsHtml = createImportProductsHtml($importProductsLimit,$importProductsOffset);
+            $latestImportProductsHtml = '';//createImportProductsHtml($importProductsLimit,$importProductsOffset);
             echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestImportProductsHtml'=>$latestImportProductsHtml));
  		}
  	}
@@ -1911,6 +1914,7 @@ function wc_search_woo_product(){
 		//return response
 		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'matchProductsOptions'=>$matchProductsOptions));
 	}
+	die();
 }
 
 //Wordpreess Hool : This hook is triggered to get the products from authorized application and insert into the database.....
