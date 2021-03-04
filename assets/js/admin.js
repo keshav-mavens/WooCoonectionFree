@@ -730,6 +730,8 @@ function reloadLatestAppProducts(){
 }
 
 //On click of add a product open the new window to open the tab of add a product...
-function showAddProductScreen(){
-    window.open('http://localhost/wooconnectionfree/wp-admin/post-new.php?post_type=product', '_blank');
+function showAddProductScreen(addLink){
+    if(addLink != ''){
+        window.open(addLink, '_blank');
+    }
 }
