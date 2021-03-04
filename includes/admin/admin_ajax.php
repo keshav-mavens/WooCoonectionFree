@@ -1727,8 +1727,8 @@ function wc_import_application_products()
 		      			//set the meta fields of product....
 		      			$product_extra_data_array['_regular_price'] = $applicationProductDetails['product_price'];
 		      			$product_extra_data_array['_price'] = $applicationProductDetails['product_price'];
-		      			if(!empty($applicationProductDetails['product_sku'])){
-		      				$product_extra_data_array['_sku'] = $applicationProductDetails['product_sku'];
+		      			if(!empty($applicationProductDetails['sku'])){
+		      				$product_extra_data_array['_sku'] = $applicationProductDetails['sku'];
 		      			}
 
 		      			//set default value of product is not related to subscription "false"....
@@ -1752,13 +1752,8 @@ function wc_import_application_products()
 		      				}
 		      			}
 		      			
-		      			//check if mapping exist.....
-		      			if(!empty($needUpdateExistingProduct)){//then check the product status...
-		      				$mapped_product_status = get_post_status($needUpdateExistingProduct);
-		      			}
-
-						//if product is not associated along with imported product request then need create new product..
-		      			if(empty($needUpdateExistingProduct) || $mapped_product_status !== 'publish'){
+		      			//if product is not associated along with imported product request then need create new product..
+		      			if(empty($needUpdateExistingProduct)){
 		      				$postData = array('post_content' => $pContent,'post_status' => "publish",'post_title' => $productName,'post_type' => "product",'post_excerpt'=>$pshortContent);
 							$new_post_id = wp_insert_post($postData);
 							//check if product imported done then need to check the image associated with product if yes then need to update....

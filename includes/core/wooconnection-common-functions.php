@@ -3192,40 +3192,42 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                 }else{
                   $appProductName = "--";
                 }
+                
                 //first check if application products is not empty. If empty then skip match products process and show the html in place of select...
                 if(!empty($wooCommerceProducts)){
-                    //Set the html of select if no products exist in application....
                     //Check product relation is exist....
                     $wcProductExistId = getProductId('is_kp_product_id',$appProductId);
                     //then check relation id is not empty.....
                     if(isset($wcProductExistId) && !empty($wcProductExistId)){
-                      //get the post title by mapped product id.....
-                      $productTitle = get_the_title($wcProductExistId);
-                      if(!empty($productTitle)){
-                        //create custom option..........
-                        $customOptionHtml = '<option value="'.$wcProductExistId.'" data-id="'.$wcProductExistId.'">'.$productTitle.'</option>';
-                      }
+                      $wcProductExistId = $wcProductExistId;
                     }else{
                       //first check if product relation is not exist in database...
                       if(!empty($appProductSku)){
-                        $checkResponse = wc_get_product_id_by_sku($appProductSku);
+                        $checkResponse = checkWooProductExistWithSku($appProductSku);
                         //check product exist in response.....
                         if(isset($checkResponse) && !empty($checkResponse)){
-                          $mapped_product_status = get_post_status($checkResponse);
-                          if($mapped_product_status == 'publish'){
-                            //get the product title...
-                            $postTitle = get_the_title($checkResponse);
-                            if(!empty($postTitle)){
-                              //create custom option....
-                              $customOptionHtml = '<option value="'.$checkResponse.'" data-id="'.$checkResponse.'">'.$postTitle.'</option>';
-                            }
-                            //set the product id which is already exist.....
-                            $wcProductExistId = $checkResponse;
-                          }
+                          $wcProductExistId = $checkResponse;
                         }
                       }
                     }
-                    //$mapped_product_status = get_post_status($wcProductExistId);
+
+                    //check product match id exist....
+                    if(!empty($wcProductExistId)){
+                      //get the mapped product status....
+                      $mapped_product_status = get_post_status($wcProductExistId);
+                      if($mapped_product_status == 'publish'){//compare the post status.....
+                        //get the product title...
+                        $postTitle = get_the_title($wcProductExistId);
+                        if(!empty($postTitle)){
+                          //create custom option....
+                          $wpProductSelected = "selected";//set product selected....
+                          $customOptionHtml = '<option value="'.$wcProductExistId.'" data-id="'.$wcProductExistId.'" '.$wpProductSelected.'>'.$postTitle.'</option>';
+                        }
+                      }else{
+                        $wcProductExistId = '';//empty the match id if product status is not publish...
+                      }
+                    }
+                    
                     //Create final select html.....
                     $wcProductSelectHtml ='<select class="wc_import_products_dropdown wcProductsDropdown" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'"><option value="">Select woocommerce product</option>'.$customOptionHtml.'</select>';
                 }else{
@@ -3239,7 +3241,7 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                   $appProductSku = "--";
                 }
                 //Create final html.......
-                $importTableHtml .= '<tr><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
+                $importTableHtml .= '<tr id="application_product_row_'.$appProductId.'"><td><input type="checkbox" class="each_product_checkbox_import" name="wc_products_import[]" value="'.$appProductId.'" id="'.$appProductId.'"></td><td class="skucss">'.$appProductName.'</td><td class="skucss">'.$appProductSku.'</td><td>'.$appProductPrice.'</td><td>'.$wcProductSelectHtml.'</td></tr>';
 
             }
         }
@@ -3275,8 +3277,8 @@ function createImportProductsSelect($existingwcProductResult,$iskp_product_id_co
 function getProductId($key, $value) {
   global $wpdb;
   $meta = $wpdb->get_results("SELECT * FROM `".$wpdb->postmeta."` WHERE meta_key='".$wpdb->escape($key)."' AND meta_value='".$wpdb->escape($value)."'");
-  if (is_array($meta) && !empty($meta) && isset($meta[0])) {
-    $meta = $meta[0];
+  if (is_array($meta) && !empty($meta) && isset($meta[1])) {
+    $meta = $meta[1];
   }   
   if (is_object($meta)) {
     return $meta->post_id;
