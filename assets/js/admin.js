@@ -38,6 +38,18 @@
                                 $(".tab_related_content").html('');
                                 $(".tab_related_content").html(data);
                                 jQuery(".tab_related_content").removeClass('overlay');
+                                //export products tab....
+                                if($(".no-woo-products").length){
+                                    $('.no-products-export').hide();
+                                }else{
+                                    $('.no-products-export').show();
+                                }
+                                //match products tab..
+                                if($('.no-woo-products-match').length){
+                                    $('.no-products-match').hide();
+                                }else{
+                                    $('.no-products-match').show();
+                                }
                             });
                         }
                         //Check if "response" done....
@@ -171,10 +183,22 @@
                                 if (target_tab_id == '#table_export_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
+                                    //for export tab....
+                                    if($(".no-woo-products").length){
+                                        $('.no-products-export').hide();
+                                    }else{
+                                        $('.no-products-export').show();
+                                    }
                                 }else if (target_tab_id == '#table_match_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     applySelectTwo('application_match_products_dropdown');
+                                    //for match products tab....
+                                    if($('.no-woo-products-match').length){
+                                        $('.no-products-match').hide();
+                                    }else{
+                                        $('.no-products-match').show();
+                                    }
                                 }    
                             }
                             //hide the loader div and "error message" on tab change.....
@@ -190,8 +214,8 @@
                 insertApplicationProducts();//call the function to insert the products in our database....
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
                 swal({
-                  title: "Authorization!",
-                  text: "Application authentication done successfully.",
+                  title: "Success!",
+                  text: "WooConnection Plugin has been successfully activated.",
                   type: "success",
                   confirmButtonText: "OK"
                 },
@@ -672,6 +696,8 @@ function loadMoreProducts(){
                     $(".load_"+tabId[1]).html('');
                     $(".load_"+tabId[1]).html('No More Products Exist!');
                     $(".load_"+tabId[1]).show();
+                    //hide the message after 3 seconds...
+                    setTimeout(function(){$(".load_"+tabId[1]).hide();}, 3000);
                 }
             }
         });
@@ -701,4 +727,9 @@ function reloadLatestAppProducts(){
             }
         }
     });   
+}
+
+//On click of add a product open the new window to open the tab of add a product...
+function showAddProductScreen(){
+    window.open('http://localhost/wooconnectionfree/wp-admin/post-new.php?post_type=product', '_blank');
 }

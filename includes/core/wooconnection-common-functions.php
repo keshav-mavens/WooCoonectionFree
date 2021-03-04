@@ -160,7 +160,7 @@ function createExportProductsHtml($limit='',$offset='',$htmlType=''){
   //set html if no products exist in woocommerce for export....
   if(empty($woocommerceProducts)){
       if(empty($htmlType)){
-        $table_export_products_html = '<p class="heading-text" style="text-align:center">No products exist in woocommerce for export to '.$applicationLabel.' application.</p>';
+        $table_export_products_html = '<span class="no-woo-products"><p class="heading-text" style="text-align:center"><strong>You don’t have any products set up in WooCommerce that we can export to your '.$applicationLabel.' application.</strong></p><input type="button" value="Add a Product" class="btn btn-primary btn-radius btn-theme add-product-btn" onclick="showAddProductScreen()"><span>';
       }
   }else{
       //Compare woocommerce publish products with application products
@@ -493,7 +493,7 @@ function createMatchProductsHtml($matchProductsLimit='',$matchProductsOffset='',
   //set html if no products exist in woocommerce they are in relation with applcation products....
   if(empty($wooCommerceProducts)){
     if(empty($matchProductHtmlType)){
-      $table_match_products_html = '<p class="heading-text" style="text-align:center">No products mapping exist.</p>';
+      $table_match_products_html = '<span class="no-woo-products-match"><p class="heading-text" style="text-align:center"><strong>You don’t have any products set up in WooCommerce to set map with your '.$applicationLabel.' application products.</strong></p><input type="button" value="Add a Product" class="btn btn-primary btn-radius btn-theme add-product-btn" onclick="showAddProductScreen()"><span>';
     }
   }else{
       //Compare woocommerce publish products application products....

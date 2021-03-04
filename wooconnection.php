@@ -28,6 +28,9 @@ class WooConnection {
         register_activation_hook(__FILE__,  array($this, 'set_custom_schedular_products'));
         //Call the hook register deactivation to clear the set custom cron job....
         register_deactivation_hook(__FILE__,array($this,'clear_custom_schedular_products'));
+        $plugin = plugin_basename(__FILE__); //set the plugin base file name...
+        //Call the hook to set the plugin settings link.....
+        add_filter("plugin_action_links_$plugin", array($this,'wooconnection_plugin_settings_link'));
     }
 
     
@@ -171,6 +174,14 @@ class WooConnection {
             //clera cron job from the schedular....
             wp_clear_scheduled_hook('application_products_schedular_twiceday');
         }
+    }
+
+    //Function Definition : wooconnection_plugin_settings_link
+    public function wooconnection_plugin_settings_link($prelinks) { 
+      //set the settings link of wooconnection plugin....
+      $plugin_settings_link = '<a href="admin.php?page=wooconnection-admin">Settings</a>'; 
+      array_unshift($prelinks, $plugin_settings_link);//push new link in front of the setting links array...
+      return $prelinks;//return the new array....
     }
 }
 
