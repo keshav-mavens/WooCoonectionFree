@@ -671,6 +671,9 @@ function loadMoreProducts(){
         $(".load_"+tabId[1]).html('<img src="'+WOOCONNECTION_PLUGIN_URL+'assets/images/loader.svg">');
         $(".load_"+tabId[1]).show();
         $('.export_products_btn').addClass("disable_anchor");
+        if($('.export-products-error').is(':visible')){//check if this div is visible.....
+            $('.export-products-error').hide();//hide this div....
+        }
         //send ajax to get the latest products of wc with updated offset....
         jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
             var responsedata = JSON.parse(data);
