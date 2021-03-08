@@ -34,6 +34,9 @@ class WooConnectionPro {
         register_activation_hook(__FILE__,  array($this, 'set_custom_schedular_products'));
         //Call the hook register deactivation to clear the set custom cron job....
         register_deactivation_hook(__FILE__,array($this,'clear_custom_schedular_products'));
+        $plugin = plugin_basename(__FILE__); //set the plugin base file name...
+        //Call the hook to set the plugin settings link.....
+        add_filter("plugin_action_links_$plugin", array($this,'wooconnection_plugin_settings_link'));
     }
 
     
@@ -198,6 +201,7 @@ class WooConnectionPro {
             $appProductsSql .= "`app_product_excerpt` text DEFAULT NULL, ";
             $appProductsSql .= "`app_product_sku` varchar(55) DEFAULT NULL, ";
             $appProductsSql .= "`app_product_price` double DEFAULT NULL, ";
+            $appProductsSql .= "`app_product_subscription` tinyint(4) DEFAULT 0 COMMENT '0-false,1-true',";
             $appProductsSql .= "`app_product_status` tinyint(4) DEFAULT 1 COMMENT '1-active,2-inactive,3-deleted',";
             $appProductsSql .= "  `created`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
             $appProductsSql .= "  `modified`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, ";
@@ -224,7 +228,15 @@ class WooConnectionPro {
             wp_clear_scheduled_hook('application_products_schedular_twiceday');
         }
     }
-    
+
+    //Function Definition : wooconnection_plugin_settings_link
+    public function wooconnection_plugin_settings_link($prelinks) { 
+      //set the settings link of wooconnection plugin....
+      $plugin_settings_link = '<a href="admin.php?page=wooconnection-admin">Settings</a>'; 
+      array_unshift($prelinks, $plugin_settings_link);//push new link in front of the setting links array...
+      return $prelinks;//return the new array....
+    }
+
     //Function Definition : set_custom_schedular....
     public function set_custom_schedular(){
         //check schedular is already set or not.....
@@ -289,6 +301,7 @@ class WooConnectionPro {
             require_once( ABSPATH . '/wp-admin/includes/upgrade.php' );
             dbDelta($sqlGrp);
         }
+
 
         //create custom fields table
         $wooconnection_custom_fields = $table_prefix . "wooconnection_custom_fields";

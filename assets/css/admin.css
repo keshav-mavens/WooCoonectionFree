@@ -759,6 +759,10 @@ i.fa.fa-refresh {
     font-size: 17px;
     padding-left: 4px;
 }
+.add-product-btn{
+    margin: 0px auto !important;
+    display: block !important;
+}
 @media(min-width:992px) {
   .nav-tabs.wizard li {
     position: relative;

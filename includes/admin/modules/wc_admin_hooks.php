@@ -47,6 +47,8 @@ function insertProductToApplication( $post_id, $post ){
                 {
                     $wcproductSku=$wcproductSku;
                 }
+                $wcproductSku = substr($wcproductSku,0,10);//get the first 10 charaters from the sku
+                $wcproductSku = $wcproductSku.$post_id;//append the product in sku to define as a unique....
             }
             $wcproductName = $wcproductdetails->get_name();//get product name....
             

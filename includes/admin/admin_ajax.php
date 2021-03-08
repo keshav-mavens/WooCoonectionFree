@@ -153,6 +153,10 @@ add_action( 'wp_ajax_wc_load_import_export_tab_main_content', 'wc_load_import_ex
 function wc_load_import_export_tab_main_content(){
 	//First check the target tab id the call the html function for latest html.....
 	if(isset($_POST['target_tab_id']) && !empty($_POST['target_tab_id'])){
+		//define the memory limit infinite to prevent from exceed memory limit error....
+		ini_set('memory_limit',"-1");
+		//also set time limit "0" to prevent the execution time exceed....
+		set_time_limit(0);
 		$latestHtml = '';
 		$offset = 0;
 		if ($_POST['target_tab_id'] == '#table_export_products') {
@@ -239,6 +243,8 @@ function wc_export_wc_products()
 					    {
 					        $wcproductSku=$wcproductSku;
 					    }
+					    $wcproductSku = substr($wcproductSku,0,10);//get the first 10 charaters from the sku
+                		$wcproductSku = $wcproductSku.$value;//append the product in sku to define as a unique....
 				    }
                     $wcproductName = $wcproductdetails->get_name();//get product name....
                     $wcproductDesc = $wcproductdetails->get_description();//get product description....
@@ -333,13 +339,14 @@ function wc_export_wc_products()
 								if(!empty($mapppedProductId) && isset($_POST['wc_product_primary_key_'.$mapppedProductId]) && !empty($_POST['wc_product_primary_key_'.$mapppedProductId])){
 									$wpdb->update($appProductsTableName,array('app_product_status'=>STATUS_DELETED),array('id'=>$_POST['wc_product_primary_key_'.$mapppedProductId]));
 								}
+
 								//check if product type is subscription then add subscription plan for paricular product....
 	                            if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
 	                            	//add subscription with particular application product....
 	                            	$createSubscription = addSubscriptionPlan($access_token,$createdProductId,$appJsonSubPlanArray,$wooconnectionLogger);
 	                            }
 	                        }
-                        }
+						}
                         //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
                         else{
 							$jsonData = json_encode($productDetailsArray);//covert array to json...
@@ -350,8 +357,9 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $updateProductId);
                                 //update the woocommerce product sku......
                                 update_post_meta($value,'_sku',$wcproductSku);
+								
 								if(isset($_POST['wc_product_primary_key_'.$updateProductId]) && !empty($_POST['wc_product_primary_key_'.$updateProductId])){
-	                                $primaryKey = $_POST['wc_product_primary_key_'.$updateProductId];
+								    $primaryKey = $_POST['wc_product_primary_key_'.$updateProductId];
 									$appProductData['app_product_name'] =  $wcproductName;
 									$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
 									$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
@@ -359,8 +367,8 @@ function wc_export_wc_products()
 									$appProductData['app_product_price'] = $wcproductPrice;
 									$response = $wpdb->update($appProductsTableName, $appProductData, array('id'=>$primaryKey));
                                 }
-
-                                //first check product is related to subscription or not....
+								
+								//first check product is related to subscription or not....
                             	if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
 	                            	//get the product details by product id...
 	                        		$appProductDetails = getApplicationProductDetail($mapppedProductId,$access_token);
@@ -382,7 +390,7 @@ function wc_export_wc_products()
 							}
                        	}
 					}
-                }
+				}
             }
             //set default offset and limit....
             $exportOffset = 0;

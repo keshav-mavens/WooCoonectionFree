@@ -43,6 +43,19 @@
                                 if($(".wc_import_products_dropdown").length){
                                     applySelectTwo('wc_import_products_dropdown');
                                 }
+                                
+                                //export products tab....
+                                if($(".no-woo-products").length){
+                                    $('.no-products-export').hide();
+                                }else{
+                                    $('.no-products-export').show();
+                                }
+                                //match products tab..
+                                if($('.no-woo-products-match').length){
+                                    $('.no-products-match').hide();
+                                }else{
+                                    $('.no-products-match').show();
+                                }
                             });
                         }
                         //Check if "response" done....
@@ -289,6 +302,12 @@
                                 if (target_tab_id == '#table_export_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
+                                    //for export tab....
+                                    if($(".no-woo-products").length){
+                                        $('.no-products-export').hide();
+                                    }else{
+                                        $('.no-products-export').show();
+                                    }
                                 }else if (target_tab_id == '#table_match_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
@@ -300,6 +319,12 @@
                                     //add select 2 for woocommerce products field in import products tab...
                                     if($(".wc_import_products_dropdown").length){
                                         applySelectTwo('wc_import_products_dropdown');
+                                    }
+                                    //for match products tab....
+                                    if($('.no-woo-products-match').length){
+                                        $('.no-products-match').hide();
+                                    }else{
+                                        $('.no-products-match').show();
                                     }
                                 }    
                             }
@@ -319,11 +344,10 @@
                 if(affiliateReferralPageId == '' && configurationType == 'Infusionsoft'){
                     addNewPageAffiliate();//call the function....
                 }
-                insertApplicationProducts();
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
                 swal({
-                  title: "Authorization!",
-                  text: "Application authentication done successfully.",
+                  title: "Success!",
+                  text: "WooConnection Plugin has been successfully activated.",
                   type: "success",
                   confirmButtonText: "OK"
                 },
@@ -1736,6 +1760,7 @@ function applySelectTwo(element){
 
 //On click of export products button send ajax to export products and on sucess update the html....
 function wcProductsExport(){
+    $(".loading_products").hide();
     //get the input type hidden value....
     var limitAfterExport = $("#products_limit_export").val();
     var checkProducts = checkSelectedProducts('export_products_listing_class','allproductsexport');
@@ -2325,7 +2350,6 @@ var customLimitExport = 200;
 var customLimitMatch = 200;
 var customLimitImport = 200;
 var dropdownAppProducts = 200;
-var visibility = false;//set default visibility false...
 
 //on scroll load more products...
 function loadMoreProducts(){
@@ -2386,7 +2410,12 @@ function loadMoreProducts(){
         $(".load_"+tabId[1]).show();
         $('.export_products_btn').addClass("disable_anchor");
         $(".import_products_btn").addClass("disable_anchor");
-        
+        if($('.export-products-error').is(':visible')){//check if this div is visible.....
+            $('.export-products-error').hide();//hide this div....
+        }
+        if($('.import-products-error').is(':visible')){//check import products error div exist if yes...
+            $('.import-products-error').hide();//then hide it first.....
+        }
         //send ajax to get the latest products of wc with updated offset....
         jQuery.post( ajax_object.ajax_url + "?action=wc_load_more_products",{tabversion:tabId[1],productsLimit:productsLimit,productsOffset:productsOffset}, function(data) {
             var responsedata = JSON.parse(data);
@@ -2423,6 +2452,8 @@ function loadMoreProducts(){
                     $(".load_"+tabId[1]).html('');
                     $(".load_"+tabId[1]).html('No More Products Exist!');
                     $(".load_"+tabId[1]).show();
+                    //hide the message after 3 seconds...
+                    setTimeout(function(){$(".load_"+tabId[1]).hide();}, 3000);
                 }
             }
         });
@@ -2689,4 +2720,11 @@ function applyProductSelected(){
             }
         }
     }); 
+}
+
+//On click of add a product open the new window to open the tab of add a product...
+function showAddProductScreen(addLink){
+    if(addLink != ''){
+        window.open(addLink, '_blank');
+    }
 }

@@ -35,7 +35,7 @@ if(!empty($pluginActivationDetails['plugin_activation_status']) && $pluginActiva
 			</div>
 			
 			<div class="form-group col-md-12 text-center m-t-60">
-				<div class="pluginActivation" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Verify Details for activation....</div>
+				<div class="pluginActivation" style="display: none;"><i class="fa fa-spinner fa-spin"></i>Activating Your Plugin</div>
 				<div class="alert-error-message activation-details-error" style="display: none;"></div>
 				<div class="alert-sucess-message activation-details-success" style="display: none;">Plugin activated successfully.</div>
 				<input type="button" value="Activate" class="btn btn-primary btn-radius btn-theme plugin_activation_btn <?php echo $activateButtonClass; ?>" onclick="activateWcPlugin()">
