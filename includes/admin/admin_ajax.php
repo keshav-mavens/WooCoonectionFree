@@ -1786,6 +1786,8 @@ function wc_import_application_products()
 								    {
 								        $wcproductSku=$slug;
 								    }
+								    $wcproductSku = substr($wcproductSku,0,10);//get the first 10 charaters from the sku
+                					$wcproductSku = $wcproductSku.$new_post_id;//append the product in sku to define as a unique....
 									$product_extra_data_array['_sku'] = $wcproductSku;
 								}	
 								//update post meta of newly created post...
@@ -1834,7 +1836,7 @@ function wc_import_application_products()
  			}
  			
  			//then call the "createImportProductsHtml" function to get the latest html...
-            $latestImportProductsHtml = '';//createImportProductsHtml($importProductsLimit,$importProductsOffset);
+            $latestImportProductsHtml = createImportProductsHtml($importProductsLimit,$importProductsOffset);
             echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestImportProductsHtml'=>$latestImportProductsHtml));
  		}
  	}

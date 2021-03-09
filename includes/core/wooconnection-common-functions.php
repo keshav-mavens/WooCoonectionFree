@@ -3269,8 +3269,9 @@ function createImportProductsSelect($existingwcProductResult,$iskp_product_id_co
 function getProductId($key, $value) {
   global $wpdb;
   $meta = $wpdb->get_results("SELECT * FROM `".$wpdb->postmeta."` WHERE meta_key='".$wpdb->escape($key)."' AND meta_value='".$wpdb->escape($value)."'");
-  if (is_array($meta) && !empty($meta) && isset($meta[1])) {
-    $meta = $meta[1];
+  if (is_array($meta) && !empty($meta))
+  {
+    $meta = end($meta);
   }   
   if (is_object($meta)) {
     return $meta->post_id;
