@@ -2684,19 +2684,8 @@ function infusionKeapProductsImport(){
             $('.load_products_import').removeClass('disable_anchor');
             if(responsedata.status == "1") {
                 $('.import_products_btn').removeClass("disable_anchor");
-                if(responsedata.latestImportProductsHtml != ""){
-                     $('.import_products_listing_class').html();
-                     $('.import_products_listing_class').html(responsedata.latestImportProductsHtml);
-                }
-                
-                //add select 2 for woocommerce products field
-                if($(".wc_import_products_dropdown").length){
-                    applySelectTwo('wc_import_products_dropdown');
-                }
-                
-                $('.all_products_checkbox_import').prop("checked", false);
-                $('.each_product_checkbox_import').prop("checked", false);
                 swal("Saved!", 'Products imported successfully.', "success");
+                reloadLatestAppProducts();
             }else{
                 $(".import-products-error").show();
                 $(".import-products-error").html('Something Went Wrong.');
