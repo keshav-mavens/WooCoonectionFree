@@ -1083,6 +1083,10 @@ function checkAddProductIsKp($access_token,$item,$parent_product_id='',$appEditi
           {
               $wcproductSku=$wcproductSlug;
           }
+          $wcproductSku = substr($wcproductSku,0,10);//get the first 10 chararters from the sku string....
+          if(isset($productId) && !empty($productId)){//check the product id exist.....
+            $wcproductSku = $wcproductSku.$productId;//append the product id in sku to define as a unique....
+          }
           $productDetailsArray['sku'] = $wcproductSku;
           $jsonData = json_encode($productDetailsArray);
           $createdProductId = createNewProduct($access_token,$jsonData,$callback_purpose,LOG_TYPE_FRONT_END,$wooconnectionLogger);

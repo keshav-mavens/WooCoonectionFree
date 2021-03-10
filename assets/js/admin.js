@@ -1786,11 +1786,8 @@ function wcProductsExport(){
             $(".exportProducts").hide();
             if(responsedata.status == "1") {
                 $('.export_products_btn').removeClass("disable_anchor");
-                if(responsedata.latestExportProductsHtml != ""){
-                     $('.export_products_listing_class').html();
-                     $('.export_products_listing_class').html(responsedata.latestExportProductsHtml);
-                }
                 swal("Saved!", 'Products exported successfully.', "success");
+                reloadLatestAppProducts();
             }else{
                 $(".export-products-error").show();
                 $(".export-products-error").html('Something Went Wrong.');
@@ -2442,8 +2439,13 @@ function loadMoreProducts(){
                         }
                     }else if(tabId[1] == 'table_match_products'){
                         $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
-                        //apply select two on match products tab.....
-                        applySelectTwo('application_match_products_dropdown');
+                        //execute loop on application products dropdown....
+                        $('.application_match_products_dropdown').each(function (i, obj){
+                            if (!$(obj).data('select2'))//check select2 is applied....
+                            {
+                                $(obj).select2();//then apply select2....
+                            }
+                        });
                     }else{
                         $("table#import_products_listing tbody").append(responsedata.moreProductsListing);
                         //check if div exist with class name.....

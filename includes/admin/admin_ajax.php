@@ -42,16 +42,10 @@ function activate_wooconnection_plugin()
 			$existingactivationkey = $plugin_settings['wc_license_key'];
 		}
 
-		//check post activation plugin version exist or not..
-		if(!empty($plugin_settings['plugin_version'])){
-			$existinactivationversion = $plugin_settings['plugin_version'];
-		}
-		
-
 		//check or set if email and key is same with existing plugin details....
 		$pluginActivated = RESPONSE_STATUS_FALSE;
 		if(!empty($existingactivationemail) && !empty($existingactivationkey)){
-			if($existingactivationemail == $pluginactivationemail && $existingactivationkey == $pluginactivationkey && $existinactivationversion == ACTIVATION_PRODUCT_ID){
+			if($existingactivationemail == $pluginactivationemail && $existingactivationkey == $pluginactivationkey){
 				$pluginActivated = RESPONSE_STATUS_TRUE;
 			}
 		}
@@ -84,12 +78,41 @@ function activate_wooconnection_plugin()
 		    		$plugin_details_array['wc_license_email'] = $pluginactivationemail;
 					$plugin_details_array['wc_license_key'] = $pluginactivationkey;
 					$plugin_details_array['plugin_activation_status'] = PLUGIN_ACTIVATED;
-					$plugin_details_array['plugin_version'] = ACTIVATION_PRODUCT_ID;
 		    		update_option('wc_plugin_details', $plugin_details_array);
 		    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'successmessage'=>'','licence_email'=>$pluginactivationemail,'licence_key'=>$pluginactivationkey));
 		    	}
 		    }
 		}
+	}
+	die();
+}
+
+//Wordpress hook : This action is triggered when user try to update trigger details then return the trigger existing values.....
+add_action( 'wp_ajax_wc_get_trigger_details', 'wc_get_trigger_details');
+//Function Definiation : wc_get_trigger_details
+function wc_get_trigger_details()
+{
+	if(!empty($_POST['triggerid']) && !empty($_POST['triggerid'])){
+		global $wpdb,$table_prefix;
+		$table_name = 'wooconnection_campaign_goals';
+		$wp_table_name = $table_prefix . "$table_name";
+		$triggerid = $_POST['triggerid'];
+    	$triggerDetails = $wpdb->get_results("SELECT * FROM ".$wp_table_name." WHERE id=".$triggerid);
+    	$triggerGoalName = "";
+        $triggerIntegrationName = "";
+        $triggerCallName = "";
+    	if(isset($triggerDetails) && !empty($triggerDetails)){
+    		if(!empty($triggerDetails[0]->wc_goal_name)){
+    			$triggerGoalName = $triggerDetails[0]->wc_goal_name;
+    		}
+    		if(!empty($triggerDetails[0]->wc_integration_name)){
+    			$triggerIntegrationName = strtolower($triggerDetails[0]->wc_integration_name);	
+    		}
+	        if(!empty($triggerDetails[0]->wc_call_name)){
+    			$triggerCallName = strtolower($triggerDetails[0]->wc_call_name);	
+    		}
+	    }
+    	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerGoalName'=>$triggerGoalName,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName));
 	}
 	die();
 }
@@ -110,38 +133,10 @@ function wc_update_trigger_details()
     			$triggerIntegrationName = strtolower(trim($_POST['integrationname']));	
     		}
 	        if(isset($_POST['callname']) && !empty($_POST['callname'])){
-    			if($_POST['edittriggername'] == 'Specific Product'){
-		            $triggerCallName = trim($_POST['callname']);
-		        	$displayCallName = '<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListing">'.$triggerCallName.'</a>';
-		        }
-		        else if($_POST['edittriggername'] == 'Item Added to Cart'){
-	        		$triggerCallName = trim($_POST['callname']);
-	        		$call_name = explode('added', $triggerCallName);
-	        		$displayCallName = 'added'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListingAdded">'.$call_name[1].'</a>';
-		        }elseif ($_POST['edittriggername'] == 'Review Left') {
-		        	$triggerCallName = trim($_POST['callname']);
-		        	$call_name = explode('review', $triggerCallName);
-	        		$displayCallName = 'review'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#productsListingReview">'.$call_name[1].'</a>';
-		        }
-		        else if($_POST['edittriggername'] == 'Coupon Code Applied'){
-		            $triggerCallName = trim($_POST['callname']);
-		            $call_name = explode('coupon', $triggerCallName);
-		        	$displayCallName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
-		        }
-		        else if($_POST['edittriggername'] == 'Referral Partner Order'){
-		            $triggerCallName = trim($_POST['callname']);
-		            $call_name = explode('refferal', $triggerCallName);
-		            $displayCallName = 'refferal'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#refferalListing">'.$call_name[1].'</a>';
-		       	}
-		        else{
-		            $triggerCallName = strtolower(trim($_POST['callname']));
-		        	$displayCallName = strtolower(trim($_POST['callname']));
-		        }
-
+    			$triggerCallName = strtolower(trim($_POST['callname']));	
     		}
-    		$data = array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName);
     		$updateResult = $wpdb->update($wp_table_name, array('wc_integration_name' => $triggerIntegrationName,'wc_call_name'=>$triggerCallName),array('id' => $_POST['edittriggerid']));
-    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName,'displayCallName'=>$displayCallName));
+    		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'triggerIntegrationName'=>$triggerIntegrationName,'triggerCallName'=>$triggerCallName));
     	}
 	}
 	die();	
@@ -164,11 +159,6 @@ function wc_load_import_export_tab_main_content(){
 				$limit = $_POST['newLimitExport'];
 			}
 			$latestHtml = createExportProductsHtml($limit,$offset);
-		}else if ($_POST['target_tab_id'] == '#table_import_products') {
-			if(isset($_POST['newLimitImport']) && !empty($_POST['newLimitImport'])){
-				$limit = $_POST['newLimitImport'];
-			}
-			$latestHtml = createImportProductsHtml($limit,$offset);
 		}else if ($_POST['target_tab_id'] == '#table_match_products') {
 			if(isset($_POST['newLimitMatch']) && !empty($_POST['newLimitMatch'])){
 				$limit = $_POST['newLimitMatch'];
@@ -209,11 +199,12 @@ function wc_export_wc_products()
         $callback_purpose = 'Export Woocommerce Product : Process of export woocommerce product to infusionsoft/keap application';
         //set the wooconnection log class.....
         $wooconnectionLogger = new WC_Logger();
+        //get the existing application app products...
+        $existinProducts = getExistingAppProducts();
         $appProductsTableName = $table_prefix.'authorize_application_products';
         //check select products exist in post data to export.....
         if(isset($_POST['wc_products']) && !empty($_POST['wc_products'])){
             foreach ($_POST['wc_products'] as $key => $value) {
-                $subDetailsArray = array();
                 $productDetailsArray = array();//Define variable..
                 $mapppedProductId = '';//Define variable..
                 $appProductData = array();
@@ -282,37 +273,14 @@ function wc_export_wc_products()
                		}else{
                         $wcproductShortDesc = "";
                     }
-					
-					//create final array with values.....
-	                $productDetailsArray['active'] = true;
-					$productDetailsArray['product_desc'] = $wcproductDesc;
+                    //create final array with values.....
+                    $productDetailsArray['active'] = true;
+                    $productDetailsArray['product_desc'] = $wcproductDesc;
                     $productDetailsArray['sku'] = $wcproductSku;
                     $productDetailsArray['product_price'] = $wcproductPrice;
                     $productDetailsArray['product_short_desc'] = $wcproductShortDesc;
-
-                    $wcProductType = $wcproductdetails->get_type();//get the product type...
-                    //get the manage subscription status...
-                    $subManageStatus = $_POST['export_manage_subscription_status'];
-                    //get the product is sold as a subscription...
-                    $productSoldAsSubscription = get_post_meta($value,'_product_sold_subscription',true);
-	                if($productSoldAsSubscription == 'yes' && stripos($wcProductType,'subscription') !== false && !empty($subManageStatus) && $subManageStatus == true){
-	                  	$typeProduct = ITEM_TYPE_SUBSCRIPTION;
-	    				$subscriptionInterval = get_post_meta($value,'_subscription_period_interval',true);//get the subscription interval......
-	    				$subscriptionPeriod = get_post_meta($value,'_subscription_period',true);//get the subscription period..
-	    				$subscriptionLength = get_post_meta($value,'_subscription_length',true);//get the subscription length....
-	    				//push the wc subscription values in array....
-	    				$subDetailsArray = array($subscriptionInterval,strtoupper($subscriptionPeriod),$subscriptionLength,$wcproductPrice);
-	    				//create json array to add subscription....
-	                    $appJsonSubPlanArray = '{"active":true,"cycle_type":"'.strtoupper($subscriptionPeriod).'","frequency":'.$subscriptionInterval.',"number_of_cycles":'.$subscriptionLength.',"plan_price":'.$wcproductPrice.',"subscription_plan_index":0}';
-	                }else{
-	                  $typeProduct = ITEM_TYPE_PRODUCT;
-	                }
-					
-					//check item type is a subscription then add new parameter in array that is "subscription_only"....
-                	if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
-                		$productDetailsArray['subscription_only'] = true;
-                	}
                     
+
                     //check the products data exist....
                     if(isset($productDetailsArray) && !empty($productDetailsArray)){
                     	$checkMappedProductExist = array();//define the empty array.....
@@ -329,7 +297,7 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $createdProductId);
                                 //update the woocommerce product sku......
                             	update_post_meta($value,'_sku',$wcproductSku);
-								$appProductData['app_product_id'] = $createdProductId;
+                            	$appProductData['app_product_id'] = $createdProductId;
 								$appProductData['app_product_name'] =  $wcproductName;
 								$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
 								$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
@@ -339,14 +307,8 @@ function wc_export_wc_products()
 								if(!empty($mapppedProductId) && isset($_POST['wc_product_primary_key_'.$mapppedProductId]) && !empty($_POST['wc_product_primary_key_'.$mapppedProductId])){
 									$wpdb->update($appProductsTableName,array('app_product_status'=>STATUS_DELETED),array('id'=>$_POST['wc_product_primary_key_'.$mapppedProductId]));
 								}
-
-								//check if product type is subscription then add subscription plan for paricular product....
-	                            if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
-	                            	//add subscription with particular application product....
-	                            	$createSubscription = addSubscriptionPlan($access_token,$createdProductId,$appJsonSubPlanArray,$wooconnectionLogger);
-	                            }
-	                        }
-						}
+                           	}                   
+                        }
                         //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
                         else{
 							$jsonData = json_encode($productDetailsArray);//covert array to json...
@@ -357,9 +319,8 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $updateProductId);
                                 //update the woocommerce product sku......
                                 update_post_meta($value,'_sku',$wcproductSku);
-								
-								if(isset($_POST['wc_product_primary_key_'.$updateProductId]) && !empty($_POST['wc_product_primary_key_'.$updateProductId])){
-								    $primaryKey = $_POST['wc_product_primary_key_'.$updateProductId];
+                                if(isset($_POST['wc_product_primary_key_'.$updateProductId]) && !empty($_POST['wc_product_primary_key_'.$updateProductId])){
+	                                $primaryKey = $_POST['wc_product_primary_key_'.$updateProductId];
 									$appProductData['app_product_name'] =  $wcproductName;
 									$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
 									$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
@@ -367,42 +328,12 @@ function wc_export_wc_products()
 									$appProductData['app_product_price'] = $wcproductPrice;
 									$response = $wpdb->update($appProductsTableName, $appProductData, array('id'=>$primaryKey));
                                 }
-								
-								//first check product is related to subscription or not....
-                            	if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
-	                            	//get the product details by product id...
-	                        		$appProductDetails = getApplicationProductDetail($mapppedProductId,$access_token);
-	                            	//check if subscription plans exist in product....
-	                            	if(isset($appProductDetails['subscription_plans']) && !empty($appProductDetails['subscription_plans'])){
-	                            		$appSubscriptionPlans = $appProductDetails['subscription_plans'];//assign the subscription plans in variable...
-	                            		//check same subscription plan exist in array.....
-	                            		$matchSubscriptionId = getMatchSubscriptionId($appSubscriptionPlans,$subDetailsArray);
-	                            		//if not exist then add the new subscription plan in it...
-	                            		if(empty($matchSubscriptionId)){
-	                            			//add subscription plan in particular mapped application product....
-	                            			$createSubscriptionPlan = addSubscriptionPlan($access_token,$updateProductId,$appJsonSubPlanArray,$wooconnectionLogger);
-	                            		}
-	                            	}else{//if not subscription plans exist then add new subscription plan....
-	                            		//add subscription plan in particular mapped application product.....
-	                            		$createSubscriptionPlan = addSubscriptionPlan($access_token,$updateProductId,$appJsonSubPlanArray,$wooconnectionLogger);
-	                            	}
-                            	}
 							}
                        	}
-					}
-				}
+                    }
+                }
             }
-            //set default offset and limit....
-            $exportOffset = 0;
-            $exportLimit = 200;
-            //check limit exist in post data or not......
-            if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
-            	//set the latest limit to fetch the records...
-            	$exportLimit = $_POST['newLimit'];
-            }
-            //then call the "createExportProductsHtml" function to get the latest html...
-            $latestExportProductsHtml = createExportProductsHtml($exportLimit,$exportOffset);
-            echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestExportProductsHtml'=>$latestExportProductsHtml));
+            echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
         }
     }
     die();
@@ -444,11 +375,20 @@ function wc_get_product_variation()
 	      	$available_variations = $wcProductDetails->get_available_variations();
 	      	//Get the list of active products from authenticate application....
   			$applicationProductsArray = getExistingAppProducts();
+			  //Get the application type and set the lable on the basis of it....
+		  	$configurationType = applicationType();
+		  	$type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;//Default....
+		  	if(isset($configurationType) && !empty($configurationType)){
+			    if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+			      $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+			    }else if ($configurationType == APPLICATION_TYPE_KEAP) {
+			      $type = APPLICATION_TYPE_KEAP_LABEL;
+			    }
+		  	}
   			//Set the application label on the basis of type...
   			$applicationLabel = applicationLabel($type);
   			$currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
 	  		if(isset($available_variations) && !empty($available_variations)){
-	  			$typeProduct == ITEM_TYPE_PRODUCT;
 	  			foreach ($available_variations as $key => $value) {
 	  				if($value['variation_is_active'] == STATUS_ACTIVE){
 	  					$mappedProductHtml = '';
@@ -458,12 +398,12 @@ function wc_get_product_variation()
 		                    $variationExistId = get_post_meta($value['variation_id'], 'is_kp_product_id', true);
 		                    //If variation relation exist then create select deopdown and set associative product selected....
 		                    if(isset($variationExistId) && !empty($variationExistId)){
-		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId,$typeProduct);
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$variationExistId);
 		                    }else if($variationExistId === '0'){
-		                    	$productsDropDown = createMatchProductsSelect($applicationProductsArray,'',$typeProduct);
+		                    	$productsDropDown = createMatchProductsSelect($applicationProductsArray);
 		                    }
 		                    else if(isset($_POST['matchProductId']) && !empty($_POST['matchProductId'])){
-		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$_POST['matchProductId'],$typeProduct);
+		                      $productsDropDown = createMatchProductsSelect($applicationProductsArray,$_POST['matchProductId']);
 		                    }
 		                    $mappedProductHtml = '<select class="application_match_products_dropdown" name="wc_product_match_with_'.$value['variation_id'].'" data-id="'.$value['variation_id'].'"><option value="0">Select '.$applicationLabel.' product</option>'.$productsDropDown.'</select>';
 	  					}else{
@@ -493,411 +433,6 @@ function wc_get_product_variation()
 	die();
 }
 
-//Dynamic Thankyou Override : wordpress hook is triggered when user try to update the default thanlkyou override.....
-add_action( 'wp_ajax_wc_save_thanks_default_override', 'wc_save_thanks_default_override');
-//Function Definiation : wc_save_thanks_default_override
-function wc_save_thanks_default_override()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		$defaultThanksArray = array();//define empty array...
-		//empty variables.....
-		$overriderDefaultType = '';
-		$overriderDefaultValue = '';
-		//check select redirect type in post data to save default thankyou override.........
-		if(isset($_POST['overrideredirecturltype']) && !empty($_POST['overrideredirecturltype'])){
-			if($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_POST){//check if redirect type is wordpress post....
-				if(!empty($_POST['redirectwordpresspost'])){
-					$defaultThanksArray['redirectType'] = $_POST['overrideredirecturltype'];
-					$defaultThanksArray['redirectValue'] = $_POST['redirectwordpresspost'];
-				}
-			}else if ($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_PAGE) {//check if redirect type is wordpress page....
-				if(!empty($_POST['redirectwordpresspage'])){
-					$defaultThanksArray['redirectType'] = $_POST['overrideredirecturltype'];
-					$defaultThanksArray['redirectValue'] = $_POST['redirectwordpresspage'];	
-				}
-			}else if ($_POST['overrideredirecturltype'] == DEFAULT_WORDPRESS_CUSTOM_URL){//check if redirect type is custom url....
-				if(!empty($_POST['customurl'])){
-					$defaultThanksArray['redirectType'] = $_POST['overrideredirecturltype'];
-					$defaultThanksArray['redirectValue'] = $_POST['customurl'];
-				}
-			}
-		}
-		//update the option "default_thankyou_details" to save the default thankyou details.......
-		update_option('default_thankyou_details', $defaultThanksArray);
-		//assign latest value in variables....
-		$overriderDefaultType = $defaultThanksArray['redirectType'];
-		$overriderDefaultValue = $defaultThanksArray['redirectValue'];
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'overriderDefaultType'=>$overriderDefaultType,'overriderDefaultValue'=>$overriderDefaultValue));
-	}
-	die();
-}
-
-//Dynamic Thankyou Override : wordpress hook is triggered when user try to add/update the product thankyou override.....
-add_action( 'wp_ajax_wc_save_thanks_product_override', 'wc_save_thanks_product_override');
-//Function Definiation : wc_save_thanks_product_override
-function wc_save_thanks_product_override()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		global $table_prefix, $wpdb;
-        
-        //override main table...
-        $override_table_name = 'wooconnection_thankyou_overrides';
-        $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
-    	
-    	//override products table name....
-        $override_product_table_name = 'wooconnection_thankyou_override_related_products';
-        $wp_thankyou_override_related_products = $table_prefix . "$override_product_table_name";
-		
-		$override_fields_array = array();//define empty array...
-		//check the post variables and assign to array....
-		if(isset($_POST['procductoverridename']) && !empty($_POST['procductoverridename'])){
-			$override_fields_array['wc_override_name'] = trim($_POST['procductoverridename']);
-		}
-		if(isset($_POST['productrediecturl']) && !empty($_POST['productrediecturl'])){
-			$override_fields_array['wc_override_redirect_url'] = trim($_POST['productrediecturl']);
-		}
-		if(!empty($_POST['redirectcartproducts'])){
-			$override_products_array = $_POST['redirectcartproducts'];
-		}
-		//assign redirect condition product thankyou override.....
-		$override_fields_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS;
-		//define empty variables to return in response....
-		$newOverrideHtml = '';
-		$overrideUpdatedTitle = '';
-		//first check the override id is exist in post data if exist then needs to perform update override process.....
-		if(isset($_POST['productoverrideid']) && !empty($_POST['productoverrideid'])){
-			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_array,array('id' => $_POST['productoverrideid']));
-			//if products array exist and not empty then add entries in tables..
-	   		if(isset($override_products_array) && !empty($override_products_array)){
-	   			$updateResultPro = $wpdb->update($wp_thankyou_override_related_products, array('wc_override_product_status' => STATUS_DELETED),array('override_id' => $_POST['productoverrideid']));
-				$override_pro_array = array();
-				$override_pro_array['override_id'] = $_POST['productoverrideid'];
-	   			foreach ($override_products_array as $key => $value) {
-	   				if(!empty($value)){
-	   					$override_pro_array['override_product_id'] = $value;
-						$result_check_group_products = $wpdb->insert($wp_thankyou_override_related_products,$override_pro_array);
-	   				}
-	   			}
-	   		}
-	   		//set the latest title of override in variable...
-	   		$overrideUpdatedTitle = $override_fields_array['wc_override_name'];
-	   	}else{//if override is not exist then need to add new product override....
-			//insert the record for custom field group 
-			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_array);
-			//check if insert successfull...
-			if($result_check_override_check){
-			   //get the last insert group id...
-			   $lastInsertId = $wpdb->insert_id;
-			   //check if last insert id exist...
-			   if(!empty($lastInsertId)){
-			   		//check if last insert id is exist then update the sort order ...
-			   		$updateResult = $wpdb->update($wp_thankyou_override_table_name, array('wc_override_sort_order' => $lastInsertId),array('id' => $lastInsertId));
-			   		
-			   		//if products array exist and not empty then add entries in tables..
-			   		if(isset($override_products_array) && !empty($override_products_array)){
-						$override_products_array_data = array();
-						$override_products_array_data['override_id'] = $lastInsertId;
-						foreach ($override_products_array as $key => $value) {
-							$override_products_array_data['override_product_id'] = $value;
-							$result_check_group_products = $wpdb->insert($wp_thankyou_override_related_products,$override_products_array_data);
-						}
-					}
-					//set the html of newly created override....
-					$newOverrideHtml .= '<li class="group-field" id="'.$lastInsertId.'"><span class="wc_thankyou_override_name override_name_inner"><span id="override_title_'.$lastInsertId.'">'.$override_fields_array['wc_override_name'].'</span><span class="listing-operators"><i class="fa fa-pencil edit_product_rule_override" title="Edit thankyou override" data-id="'.$lastInsertId.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS.'" data-id="'.$lastInsertId.'"></i></span></span></li>';
-				}
-			}
-		}	
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newOverrideLi'=>$newOverrideHtml,'overrideUpdateTitle'=>$overrideUpdatedTitle));
-	}
-	die();
-}
-
-//Dynamic Thankyou Override : wordpress hook is triggered when user try to add/update the product category thankyou override.....
-add_action( 'wp_ajax_wc_save_thanks_product_category_override', 'wc_save_thanks_product_category_override');
-//Function Definiation : wc_save_thanks_product_category_override
-function wc_save_thanks_product_category_override()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		global $table_prefix, $wpdb;
-		
-		//override main table...
-        $override_table_name = 'wooconnection_thankyou_overrides';
-        $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
-
-        //override cat table name....
-        $override_cat_table_name = 'wooconnection_thankyou_override_related_categories';
-        $wp_thankyou_override_related_categories = $table_prefix . "$override_cat_table_name";
-
-        $override_fields_cat_array = array();//define empty array...
-        //check the post variables and assign to array....
-		if(isset($_POST['productcatoverridename']) && !empty($_POST['productcatoverridename'])){
-			$override_fields_cat_array['wc_override_name'] = trim($_POST['productcatoverridename']);
-		}
-		if(isset($_POST['productcatrediecturl']) && !empty($_POST['productcatrediecturl'])){
-			$override_fields_cat_array['wc_override_redirect_url'] = trim($_POST['productcatrediecturl']);
-		}
-		if(!empty($_POST['redirectcartcategories'])){
-			$override_categories_array = $_POST['redirectcartcategories'];
-		}
-		//assign redirect condition product thankyou override.....
-		$override_fields_cat_array['wc_override_redirect_condition'] = REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES;
-		$catNewOverrHtml = '';
-		$catUpdatedOverrTitle = '';
-		//first check the override id is exist in post data if exist then needs to perform update override process.....
-		if(isset($_POST['productcatoverrideid']) && !empty($_POST['productcatoverrideid'])){
-			$result_check_update = $wpdb->update($wp_thankyou_override_table_name,$override_fields_cat_array,array('id' => $_POST['productcatoverrideid']));
-			//if products array exist and not empty then add entries in tables..
-			if(isset($override_categories_array) && !empty($override_categories_array)){
-	   			$updateResultCat = $wpdb->update($wp_thankyou_override_related_categories, array('wc_override_cat_status' => STATUS_DELETED),array('override_id' => $_POST['productcatoverrideid']));
-				$override_cat_array = array();
-				$override_cat_array['override_id'] = $_POST['productcatoverrideid'];
-	   			foreach ($override_categories_array as $key => $value) {
-	   				if(!empty($value)){
-	   					$override_cat_array['override_cat_id'] = $value;
-						$result_check_group_cat = $wpdb->insert($wp_thankyou_override_related_categories,$override_cat_array);
-	   				}
-	   			}
-	   		}
-	   		$catUpdatedOverrTitle = $override_fields_cat_array['wc_override_name'];
-		}else{//if override is not exist then need to add new product override....
-			//insert the record for custom field group 
-			$result_check_override_check = $wpdb->insert($wp_thankyou_override_table_name,$override_fields_cat_array);
-			//check if insert successfull...
-			if($result_check_override_check){
-			   //get the last insert group id...
-			   $lastInsertId = $wpdb->insert_id;
-			   //check if last insert id exist...
-			   if(!empty($lastInsertId)){
-			   		//check if last insert id is exist then update the sort order ...
-			   		$updateResult = $wpdb->update($wp_thankyou_override_table_name, array('wc_override_sort_order' => $lastInsertId),array('id' => $lastInsertId));
-			   		
-		   			//if categories array exist and not empty then add entries in tables..
-					if(isset($override_categories_array) && !empty($override_categories_array)){
-						$override_cat_array = array();
-						$override_cat_array['override_id'] = $lastInsertId;
-						foreach ($override_categories_array as $key => $value) {
-							$override_cat_array['override_cat_id'] = $value;
-							$result_check_cat_products = $wpdb->insert($wp_thankyou_override_related_categories,$override_cat_array);
-						}
-					}
-					
-					$catNewOverrHtml .= '<li class="group-field" id="'.$lastInsertId.'"><span class="wc_thankyou_override_name override_name_inner"><span id="cat_override_name_'.$lastInsertId.'">'.$override_fields_cat_array['wc_override_name'].'</span><span class="listing-operators"><i class="fa fa-pencil edit_product_category_rule_override" title="Edit thankyou override" data-id="'.$lastInsertId.'"></i><i class="fa fa-times delete_current_override_product" title="Delete thankyou override" data-type="'.REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES.'" data-id="'.$lastInsertId.'"></i></span></span></li>';
-				}
-			}
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'catNewOverrideLi'=>$catNewOverrHtml,'catUpdatedOverrTitle'=>$catUpdatedOverrTitle));	
-	}
-	die();
-}
-
-//Dynamic Thankyou Override : wordpress hook is triggered when user try to delete thankyou override.....
-add_action( 'wp_ajax_wc_delete_thankyou_override', 'wc_delete_thankyou_override');
-//Function Definiation : wc_delete_thankyou_override
-function wc_delete_thankyou_override()
-{
-	//first check the override id is exist in post data if exist then needs to perform delete override process.....
-	if(isset($_POST['overrideid']) && !empty($_POST['overrideid'])){
-		global $table_prefix, $wpdb;
-       	
-       	//override main table...
-        $override_table_name = 'wooconnection_thankyou_overrides';
-        $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
-    	
-    	//override products table name....
-        $override_product_table_name = 'wooconnection_thankyou_override_related_products';
-        $wp_thankyou_override_related_products = $table_prefix . "$override_product_table_name";
-
-        //override cat table name....
-        $override_cat_table_name = 'wooconnection_thankyou_override_related_categories';
-        $wp_thankyou_override_related_categories = $table_prefix . "$override_cat_table_name";
-		
-		//mark override as a deleted.....
-		$updateResult = $wpdb->update($wp_thankyou_override_table_name, array('wc_override_status' => STATUS_DELETED),array('id' => $_POST['overrideid']));
-		//if update done sucessfully then needs to update the related products entires as a deleted in "$wp_thankyou_override_related_products" table or in "$wp_thankyou_override_related_categories" table depends on the overridetype
-		if($updateResult){
-			if(isset($_POST['overridetype']) && !empty($_POST['overridetype'])){
-				if($_POST['overridetype'] == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
-					//get the related products and update the status to mark deleted...
-					$relatedProducts = get_override_related_products($_POST['overrideid']);
-					if(isset($relatedProducts) && !empty($relatedProducts)){
-						$updateResultPro = $wpdb->update($wp_thankyou_override_related_products, array('wc_override_product_status' => STATUS_DELETED),array('override_id' => $_POST['overrideid']));
-					}	
-				}else if ($_POST['overridetype'] == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
-					//get the related cat and update the status to mark deleted...
-					$relatedCat = get_override_related_cat($_POST['overrideid']);
-					if(isset($relatedCat) && !empty($relatedCat)){
-							$updateResultCat = $wpdb->update($wp_thankyou_override_related_categories, array('wc_override_cat_status' => STATUS_DELETED),array('override_id' => $_POST['overrideid']));
-					}
-				}
-			}	
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-//Dynamic Thankyou Override : wordpress hook is used to load the latest thanks override after add/edit/delete override.....
-add_action( 'wp_ajax_loading_thanks_overrides', 'loading_thanks_overrides');
-//Function Definiation : loading_thanks_overrides
-function loading_thanks_overrides()
-{
-	$thankyouOverridesListing = '';//define empty variable......
-	//check override type then on the basis of it call the common function........
-	if(isset($_POST['overridesType']) && !empty($_POST['overridesType'])){
-		if($_POST['overridesType'] == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
-			$thankyouOverridesListing = loading_product_thanks_overrides();//call the common function to get the list of product thankyou overrides
-		}else if ($_POST['overridesType'] == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES) {
-			$thankyouOverridesListing = loading_product_cat_thanks_overrides();//call the common function to get the list of product category thankyou overrides
-		}
-	}
-	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'thankyouOverridesListing'=>$thankyouOverridesListing));
-	die();
-}
-
-//Dynamic Thankyou Override : wordpress hook is triggered when user try to edit the product thankyou override and then get the product details and return to show in the form...............
-add_action( 'wp_ajax_wc_get_product_thankyou_override', 'wc_get_product_thankyou_override');
-//Function Definiation : wc_get_product_thankyou_override
-function wc_get_product_thankyou_override()
-{
-	//first check the override id is exist in post data if exist then get the details of it.....
-	if(isset($_POST['overrideid']) && !empty($_POST['overrideid']))
-	{
-		global $table_prefix, $wpdb;
-       	$override_table_name = 'wooconnection_thankyou_overrides';
-      	$wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
-        $thankyouOverride = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE id=".$_POST['overrideid']." and wc_override_status =".STATUS_ACTIVE);
-        if(isset($thankyouOverride) && !empty($thankyouOverride)){
-        	$overridename = "";//define empty variable......
-        	$overrideurl = "";//define empty variable......
-        	$products = array();//define empty array...
-        	if(!empty($thankyouOverride[0]->wc_override_name)){
-        		$overridename = $thankyouOverride[0]->wc_override_name;
-        	}
-        	if(!empty($thankyouOverride[0]->wc_override_redirect_url)){
-        		$overrideurl = $thankyouOverride[0]->wc_override_redirect_url;
-        	}
-        	if(!empty($thankyouOverride[0]->wc_override_redirect_condition)){
-        		if($thankyouOverride[0]->wc_override_redirect_condition == REDIRECT_CONDITION_CART_SPECIFIC_PRODUCTS){
-        			$products = get_override_related_products($_POST['overrideid']);//call the common function to get the product related to thanks override....
-        		}
-        	}
-        	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'overridename'=>$overridename,'overrideurl'=>$overrideurl,'products'=>$products));	
-        }	
-	}
-	die();
-}
-
-//Dynamic Thankyou Override : wordpress hook is triggered when user try to edit the product category thankyou override and then get the product details and return to show in the form...............
-add_action( 'wp_ajax_wc_get_product_cat_thankyou_override', 'wc_get_product_cat_thankyou_override');
-//Function Definiation : wc_get_product_cat_thankyou_override
-function wc_get_product_cat_thankyou_override()
-{
-	//first check the override id is exist in post data if exist then get the details of it.....
-	if(isset($_POST['overrideid']) && !empty($_POST['overrideid']))
-	{
-		global $table_prefix, $wpdb;
-       	$override_table_name = 'wooconnection_thankyou_overrides';
-      	$wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
-        $thankyouOverride = $wpdb->get_results("SELECT * FROM ".$wp_thankyou_override_table_name." WHERE id=".$_POST['overrideid']." and wc_override_status =".STATUS_ACTIVE);
-        if(isset($thankyouOverride) && !empty($thankyouOverride)){
-        	$overridename = "";//define empty variable......
-        	$overrideurl = "";//define empty variable......
-        	$categories = array();//define empty array...
-        	if(!empty($thankyouOverride[0]->wc_override_name)){
-        		$overridename = $thankyouOverride[0]->wc_override_name;
-        	}
-        	if(!empty($thankyouOverride[0]->wc_override_redirect_url)){
-        		$overrideurl = $thankyouOverride[0]->wc_override_redirect_url;
-        	}
-        	if(!empty($thankyouOverride[0]->wc_override_redirect_condition)){
-        		if($thankyouOverride[0]->wc_override_redirect_condition == REDIRECT_CONDITION_CART_SPECIFIC_CATEGORIES){
-        			$categories = get_override_related_cat($_POST['overrideid']);//call the common function to get the category related to thanks override....
-        		}
-        	}
-        	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'overridename'=>$overridename,'overrideurl'=>$overrideurl,'categories'=>$categories));	
-        }	
-	}
-	die();
-}
-
-//Dynamic Thankyou Override : wordpress hook is triggered when user try to sort the thank you page overrides and then update the sorting order.....
-add_action( 'wp_ajax_update_thankyou_overrides_order', 'update_thankyou_overrides_order');
-//Function Definiation : update_thankyou_overrides_order
-function update_thankyou_overrides_order()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		global $table_prefix, $wpdb;
-       	//override main table...
-        $override_table_name = 'wooconnection_thankyou_overrides';
-        $wp_thankyou_override_table_name = $table_prefix . "$override_table_name";
-        //then check the sort order array exist in post data.........
-		if(isset($_POST['order']) && !empty($_POST['order'])){
-			//excuate a loop to update the sort order......
-			for($i = 0; $i < count($_POST['order']); $i++) {
-			    $override_id = $_POST['order'][$i];
-			    $latest_order = $i+1;
-			    if(isset($override_id) && !empty($override_id)){
-					//check if last insert id is exist then update the sort order ...
-			   		$updateResult = $wpdb->update($wp_thankyou_override_table_name, array('wc_override_sort_order' => $latest_order),array('id' => $override_id));
-			    }
-			}
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call when user click on save button of custom field application form to save custom field in application.....
-add_action( 'wp_ajax_wc_save_cfield_app', 'wc_save_cfield_app');
-//Function Definiation : wc_save_cfield_app
-function wc_save_cfield_app(){
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		//first need to check whether the application authentication is done or not..
-        $applicationAuthenticationDetails = getAuthenticationDetails();
-        //get the access token....
-        $access_token = '';
-        if(!empty($applicationAuthenticationDetails)){//check authentication details......
-            if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
-                $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
-            }
-        }
-
-	    //check accesss token...
-	    if(!empty($access_token)){
-	  		if(!empty($_POST['cfieldformtypeapp']) && !empty($_POST['cfieldnameapp']))
-			{
-				//call the common function to add the custom field in application whether it is for contact or order.......
-				$customFieldRes = addCustomField($access_token,$_POST['cfieldformtypeapp'],$_POST['cfieldnameapp'],$_POST['cfieldtypeapp'],$_POST['cfieldheaderapp']);
-				if(is_int($customFieldRes)){
-					$preFields = getPredefindCustomfields();//call the common function to get the latest custom fields listing.
-					$cfieldOptions = "<option value=''></option>";
-					if(isset($preFields) && !empty($preFields)){
-						//create options html.....
-						foreach($preFields as $key => $value) {
-							$cfieldOptions .= "<optgroup label=\"$key\">";
-							foreach($value as $key1 => $value1) {
-								$cfieldoptionSelected = "";
-								$cfieldOptions .= '<option value="'.$key1.'"'.$cfieldoptionSelected.'>'.$value1.'</option>';
-							}
-							$cfieldOptions .= "</optgroup>";
-						}
-					}
-					//return response with options html....
-					echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldOptions'=>$cfieldOptions,'cfieldName'=>trim($_POST['cfieldnameapp'])));
-				}
-			}	
-	    }else{
-			echo json_encode(array('status'=>RESPONSE_STATUS_FALSE,'errormessage'=>'Authentication Error'));
-	    }
-	}
-	die();
-}		
-
 //Wordpress Hook : This hook is triggered to load the more product either for match products tab or export products tab.....
 add_action('wp_ajax_wc_load_more_products','wc_load_more_products');
 //Function Definition : wc_load_more_products
@@ -911,1013 +446,9 @@ function wc_load_more_products(){
 			}else if ($_POST['tabversion'] == 'table_match_products') {
 				//then call the "createMatchProductsHtml" function to get the next products for match products....
 				$moreProductsListing = createMatchProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
-			}else if($_POST['tabversion'] == 'table_import_products'){
-				$wooProductsDropdownLimit = $_POST['dropdownLimit'];
-				//then call the "createImportProductsHtml" function to get the next products for import products...
-				$moreProductsListing = createImportProductsHtml($_POST['productsLimit'],$_POST['productsOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE,$wooProductsDropdownLimit);
 			}
 	    }
 	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'moreProductsListing'=>$moreProductsListing));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call to get the custom fields tab on change custom field type e.g contact, order at the time of custom field creation....
-add_action( 'wp_ajax_wc_cfield_app_tabs', 'wc_cfield_app_tabs');
-//Function Definiation : wc_cfield_app_tabs
-function wc_cfield_app_tabs(){
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		//first check form type.....
-		if(isset($_POST['cfieldFormType']) && !empty($_POST['cfieldFormType'])){
-		 	//call the common function to get the tabs on the basis of form type e.g contact , order.......
-		 	$cfieldtabsHtml =	cfRelatedTabs($_POST['cfieldFormType']);
-		}
-		//return response with tabs html....
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldtabsHtml'=>$cfieldtabsHtml));
-	}
-	die();
-}
-
-
-
-//Custom fields Tab : wordpress hook is call to get the custom fields headers on change custom field tab at the time of custom field creation....
-add_action( 'wp_ajax_wc_cfield_app_headers', 'wc_cfield_app_headers');
-//Function Definiation : wc_cfield_app_headers
-function wc_cfield_app_headers(){
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		//first check form type.....
-		if(isset($_POST['cfieldFormTab']) && !empty($_POST['cfieldFormTab'])){
-			//call the common function to get the headers on the basis of tab.......
-			$cfieldheaderHtml =	cfRelatedHeaders($_POST['cfieldFormTab']);
-		}
-		//return response with headers html....
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldheaderHtml'=>$cfieldheaderHtml));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call when user click on save button of custom field group form.....
-add_action( 'wp_ajax_wc_save_cfield_group', 'wc_save_cfield_group');
-//Function Definiation : wc_save_cfield_group
-function wc_save_cfield_group()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		
-		global $table_prefix, $wpdb;
-        //define table name....
-        $cfield_group_table_name = 'wooconnection_custom_field_groups';
-        $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
-        
-        $cfield_group_fields_array = array();//empty array....
-		//check group name.....
-		if(isset($_POST['cfieldgroupname']) && !empty($_POST['cfieldgroupname'])){
-			$cfield_group_fields_array['wc_custom_field_group_name'] = trim($_POST['cfieldgroupname']);
-		}
-		//define empty variables to return response.....
-		$cfieldGroupUpdatedName = '';
-		$newlyAddedCfieldGroup = '';
-		//check group id then needs to update......
-		if(isset($_POST['cfieldgroupid']) && !empty($_POST['cfieldgroupid'])){
-
-			$result_cfield_group = $wpdb->update($cfield_group_table_name,$cfield_group_fields_array,array('id' => $_POST['cfieldgroupid']));
-			//set the custom field group updated name....
-			$cfieldGroupUpdatedName = $cfield_group_fields_array['wc_custom_field_group_name'];
-		}else{//else needs to create new custom field group....
-			$result_cfield_group = $wpdb->insert($cfield_group_table_name,$cfield_group_fields_array);
-			if($result_cfield_group){
-			    $cfieldGroupLastInsertId = $wpdb->insert_id;
-			    //check last created custom field group id.....
-			    if(!empty($cfieldGroupLastInsertId)){
-			    	//then update the sort order with its primary key....
-			   		$cfieldGroupUpdateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_sort_order' => $cfieldGroupLastInsertId),array('id' => $cfieldGroupLastInsertId));
-				   	//set the html of newly created custom field group.....
-				   	$newlyAddedCfieldGroup  .= '<li class="group-list" id="'.$cfieldGroupLastInsertId.'"><span class="group-name"><span id="custom_field_group_title_'.$cfieldGroupLastInsertId.'">'.$cfield_group_fields_array['wc_custom_field_group_name'].'</span><span class="listing-operators"><i class="fa fa-plus addgroupcfield" title="Add custom field to this group" data-id="'.$cfieldGroupLastInsertId.'"></i><i class="fa fa-pencil editcfieldgroup" title="Edit custom field group details" data-id="'.$cfieldGroupLastInsertId.'"></i><i class="fa fa-eye showhidecfieldgroup" title="Hide custom field group with its custom fields" data-id="'.$cfieldGroupLastInsertId.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i><i class="fa fa-times deletecfieldgroup" title="Delete custom field group" data-id="'.$cfieldGroupLastInsertId.'"></i></span></span></li>';
-			   	}
-			}
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'updatedGroupName'=>$cfieldGroupUpdatedName,'newCfieldGroupLi'=>$newlyAddedCfieldGroup));
-    }
-    die();
-}
-
-//Custom fields Tab : wordpress hook is call to load the all custom fields at the time delete,edit,add custom field....
-add_action( 'wp_ajax_wc_loading_cfields', 'wc_loading_cfields');
-//Function Definiation : wc_loading_cfields
-function wc_loading_cfields()
-{
-	$cfieldhtml = get_cfields_groups();//call the function to get the custom fields
-	//return response with html....
-	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldhtml'=>$cfieldhtml));
-	die();
-}
-
-//Custom fields Tab : Code is used get the custom fields groups and its custom fields then create html....
-function get_cfields_groups(){
-  global $wpdb,$table_prefix;
-  //define table name....
-  $cfield_group_table_name = 'wooconnection_custom_field_groups';
-  $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
-  //get custom field groups which is not deleted......
-  $customFieldGroups = $wpdb->get_results("SELECT * FROM ".$cfield_group_table_name." WHERE wc_custom_field_group_status !=".STATUS_DELETED." ORDER BY wc_custom_field_sort_order ASC");
-  $customFieldsListing = "";//define variable.....
-  //check if data is not empty rotate loop....
-  if(isset($customFieldGroups) && !empty($customFieldGroups)){
-    foreach ($customFieldGroups as $key => $value) {
-        if(!empty($value->id)){
-        	$custom_fields_html = get_cfields($value->id);//get the custom fields by parent group id....
-        	//set show/hide icon on the basis of its status.....
-        	if($value->wc_custom_field_group_status == STATUS_ACTIVE){
-        		$showhidehtml = '<i class="fa fa-eye showhidecfieldgroup" title="Hide custom field group with its custom fields" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i>';
-        	}else{
-        		$showhidehtml = '<i class="fa fa-eye-slash showhidecfieldgroup" title="Show custom field group with its custom fields" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
-        	}
-        	//concate a html inside loop....
-        	$customFieldsListing .=  '<li class="group-list" id="'.$value->id.'"><span class="group-name"><span id="custom_field_group_title_'.$value->id.'">'.$value->wc_custom_field_group_name.'</span><span class="listing-operators"><i class="fa fa-plus addgroupcfield" title="Add custom field to this group" data-id="'.$value->id.'"></i>
-        		<i class="fa fa-pencil editcfieldgroup" title="Edit custom field group details" data-id="'.$value->id.'">
-        		</i>'.$showhidehtml.'<i class="fa fa-times deletecfieldgroup" title="Delete custom field group" data-id="'.$value->id.'"></i></span></span>'.$custom_fields_html.'</li>';
-        }
-    }
-  }
-  return $customFieldsListing;//return html
-}
-
-//Custom fields Tab : Code is used get the custom fields by parent group id then create html....
-function get_cfields($groupid){
-	global $wpdb,$table_prefix;
-	//define table name....
-	$cfields_table_name = 'wooconnection_custom_fields';
- 	$cfields_table_name = $table_prefix . "$cfields_table_name";
-	$customFieldsHtml = '';
-	//check parent group id....
-	if(!empty($groupid)){
-		//get all custom fields related to particular group......
-		$customFields = $wpdb->get_results("SELECT * FROM ".$cfields_table_name." WHERE wc_cf_group_id = ".$groupid." and wc_cf_status!=".STATUS_DELETED." ORDER BY wc_cf_sort_order ASC");
-		//check if data is not empty rotate loop....
-		if(isset($customFields) && !empty($customFields)){
-			$customFieldsHtml .= '<ul class="group-fields group_custom_field_'.$groupid.'">';
-			foreach ($customFields as $key => $value) {
-				//set show/hide icon on the basis of its status.....
-				if($value->wc_cf_status == STATUS_ACTIVE){
-	        		$showhidehtml = '<i class="fa fa-eye showhidecfield" title="Hide custom field" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i>';
-	        	}else{
-	        		$showhidehtml = '<i class="fa fa-eye-slash showhidecfield" title="Show custom field" data-id="'.$value->id.'" data-target="'.CF_FIELD_ACTION_SHOW.'" aria-hidden="true"></i>';	
-	        	}
-				//concate a html inside loop....
-				$customFieldsHtml .= '<li class="group-field" id="'.$value->id.'"><span id="custom_field_title_'.$value->id.'">'.$value->wc_cf_name.'</span><span class="listing-operators"><i class="fa fa-pencil editcfield" title="Edit Current Custom Field" data-id="'.$value->id.'"></i>'.$showhidehtml.'<i class="fa fa-times deletecfield" title="Delete Current Custom Field" data-id="'.$value->id.'"></i></span></li>';
-			}
-			$customFieldsHtml .= '</ul>';
-		}
-	}
-	return $customFieldsHtml;//return html
-}
-
-//Custom fields Tab : wordpress hook is call when user click on "*" icon of particular custom field group then proceed the delete process......
-add_action( 'wp_ajax_wc_delete_cfield_group', 'wc_delete_cfield_group');
-//Function Definiation : wc_delete_cfield_group
-function wc_delete_cfield_group()
-{
-	//check custom field group id exist in post data.....
-	if(isset($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupId'])){
-		global $table_prefix, $wpdb;
-       	//define table name....
-       	$cfield_group_table_name = 'wooconnection_custom_field_groups';
-        $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
-        //update custom field status in database....
-        $updateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_group_status' => STATUS_DELETED),array('id' => $_POST['cfieldgroupId']));
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call when user click on "edit" icon of particular custom field group then hide the custom fields listing and show the custom field group form......
-add_action( 'wp_ajax_wc_get_cfield_group', 'wc_get_cfield_group');
-//Function Definiation : wc_get_cfield_group
-function wc_get_cfield_group()
-{
-	//check custom field group id exist in post data.....
-	if(isset($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupId']))
-	{
-		global $table_prefix, $wpdb;
-       	//define table name....
-       	$cfield_group_table_name = 'wooconnection_custom_field_groups';
-        $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
-        //get all custom field group data on the basis of id......
-        $cfieldgroup = $wpdb->get_results("SELECT * FROM ".$cfield_group_table_name." WHERE id=".$_POST['cfieldgroupId']." and wc_custom_field_group_status !=".STATUS_DELETED);
-        //check if data is not empty....
-        if(isset($cfieldgroup) && !empty($cfieldgroup)){
-        	$cfieldgroupname = "";//define empty variable....
-        	//set the group name....
-        	if(!empty($cfieldgroup[0]->wc_custom_field_group_name)){
-        		$cfieldgroupname = $cfieldgroup[0]->wc_custom_field_group_name;
-        	}
-        	//return response with custom field group name....
-        	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldgroupname'=>$cfieldgroupname));	
-        }	
-	}
-	die();
-}
-
-
-//Custom fields Tab : wordpress hook is call when user click on "eye" or "eye-slash" icon of particular custom field group then proceed to set status show or hide custom field group and also of its custom fields......
-add_action( 'wp_ajax_wc_update_cfieldgroup_showhide', 'wc_update_cfieldgroup_showhide');
-//Function Definiation : wc_update_cfieldgroup_showhide
-function wc_update_cfieldgroup_showhide()
-{
-	if(isset($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupId']) && !empty($_POST['cfieldgroupactiontype'])){
-		global $table_prefix, $wpdb;
-       	//define table names....
-       	$cfield_group_table_name = 'wooconnection_custom_field_groups';
-        $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
-        $cfields_table_name = 'wooconnection_custom_fields';
-    	$cfields_table_name = $table_prefix . "$cfields_table_name";
-
-		//set show/hide on the basis of action type.....
-		if($_POST['cfieldgroupactiontype'] == CF_FIELD_ACTION_SHOW){
-			$status = STATUS_ACTIVE;
-		}elseif ($_POST['cfieldgroupactiontype'] == CF_FIELD_ACTION_HIDE) {
-			$status = STATUS_INACTIVE;
-		}
-		//update custom field group status....
-		$updateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_group_status' => $status),array('id' => $_POST['cfieldgroupId']));
-		//once the group status is update then update the show/hide status of its custom  fields.....
-		if($updateResult){
-			$wpdb->query($wpdb->prepare('UPDATE '.$cfields_table_name.' SET wc_cf_status = '.$status.' WHERE wc_cf_group_id = '.$_POST['cfieldgroupId'].' and  wc_cf_status != '.STATUS_DELETED.''));
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call when user click on save button of custom field form.....
-add_action( 'wp_ajax_wc_save_groupcfield', 'wc_save_groupcfield');
-//Function Definiation : wc_save_groupcfield
-function wc_save_groupcfield()
-{
-	if(isset($_POST) && !empty($_POST)){
-		global $table_prefix, $wpdb;
-		//define table names....
-		$cfields_table_name = 'wooconnection_custom_fields';
-    	$cfields_table_name = $table_prefix . "$cfields_table_name";
-		
-		$cfields_array = array();//define empty array....
-		if(isset($_POST['cfieldname']) && !empty($_POST['cfieldname'])){
-			$cfields_array['wc_cf_name'] = trim($_POST['cfieldname']);
-		}
-		//check field type then set or get the values in variables....
-		if(isset($_POST['cfieldtype']) && !empty($_POST['cfieldtype'])){
-			$cfields_array['wc_cf_type'] = $_POST['cfieldtype'];
-			if($_POST['cfieldtype'] == CF_FIELD_TYPE_DROPDOWN || $_POST['cfieldtype'] == CF_FIELD_TYPE_RADIO)
-			{
-	         	$customOptionsArray = array();//define empty array....
-	         	$cfieldsOptionBreak = '';
-	         	if(isset($_POST['cfieldoptionvalue']) && !empty($_POST['cfieldoptionvalue']) && isset($_POST['cfieldoptionlabel']) && !empty($_POST['cfieldoptionlabel']))
-				{
-				    $cfields_value = $_POST['cfieldoptionvalue'];
-				    $cfields_label = $_POST['cfieldoptionlabel'];
-				    if(count($cfields_value) > 0)
-				    {               
-				        for( $i = 1; $i <= count($cfields_value); $i++)
-				        {
-				            $customOptionsArray[] =  $cfields_value[$i].'#'.$cfields_label[$i];
-				        }
-				    }
-				}
-	            if(isset($customOptionsArray) && !empty($customOptionsArray)){
-	            	$cfieldsOptionBreak = implode('@', $customOptionsArray);
-	            	if ($cfieldsOptionBreak != ''){
-	            		$cfields_array['wc_cf_options'] = $cfieldsOptionBreak;
-	            	}
-	            }
-	            if(isset($_POST['cfielddefault2value'])){
-	            	$cfields_array['wc_cf_default_value'] = trim($_POST['cfielddefault2value']);
-	            }
-	     		
-	     	}else if ($_POST['cfieldtype'] == CF_FIELD_TYPE_CHECKBOX) {
-	     		if(isset($_POST['cfielddefault1value'])){
-	            	$cfields_array['wc_cf_default_value'] = trim($_POST['cfielddefault1value']);
-	            }
-	     	}
-		}
-		if(isset($_POST['cfieldmandatory']) && !empty($_POST['cfieldmandatory'])){
-			$cfields_array['wc_cf_mandatory'] = $_POST['cfieldmandatory'];
-		}
-		if(isset($_POST['cfieldplaceholder'])){
-			$cfields_array['wc_cf_placeholder'] = trim($_POST['cfieldplaceholder']);
-		}
-		if(isset($_POST['cfieldmapping']) && !empty($_POST['cfieldmapping'])){
-			$cfieldMappedWith = trim($_POST['cfieldmapping']);
-			if(strpos($cfieldMappedWith, "FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":") !== false) {
-				$mappedcfieldData = explode("FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":", $cfieldMappedWith);
-				$mappedWith = $mappedcfieldData[1];
-				$cfields_array['wc_cf_mapped_field_type'] = CUSTOM_FIELD_FORM_TYPE_CONTACT;
-			}elseif (strpos($cfieldMappedWith, "FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":") !== false) {
-				$mappedcfieldData = explode("FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":", $cfieldMappedWith);
-				$mappedWith = $mappedcfieldData[1];
-				$cfields_array['wc_cf_mapped_field_type'] = CUSTOM_FIELD_FORM_TYPE_ORDER;
-			}
-			$cfields_array['wc_cf_mapped'] = $mappedWith;
-		}else{
-			$cfields_array['wc_cf_mapped'] = '';
-		}
-		//define empty variiables to return in response....
-		$customFieldLatestTitle = '';
-		$newlyAddedCustomFieldLi = '';
-		//check if custom field id is exist then perform the update process....
-		if(isset($_POST['cfieldid']) && !empty($_POST['cfieldid'])){
-			$resultcfieldupdate = $wpdb->update($cfields_table_name,$cfields_array,array('id' => $_POST['cfieldid']));
-			$customFieldLatestTitle = $cfields_array['wc_cf_name'];//set the latest updated name....
-		}else{//else needs to create new custom field group....
-			if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
-				if(isset($_POST['cfieldparentgroupid']) && !empty($_POST['cfieldparentgroupid'])){
-					$cfields_array['wc_cf_group_id'] = $_POST['cfieldparentgroupid'];
-				}
-				$resultcfield = $wpdb->insert($cfields_table_name,$cfields_array);
-				if($resultcfield){
-					//check last created custom field id.....
-				   	$lastcfieldInsertId = $wpdb->insert_id;
-				   	if(!empty($lastcfieldInsertId)){
-				   		//then update the sort order with its primary key....
-				   		$updateResult = $wpdb->update($cfields_table_name, array('wc_cf_sort_order' => $lastcfieldInsertId),array('id' => $lastcfieldInsertId));
-				   		//set the html of newly created custom field....
-				   		$newlyAddedCustomFieldLi .= '<li class="group-field" id="'.$lastcfieldInsertId.'"><span id="custom_field_title_'.$lastcfieldInsertId.'">'.$cfields_array['wc_cf_name'].'</span><span class="listing-operators"><i class="fa fa-pencil editcfield" title="Edit Current Custom Field" data-id="'.$lastcfieldInsertId.'"></i><i class="fa fa-eye showhidecfield" title="Hide custom field" data-id="'.$lastcfieldInsertId.'" data-target="'.CF_FIELD_ACTION_HIDE.'" aria-hidden="true"></i><i class="fa fa-times deletecfield" title="Delete Current Custom Field" data-id="'.$lastcfieldInsertId.'"></i></span></li>';
-				   	}
-				}
-			}
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'customFieldUpdatedTitle'=>$customFieldLatestTitle,'newAddedCustomField'=>$newlyAddedCustomFieldLi));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call when user click on "eye" or "eye-slash" icon of particular custom field then proceed to set status show or hide custom field......
-add_action( 'wp_ajax_wc_update_cfield_showhide', 'wc_update_cfield_showhide');
-//Function Definiation : wc_update_cfield_showhide
-function wc_update_cfield_showhide()
-{
-	//check if custom field id is exist then perform the update show/hide status process....
-	if(isset($_POST['cfieldId']) && !empty($_POST['cfieldId']) && !empty($_POST['cfieldactiontype'])){
-		global $table_prefix, $wpdb;
-		//define table names....
-       	$cfield_table_name = 'wooconnection_custom_fields';
-        $cfield_table_name = $table_prefix . "$cfield_table_name";
-        //set show/hide on the basis of action type.....
-		if($_POST['cfieldactiontype'] == CF_FIELD_ACTION_SHOW){
-			$status = STATUS_ACTIVE;
-		}elseif ($_POST['cfieldactiontype'] == CF_FIELD_ACTION_HIDE) {
-			$status = STATUS_INACTIVE;
-		}
-		//update custom field group status....
-		$updateResult = $wpdb->update($cfield_table_name, array('wc_cf_status' => $status),array('id' => $_POST['cfieldId']));
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-
-//Custom fields Tab : wordpress hook is call when user click on "*" icon of particular custom field then proceed the delete process.....
-add_action( 'wp_ajax_wc_delete_cfield', 'wc_delete_cfield');
-//Function Definiation : wc_delete_cfield
-function wc_delete_cfield()
-{
-	//check if custom field id is exist then proceed delete process....
-	if(isset($_POST['cfieldId']) && !empty($_POST['cfieldId'])){
-		global $table_prefix, $wpdb;
-		//define table names....
-		$cfield_table_name = 'wooconnection_custom_fields';
-    	$cfield_table_name = $table_prefix . "$cfield_table_name";
-    	//update custom field status....
-		$updateResult = $wpdb->update($cfield_table_name, array('wc_cf_status' => STATUS_DELETED),array('id' => $_POST['cfieldId']));
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call when user click on "edit" icon of particular custom field then hide the custom fields listing and show the custom field form......
-add_action( 'wp_ajax_wc_get_cfield', 'wc_get_cfield');
-//Function Definiation : wc_get_cfield
-function wc_get_cfield()
-{
-	//check if custom field id is exist then get then get the details of it....
-	if(isset($_POST['cfieldId']) && !empty($_POST['cfieldId']))
-	{
-		global $table_prefix, $wpdb;
-		//define table names....
-		$cfield_table_name = 'wooconnection_custom_fields';
-    	$cfield_table_name = $table_prefix . "$cfield_table_name";
-    	//get all custom field data on the basis of id......
-    	$cfieldData = $wpdb->get_results("SELECT * FROM ".$cfield_table_name." WHERE id=".$_POST['cfieldId']." and wc_cf_status !=".STATUS_DELETED);
-    	if(isset($cfieldData) && !empty($cfieldData)){
-    		//define empty variables and arrays....
-    		$cfieldname = "";
-    		$cfieldtype = "";
-    		$cfieldplaceholder = "";
-    		$cfieldoptionsarray = "";
-    		$cfieldmandatory = "";
-    		$cfieldmapped = "";
-    		$cfieldoptionValues = array();
-    		$cfieldoptionVal = "";
-    		$cfieldoptionLab = "";
-    		$cfoptionsarray = array();
-    		$cfieldoptionsHtml = '';
-    		$cfieldoptionsCount = '';
-    		$cfielddefaultvalue = '';
-    		//set and get the values.....
-    		if(!empty($cfieldData[0]->wc_cf_name)){
-        		$cfieldname = $cfieldData[0]->wc_cf_name;
-        	}
-        	if(!empty($cfieldData[0]->wc_cf_type)){
-        		$cfieldtype = $cfieldData[0]->wc_cf_type;
-        	}
-        	if(!empty($cfieldtype)){
-        		if($cfieldtype == CF_FIELD_TYPE_TEXT || $cfieldtype == CF_FIELD_TYPE_TEXTAREA || $cfieldtype == CF_FIELD_TYPE_DATE){
-        			if(!empty($cfieldData[0]->wc_cf_placeholder)){
-						$cfieldplaceholder = $cfieldData[0]->wc_cf_placeholder;
-        			}
-        		}elseif ($cfieldtype == CF_FIELD_TYPE_DROPDOWN || $cfieldtype == CF_FIELD_TYPE_RADIO) {
-        			if(!empty($cfieldData[0]->wc_cf_options)){
-        				$cfieldoptionsarray = explode("@",$cfieldData[0]->wc_cf_options);
-    					foreach ($cfieldoptionsarray as $key => $value) {
-    						$cfieldoptionValues[] = $value;
-    					}
-    				}
-        		}
-        	}
-        	foreach ($cfieldoptionValues as $key => $value) {
-    			$cfoptionsarray[] = explode("#",$value);
-    		}
-    		$cfieldoptionsCount =	count($cfoptionsarray);
-			if($cfieldoptionsCount == 1){
-				$cfieldoptionVal = $cfoptionsarray[0][0];
-				$cfieldoptionLab = $cfoptionsarray[0][1];
-			}else{
-				$cfieldoptionVal = $cfoptionsarray[0][0];
-				$cfieldoptionLab = $cfoptionsarray[0][1];
-				$arraycount = 2;
-				foreach(array_slice($cfoptionsarray,1) as $key=>$value)
-				{
-				    $cfieldoptionsHtml .= '<div class="form-group row custom_options_'.$arraycount.'"><label class="col-lg-2 col-md-3 col-sm-12 col-12 col-form-label"></label><div class="col-lg-10 col-md-9 col-sm-12 col-12"><div class="row"><div class="col-lg-6"><input type="text" name="cfieldoptionvalue['.$arraycount.']" placeholder="Field Value" id="cfieldoptionvalue_'.$arraycount.'" value="'.$value[0].'" required></div><div class="col-lg-5"><input type="text" name="cfieldoptionlabel['.$arraycount.']" placeholder="Field Label" id="cfieldoptionlabel_'.$arraycount.'" value="'.$value[1].'" required></div><div class="col-lg-1 removecfieldoptions" data-target="custom_options_'.$arraycount.'"><i class="fa fa-trash"></i></div></div></div></div>';
-						$arraycount++;
-				}
-			}
-			if(!empty($cfieldData[0]->wc_cf_default_value)){
-        		$cfielddefaultvalue = $cfieldData[0]->wc_cf_default_value;
-        	}
-        	if(!empty($cfieldData[0]->wc_cf_mandatory)){
-        		$cfieldmandatory = $cfieldData[0]->wc_cf_mandatory;
-        	}
-        	if(!empty($cfieldData[0]->wc_cf_mapped)){
-        		$cfieldmapped = $cfieldData[0]->wc_cf_mapped;
-        		if(!empty($cfieldData[0]->wc_cf_mapped_field_type)){
-        			$cfieldMappedWith = 'FormType:'.$cfieldData[0]->wc_cf_mapped_field_type.':'.$cfieldmapped;
-        		}
-        	}
-        	//return response with all fields of custom fields form....
-        	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfieldname'=>$cfieldname,'cfieldtype' => $cfieldtype,'cfieldplaceholder'=>$cfieldplaceholder,'cfielddefaultvalue'=>$cfielddefaultvalue,'cfieldmandatory'=>$cfieldmandatory,'cfieldmapped'=>$cfieldMappedWith,'cfieldoptionsCount'=>$cfieldoptionsCount,'cfieldoptionVal'=>$cfieldoptionVal,'cfieldoptionLab'=>$cfieldoptionLab,'cfieldoptionsHtml'=>$cfieldoptionsHtml));
-        }
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call apply sortable event on custom field groups.....
-add_action( 'wp_ajax_wc_update_cfieldgroups_order', 'wc_update_cfieldgroups_order');
-//Function Definiation : wc_update_cfieldgroups_order
-function wc_update_cfieldgroups_order()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		global $table_prefix, $wpdb;
-		//define table names....
-		$cfield_group_table_name = 'wooconnection_custom_field_groups';
-        $cfield_group_table_name = $table_prefix . "$cfield_group_table_name";
-        //check custom field group order exist in post data.........
-		if(isset($_POST['cfieldgrouplatestorder']) && !empty($_POST['cfieldgrouplatestorder'])){
-			for($i = 0; $i < count($_POST['cfieldgrouplatestorder']); $i++) {
-			    $cfieldgroupid = $_POST['cfieldgrouplatestorder'][$i];
-			    $cfieldgrouplatestorder = $i+1;
-			    //check group id and then update the sorting order with latest order come in post data.....
-			    if(isset($cfieldgroupid) && !empty($cfieldgroupid)){
-					$groupupdateResult = $wpdb->update($cfield_group_table_name, array('wc_custom_field_sort_order' => $cfieldgrouplatestorder),array('id' => $cfieldgroupid));
-			    }
-			}
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call apply sortable event on custom fields.....
-add_action( 'wp_ajax_wc_update_groupcfields_order', 'wc_update_groupcfields_order');
-//Function Definiation : wc_update_groupcfields_order
-function wc_update_groupcfields_order()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		global $table_prefix, $wpdb;
-		//define table names....
-		$cfield_table_name = 'wooconnection_custom_fields';
-    	$cfield_table_name = $table_prefix . "$cfield_table_name";
-    	//check custom field group exist in post data.........
-		if(isset($_POST['groupcfieldlatestorder']) && !empty($_POST['groupcfieldlatestorder'])){
-			for($i = 0; $i < count($_POST['groupcfieldlatestorder']); $i++) {
-			    $groupcfieldid = $_POST['groupcfieldlatestorder'][$i];
-			    $groupcfieldlatestorder = $i+1;
-			    //check custom field id and then update the sorting order with latest order come in post data.....
-			    if(isset($groupcfieldid) && !empty($groupcfieldid)){
-					$cfieldupdateResult = $wpdb->update($cfield_table_name, array('wc_cf_sort_order' => $groupcfieldlatestorder),array('id' => $groupcfieldid));
-			    }
-			}
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call apply sortable event on custom fields.....
-add_action( 'wp_ajax_wc_update_standard_cfields_mapping', 'wc_update_standard_cfields_mapping');
-//Function Definiation : wc_update_standard_cfields_mapping
-function wc_update_standard_cfields_mapping()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		global $table_prefix, $wpdb;
-		//define table names....
-		$standard_cfield_table_name = 'wooconnection_standard_custom_field_mapping';
-    	$standard_cfield_table_name = $table_prefix . "$standard_cfield_table_name";
-		if(isset($_POST['wcCustomFieldId']) && !empty($_POST['wcCustomFieldId'])){
-      		$mappedFieldName = '';
-      		$mappedFieldType = '';
-  			//check any associated product is selected along with imported product request....
-  			if(isset($_POST['applicationCustomField']) && !empty($_POST['applicationCustomField'])){
-  				$mappedField = $_POST['applicationCustomField'];
-  				if($mappedField == 'donotmap'){
-  					$mappedFieldName = '';
-  					$mappedFieldType = CUSTOM_FIELD_FORM_TYPE_CONTACT;
-  				}
-  				if (strpos($mappedField, 'FormType:'.CUSTOM_FIELD_FORM_TYPE_CONTACT.':') !== false)
-			    {
-			       $fieldname=explode("FormType:".CUSTOM_FIELD_FORM_TYPE_CONTACT.":", $mappedField);
-			       $mappedFieldName = $fieldname[1];
-			       $mappedFieldType = CUSTOM_FIELD_FORM_TYPE_CONTACT;	
-			    }
-			    else if (strpos($mappedField, 'FormType:'.CUSTOM_FIELD_FORM_TYPE_ORDER.':') !== false)
-			    {
-			        $fieldname=explode("FormType:".CUSTOM_FIELD_FORM_TYPE_ORDER.":", $mappedField);
-			    	$mappedFieldName = $fieldname[1];
-			    	$mappedFieldType = CUSTOM_FIELD_FORM_TYPE_ORDER;	
-			    }
-  			}
-  			//update relationship between woocommerce standard field and infusionsoft/keap custom fields...
-  			$standardCfieldUpdateResult = $wpdb->update($standard_cfield_table_name, array('wc_standardcf_mapped' => $mappedFieldName,'wc_standardcf_mapped_field_type'=>$mappedFieldType),array('id' => $_POST['wcCustomFieldId']));
-	    }
-	   	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-//Custom fields Tab : this is used to get the list of application custom fields tabs....
-add_action( 'wp_ajax_wc_load_app_cfield_tabs', 'wc_load_app_cfield_tabs');
-//Function Definiation : wc_load_app_cfield_tabs
-function wc_load_app_cfield_tabs()
-{
-	$cfRelatedTabs = cfRelatedTabs();
-	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'cfRelatedTabs'=>$cfRelatedTabs));
-	die();
-}
-
-//Wordpress hook : This action is triggered when user try to export products.....
-add_action( 'wp_ajax_wc_get_products_listing', 'wc_get_products_listing');
-//Function Definiation : wc_get_products_listing
-function wc_get_products_listing()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		//define the memory limit infinite to prevent from exceed memory limit error....
-		ini_set('memory_limit',"-1");
-		//also set time limit "0" to prevent the execution time exceed....
-		set_time_limit(0);
-		//check select products exist in post data to import.....
-		if(isset($_POST['length']) && !empty($_POST['length'])){
-			$skuLength = $_POST['length'];
-			$newLimitProductsSku = $_POST['productLimitSku'];
-			$productsListing = get_products_listing($skuLength,$newLimitProductsSku);
-	    }
-	    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListing'=>$productsListing));
-	}	    
-	die();
-}
-
-//Wordpress Hook : This action is triggered when user change the inner tabs of custom fields tab..
-add_action('wp_ajax_wc_load_custom_fields_tab_data','wc_load_custom_fields_tab_data');
-//Function Definiation : wc_load_custom_fields_tab_data
-function wc_load_custom_fields_tab_data(){
-	//First check the target tab exist then call the function to get the standard fields mapping listing..
-	if(isset($_POST['targetTabId']) && !empty($_POST['targetTabId'])){
-		$listingHtml = '';
-		if($_POST['targetTabId'] == '#table_standard_fields_mapping'){
-			$listingHtml  = createStandardFieldsMappingHtml();
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'responseHtml'=>$listingHtml));
-	}
-	die();
-}
-
-//Wordpress Hook : This action is trigged to load more products with sku....
-add_action('wp_ajax_wc_load_more_products_with_sku','wc_load_more_products_with_sku');
-//Function Definition : wc_load_more_products_with_sku
-function wc_load_more_products_with_sku(){
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		$productsListing = '';
-		$productsListing = get_products_listing($_POST['productSkuLength'],$_POST['productsListingLimit'],$_POST['productsListingOffset'],PRODUCTS_HTML_TYPE_LOAD_MORE);
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productsListingWithSku'=>$productsListing));
-	}
-	die();
-}
-
-
-//Wordpress Hook : This action is triggered when user try to enable disable referral partner tracking in infusionsoft application....
-add_action('wp_ajax_wc_update_referral_tracking','wc_update_referral_tracking');
-//Function Definition : wc_update_referral_tracking
-function wc_update_referral_tracking(){
-	if(isset($_POST) && !empty($_POST)){
-		if(isset($_POST['actionStatus']) && !empty($_POST['actionStatus'])){
-			update_option('referral_partner_tracking_status',$_POST['actionStatus']);
-		}
-		//return response with html.....
-	  	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
-	}
-	die();
-}
-
-//Wordpress Hook : This action is triggered to load more coupons
-add_action('wp_ajax_wc_load_more_coupons','wc_load_more_coupons');
-//Function Definition : wc_load_more_coupons
-function wc_load_more_coupons(){
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		$couponsListingHtml = '';
-		$couponsListingHtml = get_coupons_listing($_POST['couponsListingLimit'],$_POST['couponsListingOffset'],COUPONS_HTML_WITH_LOAD_MORE);
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'couponsListingHtml'=>$couponsListingHtml));
-	}
-	die();
-}
-
-//Referral Partner Tab : wordpress hook is triggered to get the list of products with their affiliate links on the basis of categorty id.........
-add_action( 'wp_ajax_wc_load_products', 'wc_load_products');
-//Function Definiation : wc_load_products
-function wc_load_products()
-{
-	if(isset($_POST) && !empty($_POST)){
-		//define empty variables.....
-		$productLisingWithAffiliateLinks = "";
-  	
-		//get the authenticate application details first.....
-	  	$authenticateAppdetails = getAuthenticationDetails();
-	  	//define empty variables.....
-	  	$authenticate_application_name = "";
-	  	$productAffiliateLink = '';
-	  	//check authenticate details....
-	  	if(isset($authenticateAppdetails) && !empty($authenticateAppdetails)){
-		    //check authenticate  name is exist......
-		    if(isset($authenticateAppdetails[0]->user_authorize_application)){
-		        $authenticate_application_name = $authenticateAppdetails[0]->user_authorize_application;
-		        $productAffiliateLink = 'https://'.$authenticate_application_name.'.infusionsoft.com/aff.html?to=';
-		    } 
-	  	}
-
-	  	//get the category id from post data....
-	  	$catId = $_POST['categoryId'];
-
-	  	//get and set the limit if products is already loaded by the popup with scroll limit......
-	  	$defaultLimit = '';
-	  	if(isset($_POST['newCatProLimit']) && !empty($_POST['newCatProLimit'])){
-	  		$defaultLimit = $_POST['newCatProLimit'];
-	  	}
-
-	  	//get the products listing on the basis of category id.......
-	  	$wcProductsListing = getProductByCat($catId,$defaultLimit);
-	  	
-	  	//check products data exist or not.....
-	  	if(isset($wcProductsListing) && !empty($wcProductsListing)){
-	  		//execute loop and create the html.......
-	  		foreach ($wcProductsListing as $key => $value) {
-	  			$url = get_permalink( $value->ID );//get product url by product id......
-	  			$currentProductAffiliateLink = $productAffiliateLink.$url;
-	  			//concate products listing......
-	  			$productLisingWithAffiliateLinks .= '<input type="hidden" name="affiliate_path" value="'.$productAffiliateLink.'"><tr><td  class="skucss">'.$value->post_title.'</td><td id="product_'.$value->ID.'_affiliate_link"  class="skucss">'.$currentProductAffiliateLink.'</td><td><i class="fa fa-copy" style="cursor:pointer" 
-	                                      onclick="copyContent(\'product_'.$value->ID.'_affiliate_link\')"></td></tr>';
-	  		}
-	  	}else{
-	  		$productLisingWithAffiliateLinks .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No prroducts available</td></tr>';
-	  	}
-	  	//return response with html.....
-	  	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productLisingWithAffiliateLinks'=>$productLisingWithAffiliateLinks));
-	}
-	die();
-}
-
-//Referral Partner Tab : wordpress hook is triggered to add custom page for affiliate tracking purpose....
-add_action( 'wp_ajax_wc_add_affiliate_page', 'wc_add_affiliate_page');
-//Function Definiation : wc_add_affiliate_page
-function wc_add_affiliate_page()
-{
-	global $wpdb;
-    //check affiliate page is already exist or not if exist then get the id of this else add new page...
-    $checkAffiliatePageExist = $wpdb->get_results("SELECT *  FROM `wp_posts` WHERE `post_title` LIKE 'Affiliate Redirect' AND `post_status` LIKE 'publish' AND `post_type` LIKE 'page'");
-    $affiliateRedirectPageID = "";
-    //if page already exist then get the id of this.....
-    if (isset($checkAffiliatePageExist) && !empty($checkAffiliatePageExist)) {
-        if(!empty($checkAffiliatePageExist[0]->ID)){
-            $affiliateRedirectPageID = $checkAffiliatePageExist[0]->ID;
-        }
-    }else{//else add new page.....
-        $affiliate_page_details  = array('post_title'=>'Affiliate Redirect','post_type'=> 'page','post_name'=>'referral','post_content'=> 'This page is used to handle the affiliate rediection process.','post_status'=>'publish','comment_status'=>'closed','ping_status'=>'closed','post_author'=>1,'menu_order'=>0);
-
-        $affiliateRedirectPageID = wp_insert_post( $affiliate_page_details, FALSE );
-    }
-    //if page id not empty then update option "affiliate_redirect_page_id" to handle the affiliate redirection processs....
-    if(!empty($affiliateRedirectPageID)){
-	    update_option('affiliate_redirect_page_id',$affiliateRedirectPageID);
-	}
-	//return response with affiliate page id....
-    echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'affiliate_redirect_page_id'=>$affiliateRedirectPageID));
-    die();
-}
-
-//Wordpress hook : This action is triggered when user try to customize the referral rediect slug......
-add_action( 'wp_ajax_wc_save_affiliate_redirect_slug', 'wc_save_affiliate_redirect_slug');
-//Function Definiation : wc_save_affiliate_redirect_slug
-function wc_save_affiliate_redirect_slug()
-{
-	if(isset($_POST) && !empty($_POST)){
-		if(isset($_POST['affiliateredirectslug']) && !empty($_POST['affiliateredirectslug'])){
-			$affiliateredirectslug = createAffiliatePageSlug($_POST['affiliateredirectslug']);
-			$affiliate_redirect_page_id = get_option('affiliate_redirect_page_id');
-			if(!empty($affiliate_redirect_page_id)){
-				$pageData = array('ID'=> $affiliate_redirect_page_id,'post_name'   => $affiliateredirectslug);
-			 	//Update the post into the database
-			  	wp_update_post( $pageData );
-			}
-			$latest_affiliate_redirect_url = get_permalink($affiliate_redirect_page_id);//get page url by page id......
-		}
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latest_affiliate_redirect_url'=>$latest_affiliate_redirect_url,'affiliateredirectslug'=>$affiliateredirectslug));
-	}
-	die();
-}
-
-//Custom fields Tab : wordpress hook is call when user click on import products button to import products from insufionsoft/keap application....
-add_action( 'wp_ajax_wc_import_application_products', 'wc_import_application_products');
-//Function Definiation : wc_import_application_products
-function wc_import_application_products()
-{
-	//first check post data is not empty
-	if(isset($_POST) && !empty($_POST)){
-		global $wpdb;
-		//define the memory limit infinite to prevent from exceed memory limit error....
-		ini_set('memory_limit',"-1");
-		//also set time limit "0" to prevent the execution time exceed....
-		set_time_limit(0);
-		//first need to check whether the application authentication is done or not..
-        $applicationAuthenticationDetails = getAuthenticationDetails();
-        //get the access token....
-        $access_token = '';
-        if(!empty($applicationAuthenticationDetails)){//check authentication details......
-            if(!empty($applicationAuthenticationDetails[0]->user_access_token)){//check access token....
-                $access_token = $applicationAuthenticationDetails[0]->user_access_token;//assign access token....
-            }
-        }
-		//check select products exist in post data to export.....
-        if(isset($_POST['wc_products_import']) && !empty($_POST['wc_products_import'])){
-        	$managedSubStatus = '';
-        	//check managed subscription status
-  			if(!empty($_POST['manage_subscription_status']) && $_POST['manage_subscription_status'] == 'yes'){
-  				$managedSubStatus = 'yes';
-  			}
-            foreach ($_POST['wc_products_import'] as $key => $value) {
- 				if(!empty($value)){//check value...
-          			//check any associated product is selected along with imported product request....
-	      			if(isset($_POST['wc_product_import_with_'.$value]) && !empty($_POST['wc_product_import_with_'.$value])){
-	      				$needUpdateExistingProduct = $_POST['wc_product_import_with_'.$value];
-	      			}else{
-	      				$needUpdateExistingProduct = '';
-	      			}
-	      			//get the product details by product id...
-	               	$applicationProductDetails = getApplicationProductDetail($value,$access_token);
-	               	//define array to store the infusionsoft/keap product detail......
-	      			$product_extra_data_array = array();
-	      			if(isset($applicationProductDetails) && !empty($applicationProductDetails)){
-	      				
-	      				//set and get the product content.....
-	      				$pContent = '';
-		      			if(!empty($applicationProductDetails['product_desc'])){
-		      				$pContent = trim($applicationProductDetails['product_desc']);	
-		      			}else if ($applicationProductDetails['product_short_desc']) {
-		      				$pContent = trim($applicationProductDetails['product_short_desc']);
-		      			}else if ($applicationProductDetails['product_name']) {
-		      				$pContent = trim($applicationProductDetails['product_name']);
-		      			}
-		      			
-		      			//set and get the product short description.....
-		      			$pshortContent = '';
-		      			if(!empty($applicationProductDetails['product_short_desc'])){
-		      				$pshortContent = trim($applicationProductDetails['product_short_desc']);
-		      			}
-		      			
-		      			//set and get the product name....
-		      			$productName = '';	
-		      			if(!empty($applicationProductDetails['product_name'])){
-		      				$productName = $applicationProductDetails['product_name'];
-		      			}
-
-		      			//set the meta fields of product....
-		      			$product_extra_data_array['_regular_price'] = $applicationProductDetails['product_price'];
-		      			$product_extra_data_array['_price'] = $applicationProductDetails['product_price'];
-		      			if(!empty($applicationProductDetails['sku'])){
-		      				$product_extra_data_array['_sku'] = $applicationProductDetails['sku'];
-		      			}
-
-		      			//set default value of product is not related to subscription "false"....
-		      			$markAsSubscription = false;
-		      			//check manage subscription via infusionsoft is enable or not....
-		      			if(!empty($managedSubStatus) && $managedSubStatus == 'yes'){
-		      				//check subscription only exist...
-		      				if(!empty($applicationProductDetails['subscription_only']) && $applicationProductDetails['subscription_only'] == true){
-								if(!empty($applicationProductDetails['subscription_plans'])){
-									//get the last subscription plan....
-									$lastPlan = end($applicationProductDetails['subscription_plans']);
-									//push the subscription plan details in array....
-									$product_extra_data_array['_subscription_period_interval'] = $lastPlan['frequency'];
-									$product_extra_data_array['_subscription_period'] = strtolower($lastPlan['cycle_type']);
-									$product_extra_data_array['_subscription_length'] = $lastPlan['number_of_cycles'];
-									$product_extra_data_array['_subscription_price'] = $lastPlan['plan_price'];
-									$product_extra_data_array['_regular_price'] = $lastPlan['plan_price'];
-		      						$product_extra_data_array['_price'] = $lastPlan['plan_price'];
-									$markAsSubscription = true;//mark product is related to subscription "true".....
-								}
-		      				}
-		      			}
-		      			
-		      			//if product is not associated along with imported product request then need create new product..
-		      			if(empty($needUpdateExistingProduct)){
-		      				$postData = array('post_content' => $pContent,'post_status' => "publish",'post_title' => $productName,'post_type' => "product",'post_excerpt'=>$pshortContent);
-							$new_post_id = wp_insert_post($postData);
-							//check if product imported done then need to check the image associated with product if yes then need to update....
-							if($new_post_id){
-								//check if product is related to subscription....
-								if($markAsSubscription == true){
-									// Setting the product type
-									wp_set_object_terms( $new_post_id, 'subscription', 'product_type' );
-									$updatedGuid = get_option('siteurl').'/?post_type=product&p='.$new_post_id;
-									$wpdb->update($wpdb->posts, ['guid' => $updatedGuid], ['ID' => $new_post_id]);
-								}
-								$product_extra_data_array['is_kp_product_id'] = $value;
-								if(empty($product_extra_data_array['_sku'])){
-									$product = get_post($new_post_id); 
-									$slug = $product->post_name;
-									//if "-" is exist in product sku then replace with "_".....
-								    if (strpos($slug, '-') !== false)
-								    {
-								        $wcproductSku=str_replace("-", "_", $slug);
-								    }
-								    else
-								    {
-								        $wcproductSku=$slug;
-								    }
-								    $wcproductSku = substr($wcproductSku,0,10);//get the first 10 charaters from the sku
-                					$wcproductSku = $wcproductSku.$new_post_id;//append the product in sku to define as a unique....
-									$product_extra_data_array['_sku'] = $wcproductSku;
-								}	
-								//update post meta of newly created post...
-								updateProductMetaData($new_post_id,$product_extra_data_array);
-							}
-						}
-		      			//if product is associated along with imported product request then need to update the values of exitsing product.........
-		      			else{
-		      				//create latest product details array....
-		      				$latestPostData = array('ID'=>$needUpdateExistingProduct,'post_content'=>$pContent,'post_excerpt'=>$pshortContent,'post_title'=>$productName);
-							//update the product details with latest data..
-							$update_post_id = wp_update_post($latestPostData);
-							//check need to mark product as a subscription...
-							if(!empty($markAsSubscription) && $markAsSubscription == true){
-								//set the product type as a subscription....
-								wp_set_object_terms($needUpdateExistingProduct,'subscription','product_type');
-							}
-							$product_extra_data_array['is_kp_product_id'] = $value;
-	      					if(empty($product_extra_data_array['_sku'])){
-								$product = get_post($new_post_id); 
-								$slug = $product->post_name;
-								//if "-" is exist in product sku then replace with "_".....
-							    if (strpos($slug, '-') !== false)
-							    {
-							        $wcproductSku=str_replace("-", "_", $slug);
-							    }
-							    else
-							    {
-							        $wcproductSku=$slug;
-							    }
-								$product_extra_data_array['_sku'] = $wcproductSku;
-							}
-		      				//update post meta of existing post...
-		      				updateProductMetaData($needUpdateExistingProduct,$product_extra_data_array);
-		      			}
-
-		      		}
-	      		}
- 			}
- 			//set default offset and limit.....
- 			$importProductsLimit = 200;
- 			$importProductsOffset = 0;
- 			//check limit exist in post data or not....
- 			if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
- 				$importProductsLimit = $_POST['newLimit'];
- 			}
- 			
- 			//then call the "createImportProductsHtml" function to get the latest html...
-            $latestImportProductsHtml = createImportProductsHtml($importProductsLimit,$importProductsOffset);
-            echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestImportProductsHtml'=>$latestImportProductsHtml));
- 		}
- 	}
-	die();
-}
-
-
-//Wordpress Hook : This hook is triggered to lod more woocommerce products...
-add_action('wp_ajax_wc_load_woo_products','wc_load_woo_products');
-//Function Definiation : wc_load_woo_products
-function wc_load_woo_products(){
-	if(isset($_POST) && !empty($_POST)){
-		$getWooProducts = listExistingDatabaseWooProducts($_POST['wooProLimit'],$_POST['wooProOffset']);
-		$wooProdOptionsData = array();
-		if(isset($getWooProducts) && !empty($getWooProducts)){
-			foreach ($getWooProducts as $key => $value) {
-				if(!empty($value->ID)){
-					$wooProdOptionsData[$key]['ProductName'] = $value->post_title;
-					$wooProdOptionsData[$key]['Id'] = $value->ID;
-				}
-			}
-		}
-		//return response....
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newWooProductsOptions'=>$wooProdOptionsData));
-	}
-	die();
-}
-
-//Wordpress hook : This action is triggered to load products on the basis of category....
-add_action('wp_ajax_wc_more_products_with_cat','wc_more_products_with_cat');
-//Function Definiation : wc_more_products_with_cat...
-function wc_more_products_with_cat(){
-	if(isset($_POST) && !empty($_POST)){
-		//define the memory limit infinite to prevent from exceed memory limit error....
-		ini_set('memory_limit',"-1");
-		//also set time limit "0" to prevent the execution time exceed....
-		set_time_limit(0);
-		//call the common function to get the products on the basis of category.....
-		$productsByCat = getProductByCat($_POST['catId'],$_POST['catProLimit'],$_POST['catProOffset']);
-		$productWithAffiliateHtml = '';//set empty variable for html......
-		if(isset($productsByCat) && !empty($productsByCat)){
-			foreach ($productsByCat as $key => $value) {
-				$productLink = get_permalink($value->ID);//get the product link.....
-				//get application affiliate link from post data....
-				$appAffiliateLink = '';
-				if(!empty($_POST['appAffiliatPath'])){
-					$appAffiliateLink  = $_POST['appAffiliatPath'];
-				}
-				//append the each row in empty variable.....
-				$productWithAffiliateHtml .= '<tr><td class="skucss">'.$value->post_title.'</td><td id="product_'.$value->ID.'_affiliate_link">'.$appAffiliateLink.$productLink.'</td><td><i class="fa fa-copy" style="cursor:pointer" onclick="copyContent(\'product_'.$value->ID.'_affiliate_link\')"></i></td></tr>';
-			}
-		}else{
-			$productWithAffiliateHtml = '';
-		}
-		//return the repsonse....
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'newProductListingWithCat'=>$productWithAffiliateHtml));
-	}
-	die();
-}
-
-//Wordpress Hook : This hook is triggered to search the products from database....
-add_action('wp_ajax_wc_search_woo_product','wc_search_woo_product');
-//Function Definiation : wc_search_woo_product
-function wc_search_woo_product(){
-	if(isset($_POST) && !empty($_POST)){
-		global $wpdb;
-		$matchProductsOptions = array();//define the empty array...
-		$searchItem = $_POST['searchItem'];//set the post search item....
-		$status = 'publish';//set status....
-		$postType = 'product';//set the post type.....
-		$getProductsByName = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts WHERE post_title LIKE %s AND post_status = %s AND post_type = %s",array('%'.$searchItem.'%',$status,$postType)));
-		if(isset($getProductsByName) && !empty($getProductsByName)){
-			foreach ($getProductsByName as $key => $value) {
-				if(!empty($value->ID)){
-					$matchProductsOptions[$key]['ProductName'] = $value->post_title;
-					$matchProductsOptions[$key]['Id'] = $value->ID;
-				}
-			}
-		}
-		//return response
-		echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'matchProductsOptions'=>$matchProductsOptions));
 	}
 	die();
 }
@@ -2004,4 +535,3 @@ function wc_get_reload_app_products(){
 	die();
 }
 ?>
-
