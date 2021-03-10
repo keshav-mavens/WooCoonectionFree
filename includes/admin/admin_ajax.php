@@ -444,6 +444,16 @@ function wc_get_product_variation()
 	      	$available_variations = $wcProductDetails->get_available_variations();
 	      	//Get the list of active products from authenticate application....
   			$applicationProductsArray = getExistingAppProducts();
+  			 //Get the application type and set the lable on the basis of it....
+  			$configurationType = applicationType();
+		  	$type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;//Default....
+		  	if(isset($configurationType) && !empty($configurationType)){
+			    if($configurationType == APPLICATION_TYPE_INFUSIONSOFT){
+			      $type = APPLICATION_TYPE_INFUSIONSOFT_LABEL;
+			    }else if ($configurationType == APPLICATION_TYPE_KEAP) {
+			      $type = APPLICATION_TYPE_KEAP_LABEL;
+			    }
+		  	}
   			//Set the application label on the basis of type...
   			$applicationLabel = applicationLabel($type);
   			$currencySign = get_woocommerce_currency_symbol();//Get currency symbol....
