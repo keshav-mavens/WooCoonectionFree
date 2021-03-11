@@ -3223,7 +3223,9 @@ function createImportProductsListingApplication($applicationProductsArray,$wooCo
                         $wcProductExistId = '';//empty the match id if product status is not publish...
                       }
                     }
-                    
+                    if(empty($customOptionHtml)){
+                      $customOptionHtml = '<option value="no" selected>Search More Products</option>';
+                    }
                     //Create final select html.....
                     $wcProductSelectHtml ='<input type="hidden" value="" id="search_field_value_'.$appProductId.'"><select class="wc_import_products_dropdown wcProductsDropdown '.$class.'" name="wc_product_import_with_'.$appProductId.'" data-target="'.$appProductId.'" data-id="'.$wcProductExistId.'">'.$customOptionHtml.'</select>';
                 }else{

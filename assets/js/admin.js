@@ -40,9 +40,9 @@
                                 jQuery(".tab_related_content").removeClass('overlay');
                                 
                                 //add select 2 for woocommerce products field in import products tab...
-                                if($(".wc_import_products_dropdown").length){
-                                    applySelectTwo('wc_import_products_dropdown');
-                                }
+                                // if($(".wc_import_products_dropdown").length){
+                                //     applySelectTwo('wc_import_products_dropdown');
+                                // }
                                 
                                 //export products tab....
                                 if($(".no-woo-products").length){
@@ -317,9 +317,9 @@
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
                                     //add select 2 for woocommerce products field in import products tab...
-                                    if($(".wc_import_products_dropdown").length){
-                                        applySelectTwo('wc_import_products_dropdown');
-                                    }
+                                    // if($(".wc_import_products_dropdown").length){
+                                    //     applySelectTwo('wc_import_products_dropdown');
+                                    // }
                                     //for match products tab....
                                     if($('.no-woo-products-match').length){
                                         $('.no-products-match').hide();
@@ -1265,7 +1265,7 @@
                                             //check if select have any option ot not....
                                             if ($('[name="'+selectName+'"] option').length == 0) {
                                                 //append the match options in existing dropdown....
-                                                $('[name="'+selectName+'"]').append(matchWooOptions);
+                                                $('[name="'+selectName+'"]').append('<option value="0">Select woocommerce product</option>'+matchWooOptions);
                                             }else{
                                                 //append the match options in existing dropdown....
                                                 $('[name="'+selectName+'"] option:first').after(matchWooOptions);
@@ -1305,6 +1305,17 @@
                     searchProductResults = [];
                 }
             });
+            
+            //apply select2 when user hover on select2 dropdown.....
+            $document.on('mouseover', '.wc_import_products_dropdown', function() {
+                if (!$(this).data('select2'))//check if select2 is already not applied...
+                {
+                    var dropdownElement = $(this);//set the "this" in variable....
+                    dropdownElement.find('option[value=no]').remove();//remove the particular option of select2.....
+                    $(this).select2({placeholder: "Search More Products"});//apply the select2 again.....
+                }
+            });
+    
         });
 }(jQuery));
 
@@ -2449,11 +2460,11 @@ function loadMoreProducts(){
                     }else{
                         $("table#import_products_listing tbody").append(responsedata.moreProductsListing);
                         //check if div exist with class name.....
-                        if($('.new-loaded-products-'+productsOffset).length){
-                            $('.new-loaded-products-'+productsOffset).select2({
-                                placeholder: "Search More Products",
-                            });
-                        }
+                        // if($('.new-loaded-products-'+productsOffset).length){
+                        //     $('.new-loaded-products-'+productsOffset).select2({
+                        //         placeholder: "Search More Products",
+                        //     });
+                        // }
                         //first check checkbox of all checkbox is checked or not...
                         if($(".all_products_checkbox_import").is(":checked")){
                             $(".each_product_checkbox_import").prop("checked",true);
