@@ -303,7 +303,7 @@ function exportProductsListingApplication($wooCommerceProducts,$applicationProdu
                       if (!empty($key) || $key === 0) {
                         $productDetails = $applicationProductsArray[$key];
                         if(!empty($productDetails->app_product_name)){
-                          $productsDropDown = '<input type = "hidden" value="'.$productDetails->id.'" name="wc_product_primary_key_'.$matchProductId.'"><input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails->app_product_name;
+                          $productsDropDown = '<input type="hidden" value="'.$matchProductId.'" name="wc_product_export_with_'.$wc_product_id.'">'.$productDetails->app_product_name;
                         }
                       }else{
                         $productsDropDown = 'Mapped Product Not Exist In App!';

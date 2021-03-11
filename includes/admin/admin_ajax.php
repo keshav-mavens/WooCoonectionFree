@@ -336,7 +336,7 @@ function wc_export_wc_products()
 								$appProductData['app_product_sku'] = $wcproductSku;
 								$appProductData['app_product_price'] = $wcproductPrice;
 								$wpdb->insert($appProductsTableName,$appProductData);
-								if(!empty($mapppedProductId) && isset($_POST['wc_product_primary_key_'.$mapppedProductId]) && !empty($_POST['wc_product_primary_key_'.$mapppedProductId])){
+								if(!empty($mapppedProductId))){
 									$wpdb->update($appProductsTableName,array('app_product_status'=>STATUS_DELETED),array('id'=>$_POST['wc_product_primary_key_'.$mapppedProductId]));
 								}
 
