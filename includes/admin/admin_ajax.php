@@ -1793,6 +1793,7 @@ function wc_import_application_products()
                 					$wcproductSku = $wcproductSku.$new_post_id;//append the product in sku to define as a unique....
 									$product_extra_data_array['_sku'] = $wcproductSku;
 								}	
+								$product_extra_data_array['wc_product_automation'] = true;
 								//update post meta of newly created post...
 								updateProductMetaData($new_post_id,$product_extra_data_array);
 							}
@@ -1823,6 +1824,7 @@ function wc_import_application_products()
 							    }
 								$product_extra_data_array['_sku'] = $wcproductSku;
 							}
+							$product_extra_data_array['wc_product_automation'] = true;
 		      				//update post meta of existing post...
 		      				updateProductMetaData($needUpdateExistingProduct,$product_extra_data_array);
 		      			}
