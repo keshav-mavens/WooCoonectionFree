@@ -392,16 +392,6 @@ function wc_export_wc_products()
 					}
 				}
             }
-            //set default offset and limit....
-            $exportOffset = 0;
-            $exportLimit = 200;
-            //check limit exist in post data or not......
-            if(isset($_POST['newLimit']) && !empty($_POST['newLimit'])){
-            	//set the latest limit to fetch the records...
-            	$exportLimit = $_POST['newLimit'];
-            }
-            //then call the "createExportProductsHtml" function to get the latest html...
-            $latestExportProductsHtml = createExportProductsHtml($exportLimit,$exportOffset);
             echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestExportProductsHtml'=>$latestExportProductsHtml));
         }
     }
@@ -1685,7 +1675,8 @@ function wc_import_application_products()
 {
 	//first check post data is not empty
 	if(isset($_POST) && !empty($_POST)){
-		global $wpdb;
+		global $wpdb,$table_prefix;
+		$applicationProductsTableName = $table_prefix.'authorize_application_products';
 		//define the memory limit infinite to prevent from exceed memory limit error....
 		ini_set('memory_limit',"-1");
 		//also set time limit "0" to prevent the execution time exceed....
@@ -1718,7 +1709,7 @@ function wc_import_application_products()
 	               	$applicationProductDetails = getApplicationProductDetail($value,$access_token);
 	               	//define array to store the infusionsoft/keap product detail......
 	      			$product_extra_data_array = array();
-	      			if(isset($applicationProductDetails) && !empty($applicationProductDetails)){
+	      			if(isset($applicationProductDetails) && !empty($applicationProductDetails) && !isset($applicationProductDetails['message'])){
 	      				
 	      				//set and get the product content.....
 	      				$pContent = '';
@@ -1834,6 +1825,9 @@ function wc_import_application_products()
 		      				updateProductMetaData($needUpdateExistingProduct,$product_extra_data_array);
 		      			}
 
+		      		}else{
+	      				//update the status
+      					$updateResponse = $wpdb->update($applicationProductsTableName,array('app_product_status'=>STATUS_DELETED),array('app_product_id'=>$value));
 		      		}
 	      		}
  			}
