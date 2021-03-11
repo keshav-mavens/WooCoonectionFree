@@ -394,7 +394,7 @@ function wc_export_wc_products()
 					}
 				}
             }
-            echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'latestExportProductsHtml'=>$latestExportProductsHtml));
+            echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
         }
     }
     die();

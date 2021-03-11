@@ -1507,7 +1507,7 @@ function getExistingAppProducts($appProductsLimit='',$appProductsOffset=''){
     }
     $appProductsTableName = $table_prefix.'authorize_application_products';
     if($wpdb->get_var("SHOW TABLES LIKE '$appProductsTableName'") == $appProductsTableName) {
-      $productsListing = $wpdb->get_results('SELECT * FROM '.$appProductsTableName.' WHERE app_product_status="'.STATUS_ACTIVE.'" LIMIT '. $appProductsOffset.', '. $appProductsLimit, OBJECT);
+      $productsListing = $wpdb->get_results('SELECT * FROM '.$appProductsTableName.' WHERE app_product_status="'.STATUS_ACTIVE.'" ORDER BY id DESC LIMIT '. $appProductsOffset.', '. $appProductsLimit, OBJECT);
       if(isset($productsListing) && !empty($productsListing)){
           $appProListing = $productsListing;
       }
