@@ -297,6 +297,8 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $createdProductId);
                                 //update the woocommerce product sku......
                             	update_post_meta($value,'_sku',$wcproductSku);
+                            	//Check product is update or publish....
+        						update_post_meta($value, 'wc_product_automation', true);
                             	$appProductData['app_product_id'] = $createdProductId;
 								$appProductData['app_product_name'] =  $wcproductName;
 								$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
@@ -304,10 +306,10 @@ function wc_export_wc_products()
 								$appProductData['app_product_sku'] = $wcproductSku;
 								$appProductData['app_product_price'] = $wcproductPrice;
 								$wpdb->insert($appProductsTableName,$appProductData);
-								if(!empty($mapppedProductId) && isset($_POST['wc_product_primary_key_'.$mapppedProductId]) && !empty($_POST['wc_product_primary_key_'.$mapppedProductId])){
-									$wpdb->update($appProductsTableName,array('app_product_status'=>STATUS_DELETED),array('id'=>$_POST['wc_product_primary_key_'.$mapppedProductId]));
+								if(!empty($mapppedProductId)){
+									$wpdb->update($appProductsTableName,array('app_product_status'=>STATUS_DELETED),array('app_product_id'=>$mapppedProductId));	
 								}
-                           	}                   
+							}                   
                         }
                         //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
                         else{
@@ -319,14 +321,15 @@ function wc_export_wc_products()
                                 update_post_meta($value, 'is_kp_product_id', $updateProductId);
                                 //update the woocommerce product sku......
                                 update_post_meta($value,'_sku',$wcproductSku);
-                                if(isset($_POST['wc_product_primary_key_'.$updateProductId]) && !empty($_POST['wc_product_primary_key_'.$updateProductId])){
-	                                $primaryKey = $_POST['wc_product_primary_key_'.$updateProductId];
-									$appProductData['app_product_name'] =  $wcproductName;
+                                //Check product is update or publish....
+        						update_post_meta($value, 'wc_product_automation', true);
+                                if(!empty($updateProductId)){
+	                                $appProductData['app_product_name'] =  $wcproductName;
 									$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
 									$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
 									$appProductData['app_product_sku'] = $wcproductSku;
 									$appProductData['app_product_price'] = $wcproductPrice;
-									$response = $wpdb->update($appProductsTableName, $appProductData, array('id'=>$primaryKey));
+									$response = $wpdb->update($appProductsTableName, $appProductData, array('app_product_id'=>$updateProductId,'app_product_status'=>STATUS_ACTIVE));
                                 }
 							}
                        	}
