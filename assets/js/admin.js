@@ -214,7 +214,7 @@
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
                 swal({
                   title: "Success!",
-                  text: "WooConnection Plugin has been successfully activated.",
+                  text: "Your WooConnection Plugin has been successfully activated.",
                   type: "success",
                   confirmButtonText: "OK"
                 },
