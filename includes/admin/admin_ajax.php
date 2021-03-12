@@ -1904,15 +1904,28 @@ function wc_search_woo_product(){
 		global $wpdb;
 		$matchProductsOptions = array();//define the empty array...
 		$searchItem = $_POST['searchItem'];//set the post search item....
-		$status = 'publish';//set status....
-		$postType = 'product';//set the post type.....
-		$getProductsByName = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts WHERE post_title LIKE %s AND post_status = %s AND post_type = %s",array('%'.$searchItem.'%',$status,$postType)));
-		if(isset($getProductsByName) && !empty($getProductsByName)){
-			foreach ($getProductsByName as $key => $value) {
-				if(!empty($value->ID)){
-					$matchProductsOptions[$key]['text'] = $value->post_title;
-					$matchProductsOptions[$key]['id'] = $value->ID;
+		//check search item is not empty.....
+		if(!empty($searchItem))
+		{
+			$status = 'publish';//set status....
+			$postType = 'product';//set the post type.....
+			$getProductsByName = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts WHERE post_title LIKE %s AND post_status = %s AND post_type = %s ORDER BY id DESC",array('%'.$searchItem.'%',$status,$postType)));
+			if(isset($getProductsByName) && !empty($getProductsByName)){
+				foreach ($getProductsByName as $key => $value) {
+					if(!empty($value->ID)){
+						$matchProductsOptions[$key]['text'] = $value->post_title;
+						$matchProductsOptions[$key]['id'] = $value->ID;
+					}
 				}
+			}
+		}else{//else return the default options....
+			if(isset($_POST['dataId']) && !empty($_POST['dataId'])){//check data id exist in post.....
+				//set option to remove mapping....
+				$matchProductsOptions[0]['text'] = 'Select woocommerce product';
+				$matchProductsOptions[0]['id'] = '0';
+				//set mapped product option....
+				$matchProductsOptions[1]['text'] = get_the_title($_POST['dataId']);
+				$matchProductsOptions[1]['id'] = $_POST['dataId']; 
 			}
 		}
 		//return response

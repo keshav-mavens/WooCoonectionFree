@@ -1197,127 +1197,32 @@
                 }
             });
             
-            //on open of select2 dropdown add the custom attribute..
-            // $document.on("select2:open",".wc_import_products_dropdown",function(event) {
-            //     event.preventDefault();
-            //     var openSelectName = $(this).attr('name');//get the name of select box.....
-            //     var openSelectContainer = $(".select2-container .select2-dropdown .select2-results .select2-results__options");//set the open select container...
-            //     openSelectContainer.attr('select-name', openSelectName);//add attribute.....
-            //     var openSearchInputData = $(".select2-search__field");
-            //     openSearchInputData.attr('select-name',openSelectName);
-            // });
-
-
-            // //on close of select2 dropdown remove the custom attribute.....
-            // $document.on("select2:close" , ".wc_import_products_dropdown" ,function(event){
-            //     event.preventDefault();
-            //     $('.wc_import_products_dropdown').removeClass('customClass');//remove class from select boxes of import tab.....
-            //     $('.application_match_products_dropdown').removeClass('customClass');//remove class from application products dropdown...
-            //     var closeSelectContainer = $(".select2-container .select2-dropdown .select2-results .select2-results__options");//set the close select container
-            //     closeSelectContainer.removeAttr('select-name');//remove attribute....
-            //     var closeSearchInputData = $(".select2-search__field");
-            //     closeSearchInputData.removeAttr('select-name');
-            // });
-
-            // // //define the empty array to store the products ids as come in response...
-            // var searchProductResults = [];
-            // //on key up of select2 search....
-            // $document.on('keyup','.select2-search__field',function(){
-            //     var itemSearch = $(this).val();//get the search value.....
-            //     var selectName = $(this).attr('select-name');//get the select name....
-            //     var scrollValue = $('.select2-results__options').scrollTop();//get the scroll value....
-            //     var newUlScrollTop = scrollValue-100;//minus something to set the new position....
-            //     //check something is exist in search input.... 
-            //     if(itemSearch !== '' && typeof itemSearch != "undefined"){
-            //         var res =  selectName.split("wc_product_import_with_");
-            //         $('#search_field_value_'+res[1]).val(itemSearch);//set the input hidden value of latest search value....
-            //         //check if no result fount from dropdown....
-            //         if($('.select2-results__options li[role=alert]').length > 0){
-            //             $("li[role=alert]").html('');//empty the li html....
-            //             $("li[role=alert]").html('Searching More....');//set the new html of li....
-            //             //send ajax to get the list of products from database....
-            //             jQuery.post(ajax_object.ajax_url+"?action=wc_search_woo_product&jsoncallback=x",{searchItem:itemSearch},function(data){
-            //                 var responseOfSearch = JSON.parse(data);
-            //                 //check response....
-            //                 if(responseOfSearch.status == "1"){
-            //                     //get the responseoptions.....
-            //                     var options = responseOfSearch.matchProductsOptions;
-            //                     //if response data is empty then set the html....
-            //                     if(options.length === 0){
-            //                         $("li[role=alert]").html('');
-            //                         $("li[role=alert]").html('No results found');
-            //                         $("li[role=alert]").show();
-            //                     }else{
-            //                         //execute the loop on options....
-            //                         $(options).each(function(index,value){
-            //                             var wcProName = value.ProductName;//get the product name....
-            //                             var wcProId = value.Id;//get the product id....
-            //                             searchProductResults.push(wcProId);
-            //                             //var arrayProductIds[index] = wcProId;
-            //                             //before creating options needs to check option is already exist in select2 or not....
-            //                             if($("[name='"+selectName+"']  option[value='"+wcProId+"']").length == 0){
-            //                                 //create new option.....
-            //                                 var matchWooOptions = new Option(wcProName,wcProId,false,false);
-            //                                 $('[name="'+selectName+'"]').append(matchWooOptions);
-            //                                 //check if select have any option ot not....
-            //                                 // if ($('[name="'+selectName+'"] option').length == 0) {
-            //                                 //     //append the match options in existing dropdown....
-            //                                 //     $('[name="'+selectName+'"]').append('<option value="0">Select woocommerce product</option>'+matchWooOptions);
-            //                                 // }else{
-            //                                 //     //append the match options in existing dropdown....
-            //                                 //     $('[name="'+selectName+'"] option:first').after(matchWooOptions);
-            //                                 // }
-            //                             }
-            //                         });
-            //                         //first close the current select by name of select box.....
-            //                         //$('[name="'+selectName+'"]').select2('close');
-            //                         //then open the same select2 by name of it....
-            //                         $('[name="'+selectName+'"]').select2().select2('open');
-            //                         //hide the extra select2 which is created by the select2 open event....
-            //                         $('.select2-container.select2-container--default.select2-container--open:last').hide();
-            //                         var latestSearchValue = $('#search_field_value_'+res[1]).val();//get the search value.....
-            //                         $(".select2-search__field").val(latestSearchValue);//set the value of search field......
-            //                         $('.select2-results__options').scrollTop(newUlScrollTop);
-            //                     }
-            //                 }
-            //             });
-            //         }
-            //     }
-            // });
-            
             //apply select2 when user hover on select2 dropdown.....
             $document.on('mouseover', '.wc_import_products_dropdown', function() {
+                var dataId = $(this).data('id');//get the data-id of select option.....
+                var dropdownElement = $(this);//set the "this" in variable....
+                dropdownElement.find('option[value=no]').remove();//remove the particular option of select2.....
                 $(this).select2({
-                    placeholder: "Search for a repository",
-                    minimumInputLength: 1,
-                    ajax: { // instead of writing the function to execute the request we use Select2's convenient helper
+                    placeholder: "Search More Products",
+                    minimumInputLength: 0,
+                    ajax: {
                         type:'post',
                         url: ajax_object.ajax_url+'?action=wc_search_woo_product&jsoncallback=x',
                         dataType: 'json',
-                        //quietMillis: 250,
                         data: function (params) {
                             var query = {
                                 searchItem: params.term,
+                                dataId:dataId,
                                 type: 'public'
                             };
                             return query;
                         },
-                        results: function (data, page) { // parse the results into the format expected by Select2.
-                            // since we are using custom formatting functions we do not need to alter the remote JSON data
+                        processResults : function (data) {
                             return { results: data.matchProductsOptions };
                         },
-                        cache: true
-                    },
-                    initSelection: function(element, callback) {
-                        var data = [];
-                        $(element.val().split(",")).each(function () {
-                            data.push({id: this, text: this});
-                        });
-                        callback(data);
                     },
                 });
             });
-          
         });
 }(jQuery));
 
