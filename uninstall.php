@@ -17,4 +17,6 @@ $optionName = 'wc_plugin_details';
 delete_option($optionName);
 //Custom Query :  drop a custom  database table "wp_wooconnection_countries"
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}wooconnection_countries" );
+//Custom Query : drop a custom database table "authorize_application_products"
+$wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}authorize_application_products");
 ?>

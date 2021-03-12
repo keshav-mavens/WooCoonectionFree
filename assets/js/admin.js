@@ -192,7 +192,6 @@
                                 }else if (target_tab_id == '#table_match_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    applySelectTwo('application_match_products_dropdown');
                                     //for match products tab....
                                     if($('.no-woo-products-match').length){
                                         $('.no-products-match').hide();
@@ -315,7 +314,6 @@
                             if(responsedata.status == "1") {
                                 if(responsedata.variationsHtml != ""){
                                     $("#table_row_"+productId).after(responsedata.variationsHtml);
-                                    applySelectTwo('application_match_products_dropdown');
                                 }else{
                                     $("#table_row_"+productId).after('<tr class="customvariations_'+productId+' custom_tr"><td colspan="5" style="text-align: center; vertical-align: middle;">No Product Variations Exist!</td></tr>');
                                 }
@@ -324,6 +322,13 @@
                     }
                 }
             });
+
+            //apply select2 when user hover on select2 of application products dropdown....
+            $document.on('mouseover','.application_match_products_dropdown',function(){
+                if(!$(this).data('select2')){//check if select2 is not already applied....
+                    $(this).select2();//then apply the select2....
+                }
+            });  
         });
 }(jQuery));
 
@@ -541,23 +546,6 @@ function hideCustomModel(modelId){
     }
 }
 
-//common function to apply a select2
-function applySelectTwo(element){
-    if(element != ""){
-        //Export Tab: apply select 2 on infusionsoft products tab..
-        if(element == 'wc_iskp_products_dropdown'){
-            $("."+element).select2({
-            });    
-        }
-        //Match Products Tab: apply select 2 on infusionsoft products tab..
-        if(element == 'application_match_products_dropdown'){
-            $("."+element).select2({
-            });    
-        } 
-        
-    }
-}
-
 //On click of export products button send ajax to export products and on sucess update the html....
 function wcProductsExport(){
     $(".loading_products").hide();
@@ -688,13 +676,6 @@ function loadMoreProducts(){
                         }
                     }else{
                         $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
-                        //execute loop on application products dropdown....
-                        $('.application_match_products_dropdown').each(function (i, obj){
-                            if (!$(obj).data('select2'))//check select2 is applied....
-                            {
-                                $(obj).select2();//then apply select2....
-                            }
-                        });
                     }
                 }else{
                     //set the html to no products if response html is empty.....
