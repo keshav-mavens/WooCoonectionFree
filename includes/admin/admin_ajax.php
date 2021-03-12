@@ -1910,8 +1910,8 @@ function wc_search_woo_product(){
 		if(isset($getProductsByName) && !empty($getProductsByName)){
 			foreach ($getProductsByName as $key => $value) {
 				if(!empty($value->ID)){
-					$matchProductsOptions[$key]['ProductName'] = $value->post_title;
-					$matchProductsOptions[$key]['Id'] = $value->ID;
+					$matchProductsOptions[$key]['text'] = $value->post_title;
+					$matchProductsOptions[$key]['id'] = $value->ID;
 				}
 			}
 		}
