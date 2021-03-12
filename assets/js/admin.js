@@ -39,11 +39,6 @@
                                 $(".tab_related_content").html(data);
                                 jQuery(".tab_related_content").removeClass('overlay');
                                 
-                                //add select 2 for woocommerce products field in import products tab...
-                                // if($(".wc_import_products_dropdown").length){
-                                //     applySelectTwo('wc_import_products_dropdown');
-                                // }
-                                
                                 //export products tab....
                                 if($(".no-woo-products").length){
                                     $('.no-products-export').hide();
@@ -311,15 +306,10 @@
                                 }else if (target_tab_id == '#table_match_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    applySelectTwo('application_match_products_dropdown');
                                 }
                                 else if (target_tab_id == '#table_import_products') {
                                     $(target_tab_id+"_listing").html('');
                                     $(target_tab_id+"_listing").html(responsedata.latestHtml);
-                                    //add select 2 for woocommerce products field in import products tab...
-                                    // if($(".wc_import_products_dropdown").length){
-                                    //     applySelectTwo('wc_import_products_dropdown');
-                                    // }
                                     //for match products tab....
                                     if($('.no-woo-products-match').length){
                                         $('.no-products-match').hide();
@@ -347,7 +337,7 @@
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
                 swal({
                   title: "Success!",
-                  text: "WooConnection Plugin has been successfully activated.",
+                  text: "Your WooConnection Plugin has been successfully activated.",
                   type: "success",
                   confirmButtonText: "OK"
                 },
@@ -462,13 +452,19 @@
                             if(responsedata.status == "1") {
                                 if(responsedata.variationsHtml != ""){
                                     $("#table_row_"+productId).after(responsedata.variationsHtml);
-                                    applySelectTwo('application_match_products_dropdown');
                                 }else{
                                     $("#table_row_"+productId).after('<tr class="customvariations_'+productId+' custom_tr"><td colspan="5" style="text-align: center; vertical-align: middle;">No Product Variations Exist!</td></tr>');
                                 }
                             }
                         });
                     }
+                }
+            });
+
+            //apply select2 when user hover on select2 of application products dropdown....
+            $document.on('mouseover','.application_match_products_dropdown',function(){
+                if(!$(this).data('select2')){//check if select2 is not already applied....
+                    $(this).select2();//then apply the select2....
                 }
             });
 
@@ -1315,7 +1311,7 @@
                     $(this).select2({placeholder: "Search More Products"});//apply the select2 again.....
                 }
             });
-    
+          
         });
 }(jQuery));
 
@@ -1722,25 +1718,12 @@ function hideCustomModel(modelId){
 //common function to apply a select2
 function applySelectTwo(element){
     if(element != ""){
-        //Match Products Tab: apply select 2 on infusionsoft products tab..
-        if(element == 'application_match_products_dropdown'){
-            $("."+element).select2({
-            });    
-        }
-
         if(element == 'cfieldmappingwith'){
             $("."+element).select2({
                 placeholder: 'Select Mapped Infusionsoft Field',
                 tags: true,
             }); 
         }    
-
-        //Import Tab: apply select 2 on import products tab..
-        if(element == 'wc_import_products_dropdown'){
-            $("."+element).select2({
-                placeholder: "Search More Products",
-            });    
-        } 
         //add select 2 for woocommerce products field
         if(element == 'standardcfieldmappingwith'){
             $("."+element).select2({
@@ -2450,21 +2433,8 @@ function loadMoreProducts(){
                         }
                     }else if(tabId[1] == 'table_match_products'){
                         $("table#match_products_listing tbody").append(responsedata.moreProductsListing);
-                        //execute loop on application products dropdown....
-                        $('.application_match_products_dropdown').each(function (i, obj){
-                            if (!$(obj).data('select2'))//check select2 is applied....
-                            {
-                                $(obj).select2();//then apply select2....
-                            }
-                        });
                     }else{
                         $("table#import_products_listing tbody").append(responsedata.moreProductsListing);
-                        //check if div exist with class name.....
-                        // if($('.new-loaded-products-'+productsOffset).length){
-                        //     $('.new-loaded-products-'+productsOffset).select2({
-                        //         placeholder: "Search More Products",
-                        //     });
-                        // }
                         //first check checkbox of all checkbox is checked or not...
                         if($(".all_products_checkbox_import").is(":checked")){
                             $(".each_product_checkbox_import").prop("checked",true);

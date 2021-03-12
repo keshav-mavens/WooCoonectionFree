@@ -332,6 +332,7 @@ function wc_export_wc_products()
 								//Check product is update or publish....
         						update_post_meta($value, 'wc_product_automation', true);
 								$appProductData['app_product_id'] = $createdProductId;
+
 								$appProductData['app_product_name'] =  $wcproductName;
 								$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
 								$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
@@ -341,7 +342,6 @@ function wc_export_wc_products()
 								if(!empty($mapppedProductId)){
 									$wpdb->update($appProductsTableName,array('app_product_status'=>STATUS_DELETED),array('app_product_id'=>$mapppedProductId));	
 								}
-
 								//check if product type is subscription then add subscription plan for paricular product....
 	                            if($typeProduct == ITEM_TYPE_SUBSCRIPTION){
 	                            	//add subscription with particular application product....
@@ -349,7 +349,8 @@ function wc_export_wc_products()
 	                            }
 	                        }
 						}
-                        //if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
+
+						//if product is associated along with export product request then need to update the values of exitsing product in infusionsoft/keap product platform...........
                         else{
 							$jsonData = json_encode($productDetailsArray);//covert array to json...
                         	//call the common function to update the existing function in application.....
@@ -363,7 +364,7 @@ function wc_export_wc_products()
         						update_post_meta($value, 'wc_product_automation', true);
 								if(!empty($updateProductId)){
 								    $appProductData['app_product_name'] =  $wcproductName;
-									$appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
+								    $appProductData['app_product_description'] = $productDetailsArray['product_desc'];	
 									$appProductData['app_product_excerpt'] = $productDetailsArray['product_short_desc'];
 									$appProductData['app_product_sku'] = $wcproductSku;
 									$appProductData['app_product_price'] = $wcproductPrice;
@@ -389,7 +390,7 @@ function wc_export_wc_products()
 	                            		$createSubscriptionPlan = addSubscriptionPlan($access_token,$updateProductId,$appJsonSubPlanArray,$wooconnectionLogger);
 	                            	}
                             	}
-							}
+                            }
                        	}
 					}
 				}

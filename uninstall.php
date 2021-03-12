@@ -18,6 +18,8 @@ delete_option($optionName);
 delete_option('wc_pro_version_activated');
 //Custom Query :  drop a custom  database table "wp_wooconnection_countries"
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}wooconnection_countries" );
+//Custom Query : drop a custom database table "authorize_application_products"
+$wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}authorize_application_products");
 //Custom Query : drop a custom database table "wooconnection_custom_field_groups"..
 $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}wooconnection_custom_field_groups");
 //Custom Query : drop a custom database table "wooconnection_custom_fields"...
