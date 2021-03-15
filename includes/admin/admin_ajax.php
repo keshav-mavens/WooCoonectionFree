@@ -1924,7 +1924,7 @@ function wc_search_woo_product(){
 				$matchProductsOptions[0]['text'] = 'Select woocommerce product';
 				$matchProductsOptions[0]['id'] = '0';
 				//set mapped product option....
-				$matchProductsOptions[1]['text'] = get_the_title($_POST['dataId']);
+				$matchProductsOptions[1]['text'] = html_entity_decode(get_the_title($_POST['dataId']));
 				$matchProductsOptions[1]['id'] = $_POST['dataId']; 
 			}
 		}
