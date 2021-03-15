@@ -1601,7 +1601,7 @@ function wc_load_products()
 	  	}
 
 	  	//get the products listing on the basis of category id.......
-	  	$wcProductsListing = '';//getProductByCat($catId,$defaultLimit);
+	  	$wcProductsListing = getProductByCat($catId,$defaultLimit);
 	  	
 	  	//check products data exist or not.....
 	  	if(isset($wcProductsListing) && !empty($wcProductsListing)){
