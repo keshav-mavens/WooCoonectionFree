@@ -1703,7 +1703,7 @@ function wc_import_application_products()
             foreach ($_POST['wc_products_import'] as $key => $value) {
  				if(!empty($value)){//check value...
           			//check any associated product is selected along with imported product request....
-	      			if(isset($_POST['wc_product_import_with_'.$value]) && !empty($_POST['wc_product_import_with_'.$value])){
+	      			if(isset($_POST['wc_product_import_with_'.$value]) && !empty($_POST['wc_product_import_with_'.$value]) && $_POST['wc_product_import_with_'.$value] != 'no'){
 	      				$needUpdateExistingProduct = $_POST['wc_product_import_with_'.$value];
 	      			}else{
 	      				$needUpdateExistingProduct = '';
