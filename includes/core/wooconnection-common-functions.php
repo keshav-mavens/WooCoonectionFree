@@ -2639,7 +2639,7 @@ function get_products_listing($length,$limit='',$offset='',$htmlType = ''){
   }else{
     //if html type is empty then return table with message...else return empty....
     if(empty($htmlType)){
-      $productLisingWithSku .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Products Exist!</td></tr>';
+      $productLisingWithSku .= '<tr class="no_more_products_exist"><td colspan="3" style="text-align: center; vertical-align: middle;">No Products Exist!</td></tr>';
     }
   }
   return $productLisingWithSku;

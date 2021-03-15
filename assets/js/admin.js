@@ -2246,6 +2246,9 @@ function showProductsListing(length){
             if(responsedata.productsListing != ""){
                 jQuery("#products_sku_listing").html('');
                 jQuery("#products_sku_listing").html(responsedata.productsListing);
+                if($("#products_sku_listing tr.no_more_products_exist").length > 0){
+                    $('.product_with_sku_more').hide();
+                }
             }
         }
     });
@@ -2403,6 +2406,8 @@ function loadProductsWithSku(){
                 $(".load_products_listing_with_sku").html('');
                 $(".load_products_listing_with_sku").html('No More Products Exist!');
                 $(".load_products_listing_with_sku").show();
+                //hide the message after 3 seconds...
+                setTimeout(function(){$(".load_products_listing_with_sku").hide();}, 3000);
             }
         }
     });
@@ -2442,6 +2447,8 @@ function loadMoreCoupons(){
                 $(".load_coupons_listing").html('');
                 $(".load_coupons_listing").html('No More Coupons Exist!');
                 $(".load_coupons_listing").show();
+                //hide the message after 3 seconds...
+                setTimeout(function(){$(".load_coupons_listing").hide();}, 3000);
             }
         }
     });
@@ -2490,8 +2497,6 @@ var productsOffsetWithCat = 200;
 var customCatProductsLimit = 200;
 //Function : This function is called on scroll of products listing(on the basis of category) popup...
 function loadMoreProductByCat(){
-    var getScrollTop = $('.scroll_div_products').scrollTop();//get the scroll top position....
-    var updatedTopScrollValue = getScrollTop-100;//miuns something.....
     var categoryId = $(".scroll_div_products").attr('id');//get the id of popup to get popup link to whick category...
     var affiliatePath = $("[name=affiliate_path]").val();//get the affiliate link from hidden value....
     //then check category id is exist or not...
@@ -2523,7 +2528,8 @@ function loadMoreProductByCat(){
                     $(".load_products_cat_basis").html('');
                     $(".load_products_cat_basis").html('No More Products Exist!');
                     $(".load_products_cat_basis").show();
-                    $('.scroll_div_products').scrollTop(updatedTopScrollValue);//update the scroll top value to prevent ajax hit....
+                    //hide the message after 3 seconds...
+                    setTimeout(function(){$(".load_products_cat_basis").hide();}, 3000);
                 }
             }
         });
