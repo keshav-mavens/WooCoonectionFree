@@ -329,9 +329,9 @@
                 insertApplicationProducts();//call the function to insert the products in our database....
                 //get input hidden value to stop the duplication of page creation.....
                 var affiliateReferralPageId = $("#affiliate_referral_page_id").val();
-                var configurationType =  $(".configurationType").attr('id');
+                var configurationType =  $(".applicationtype").attr('id');
                 //if value of input hidden is empty so we need to add new page....
-                if(affiliateReferralPageId == '' && configurationType == 'Infusionsoft'){
+                if(affiliateReferralPageId == '' && configurationType == '1'){
                     addNewPageAffiliate();//call the function....
                 }
                 $("#application_settings").after('<span class="custom-icons"><i class="fa fa-check-circle" aria-hidden="true"></i></span>');
@@ -385,11 +385,11 @@
             });
 
             //Below code is used to check whether a application type is infusionsoft/keap, if keap then hide some feature menus like leadsource,refferal partner..
-            if($(".configurationType").attr('id') != ""){
-                var configurationType =  $(".configurationType").attr('id');
-                if(configurationType == 'Infusionsoft'){//if application type is infusionsoft.......
+            if($(".applicationtype").attr('id') != ""){
+                var configurationType =  $(".applicationtype").attr('id');
+                if(configurationType == '1'){//if application type is infusionsoft.......
                     $("#referral_partner").show();
-                }else if (configurationType == 'Keap'){//if application type is keap.....
+                }else if (configurationType == '2'){//if application type is keap.....
                     $("#referral_partner").hide();
                 }
             }

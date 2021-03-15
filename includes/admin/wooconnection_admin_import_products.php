@@ -27,7 +27,7 @@ $applicationLabel = applicationLabel($type);
                     On this screen is where you're able to export the existing products in WooCommerce to your <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> account.
                     You are also able to match your WooCommerce products up to existing products in your <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?> account.
                     These two important options make sure that when we record your orders in your <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL; ?>, they get recorded properly using the right products</p>
-                    <span>Click on icon to to reload the latest product from <?php echo APPLICATION_TYPE_INFUSIONSOFT_LABEL ?> application </span><a href="javascript:void(0)" onclick="reloadLatestAppProducts()"> <i class="fa fa-refresh" aria-hidden="true"></i></a>
+                    <span>Click on icon to to reload the latest product from <?php echo $applicationLabel ?> application </span><a href="javascript:void(0)" onclick="reloadLatestAppProducts()"> <i class="fa fa-refresh" aria-hidden="true"></i></a>
             </p>
 	      	<nav>
 		        <div class="nav nav-tabs nav-fill custom-nav-tabs" id="nav-tab" role="tablist">
