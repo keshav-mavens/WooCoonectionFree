@@ -1601,7 +1601,7 @@ function wc_load_products()
 	  	}
 
 	  	//get the products listing on the basis of category id.......
-	  	$wcProductsListing = getProductByCat($catId,$defaultLimit);
+	  	$wcProductsListing = '';//getProductByCat($catId,$defaultLimit);
 	  	
 	  	//check products data exist or not.....
 	  	if(isset($wcProductsListing) && !empty($wcProductsListing)){
@@ -1614,7 +1614,7 @@ function wc_load_products()
 	                                      onclick="copyContent(\'product_'.$value->ID.'_affiliate_link\')"></td></tr>';
 	  		}
 	  	}else{
-	  		$productLisingWithAffiliateLinks .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No prroducts available</td></tr>';
+	  		$productLisingWithAffiliateLinks .= '<tr class="no_products_exist_cat"><td colspan="3" style="text-align: center; vertical-align: middle;">No Products Exist!</td></tr>';
 	  	}
 	  	//return response with html.....
 	  	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE,'productLisingWithAffiliateLinks'=>$productLisingWithAffiliateLinks));

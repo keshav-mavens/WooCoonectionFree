@@ -1900,6 +1900,9 @@ function showProductsByCat($catId){
                 if(responsedata.productLisingWithAffiliateLinks != "") {
                     $("#productsAffiliateLinks").html('');
                     $("#productsAffiliateLinks").html(responsedata.productLisingWithAffiliateLinks);
+                    if($("#productsAffiliateLinks tr.no_products_exist_cat").length > 0){
+                        $('.cat_products_more').hide();
+                    }
                 }
             }
         });  
