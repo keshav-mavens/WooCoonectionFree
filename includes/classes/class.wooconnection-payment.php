@@ -616,6 +616,13 @@
 					}
                     //push product details into array......
                     $itemsDetailsArray[] = array('description'=>$orderProductDesc,'price'=>$orderProductPrice,'product_id'=>$orderProductIdCheck,'quantity'=>$orderProductQuan);
+                    //get product sku by product id......
+                    $productSku = get_set_product_sku($orderProductId,SKU_LENGHT_SPECIFIC_PRODUCT);
+                    if(isset($productSku) && !empty($productSku)){
+                        //Call the common function to hit the specific product purchase trigger....
+                        $specificPurchaseTrigger = orderTriggerSpecificPurchase($productSku,$contactId,$access_token,$wooconnectionLogger);
+                    }
+
                 }
                 
                 //check items array is exist or not.....
