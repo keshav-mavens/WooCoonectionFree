@@ -1919,6 +1919,9 @@ function wc_standard_categories_listing(){
               $categoriesLising .= '<tr><input type="hidden" id="scroll_count_cat_products_'.$termId.'" value="0"><input type="hidden" value="200" id="cat_products_limit_'.$termId.'"><td>'.$termName.'</td><td><a href="javascript:void(0);" onclick="showProductsByCat('.$termId.')">View Products</a></td></tr>';
           }
         }
+        if(empty($categoriesLising)){//check after the loop execution....
+          $categoriesLising .='<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No categories available with products</td></tr>';  
+        }
     }else{
         $categoriesLising .='<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No categories available with products</td></tr>';
     }
