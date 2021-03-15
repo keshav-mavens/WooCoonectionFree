@@ -1223,6 +1223,13 @@
                     },
                 });
             });
+
+            //remove the load more coupons button....
+            $document.on('click','#coupon_toggle',function(){
+                if($("#coupon_listing_with_sku tr.no_more_coupons_exist").length > 0){
+                    $('.load_more_coupons_div').hide();
+                }
+            });
         });
 }(jQuery));
 

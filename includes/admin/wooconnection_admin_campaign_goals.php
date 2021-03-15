@@ -173,7 +173,7 @@ $checkAuthenticationStatus = applicationAuthenticationStatus();
                 <thead><tr><th>Coupon Code</th><th>Coupon Desc</th><th>Action</th></tr></thead>
                 <tbody><?php echo get_coupons_listing(); ?></tbody>
           </table>
-          <div class="form-group col-md-12 text-center">
+          <div class="form-group col-md-12 text-center load_more_coupons_div">
             <div class="load_coupons_listing" style="text-align: center;display: none;"></div>
             <input type="button" value="Load More Coupons" class="btn btn-primary btn-radius btn-theme" style="margin-top:10px;" onclick="loadMoreCoupons()">
           </div>

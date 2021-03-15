@@ -2582,7 +2582,7 @@ function getOrderTriggers(){
         }
         else if($trigger_goal_name == 'Coupon Code Applied'){
             $call_name = explode('coupon', $trigger_call_name);
-            $callName = 'coupon'.'<a href="javascript:void(0);" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
+            $callName = 'coupon'.'<a href="javascript:void(0);" id="coupon_toggle" data-toggle="modal" data-target="#couponsListing">'.$call_name[1].'</a>';
             $class = 'readonly';
             $hiddenCallName = 'coupon'.$call_name[1];
         }
@@ -2680,7 +2680,7 @@ function get_coupons_listing($couponListingLimit='',$couponListingOffset='',$cou
     }
   }else{
     if(empty($couponListingType)){
-      $couponsLisingWithCode .= '<tr><td colspan="3" style="text-align: center; vertical-align: middle;">No Coupons Exist!</td></tr>';
+      $couponsLisingWithCode .= '<tr class="no_more_coupons_exist"><td colspan="3" style="text-align: center; vertical-align: middle;">No Coupons Exist!</td></tr>';
     }
   }
   return $couponsLisingWithCode;
