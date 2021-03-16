@@ -199,83 +199,78 @@ add_action( 'comment_post', 'wooconnection_cart_product_comment_trigger', 10, 2 
 function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_approved ){
     //check comment id....
     if(!empty($comment_ID)){
+        if(!session_id()) {
+            session_start();
+        }
+        $reviewLeftCartContactId = '';
+        if(isset($_SESSION['app_contact_id']) && !empty($_SESSION['app_contact_id'])){
+            $reviewLeftCartContactId = $_SESSION['app_contact_id'];
+        }
+
+        $access_token = '';
+        if(isset($_SESSION['auth_app_session']) && !empty($_SESSION['auth_app_session'])){
+            $access_token = $_SESSION['auth_app_session'];
+        }
+
         $commentData = get_comment( intval( $comment_ID ) );//Get the comment details by comment id....
         $comment_text = $commentData->comment_content;//Get the comment 
         $comment_parent_product = $commentData->comment_post_ID;//Get the post id..
         // Create instance of our wooconnection logger class to use off the whole things.
         $wooconnectionLogger = new WC_Logger();
         
-        //Concate a error message to store the logs...
-        $callback_purpose = 'Wooconnection Add Review Item : Process of wooconnection review left for item/product';
-        $applicationAuthenticationDetails = getAuthenticationDetails();
-        
-        //Stop the below process if not authentication done with infusionsoft/keap application..
-        if(empty($applicationAuthenticationDetails) || empty($applicationAuthenticationDetails[0]->user_access_token))
-        {
-            $addLogs = addLogsAuthentication($callback_purpose);
-            return false;
-        }
-        
-        //get the access token....
-        $access_token = '';
-        if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
-            $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-        }
-
-        //Woocommerce Cart trigger : Get the call name and integration name of goal "Item Added to Cart"... 
-        $standardReviewItemCartTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_CART,'Review Left');
-
-        //Define variables....
-        $standardReviewItemCartIntegrationName = '';
-        $standardReviewItemCartCallName = '';
-
-
-        //Check campaign goal details...
-        if(isset($standardReviewItemCartTrigger) && !empty($standardReviewItemCartTrigger)){
-        
-            //Get and set the wooconnection goal integration name
-            if(isset($standardReviewItemCartTrigger[0]->wc_integration_name) && !empty($standardReviewItemCartTrigger[0]->wc_integration_name)){
-                $standardReviewItemCartIntegrationName = $standardReviewItemCartTrigger[0]->wc_integration_name;
-            }
-
-            //Get and set the wooconnection goal call name
-            if(isset($standardReviewItemCartTrigger[0]->wc_call_name) && !empty($standardReviewItemCartTrigger[0]->wc_call_name)){
-                $standardReviewItemCartCallName = $standardReviewItemCartTrigger[0]->wc_call_name;
-            }
-        }
-
-
-        //get or set the add cart user email..
-        $reviewLeftCartUseremail = get_set_user_email();
-        if(empty($reviewLeftCartUseremail)){
-            $reviewLeftCartUseremail = "";
-        }
-
-        // Validate email is in valid format or not 
-        validate_email($reviewLeftCartUseremail,$callback_purpose,$wooconnectionLogger);
-        
-        //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
-        $reviewLeftCartContactId = checkAddContactApp($access_token,$reviewLeftCartUseremail,$callback_purpose);
-
         //check if contact id is exist then hit the trigger....
-        if(isset($reviewLeftCartContactId) && !empty($reviewLeftCartContactId)) {
+        if(isset($reviewLeftCartContactId) && !empty($reviewLeftCartContactId) && !empty($access_token)) {
+            //Concate a error message to store the logs...
+            $callback_purpose = 'Wooconnection Add Review Item : Process of wooconnection review left for item/product';
+            
+            //Woocommerce Cart trigger : Get the call name and integration name of goal "Item Added to Cart"... 
+            $standardReviewItemCartTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_CART,'Review Left');
+
+            //Define variables....
+            $standardReviewItemCartIntegrationName = '';
+            
+            //Check campaign goal details...
+            if(isset($standardReviewItemCartTrigger) && !empty($standardReviewItemCartTrigger)){
+                //Get and set the wooconnection goal integration name
+                if(isset($standardReviewItemCartTrigger[0]->wc_integration_name) && !empty($standardReviewItemCartTrigger[0]->wc_integration_name)){
+                    $standardReviewItemCartIntegrationName = $standardReviewItemCartTrigger[0]->wc_integration_name;
+                }
+            }
+
             $productSku = get_set_product_sku($_POST['comment_post_ID'],SKU_LENGHT_REVIEW);
             if(!empty($standardReviewItemCartIntegrationName) && !empty($productSku))
             {
                 $productSku = 'review'.$productSku;
-                $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardReviewItemCartIntegrationName,$productSku,$reviewLeftCartContactId,$callback_purpose);
-                if(!empty($standardAddItemCartTriggerResponse)){
-                    if(!isset($standardAddItemCartTriggerResponse['fault'])){
-                        if(empty($standardAddItemCartTriggerResponse[0]['success'])){
-                            //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                            if(isset($standardAddItemCartTriggerResponse[0]['message']) && !empty($standardAddItemCartTriggerResponse[0]['message'])){
-                                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Review Item : Process of wooconnection review left for item/product to cart trigger is failed where contact id is '.$reviewLeftCartContactId.' because '.$standardAddItemCartTriggerResponse[0]['message'].'');    
-                            }else{
-                                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Review Item : Process of wooconnection review left for item/product to cart trigger is failed where contact id is '.$reviewLeftCartContactId.'');
+                $standardReviewItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardReviewItemCartIntegrationName,$productSku,$reviewLeftCartContactId,$callback_purpose);
+                $saveLogs = false;//set default value.....
+                if(!empty($standardReviewItemCartTriggerResponse)){
+                    if(!isset($standardReviewItemCartTriggerResponse['fault'])){
+                        if(empty($standardReviewItemCartTriggerResponse[0]['success'])){
+                            $saveLogs = true;//set default value.....
+                        }
+                    }else{
+                        if(!empty($standardReviewItemCartTriggerResponse['fault']['faultstring']) && $standardReviewItemCartTriggerResponse['fault']['faultstring'] == 'Invalid Access Token'){
+                            $applicationAuthenticationDetails = getAuthenticationDetails();
+                            if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+                                $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+                                $_SESSION['auth_app_session'] = $access_token;
                             }
+                            $standardReviewItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardReviewItemCartIntegrationName,$productSku,$reviewLeftCartContactId,$callback_purpose);
                             
+                            if(empty($standardReviewItemCartTriggerResponse[0]['success'])){
+                                $saveLogs = true;//set true....
+                            }
                         }
                     }
+                }
+            }
+
+            if($saveLogs == true){//check if value is true....
+                //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                if(isset($standardReviewItemCartTriggerResponse[0]['message']) && !empty($standardReviewItemCartTriggerResponse[0]['message'])){
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Review Item : Process of wooconnection review left for item/product to cart trigger is failed where contact id is '.$reviewLeftCartContactId.' because '.$standardReviewItemCartTriggerResponse[0]['message'].'');    
+                }else{
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Review Item : Process of wooconnection review left for item/product to cart trigger is failed where contact id is '.$reviewLeftCartContactId.'');
                 }
             }
 
@@ -287,6 +282,7 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
                 addContactNotes($access_token,$reviewLeftCartContactId,$comment_text,$itemTitle,$callback_purpose,NOTE_TYPE_REVIEW);
             }
         }
+        $endTime = microtime(true);
     }
     return true;
 }
