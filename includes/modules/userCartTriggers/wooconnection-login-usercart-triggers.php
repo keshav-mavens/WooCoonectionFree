@@ -8,7 +8,8 @@ add_action('woocommerce_cart_is_empty' , 'wooconnection_cart_empty_trigger',10, 
 
 //Function Definiation : wooconnection_cart_empty_trigger
 function wooconnection_cart_empty_trigger(){
-	// Create instance of our wooconnection logger class to use off the whole things.
+	$sessionData = WC()->session->get('custom_data');//get the custom session data....
+    // Create instance of our wooconnection logger class to use off the whole things.
     $wooconnectionLogger = new WC_Logger();
     
     //Concate a error message to store the logs...
@@ -106,17 +107,15 @@ function wooconnection_cart_empty_trigger(){
 add_action('woocommerce_add_to_cart', 'wooconnection_cart_product_add_trigger', 10, 6);
 //Function Definiation : wooconnection_cart_product_add_trigger
 function wooconnection_cart_product_add_trigger(){
-    if(!session_id()) {
-        session_start();
-    }
+    $customSessionData = WC()->session->get('custom_data');//get the custom session data......
     $appContactId = '';
-    if(isset($_SESSION['app_contact_id']) && !empty($_SESSION['app_contact_id'])){
-        $appContactId = $_SESSION['app_contact_id'];
+    if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
+        $appContactId = $customSessionData['app_contact_id'];
     }
 
     $access_token = '';
-    if(isset($_SESSION['auth_app_session']) && !empty($_SESSION['auth_app_session'])){
-        $access_token = $_SESSION['auth_app_session'];
+    if(isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
+        $access_token = $customSessionData['auth_app_session'];
     }
 
     if(!empty($appContactId) && !empty($access_token)){
@@ -199,17 +198,15 @@ add_action( 'comment_post', 'wooconnection_cart_product_comment_trigger', 10, 2 
 function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_approved ){
     //check comment id....
     if(!empty($comment_ID)){
-        if(!session_id()) {
-            session_start();
-        }
+        $customSessionData = WC()->session->get('custom_data');
         $reviewLeftCartContactId = '';
-        if(isset($_SESSION['app_contact_id']) && !empty($_SESSION['app_contact_id'])){
-            $reviewLeftCartContactId = $_SESSION['app_contact_id'];
+        if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
+            $reviewLeftCartContactId = $customSessionData['app_contact_id'];
         }
 
         $access_token = '';
-        if(isset($_SESSION['auth_app_session']) && !empty($_SESSION['auth_app_session'])){
-            $access_token = $_SESSION['auth_app_session'];
+        if(isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
+            $access_token = $customSessionData['auth_app_session'];
         }
 
         $commentData = get_comment( intval( $comment_ID ) );//Get the comment details by comment id....
@@ -359,11 +356,12 @@ function handle_user_login_process($user_login,$user){
             //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
             $applicationContactId = checkAddContactApp($access_token,$loginUserEmail,$callback_purpose);
             if(isset($applicationContactId) && !empty($applicationContactId)){//check the application contact id is exist or not.....
-                if(!session_id()) {
-                    session_start();
+                // Early initialize customer session
+                if (isset(WC()->session) && ! WC()->session->has_session()){
+                    WC()->session->set_customer_session_cookie( true );
                 }
-                $_SESSION['app_contact_id'] = $applicationContactId;//set the value in session.....
-                $_SESSION['auth_app_session'] = $access_token;
+                // Set the session data
+                WC()->session->set( 'custom_data', array( 'app_contact_id' => $applicationContactId, 'auth_app_session' => $access_token)); 
             }
         }
     }
@@ -373,11 +371,6 @@ function handle_user_login_process($user_login,$user){
 add_action('wp_logout','handle_user_logout_process');
 //Function Definition : handle_user_logout_process
 function handle_user_logout_process() {
-    if(!session_id()) {
-        session_start();
-    }
-    //unset the custom session variables........
-    unset($_SESSION['app_contact_id']);
-    unset($_SESSION['auth_app_session']);
+    WC()->session->__unset('custom_data');
 }
 ?>
