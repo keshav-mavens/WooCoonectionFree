@@ -282,7 +282,6 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
                 addContactNotes($access_token,$reviewLeftCartContactId,$comment_text,$itemTitle,$callback_purpose,NOTE_TYPE_REVIEW);
             }
         }
-        $endTime = microtime(true);
     }
     return true;
 }
@@ -377,8 +376,8 @@ function handle_user_logout_process() {
     if(!session_id()) {
         session_start();
     }
-    //empty the sessions....
-    $_SESSION['app_contact_id'] = '';
-    $_SESSION['auth_app_session'] = '';
+    //unset the custom session variables........
+    unset($_SESSION['app_contact_id']);
+    unset($_SESSION['auth_app_session']);
 }
 ?>
