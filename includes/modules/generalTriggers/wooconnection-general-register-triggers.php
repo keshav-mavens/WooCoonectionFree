@@ -93,12 +93,13 @@ function wooconnection_general_user_registration_trigger($userid,$generalRegistr
 
         //check if contact id is exist then hit the trigger....
         if(isset($registerContactId) && !empty($registerContactId)) {
-            if(!session_id()) {
-                session_start();
+            // Early initialize customer session
+            if (isset(WC()->session) && ! WC()->session->has_session()){
+                WC()->session->set_customer_session_cookie( true );
             }
-            $_SESSION['app_contact_id'] = $registerContactId;//set the value in session.....
-            $_SESSION['auth_app_session'] = $access_token;
-
+            // Set the session data
+            WC()->session->set( 'custom_data', array( 'app_contact_id' => $registerContactId, 'auth_app_session' => $access_token));
+            
             //define empty variable....
             $referralAffiliateId = '';
             $affiliateCode = '';
