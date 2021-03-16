@@ -359,15 +359,17 @@
 		       			if(!empty($declinedTriggerCallName) && !empty($declinedTriggerIntName)){
 		       				$declinedCardTriggerResponse = achieveTriggerGoal($access_token,$declinedTriggerIntName,$declinedTriggerCallName,$paymentContactId,$trigger_callback_purpose);
 		   					if(!empty($declinedCardTriggerResponse)){
-				                if(empty($declinedCardTriggerResponse[0]['success'])){
-				                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
-				                    if(isset($declinedCardTriggerResponse[0]['message']) && !empty($declinedCardTriggerResponse[0]['message'])){
-				                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Declined Card : Process of wooconnection declined card trigger is failed where contact id is '.$paymentContactId.' because '.$declinedCardTriggerResponse[0]['message'].'');    
-				                    }else{
-				                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Declined Card : Process of wooconnection declined card trigger is failed where contact id is '.$paymentContactId.'');
-				                    }
-				                    
-				                }
+				                if(!isset($declinedCardTriggerResponse['fault'])){
+					                if(empty($declinedCardTriggerResponse[0]['success'])){
+					                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+					                    if(isset($declinedCardTriggerResponse[0]['message']) && !empty($declinedCardTriggerResponse[0]['message'])){
+					                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Declined Card : Process of wooconnection declined card trigger is failed where contact id is '.$paymentContactId.' because '.$declinedCardTriggerResponse[0]['message'].'');    
+					                    }else{
+					                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Declined Card : Process of wooconnection declined card trigger is failed where contact id is '.$paymentContactId.'');
+					                    }
+					                    
+					                }
+					            }
 				            }
 		       			}
 			            wc_add_notice('Process payment failed due to '.$failurereason, 'error'); 
@@ -704,15 +706,17 @@
        			if(!empty($failedOrderTriggerIntName) && !empty($failedOrderTriggerIntName)){
        				$orderFailedTriggerResponse = achieveTriggerGoal($access_token,$failedOrderTriggerIntName,$failedOrderTriggerCallName,$contactId,$trigger_callback_purpose);
    					if(!empty($orderFailedTriggerResponse)){
-		                if(empty($orderFailedTriggerResponse[0]['success'])){
-		                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
-		                    if(isset($orderFailedTriggerResponse[0]['message']) && !empty($orderFailedTriggerResponse[0]['message'])){
-		                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$contactId.' because '.$orderFailedTriggerResponse[0]['message'].'');    
-		                    }else{
-		                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$contactId.'');
-		                    }
-		                    
-		                }
+		                if(!isset($orderFailedTriggerResponse['fault'])){
+			                if(empty($orderFailedTriggerResponse[0]['success'])){
+			                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
+			                    if(isset($orderFailedTriggerResponse[0]['message']) && !empty($orderFailedTriggerResponse[0]['message'])){
+			                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$contactId.' because '.$orderFailedTriggerResponse[0]['message'].'');    
+			                    }else{
+			                        $logsEntry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$contactId.'');
+			                    }
+			                    
+			                }
+			            }
 		            }
        			}
 

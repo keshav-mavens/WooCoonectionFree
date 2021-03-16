@@ -93,6 +93,12 @@ function wooconnection_general_user_registration_trigger($userid,$generalRegistr
 
         //check if contact id is exist then hit the trigger....
         if(isset($registerContactId) && !empty($registerContactId)) {
+            if(!session_id()) {
+                session_start();
+            }
+            $_SESSION['app_contact_id'] = $registerContactId;//set the value in session.....
+            $_SESSION['auth_app_session'] = $access_token;
+
             //define empty variable....
             $referralAffiliateId = '';
             $affiliateCode = '';
@@ -117,14 +123,16 @@ function wooconnection_general_user_registration_trigger($userid,$generalRegistr
                 
                 $generalRegistrationTriggerResponse = achieveTriggerGoal($access_token,$generalRegistrationNewUserIntegrationName,$generalRegistrationNewUserCallName,$registerContactId,$callback_purpose);
                 if(!empty($generalRegistrationTriggerResponse)){
-                    if(empty($generalRegistrationTriggerResponse[0]['success'])){
-                        //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                        if(isset($generalRegistrationTriggerResponse[0]['message']) && !empty($generalRegistrationTriggerResponse[0]['message'])){
-                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Registration : Process of wooconnection registration trigger is failed where contact id is '.$registerContactId.' because '.$generalRegistrationTriggerResponse[0]['message'].'');    
-                        }else{
-                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Registration : Process of wooconnection registration trigger is failed where contact id is '.$registerContactId.'');
+                    if(!isset($generalRegistrationTriggerResponse['fault'])){
+                        if(empty($generalRegistrationTriggerResponse[0]['success'])){
+                            //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                            if(isset($generalRegistrationTriggerResponse[0]['message']) && !empty($generalRegistrationTriggerResponse[0]['message'])){
+                                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Registration : Process of wooconnection registration trigger is failed where contact id is '.$registerContactId.' because '.$generalRegistrationTriggerResponse[0]['message'].'');    
+                            }else{
+                                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Registration : Process of wooconnection registration trigger is failed where contact id is '.$registerContactId.'');
+                            }
+                            
                         }
-                        
                     }
                 }
             }

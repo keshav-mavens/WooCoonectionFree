@@ -785,7 +785,6 @@ function achieveTriggerGoal($access_token,$trigger_integration_name,$trigger_cal
             $errorMessage .= " due to ".$sucessData['fault']['faultstring']; 
           }
           $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', print_r($errorMessage, true));
-          return false;
         }
         return $sucessData;
       }
@@ -2756,6 +2755,7 @@ function orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLog
         {
             $orderAnyPurchaseTriggerResponse = achieveTriggerGoal($access_token,$purchaseProductIntegrationName,$purchaseProductCallName,$orderContactId,$callback_purpose);
             if(!empty($orderAnyPurchaseTriggerResponse)){
+              if(!isset($orderAnyPurchaseTriggerResponse['fault'])){  
                 if(empty($orderAnyPurchaseTriggerResponse[0]['success'])){
                     //Campign goal is not exist in infusionsoft/keap application then store the logs..
                     if(isset($orderAnyPurchaseTriggerResponse[0]['message']) && !empty($orderAnyPurchaseTriggerResponse[0]['message'])){
@@ -2765,6 +2765,7 @@ function orderTriggerAnyPurchase($orderContactId,$access_token,$wooconnectionLog
                     }
                     
                 }
+              }
             }    
         }
     }
@@ -2797,14 +2798,16 @@ function orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,
         {
             $orderSpecificPurchaseTriggerResponse = achieveTriggerGoal($access_token,$specificPurchaseProductIntegrationName,$specificPurchaseProductCallName,$orderContactId,$callback_purpose);
             if(!empty($orderSpecificPurchaseTriggerResponse)){
-                if(empty($orderSpecificPurchaseTriggerResponse[0]['success'])){
-                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                    if(isset($orderSpecificPurchaseTriggerResponse[0]['message']) && !empty($orderSpecificPurchaseTriggerResponse[0]['message'])){
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.' because '.$orderSpecificPurchaseTriggerResponse[0]['message'].'');    
-                    }else{
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.'');
-                    }
-                    
+                if(!isset($orderSpecificPurchaseTriggerResponse['fault'])){  
+                  if(empty($orderSpecificPurchaseTriggerResponse[0]['success'])){
+                      //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                      if(isset($orderSpecificPurchaseTriggerResponse[0]['message']) && !empty($orderSpecificPurchaseTriggerResponse[0]['message'])){
+                          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.' because '.$orderSpecificPurchaseTriggerResponse[0]['message'].'');    
+                      }else{
+                          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Specific Product Purchase : Process of specific product purchase trigger is failed where contact id is '.$orderContactId.'');
+                      }
+                      
+                  }
                 }
             }    
         }
@@ -2839,15 +2842,17 @@ function orderTriggerCouponApply($couponName,$orderContactId,$access_token,$wooc
         {
             $couponCodeTriggerResponse = achieveTriggerGoal($access_token,$couponCodeIntegrationName,$couponCodeCallName,$orderContactId,$callback_purpose);
             if(!empty($couponCodeTriggerResponse)){
-                if(empty($couponCodeTriggerResponse[0]['success'])){
-                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                    if(isset($couponCodeTriggerResponse[0]['message']) && !empty($couponCodeTriggerResponse[0]['message'])){
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger is failed where contact id is '.$orderContactId.' because '.$couponCodeTriggerResponse[0]['message'].'');    
-                    }else{
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger is failed where contact id is '.$orderContactId.'');
-                    }
-                    
-                }
+                if(!isset($couponCodeTriggerResponse['fault'])){
+                  if(empty($couponCodeTriggerResponse[0]['success'])){
+                      //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                      if(isset($couponCodeTriggerResponse[0]['message']) && !empty($couponCodeTriggerResponse[0]['message'])){
+                          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger is failed where contact id is '.$orderContactId.' because '.$couponCodeTriggerResponse[0]['message'].'');    
+                      }else{
+                          $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Coupon Code Applied : Process of coupon code applied trigger is failed where contact id is '.$orderContactId.'');
+                      }
+                      
+                  }
+              }
             }    
         }
     }
@@ -2967,13 +2972,15 @@ function orderTriggerReferralPartner($accessToken,$refId,$orderContactId,$object
             
             //check trigger response.....
             if(!empty($orderRefPartnerTriggerResponse)){
-                if(empty($orderRefPartnerTriggerResponse[0]['success'])){
-                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                    if(isset($orderRefPartnerTriggerResponse[0]['message']) && !empty($orderRefPartnerTriggerResponse[0]['message'])){
-                        $wooconnection_logs_entry = $objectLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.' because '.$orderRefPartnerTriggerResponse[0]['message'].'');    
-                    }else{
-                        $wooconnection_logs_entry = $objectLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.'');
-                    }
+                if(!isset($orderRefPartnerTriggerResponse['fault'])){
+                  if(empty($orderRefPartnerTriggerResponse[0]['success'])){
+                      //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                      if(isset($orderRefPartnerTriggerResponse[0]['message']) && !empty($orderRefPartnerTriggerResponse[0]['message'])){
+                          $wooconnection_logs_entry = $objectLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.' because '.$orderRefPartnerTriggerResponse[0]['message'].'');    
+                      }else{
+                          $wooconnection_logs_entry = $objectLogger->add('infusionsoft', 'Wooconnection Referral Partner : Process of referral partner order trigger is failed where contact id is '.$orderContactId.'');
+                      }
+                  }
                 }
             } 
         }

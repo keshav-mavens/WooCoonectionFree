@@ -164,14 +164,16 @@ function wooconnection_trigger_status_complete_hook($orderid){
             {
                 $generallSuccessfullOrderTriggerResponse = achieveTriggerGoal($access_token,$generalSuccessfullOrderIntegrationName,$generalSuccessfullOrderCallName,$orderContactId,$callback_purpose);
                 if(!empty($generallSuccessfullOrderTriggerResponse)){
-                    if(empty($generallSuccessfullOrderTriggerResponse[0]['success'])){
-                        //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                        if(isset($generallSuccessfullOrderTriggerResponse[0]['message']) && !empty($generallSuccessfullOrderTriggerResponse[0]['message'])){
-                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Successful Order : Process of wooconnection successful order trigger is failed where contact id is '.$orderContactId.' because '.$generallSuccessfullOrderTriggerResponse[0]['message'].'');    
-                        }else{
-                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Successful Order : Process of wooconnection successful order trigger is failed where contact id is '.$orderContactId.'');
+                    if(!isset($generallSuccessfullOrderTriggerResponse['fault'])){
+                        if(empty($generallSuccessfullOrderTriggerResponse[0]['success'])){
+                            //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                            if(isset($generallSuccessfullOrderTriggerResponse[0]['message']) && !empty($generallSuccessfullOrderTriggerResponse[0]['message'])){
+                                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Successful Order : Process of wooconnection successful order trigger is failed where contact id is '.$orderContactId.' because '.$generallSuccessfullOrderTriggerResponse[0]['message'].'');    
+                            }else{
+                                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Successful Order : Process of wooconnection successful order trigger is failed where contact id is '.$orderContactId.'');
+                            }
+                            
                         }
-                        
                     }
                 }
             }
@@ -183,13 +185,15 @@ function wooconnection_trigger_status_complete_hook($orderid){
             $callback_purchase_follow_up = 'Wooconnection Successful Order Follow Up : Process to push user in purchase goal to remove user from follow up sequence';
             $generalSuccessfullOrderFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_PURCHASE_CALL_NAME,$orderContactId,$callback_purchase_follow_up);
             if(!empty($generalSuccessfullOrderFollowUpResponse)){
-                if(empty($generalSuccessfullOrderFollowUpResponse[0]['success'])){
-                    if(isset($generalSuccessfullOrderFollowUpResponse[0]['message']) && !empty($generalSuccessfullOrderFollowUpResponse[0]['success'])){
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence is failed where contact id is '.$orderContactId.' because '.$generalSuccessfullOrderFollowUpResponse[0]['message'].'');   
-                    }else{
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft','Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence if failed where contact id is '.$orderContactId.'');
-                    }
-                }    
+                if(!isset($generalSuccessfullOrderFollowUpResponse['fault'])){
+                    if(empty($generalSuccessfullOrderFollowUpResponse[0]['success'])){
+                        if(isset($generalSuccessfullOrderFollowUpResponse[0]['message']) && !empty($generalSuccessfullOrderFollowUpResponse[0]['success'])){
+                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence is failed where contact id is '.$orderContactId.' because '.$generalSuccessfullOrderFollowUpResponse[0]['message'].'');   
+                        }else{
+                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft','Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence if failed where contact id is '.$orderContactId.'');
+                        }
+                    }    
+                }
             }
             
             //add goals form specfic coupons...
@@ -382,14 +386,16 @@ function woocommerce_trigger_status_failed_hook($order_id, $order)
         {
             $generalFailTriggerResponse = achieveTriggerGoal($access_token,$generalFailOrderIntegrationName,$generalFailOrderCallName,$orderContactId,$callback_purpose);
             if(!empty($generalFailTriggerResponse)){
-                if(empty($generalFailTriggerResponse[0]['success'])){
-                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                    if(isset($generalFailTriggerResponse[0]['message']) && !empty($generalFailTriggerResponse[0]['message'])){
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$orderContactId.' because '.$generalFailTriggerResponse[0]['message'].'');    
-                    }else{
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$orderContactId.'');
+                if(!isset($generalFailTriggerResponse['fault'])){
+                    if(empty($generalFailTriggerResponse[0]['success'])){
+                        //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                        if(isset($generalFailTriggerResponse[0]['message']) && !empty($generalFailTriggerResponse[0]['message'])){
+                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$orderContactId.' because '.$generalFailTriggerResponse[0]['message'].'');    
+                        }else{
+                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Woocommerce Failed Order : Process of wooconnection failed order trigger is failed where contact id is '.$orderContactId.'');
+                        }
+                        
                     }
-                    
                 }
             }    
         }
