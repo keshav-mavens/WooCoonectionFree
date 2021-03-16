@@ -2700,6 +2700,10 @@ function get_set_product_sku($productId,$length=''){
         if(isset($currentPostData->post_name) && !empty($currentPostData->post_name)){
            $productSku =  $currentPostData->post_name;
         }
+        $productSku = substr($productSku, 0, 10);
+        $productSku = $productSku.$productId;
+        //update the woocommerce product sku......
+        update_post_meta($productId,'_sku',$productSku);
       }else{
         $productSku = $productSku;  
       }
