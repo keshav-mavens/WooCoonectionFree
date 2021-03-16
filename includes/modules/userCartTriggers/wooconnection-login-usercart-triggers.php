@@ -259,28 +259,10 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
 
         //check if contact id is exist then hit the trigger....
         if(isset($reviewLeftCartContactId) && !empty($reviewLeftCartContactId)) {
-            $productSkuById = get_post_meta($_POST['comment_post_ID'], '_sku', true);
-            $productSku = '';
-            if(isset($productSkuById) && !empty($productSkuById)){
-                $productSku = $productSkuById;
-            }
-            //if "-" is exist in product sku then replace with empty
-            if (strpos($productSku, '-') !== false)
+            $productSku = get_set_product_sku($_POST['comment_post_ID'],SKU_LENGHT_REVIEW);
+            if(!empty($standardReviewItemCartIntegrationName) && !empty($productSku))
             {
-                $productSku=str_replace("-", "", $productSku);
-            }
-            else if (strpos($productSku, '_') !== false)
-            {
-                $productSku=str_replace("_", "", $productSku);
-            }
-            else
-            {
-                $productSku=$productSku;
-            }
-            
-            $productSku = 'review'.substr($productSku, 0,SKU_LENGHT_REVIEW);
-            if(!empty($standardReviewItemCartIntegrationName))
-            {
+                $productSku = 'review'.$productSku;
                 $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardReviewItemCartIntegrationName,$productSku,$reviewLeftCartContactId,$callback_purpose);
                 if(!empty($standardAddItemCartTriggerResponse)){
                     if(!isset($standardAddItemCartTriggerResponse['fault'])){
