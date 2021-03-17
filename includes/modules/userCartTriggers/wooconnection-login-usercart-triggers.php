@@ -64,8 +64,9 @@ function wooconnection_cart_empty_trigger(){
                         $applicationAuthenticationDetails = getAuthenticationDetails();
                         if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
                             $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+                            WC()->session->__unset('custom_data');//unset the previous session.....
                             //reset the session data........
-                            WC()->session->set('custom_data',array('auth_app_session'=>$access_token));
+                            WC()->session->set('custom_data',array('app_contact_id'=>$emptiedCartContactId,'auth_app_session'=>$access_token));
                         }
                         $standardEmptiedCartTriggerResponse = achieveTriggerGoal($access_token,$standardEmptiedCartIntegrationName,$standardEmptiedCartCallName,$emptiedCartContactId,$callback_purpose);
                         if(empty($standardEmptiedCartTriggerResponse[0]['success'])){
