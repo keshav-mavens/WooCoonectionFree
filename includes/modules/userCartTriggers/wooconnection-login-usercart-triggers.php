@@ -285,7 +285,7 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
                 }
             }
 
-            if($saveLogs == true){//check if value is true then save the logs........
+            if($saveLogs == true){//check if value is true then save the logs....
                 //Campign goal is not exist in infusionsoft/keap application then store the logs..
                 if(isset($standardReviewItemCartTriggerResponse[0]['message']) && !empty($standardReviewItemCartTriggerResponse[0]['message'])){
                     $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Add Review Item : Process of wooconnection review left for item/product to cart trigger is failed where contact id is '.$reviewLeftCartContactId.' because '.$standardReviewItemCartTriggerResponse[0]['message'].'');    

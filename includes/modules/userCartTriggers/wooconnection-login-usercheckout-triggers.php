@@ -16,7 +16,7 @@ function wooconnection_user_arrive_checkout(){
     
     $reachedContactId = '';
     if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
-        $reachedContactId = $customSessionData['app_contact_id'];
+        $reachedContactId = 'c2RYTQH6TCjl0bVs4GbAK96bYzsVwrong';//$customSessionData['app_contact_id'];
     }
     
     //check if contact id is exist then hit the trigger....
