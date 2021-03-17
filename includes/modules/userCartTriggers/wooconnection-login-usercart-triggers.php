@@ -8,77 +8,76 @@ add_action('woocommerce_cart_is_empty' , 'wooconnection_cart_empty_trigger',10, 
 
 //Function Definiation : wooconnection_cart_empty_trigger
 function wooconnection_cart_empty_trigger(){
-	$sessionData = WC()->session->get('custom_data');//get the custom session data....
-    // Create instance of our wooconnection logger class to use off the whole things.
-    $wooconnectionLogger = new WC_Logger();
+	$customSessionData = WC()->session->get('custom_data');//get the custom session data....
     
-    //Concate a error message to store the logs...
-    $callback_purpose = 'Wooconnection Empty Cart : Process of wooconnection empty cart trigger';
-    $applicationAuthenticationDetails = getAuthenticationDetails();
-    
-    //Stop the below process if not authentication done with infusionsoft/keap application..
-    if(empty($applicationAuthenticationDetails) || empty($applicationAuthenticationDetails[0]->user_access_token))
-    {
-        $addLogs = addLogsAuthentication($callback_purpose);
-        return false;
-    }
-    
-    //get the access token....
     $access_token = '';
-    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
-        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+    if(isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
+        $access_token = $customSessionData['auth_app_session'];
     }
 
-    //Woocommerce Standard trigger : Get the call name and integration name of goal "Woocommerce Checkout Page"... 
-    $standardEmptiedCartTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_CART,'Cart Emptied');
-
-    //Define variables....
-    $standardEmptiedCartIntegrationName = '';
-    $standardEmptiedCartCallName = '';
-
-
-    //Check campaign goal details...
-    if(isset($standardEmptiedCartTrigger) && !empty($standardEmptiedCartTrigger)){
-    
-        //Get and set the wooconnection goal integration name
-        if(isset($standardEmptiedCartTrigger[0]->wc_integration_name) && !empty($standardEmptiedCartTrigger[0]->wc_integration_name)){
-            $standardEmptiedCartIntegrationName = $standardEmptiedCartTrigger[0]->wc_integration_name;
-        }
-
-        //Get and set the wooconnection goal call name
-        if(isset($standardEmptiedCartTrigger[0]->wc_call_name) && !empty($standardEmptiedCartTrigger[0]->wc_call_name)){
-            $standardEmptiedCartCallName = $standardEmptiedCartTrigger[0]->wc_call_name;
-        }
+    $emptiedCartContactId = '';
+    if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
+        $emptiedCartContactId = $customSessionData['app_contact_id'];
     }
-
-	//get or set the add cart user email..
-    $emptiedCartUseremail = get_set_user_email();
-    if(empty($emptiedCartUseremail)){
-    	$emptiedCartUseremail = "";
-    }
-
-    // Validate email is in valid format or not 
-    validate_email($emptiedCartUseremail,$callback_purpose,$wooconnectionLogger);
-    
-    //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
-    $emptiedCartContactId = checkAddContactApp($access_token,$emptiedCartUseremail,$callback_purpose);
 
     //check if contact id is exist then hit the trigger....
-    if(isset($emptiedCartContactId) && !empty($emptiedCartContactId)) {
+    if(isset($emptiedCartContactId) && !empty($emptiedCartContactId) && !empty($access_token)) {
+        // Create instance of our wooconnection logger class to use off the whole things.
+        $wooconnectionLogger = new WC_Logger();
+        
+        //Concate a error message to store the logs...
+        $callback_purpose = 'Wooconnection Empty Cart : Process of wooconnection empty cart trigger';
+        
+        //Woocommerce Standard trigger : Get the call name and integration name of goal "Woocommerce Checkout Page"... 
+        $standardEmptiedCartTrigger = get_campaign_goal_details(WOOCONNECTION_TRIGGER_TYPE_CART,'Cart Emptied');
+
+        //Define variables....
+        $standardEmptiedCartIntegrationName = '';
+        $standardEmptiedCartCallName = '';
+
+
+        //Check campaign goal details...
+        if(isset($standardEmptiedCartTrigger) && !empty($standardEmptiedCartTrigger)){
+        
+            //Get and set the wooconnection goal integration name
+            if(isset($standardEmptiedCartTrigger[0]->wc_integration_name) && !empty($standardEmptiedCartTrigger[0]->wc_integration_name)){
+                $standardEmptiedCartIntegrationName = $standardEmptiedCartTrigger[0]->wc_integration_name;
+            }
+
+            //Get and set the wooconnection goal call name
+            if(isset($standardEmptiedCartTrigger[0]->wc_call_name) && !empty($standardEmptiedCartTrigger[0]->wc_call_name)){
+                $standardEmptiedCartCallName = $standardEmptiedCartTrigger[0]->wc_call_name;
+            }
+        }
+
         if(!empty($standardEmptiedCartIntegrationName) && !empty($standardEmptiedCartCallName))
         {
             $standardEmptiedCartTriggerResponse = achieveTriggerGoal($access_token,$standardEmptiedCartIntegrationName,$standardEmptiedCartCallName,$emptiedCartContactId,$callback_purpose);
+            $saveCustomLogs = false;
             if(!empty($standardEmptiedCartTriggerResponse)){
                 if(!isset($standardEmptiedCartTriggerResponse['fault'])){
                     if(empty($standardEmptiedCartTriggerResponse[0]['success'])){
-                        //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                        if(isset($standardEmptiedCartTriggerResponse[0]['message']) && !empty($standardEmptiedCartTriggerResponse[0]['message'])){
-                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart : Process of wooconnection empty cart trigger is failed where contact id is '.$emptiedCartContactId.' because '.$standardEmptiedCartTriggerResponse[0]['message'].'');    
-                        }else{
-                            $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart : Process of wooconnection empty cart trigger is failed where contact id is '.$emptiedCartContactId.'');
-                        }
-                        
+                        $saveCustomLogs = true; 
                     }
+                }else{
+                    if(!empty($standardEmptiedCartTriggerResponse['fault']['faultstring']) && $standardEmptiedCartTriggerResponse['fault']['faultstring'] == 'Invalid Access Token'){
+                        $applicationAuthenticationDetails = getAuthenticationDetails();
+                        if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+                            $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+                        }
+                        $standardEmptiedCartTriggerResponse = achieveTriggerGoal($access_token,$standardEmptiedCartIntegrationName,$standardEmptiedCartCallName,$emptiedCartContactId,$callback_purpose);
+                        if(empty($standardEmptiedCartTriggerResponse[0]['success'])){
+                            $saveCustomLogs = true;
+                        }
+                    }
+                }
+            }
+            if($saveCustomLogs == true){
+                //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                if(isset($standardEmptiedCartTriggerResponse[0]['message']) && !empty($standardEmptiedCartTriggerResponse[0]['message'])){
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart : Process of wooconnection empty cart trigger is failed where contact id is '.$emptiedCartContactId.' because '.$standardEmptiedCartTriggerResponse[0]['message'].'');    
+                }else{
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart : Process of wooconnection empty cart trigger is failed where contact id is '.$emptiedCartContactId.'');
                 }
             }
         }
@@ -86,17 +85,31 @@ function wooconnection_cart_empty_trigger(){
         //Below code is used to push user in empty cart trigger to remove from cart abandon follow up process.....
         $callback_empty_cart_follow_up = 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence';
         $standardEmptiedCartFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_EMPTY_CART_CALL_NAME,$emptiedCartContactId,$callback_empty_cart_follow_up);
+        $saveFollowUpLogs = false;
         if(!empty($standardEmptiedCartFollowUpResponse)){
             if(!isset($standardEmptiedCartFollowUpResponse['fault'])){
                 if(empty($standardEmptiedCartFollowUpResponse[0]['success'])){
-                    //Campign goal is not exist in infusionsoft/keap application then store the logs..
-                    if(isset($standardEmptiedCartFollowUpResponse[0]['message']) && !empty($standardEmptiedCartFollowUpResponse[0]['message'])){
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence is failed where contact id is '.$emptiedCartContactId.' because '.$standardEmptiedCartFollowUpResponse[0]['message'].'');    
-                    }else{
-                        $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence is failed where contact id is '.$emptiedCartContactId.'');
-                    }
-                    
+                    $saveFollowUpLogs = true;
                 }
+            }else{
+                if(!empty($standardEmptiedCartFollowUpResponse['fault']['faultstring']) && $standardEmptiedCartFollowUpResponse['fault']['faultstring'] == 'Invalid Access Token'){
+                    $applicationAuthenticationDetails = getAuthenticationDetails();
+                    if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
+                        $access_token = $applicationAuthenticationDetails[0]->user_access_token;
+                    }
+                    $standardEmptiedCartFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_EMPTY_CART_CALL_NAME,$emptiedCartContactId,$callback_empty_cart_follow_up);
+                    if(empty($standardEmptiedCartFollowUpResponse[0]['success'])){
+                        $saveFollowUpLogs = true;
+                    }
+                }
+            }
+        }
+        if($saveFollowUpLogs == true){
+            //Campign goal is not exist in infusionsoft/keap application then store the logs..
+            if(isset($standardEmptiedCartFollowUpResponse[0]['message']) && !empty($standardEmptiedCartFollowUpResponse[0]['message'])){
+                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence is failed where contact id is '.$emptiedCartContactId.' because '.$standardEmptiedCartFollowUpResponse[0]['message'].'');    
+            }else{
+                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Empty Cart Follow Up : Process to push user in empty cart goal to remove user from follow up sequence is failed where contact id is '.$emptiedCartContactId.'');
             }
         }
     }
@@ -168,7 +181,8 @@ function wooconnection_cart_product_add_trigger(){
                         $applicationAuthenticationDetails = getAuthenticationDetails();
                         if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
                             $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-                            $_SESSION['auth_app_session'] = $access_token;
+                            //reset the session data........
+                            WC()->session->set('custom_data',array('auth_app_session'=>$access_token));
                         }
                         $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardAddItemCartIntegrationName,$productSku,$appContactId,$callback_purpose);
                         
@@ -250,7 +264,8 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
                             $applicationAuthenticationDetails = getAuthenticationDetails();
                             if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
                                 $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-                                $_SESSION['auth_app_session'] = $access_token;
+                                // reset the session data......
+                                WC()->session->set( 'custom_data', array('auth_app_session' => $access_token));
                             }
                             $standardReviewItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardReviewItemCartIntegrationName,$productSku,$reviewLeftCartContactId,$callback_purpose);
                             
