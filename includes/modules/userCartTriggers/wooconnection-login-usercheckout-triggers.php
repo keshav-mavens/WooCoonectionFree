@@ -56,7 +56,7 @@ function wooconnection_user_arrive_checkout(){
             if(!empty($standardReachedCheckoutTriggerResponse)){
                 if(!isset($standardReachedCheckoutTriggerResponse['fault'])){
                     if(empty($standardReachedCheckoutTriggerResponse[0]['success'])){
-                        $saveCheckoutLogs = true;
+                        $saveCheckoutLogs = true;//set the true to save the logs....
                     }
                 }else{
                     if(!empty($standardReachedCheckoutTriggerResponse['fault']['faultstring']) && $standardReachedCheckoutTriggerResponse['fault']['faultstring'] == 'Invalid Access Token'){
@@ -69,22 +69,22 @@ function wooconnection_user_arrive_checkout(){
                         }
                         $standardReachedCheckoutTriggerResponse = achieveTriggerGoal($access_token,$standardReachedCheckoutIntegrationName,$standardReachedCheckoutCallName,$reachedContactId,$callback_purpose);
                         if(empty($standardReachedCheckoutTriggerResponse[0]['success'])){
-                            $saveCheckoutLogs = true;
+                            $saveCheckoutLogs = true;//set the true to save the logs....
                         }
                     }
                 }
             }
-        }
-        
-        if(isset($saveCheckoutLogs) && $saveCheckoutLogs == true){
-            //Campign goal is not exist in infusionsoft/keap application then store the logs..
-            if(isset($standardReachedCheckoutTriggerResponse[0]['message']) && !empty($standardReachedCheckoutTriggerResponse[0]['message'])){
-                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Reached Checkout : Process of wooconnection reached checkout trigger is failed where contact id is '.$reachedContactId.' because '.$standardReachedCheckoutTriggerResponse[0]['message'].'');    
-            }else{
-                $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Reached Checkout : Process of wooconnection reached checkout trigger is failed where contact id is '.$reachedContactId.'');
+            
+            if($saveCheckoutLogs == true){//check if true then proceed next to save the logs......
+                //Campign goal is not exist in infusionsoft/keap application then store the logs..
+                if(isset($standardReachedCheckoutTriggerResponse[0]['message']) && !empty($standardReachedCheckoutTriggerResponse[0]['message'])){
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Reached Checkout : Process of wooconnection reached checkout trigger is failed where contact id is '.$reachedContactId.' because '.$standardReachedCheckoutTriggerResponse[0]['message'].'');    
+                }else{
+                    $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Reached Checkout : Process of wooconnection reached checkout trigger is failed where contact id is '.$reachedContactId.'');
+                }
             }
         }
-
+        
         //Below code is used to push user in reached checkout page process for cart abandon follow up process.
         $callback_checkout_follow_up = 'Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up';
         $standardReachedCheckoutFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_CHECKOUT_CALL_NAME,$reachedContactId,$callback_checkout_follow_up);
@@ -92,7 +92,7 @@ function wooconnection_user_arrive_checkout(){
         if(!empty($standardReachedCheckoutFollowUpResponse)){
             if(!isset($standardReachedCheckoutFollowUpResponse['fault'])){
                 if(empty($standardReachedCheckoutFollowUpResponse[0]['success'])){
-                    $saveCheckoutFollowUpLogs = true;
+                    $saveCheckoutFollowUpLogs = true;//set true to save the logs....
                 }
             }else{
                 if(!empty($standardReachedCheckoutFollowUpResponse['fault']['faultstring']) && $standardReachedCheckoutFollowUpResponse['fault']['faultstring'] == 'Invalid Access Token'){
@@ -105,13 +105,13 @@ function wooconnection_user_arrive_checkout(){
                     }
                     $standardReachedCheckoutFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_CHECKOUT_CALL_NAME,$reachedContactId,$callback_checkout_follow_up);
                     if(empty($standardReachedCheckoutFollowUpResponse[0]['success'])){
-                        $saveCheckoutFollowUpLogs = true;
+                        $saveCheckoutFollowUpLogs = true;//set true to save the logs.....
                     }
                 }
             }
         }
 
-        if(isset($saveCheckoutFollowUpLogs) && $saveCheckoutFollowUpLogs == true){
+        if($saveCheckoutFollowUpLogs == true){//check if true then proceed next to save the logs.....
             if(isset($standardReachedCheckoutFollowUpResponse[0]['message']) && !empty($standardReachedCheckoutFollowUpResponse[0]['message'])){
                 $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft','Wooconnection Reached Checkout Follow Up : Process to push user in reached checkout follow up is failed where contact id is '.$reachedContactId.' because '.$standardReachedCheckoutFollowUpResponse[0]['message'].'');
             }else{
