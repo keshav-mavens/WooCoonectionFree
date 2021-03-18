@@ -123,9 +123,11 @@ class WooConnection_Front {
                 <script type="text/javascript">
                     window.onload = function() {
                         var affiliate_class_name = '<?php echo $affiliate_menu_class; ?>';
-                        if(affiliate_class_name != ""){
-                            document.getElementsByClassName(affiliate_class_name)[0].style.visibility='hidden';
-                        }   
+                        if(jQuery("."+affiliate_class_name)[0]){
+                            if(affiliate_class_name != ""){
+                                document.getElementsByClassName(affiliate_class_name)[0].style.visibility='hidden';
+                            }   
+                        }
                     }
                 </script>
             <?php
