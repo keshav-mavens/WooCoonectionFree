@@ -22,6 +22,8 @@ class WooConnection_Front {
             //Call the hook init to control the referral partner process....
             add_action('init', array($this, 'wooconnection_referral_partner_handling'));
         }
+        //call the hook 'woocommerce_init'....
+        add_action('woocommerce_init',array($this,'handle_user_cookies'));
     }
 
 
@@ -210,6 +212,17 @@ class WooConnection_Front {
                     $cookieName = "affiliateId";
                     $cookieValue = $affiliateId;
                     setcookie($cookieName, $cookieValue, time() + 3600, "/", $_SERVER['SERVER_NAME']);
+                }
+            }
+        }
+    }
+
+    //Function Definition : handle_user_cookies(is used to handle the custom cookie details)
+    public function handle_user_cookies(){
+        if(!is_user_logged_in()){//check if user is not logged in.....
+            if(!headers_sent()){//check if header is not already sent....
+                if(isset($_COOKIE['custom_data'])){//check if cookie parameter is exist......
+                    setcookie('custom_data','',time()-999999,"/",$_SERVER['SERVER_NAME']);//then remove the cookie in php...
                 }
             }
         }
