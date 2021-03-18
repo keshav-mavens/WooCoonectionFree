@@ -187,7 +187,7 @@ function wooconnection_trigger_status_complete_hook($orderid){
             if(!empty($generalSuccessfullOrderFollowUpResponse)){
                 if(!isset($generalSuccessfullOrderFollowUpResponse['fault'])){
                     if(empty($generalSuccessfullOrderFollowUpResponse[0]['success'])){
-                        if(isset($generalSuccessfullOrderFollowUpResponse[0]['message']) && !empty($generalSuccessfullOrderFollowUpResponse[0]['success'])){
+                        if(isset($generalSuccessfullOrderFollowUpResponse[0]['message']) && !empty($generalSuccessfullOrderFollowUpResponse[0]['message'])){
                             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft', 'Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence is failed where contact id is '.$orderContactId.' because '.$generalSuccessfullOrderFollowUpResponse[0]['message'].'');   
                         }else{
                             $wooconnection_logs_entry = $wooconnectionLogger->add('infusionsoft','Wooconnection Successful order Follow Up : Process to push user in purchase goal to remove user from follow up sequence if failed where contact id is '.$orderContactId.'');

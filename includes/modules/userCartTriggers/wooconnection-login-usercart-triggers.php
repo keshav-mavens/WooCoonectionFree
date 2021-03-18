@@ -8,18 +8,18 @@ add_action('woocommerce_cart_is_empty' , 'wooconnection_cart_empty_trigger',10, 
 
 //Function Definiation : wooconnection_cart_empty_trigger
 function wooconnection_cart_empty_trigger(){
-	$customSessionData = WC()->session->get('custom_data');//get the custom session data....
-    
+	$customSessionData = isset($_COOKIE['custom_data']) ? unserialize(base64_decode($_COOKIE['custom_data'])) : '';
     $access_token = '';
-    if(isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
-        $access_token = $customSessionData['auth_app_session'];
-    }
-
     $emptiedCartContactId = '';
-    if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
-        $emptiedCartContactId = $customSessionData['app_contact_id'];
+    if(isset($customSessionData) && !empty($customSessionData)){
+        if (isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
+            $access_token = $customSessionData['auth_app_session'];
+        }
+        if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
+            $emptiedCartContactId = $customSessionData['app_contact_id'];
+        }
     }
-
+    
     //check if contact id is exist then hit the trigger....
     if(isset($emptiedCartContactId) && !empty($emptiedCartContactId) && !empty($access_token)) {
         // Create instance of our wooconnection logger class to use off the whole things.
@@ -64,9 +64,10 @@ function wooconnection_cart_empty_trigger(){
                         $applicationAuthenticationDetails = getAuthenticationDetails();
                         if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
                             $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-                            WC()->session->__unset('custom_data');//unset the previous session.....
-                            //reset the session data........
-                            WC()->session->set('custom_data',array('app_contact_id'=>$emptiedCartContactId,'auth_app_session'=>$access_token));
+                            if(!headers_sent()){//check is header not already sent.....
+                                $customDataArray = array('app_conatct_id'=>$emptiedCartContactId,'auth_app_session'=>$access_token);//create custom array...
+                                setcookie('custom_data',base64_encode(serialize($customDataArray)),time()+86400,"/",$_SERVER['SERVER_NAME']);//set cookie after serialize the array.....
+                            }
                         }
                         $standardEmptiedCartTriggerResponse = achieveTriggerGoal($access_token,$standardEmptiedCartIntegrationName,$standardEmptiedCartCallName,$emptiedCartContactId,$callback_purpose);
                         if(empty($standardEmptiedCartTriggerResponse[0]['success'])){
@@ -99,9 +100,10 @@ function wooconnection_cart_empty_trigger(){
                     $applicationAuthenticationDetails = getAuthenticationDetails();
                     if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
                         $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-                        WC()->session->__unset('custom_data');//unset the previous session.....
-                        //reset the session data........
-                        WC()->session->set('custom_data',array('app_contact_id'=>$emptiedCartContactId,'auth_app_session'=>$access_token));
+                        if(!headers_sent()){//check is header not sent....
+                            $customDataArray = array('app_contact_id'=>$emptiedCartContactId,'auth_app_session'=>$access_token);//create custom array........
+                            setcookie('custom_data',base64_encode(serialize($customDataArray)),time()+86400,"/",$_SERVER['SERVER_NAME']);//set the cookie after serialize the array....
+                        }
                     }
                     $standardEmptiedCartFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_EMPTY_CART_CALL_NAME,$emptiedCartContactId,$callback_empty_cart_follow_up);
                     if(empty($standardEmptiedCartFollowUpResponse[0]['success'])){
@@ -126,15 +128,16 @@ function wooconnection_cart_empty_trigger(){
 add_action('woocommerce_add_to_cart', 'wooconnection_cart_product_add_trigger', 10, 6);
 //Function Definiation : wooconnection_cart_product_add_trigger
 function wooconnection_cart_product_add_trigger(){
-    $customSessionData = WC()->session->get('custom_data');//get the custom session data......
-    $appContactId = '';
-    if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
-        $appContactId = $customSessionData['app_contact_id'];
-    }
-
+    $customSessionData = isset($_COOKIE['custom_data']) ? unserialize(base64_decode($_COOKIE['custom_data'])) : '';
     $access_token = '';
-    if(isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
-        $access_token = $customSessionData['auth_app_session'];
+    $appContactId = '';
+    if(isset($customSessionData) && !empty($customSessionData)){
+        if(isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
+            $access_token = $customSessionData['auth_app_session'];
+        }
+        if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
+            $appContactId = $customSessionData['app_contact_id'];
+        }
     }
 
     if(!empty($appContactId) && !empty($access_token)){
@@ -187,9 +190,10 @@ function wooconnection_cart_product_add_trigger(){
                         $applicationAuthenticationDetails = getAuthenticationDetails();
                         if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
                             $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-                            WC()->session->__unset('custom_data');//unset the previous session.....
-                            //reset the session data........
-                            WC()->session->set('custom_data',array('app_contact_id'=>$appContactId,'auth_app_session'=>$access_token));
+                            if (!headers_sent()) {//check is header not sent.....
+                                $customDataArray = array('app_contact_id' => $appContactId, 'auth_app_session'=>$access_token);//create custom array....
+                                setcookie('custom_data', base64_encode(serialize($customDataArray)), time() + 86400, "/", $_SERVER['SERVER_NAME']);//set cookie after serialize the array......
+                            }
                         }
                         $standardAddItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardAddItemCartIntegrationName,$productSku,$appContactId,$callback_purpose);
                         
@@ -219,17 +223,18 @@ add_action( 'comment_post', 'wooconnection_cart_product_comment_trigger', 10, 2 
 function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_approved ){
     //check comment id....
     if(!empty($comment_ID)){
-        $customSessionData = WC()->session->get('custom_data');
-        $reviewLeftCartContactId = '';
-        if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
-            $reviewLeftCartContactId = $customSessionData['app_contact_id'];
-        }
-
+        $customSessionData = isset($_COOKIE['custom_data']) ? unserialize(base64_decode($_COOKIE['custom_data'])) : '';
         $access_token = '';
-        if(isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
-            $access_token = $customSessionData['auth_app_session'];
+        $reviewLeftCartContactId = '';
+        if(isset($customSessionData) && !empty($customSessionData)){
+            if(isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
+                $access_token = $customSessionData['auth_app_session'];
+            }
+            if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
+                $reviewLeftCartContactId = $customSessionData['app_contact_id'];
+            }
         }
-
+        
         $commentData = get_comment( intval( $comment_ID ) );//Get the comment details by comment id....
         $comment_text = $commentData->comment_content;//Get the comment 
         $comment_parent_product = $commentData->comment_post_ID;//Get the post id..
@@ -271,9 +276,10 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
                             $applicationAuthenticationDetails = getAuthenticationDetails();
                             if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
                                 $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-                                WC()->session->__unset('custom_data');
-                                //reset the session data........
-                                WC()->session->set('custom_data',array('app_contact_id'=>$reviewLeftCartContactId,'auth_app_session'=>$access_token));
+                                if (!headers_sent()) {//check is header not sent.....
+                                    $customDataArray = array('app_contact_id' => $reviewLeftCartContactId, 'auth_app_session'=>$access_token);//create custom array....
+                                    setcookie('custom_data', base64_encode(serialize($customDataArray)), time() + 86400, "/", $_SERVER['SERVER_NAME']);//set cookie after serialize the array......
+                                }
                             }
                             $standardReviewItemCartTriggerResponse = achieveTriggerGoal($access_token,$standardReviewItemCartIntegrationName,$productSku,$reviewLeftCartContactId,$callback_purpose);
                             
@@ -379,12 +385,10 @@ function handle_user_login_process($user_login,$user){
             //check if contact already exist in infusionsoft/keap or not then add the contact infusionsoft/keap application..
             $applicationContactId = checkAddContactApp($access_token,$loginUserEmail,$callback_purpose);
             if(isset($applicationContactId) && !empty($applicationContactId)){//check the application contact id is exist or not.....
-                // Early initialize customer session
-                if (isset(WC()->session) && ! WC()->session->has_session()){
-                    WC()->session->set_customer_session_cookie( true );
+                if (!headers_sent()) {
+                    $customDataArray = array('app_contact_id' => $applicationContactId, 'auth_app_session'=>$access_token);
+                    setcookie('custom_data', base64_encode(serialize($customDataArray)), time() + 86400, "/", $_SERVER['SERVER_NAME']);
                 }
-                // Set the session data
-                WC()->session->set( 'custom_data', array( 'app_contact_id' => $applicationContactId, 'auth_app_session' => $access_token)); 
             }
         }
     }
@@ -394,6 +398,10 @@ function handle_user_login_process($user_login,$user){
 add_action('wp_logout','handle_user_logout_process');
 //Function Definition : handle_user_logout_process
 function handle_user_logout_process() {
-    WC()->session->__unset('custom_data');
+    if(!headers_sent()){
+        if (isset($_COOKIE['custom_data'])){//check if cookie parameter is exist...
+            setcookie('custom_data','',time() - 999999, '/', $_SERVER['SERVER_NAME']);//then remove the cookie in php...
+        }
+    }
 }
 ?>

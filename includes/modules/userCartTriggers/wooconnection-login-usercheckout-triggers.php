@@ -8,15 +8,16 @@ add_action('woocommerce_before_checkout_form', 'wooconnection_user_arrive_checko
 
 //Function Definiation : wooconnection_user_arrive_checkout_page
 function wooconnection_user_arrive_checkout(){
-    $customSessionData = WC()->session->get('custom_data');//get the custom session data.....
+    $customSessionDetails = isset($_COOKIE['custom_data']) ? unserialize(base64_decode($_COOKIE['custom_data'])) : '';
     $access_token = '';
-    if(isset($customSessionData['auth_app_session']) && !empty($customSessionData['auth_app_session'])){
-        $access_token = $customSessionData['auth_app_session'];
-    }
-    
     $reachedContactId = '';
-    if(isset($customSessionData['app_contact_id']) && !empty($customSessionData['app_contact_id'])){
-        $reachedContactId = 'c2RYTQH6TCjl0bVs4GbAK96bYzsVwrong';//$customSessionData['app_contact_id'];
+    if(isset($customSessionDetails) && !empty($customSessionDetails)){
+        if(isset($customSessionDetails['auth_app_session']) && !empty($customSessionDetails['auth_app_session'])){
+            $access_token = $customSessionDetails['auth_app_session'];
+        }
+        if(isset($customSessionDetails['app_contact_id']) && !empty($customSessionDetails['app_contact_id'])){
+            $reachedContactId = $customSessionDetails['app_contact_id'];
+        }
     }
     
     //check if contact id is exist then hit the trigger....
@@ -63,9 +64,10 @@ function wooconnection_user_arrive_checkout(){
                         $applicationAuthenticationDetails = getAuthenticationDetails();
                         if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
                             $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-                            WC()->session->__unset('custom_data');//unset the previous session data....
-                            //reset the session data........
-                            WC()->session->set('custom_data',array('app_contact_id' => $reachedContactId, 'auth_app_session'=>$access_token));
+                            if(!headers_sent()){
+                                $customDataSessionArray = array('app_contact_id'=>$reachedContactId,'auth_app_session'=>$access_token);//create custom array.....
+                                setcookie('custom_data',base64_encode(serialize($customDataSessionArray)),time()+86400,"/",$_SERVER['SERVER_NAME']);
+                            }
                         }
                         $standardReachedCheckoutTriggerResponse = achieveTriggerGoal($access_token,$standardReachedCheckoutIntegrationName,$standardReachedCheckoutCallName,$reachedContactId,$callback_purpose);
                         if(empty($standardReachedCheckoutTriggerResponse[0]['success'])){
@@ -99,9 +101,10 @@ function wooconnection_user_arrive_checkout(){
                     $applicationAuthenticationDetails = getAuthenticationDetails();
                     if(!empty($applicationAuthenticationDetails[0]->user_access_token)){
                         $access_token = $applicationAuthenticationDetails[0]->user_access_token;
-                        WC()->session->__unset('custom_data');//unset the previous session data....
-                        //reset the session data........
-                        WC()->session->set('custom_data',array('app_contact_id' => $reachedContactId, 'auth_app_session'=>$access_token));
+                        if(!headers_sent()){
+                            $customFollowUpSessionArray = array('app_contact_id'=>$reachedContactId,'auth_app_session'=>$access_token);
+                            setcookie('custom_data',base64_encode(serialize($customFollowUpSessionArray)),time()+86400,"/",$_SERVER['SERVER_NAME']);
+                        }
                     }
                     $standardReachedCheckoutFollowUpResponse = achieveTriggerGoal($access_token,FOLLOW_UP_INTEGRATION_NAME,FOLLOW_UP_CHECKOUT_CALL_NAME,$reachedContactId,$callback_checkout_follow_up);
                     if(empty($standardReachedCheckoutFollowUpResponse[0]['success'])){
