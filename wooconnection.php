@@ -42,7 +42,6 @@ class WooConnectionPro {
     
     //Function Definition : wooconnection_plugin_initialization
     public function wooconnection_plugin_initialization(){
-        global $pagenow;
         if (!class_exists('WC_Integration')) {
             add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
             return;
