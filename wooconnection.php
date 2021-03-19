@@ -42,6 +42,7 @@ class WooConnectionPro {
     
     //Function Definition : wooconnection_plugin_initialization
     public function wooconnection_plugin_initialization(){
+        global $pagenow;
         if (!class_exists('WC_Integration')) {
             add_action('admin_notices', array($this, 'woocommerce_plugin_necessary'));
             return;
@@ -68,7 +69,9 @@ class WooConnectionPro {
         define( 'WOOCONNECTION_PLUGIN_URL', plugin_dir_url( __FILE__ ) );//Directory Url Entity
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-entities.php' );
         require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin.php' );
-        require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
+        if(!is_admin()){
+            require_once( WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-front.php' );
+        }
         //Call the hook to call the custom function to update the recurring amount in authenticate application....
         add_action('recurring_payment_schedular_everyday','WooConnection_Admin::everyday_update_sub_recurring_amount');
         add_action('application_products_schedular_twiceday','WooConnection_Admin::twiceday_update_application_products');

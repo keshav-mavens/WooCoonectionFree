@@ -89,19 +89,28 @@ class WooConnection_Admin {
     
     //Function Definition : wooconnection_include_files
     public function wooconnection_include_files() {
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-common-functions.php');
-        require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
-        if(is_admin() && !wp_doing_ajax()){//check the screen of wp-admin is exist then include the below mention files..
-            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
-            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
-            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
-        } 
+        global $pagenow;
+        if($pagenow != 'plugins.php'){
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-common-functions.php');
+            require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
+        }
         
         if(is_admin()){//first check is admin.....
             if(!wp_doing_ajax()){//then check not doing ajax then call the few files for admin section....
-               require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-payment.php');
-               require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-coupons.php'); 
-               require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin-subscriptions.php');
+                if(isset($_GET['page']) && $_GET['page'] == 'wc-settings'){
+                    require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-payment.php');
+                }
+                if($pagenow == 'plugins.php'){
+                    require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
+                }
+                if($pagenow == 'post.php' || (isset($_GET['post_type']) && $_GET['post_type'] == 'shop_coupon')){
+                    require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
+                    require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-coupons.php');
+                }
+                if($pagenow == 'post.php'){
+                    require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
+                    require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin-subscriptions.php');
+                }
             }
         }else{
             $callCustomFiles = false;//by default false....
