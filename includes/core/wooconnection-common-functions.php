@@ -2702,8 +2702,6 @@ function get_set_product_sku($productId,$length=''){
         }
         $productSku = substr($productSku, 0, 10);
         $productSku = $productSku.$productId;
-        //update the woocommerce product sku......
-        update_post_meta($productId,'_sku',$productSku);
       }else{
         $productSku = $productSku;  
       }

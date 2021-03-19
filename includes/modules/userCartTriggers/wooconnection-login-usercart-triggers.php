@@ -174,6 +174,10 @@ function wooconnection_cart_product_add_trigger(){
         $productSku = '';
         if(isset($addedProductId) && !empty($addedProductId)){
             $productSku = get_set_product_sku($addedProductId,SKU_LENGHT_CART_ITEM);
+            $checkProductSku = get_post_meta($addedProductId, '_sku', true);
+            if(empty($checkProductSku)){
+                update_post_meta($addedProductId,'_sku',$productSku);
+            }
         }
 
         if(isset($productSku) && !empty($productSku) && !empty($standardAddItemCartIntegrationName)){
@@ -261,6 +265,10 @@ function wooconnection_cart_product_comment_trigger( $comment_ID, $comment_appro
             }
 
             $productSku = get_set_product_sku($_POST['comment_post_ID'],SKU_LENGHT_REVIEW);
+            $checkProductSkuExist = get_post_meta($_POST['comment_post_ID'],'_sku',true);
+            if(empty($checkProductSkuExist)){//if empty then update the product sku....
+                update_post_meta($_POST['comment_post_ID'],'_sku',$productSku);
+            }
             if(!empty($standardReviewItemCartIntegrationName) && !empty($productSku))
             {
                 $productSku = 'review'.$productSku;
