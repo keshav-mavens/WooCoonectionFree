@@ -63,7 +63,7 @@
 	  if( ! is_wp_error( $remoteData ) && isset( $remoteData['response']['code'] ) && $remoteData['response']['code'] == 200 && ! empty( $remoteData['body'] ) ) {
 	 	$remoteData = json_decode( $remoteData['body'] );//decode the response body....
 	    $result = new stdClass();
-	 	$result->name = 'WooConnection';
+	 	$result->name = 'WooConnection Pro';
 	    $result->slug = $wc_plugin_slug;
 	    $result->version = $remoteData->version;
 	    $result->tested = $remoteData->tested;

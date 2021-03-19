@@ -75,9 +75,12 @@
 		//check page is add/edit post...
 		if($hook == 'post-new.php' || $hook == 'post.php'){
 			//get the post type.....
-			$postType = $post->post_type;
+			$postType = '';
+			if(!empty($post)){
+				$postType = $post->post_type;
+			}
 			//check if post type is equal to coupon then add the custom jquery...
-			if($postType === 'shop_coupon'){
+			if(isset($postType) && $postType === 'shop_coupon'){
 				wp_deregister_script( 'jquery' );
 		        //Wooconnection Scripts : Resgister the wooconnection scripts..
 		        wp_register_script('jquery', (WOOCONNECTION_PLUGIN_URL.'assets/js/jquery.min.js'),WOOCONNECTION_VERSION, true);

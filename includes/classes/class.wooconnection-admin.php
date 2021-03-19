@@ -89,25 +89,25 @@ class WooConnection_Admin {
     
     //Function Definition : wooconnection_include_files
     public function wooconnection_include_files() {
-        global $pagenow;
-        if($pagenow != 'plugins.php'){
+        global $pagenow;//get the current page......
+        if($pagenow != 'plugins.php'){//check if page is not as plugins page.....
             require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/core/wooconnection-common-functions.php');
             require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/admin_ajax.php');
         }
         
         if(is_admin()){//first check is admin.....
             if(!wp_doing_ajax()){//then check not doing ajax then call the few files for admin section....
-                if(isset($_GET['page']) && $_GET['page'] == 'wc-settings'){
+                if(isset($_GET['page']) && $_GET['page'] == 'wc-settings'){//check page and call below file only for woocommerce settings page.....
                     require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-payment.php');
                 }
-                if($pagenow == 'plugins.php'){
-                    require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
-                }
+                require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
+                //call it for coupons page.......
                 if($pagenow == 'post.php' || (isset($_GET['post_type']) && $_GET['post_type'] == 'shop_coupon')){
-                    require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
                     require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-coupons.php');
                 }
-                if($pagenow == 'post.php'){
+                if($pagenow == 'post.php' || $pagenow == 'post-new.php' || (isset($_GET['post_type']) && $_GET['post_type'] == 'page'))
+                {//call the below file for post,product,page screens..... 
+                    require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
                     require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
                     require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin-subscriptions.php');
                 }
