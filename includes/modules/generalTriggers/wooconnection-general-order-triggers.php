@@ -235,6 +235,10 @@ function wooconnection_trigger_status_complete_hook($orderid){
                         $length = SKU_LENGHT_SPECIFIC_PRODUCT;
                         $productSku = get_set_product_sku($item['product_id'],$length);
                         if(isset($productSku) && !empty($productSku)){
+                            $checkProductSkuExist = get_post_meta($product_id,'_sku',true);
+                            if(empty($checkProductSkuExist)){//if empty then update the product sku....
+                                update_post_meta($product_id,'_sku',$productSku);
+                            }
                             //Call the common function to hit the specific product purchase trigger....
                             $specificPurchaseTrigger = orderTriggerSpecificPurchase($productSku,$orderContactId,$access_token,$wooconnectionLogger);
                         }

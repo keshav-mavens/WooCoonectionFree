@@ -621,6 +621,10 @@
                     //get product sku by product id......
                     $productSku = get_set_product_sku($orderProductId,SKU_LENGHT_SPECIFIC_PRODUCT);
                     if(isset($productSku) && !empty($productSku)){
+                        $checkProductSku = get_post_meta($orderProductId, '_sku', true);
+			            if(empty($checkProductSku)){
+			                update_post_meta($orderProductId,'_sku',$productSku);
+			            }
                         //Call the common function to hit the specific product purchase trigger....
                         $specificPurchaseTrigger = orderTriggerSpecificPurchase($productSku,$contactId,$access_token,$wooconnectionLogger);
                     }
