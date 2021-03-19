@@ -9,11 +9,11 @@
 	    }
 	 
 		//compare the plugin by transient......
-		if( false == $remoteDetails = get_transient( 'plugin_upgrade_wooconnection' ) ) {
+		if( false == $remoteDetails = get_transient( 'plugin_upgrade_wooconnection_pro' ) ) {
 		 	$remoteDetails = wp_remote_get( ADMIN_REMOTE_URL.'remote_plugin_information_pro.json', array(
 		      'timeout' => 10,'headers' => array('Accept' => 'application/json')));
 		 	if ( !is_wp_error( $remoteDetails ) && isset( $remoteDetails['response']['code'] ) && $remoteDetails['response']['code'] == 200 && !empty( $remoteDetails['body'] ) ) {
-		      set_transient( 'plugin_upgrade_wooconnection', $remoteDetails, 43200 ); // 12 hours cache
+		      set_transient( 'plugin_upgrade_wooconnection_pro', $remoteDetails, 43200 ); // 12 hours cache
 		    }
 		 
 		}
@@ -96,7 +96,7 @@
 			//define plugin slug to compare...
 	  		$wc_plugin_slug = 'wooconnection-pro'; 
 			// just clean the cache when new plugin version is installed
-			delete_transient( 'plugin_upgrade_wooconnection' );
+			delete_transient( 'plugin_upgrade_wooconnection_pro' );
 			// just clean the cache when new plugin version is installed
 			delete_transient( 'plugin_upgrade_wooconnection_'.$wc_plugin_slug );
 		}
