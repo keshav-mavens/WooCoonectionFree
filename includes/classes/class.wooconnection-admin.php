@@ -102,11 +102,10 @@ class WooConnection_Admin {
                 }
                 require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_update_plugin.php');
                 //call it for coupons page.......
-                if($pagenow == 'post.php' || (isset($_GET['post_type']) && $_GET['post_type'] == 'shop_coupon')){
+                if($pagenow == 'post.php' || $pagenow == 'post-new.php' || (isset($_GET['post_type']) && $_GET['post_type'] == 'shop_coupon')){
                     require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-coupons.php');
                 }
-                if($pagenow == 'post.php' || $pagenow == 'post-new.php' || (isset($_GET['post_type']) && $_GET['post_type'] == 'page'))
-                {//call the below file for post,product,page screens..... 
+                if($pagenow == 'post.php' || $pagenow == 'post-new.php' || (isset($_GET['post_type']) && $_GET['post_type'] == 'page')){//call the below file for post,product,page screens..... 
                     require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_referral_partner.php');
                     require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/admin/modules/wc_admin_hooks.php');
                     require_once(WOOCONNECTION_PLUGIN_DIR . 'includes/classes/class.wooconnection-admin-subscriptions.php');
