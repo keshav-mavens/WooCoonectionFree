@@ -1837,7 +1837,7 @@ function getHeaders($access_token,$tab_type_id){
 }
 
 //Checkout Custom fields : Code is used to check whether a input date is valid or not....  
-function validateDatecField($dateValue, $dateFormat = 'm/d/Y'){
+function validateDatecField($dateValue, $dateFormat = 'm-d-Y'){
     $date = DateTime::createFromFormat($dateFormat, $dateValue);
     return $date && $date->format($dateFormat) === $dateValue;
 }

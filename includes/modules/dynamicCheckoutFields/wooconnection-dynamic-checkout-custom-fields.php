@@ -139,7 +139,8 @@ function apply_date_picker_date_field() {
             if (jQuery(".cfieldDate")[0]){
                 jQuery( ".cfieldDate input" ).datepicker({
                   changeMonth: true,
-                  changeYear: true
+                  changeYear: true,
+                  dateFormat: 'mm-dd-yy'
                 });
             }
         });
