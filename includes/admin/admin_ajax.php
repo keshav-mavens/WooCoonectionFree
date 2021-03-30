@@ -2015,5 +2015,19 @@ function wc_get_reload_app_products(){
 	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
 	die();
 }
+
+//Wordpress Hook : This action is triggered when user try to enable disable referral partner tracking in infusionsoft application....
+add_action('wp_ajax_wc_update_lead_tracking','wc_update_lead_tracking');
+//Function Definition : wc_update_lead_tracking
+function wc_update_lead_tracking(){
+	if(isset($_POST) && !empty($_POST)){
+		if(isset($_POST['actionStatus']) && !empty($_POST['actionStatus'])){
+			update_option('lead_source_tracking_status',$_POST['actionStatus']);
+		}
+		//return response with html.....
+	  	echo json_encode(array('status'=>RESPONSE_STATUS_TRUE));
+	}
+	die();
+}
 ?>
 

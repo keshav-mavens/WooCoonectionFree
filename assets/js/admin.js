@@ -1228,6 +1228,36 @@
                     $('.load_more_coupons_div').hide();
                 }
             });
+
+            //Lead Source Tab : On change of enable/disable lead source tracking send ajax to update start of lead source tracking in database...
+            $document.on("click","#lead_tracking",function(event){
+                event.stopPropagation();
+                var actionValue = '';
+                if (this.checked) {
+                    actionValue = 'On';
+                }else{
+                    actionValue = 'Off';
+                }
+                if(actionValue != "" && typeof actionValue !== "undefined"){
+                    jQuery(".lead_source_main_html").addClass('overlay');
+                    jQuery(".ajax_loader").show();
+                    jQuery.post(ajax_object.ajax_url+"?action=wc_update_lead_tracking&jsoncallback=x",{actionStatus:actionValue},function(data){
+                        jQuery(".ajax_loader").hide();
+                        jQuery(".lead_source_main_html").removeClass('overlay');
+                        var responsedata = JSON.parse(data);
+                        if(responsedata.status == '1'){
+                            if(actionValue == 'On'){
+                                $(this).prop('checked',true);
+                                // $(".conditional_data").css("display","block");
+                            }else{
+                                $(this).prop('checked',false);
+                                //$(".conditional_data").css("display","none");
+                            }   
+                        }
+                    });
+                }
+            });
+
         });
 }(jQuery));
 

@@ -56,9 +56,11 @@ class WooConnection_Front {
                 $authenticate_application_edition = $authenticateAppdetails[0]->user_application_edition;
             }   
         }
-
+        
+        $checkLeadTrackingStatus = get_option('lead_source_tracking_status',true);
+        
         //check authenticate application edition is infusionsoft, if yes then proceed next to process the lead source feature....
-    	if($authenticate_application_edition == APPLICATION_TYPE_INFUSIONSOFT){
+    	if($authenticate_application_edition == APPLICATION_TYPE_INFUSIONSOFT && !empty($checkLeadTrackingStatus) && $checkLeadTrackingStatus == 'On'){
     		//first check lead source id exit in query string.....
 	    	if(!empty($_GET['ls'])) {
 				$lsId = $_GET['ls'];//get or set the lead source id....
@@ -198,7 +200,7 @@ class WooConnection_Front {
         }
     }
 
-    //Function Definition : wooconnection_leadsource_handling is used to handle the referral partner funtionality.....
+    //Function Definition : wooconnection_referral_partner_handling is used to handle the referral partner funtionality.....
     public function wooconnection_referral_partner_handling(){
         $affiliate_redirect_page_id = get_option('affiliate_redirect_page_id');
         if(isset($affiliate_redirect_page_id) && !empty($affiliate_redirect_page_id)){
