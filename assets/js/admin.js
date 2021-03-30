@@ -1248,10 +1248,8 @@
                         if(responsedata.status == '1'){
                             if(actionValue == 'On'){
                                 $(this).prop('checked',true);
-                                // $(".conditional_data").css("display","block");
                             }else{
                                 $(this).prop('checked',false);
-                                //$(".conditional_data").css("display","none");
                             }   
                         }
                     });
