@@ -14,7 +14,7 @@ class WooConnection_Front {
         //Call the hook wp_enqueue_scripts at the time of front end site loading..
 		add_action( 'wp_enqueue_scripts', array($this, 'remove_affiliate_page_menu'));
         //get the referral partner tracking status......
-        $checkReferralTrackingStatus = get_option('referral_partner_tracking_status',true);
+        $checkReferralTrackingStatus = get_option('referral_partner_tracking_status');
         //check if referral partner tracking in enable....
         if($checkReferralTrackingStatus == 'On'){
             //Call the hook template_redirect to control the affiliate redirection process..
@@ -57,7 +57,7 @@ class WooConnection_Front {
             }   
         }
         
-        $checkLeadTrackingStatus = get_option('lead_source_tracking_status',true);
+        $checkLeadTrackingStatus = get_option('lead_source_tracking_status');
         
         //check authenticate application edition is infusionsoft, if yes then proceed next to process the lead source feature....
     	if($authenticate_application_edition == APPLICATION_TYPE_INFUSIONSOFT && !empty($checkLeadTrackingStatus) && $checkLeadTrackingStatus == 'On'){
